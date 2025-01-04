@@ -11,13 +11,6 @@ const SIDEBAR_CONFIG: VitePressSidebarOptions = {
     useTitleFromFrontmatter: true,
 }
 
-const providerPath = new URL(
-    import.meta.resolve('@dalbit-yaksok/monaco-language-provider'),
-).pathname
-
-const runtimeCorePath = new URL(import.meta.resolve('@dalbit-yaksok/core'))
-    .pathname
-
 const workspacePath = new URL('../..', import.meta.url).pathname
 
 console.log({ workspacePath })
@@ -51,27 +44,12 @@ export default defineConfig(
                     fs: {
                         allow: [workspacePath],
                     },
-                    watch: {
-                        cwd: workspacePath,
-                    },
                 },
                 build: {
                     rollupOptions: {
                         watch: {
                             include: [workspacePath],
                         },
-                    },
-                },
-                optimizeDeps: {
-                    include: [
-                        '@dalbit-yaksok/monaco-language-provider',
-                        '@dalbit-yaksok/core',
-                    ],
-                },
-                resolve: {
-                    alias: {
-                        '@dalbit-yaksok/monaco-language-provider': providerPath,
-                        '@dalbit-yaksok/core': runtimeCorePath,
                     },
                 },
             },

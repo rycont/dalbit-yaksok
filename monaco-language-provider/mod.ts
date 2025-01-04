@@ -1,13 +1,16 @@
-import type { languages } from 'monaco-editor'
+import type { languages, editor } from 'monaco-editor'
 
 import { BaseProvider } from './provider/base.ts'
 import { TokensProvider } from './provider/tokens.ts'
-import { CompletionItemProvider } from './provider/completion-item.ts'
-
-const LANG_ID = 'yaksok'
+import {
+    CompletionItemProvider,
+    setupCompletion,
+} from './provider/completion-item.ts'
+import { LANG_ID } from './const.ts'
 
 export class DalbitYaksokApplier {
     baseProvider: BaseProvider
+
     tokensProvider: TokensProvider
     completionItemProvider: CompletionItemProvider
 
@@ -21,7 +24,6 @@ export class DalbitYaksokApplier {
     }
 
     public async register(languagesInstance: typeof languages) {
-        console.log(this.completionItemProvider)
         languagesInstance.register({ id: LANG_ID })
 
         await new Promise<void>((resolve) =>
@@ -60,7 +62,13 @@ export class DalbitYaksokApplier {
         )
     }
 
+    public configAutocomplete(editorInstance: editor.IStandaloneCodeEditor) {
+        setupCompletion(editorInstance, this.baseProvider)
+    }
+
     updateCode(code: string) {
         this.baseProvider.updateCode(code)
     }
 }
+
+export { LANG_ID }

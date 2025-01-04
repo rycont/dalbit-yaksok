@@ -3,8 +3,11 @@ import { onMounted, ref, useTemplateRef, watch } from 'vue'
 import AnsiCode from 'ansi-to-html'
 import type { editor, languages } from 'monaco-editor'
 
-import { yaksok } from '../../../core/mod'
-import { DalbitYaksokApplier } from '../../../monaco-language-provider/mod'
+import { yaksok } from '@dalbit-yaksok/core'
+import {
+    DalbitYaksokApplier,
+    LANG_ID,
+} from '@dalbit-yaksok/monaco-language-provider'
 
 const props = defineProps({
     code: {
@@ -47,7 +50,7 @@ async function initializeMonaco() {
         minimap: {
             enabled: false,
         },
-        language: 'yaksok',
+        language: LANG_ID,
         theme: 'vs',
         guides: {
             highlightActiveIndentation: false,
@@ -63,6 +66,8 @@ async function initializeMonaco() {
 
         languageProvider.updateCode(updatedCode)
     })
+
+    languageProvider.configAutocomplete(editorInstance)
 
     editorInstance.onDidFocusEditorText(() => {
         editorInstance!.addCommand(KeyMod.CtrlCmd | KeyCode.Enter, runCode)
