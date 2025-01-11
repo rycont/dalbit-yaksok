@@ -1,6 +1,12 @@
-import { assertEquals, assertIsError } from 'assert'
-import { yaksok } from '../core/mod.ts'
+import {
+    assertEquals,
+    assertInstanceOf,
+    assertIsError,
+    unreachable,
+} from 'assert'
+import { ListValue, StringValue, yaksok } from '../core/mod.ts'
 import { QuickJS, QuickJSInternalError } from './mod.ts'
+import { NumberValue } from '../core/value/primitive.ts'
 
 Deno.test('Error in QuickJS', async () => {
     const quickJS = new QuickJS()
@@ -27,6 +33,8 @@ Deno.test('Error in QuickJS', async () => {
                 },
             },
         )
+
+        unreachable()
     } catch (error) {
         assertIsError(error, QuickJSInternalError)
     }
@@ -58,7 +66,8 @@ Deno.test('QuickJS passed number', async () => {
         },
     )
 
-    assertEquals(result.scope.getVariable('숫자').value, 20)
+    assertInstanceOf(result.scope.getVariable('숫자'), NumberValue)
+    assertEquals((result.scope.getVariable('숫자') as NumberValue).value, 20)
 })
 
 Deno.test('QuickJS passed Array<number>', async () => {
@@ -150,12 +159,22 @@ Deno.test('JavaScript bridge function passed object', async () => {
         },
     )
 
-    assertEquals(result.scope.getVariable('학생').toPrint(), '홍길동')
-    assertEquals(result.scope.getVariable('이름').toPrint(), '홍길동')
-    assertEquals(result.scope.getVariable('나이').value, 20)
-    assertEquals(result.scope.getVariable('더한_결과').value, 30)
-    assertEquals(
-        result.scope.getVariable('모든_이름').toPrint(),
-        '[홍길동, 임꺽정, 김철수]',
-    )
+    const 학생 = result.scope.getVariable('학생') as StringValue
+    const 이름 = result.scope.getVariable('이름') as StringValue
+    const 나이 = result.scope.getVariable('나이') as NumberValue
+    const 더한_결과 = result.scope.getVariable('더한_결과') as NumberValue
+    const 모든_이름 = result.scope.getVariable('모든_이름') as ListValue
+
+    assertInstanceOf(학생, StringValue)
+    assertInstanceOf(이름, StringValue)
+    assertInstanceOf(나이, NumberValue)
+    assertInstanceOf(더한_결과, NumberValue)
+    assertInstanceOf(모든_이름, ListValue)
+
+    assertEquals(학생.value, '홍길동')
+    assertEquals(이름.value, '홍길동')
+    assertEquals(나이.value, 20)
+    assertEquals(더한_결과.value, 30)
+
+    assertEquals(모든_이름.toPrint(), '[홍길동, 임꺽정, 김철수]')
 })

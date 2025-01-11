@@ -37,6 +37,18 @@ Deno.test('Error in importing module', async () => {
     }
 })
 
+Deno.test('Error in parsing module file', async () => {
+    try {
+        await yaksok({
+            아두이노: `
+약속, 이름`,
+            main: '(@아두이노 이름) 보여주기',
+        })
+    } catch (error) {
+        assertIsError(error, ErrorInModuleError)
+    }
+})
+
 Deno.test('Error in using module function', async () => {
     try {
         await yaksok({

@@ -1,7 +1,5 @@
 {
   "tasks": {
-    "coverage": "rm -rf ./cov && deno test --quiet --allow-net --allow-read --parallel --coverage=cov && deno coverage --detailed ./cov && rm -rf ./cov",
-    "coverage-list": "rm -rf ./cov && deno test --quiet --allow-net --allow-read --parallel --coverage=cov && deno coverage ./cov && rm -rf ./cov",
     "check-circular-dependencies": "deno run -A npm:madge --circular --extensions ts ./",
     "check-deploy": "deno publish --dry-run --allow-dirty",
     "test": "deno task check-circular-dependencies & deno task check-deploy"

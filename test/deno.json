@@ -1,5 +1,7 @@
 {
     "tasks": {
-        "test": "deno test --quiet --allow-net --allow-read --parallel & deno lint"
+        "test": "deno test --quiet --allow-net --allow-read --parallel & deno lint",
+        "coverage": "rm -rf ./cov && deno test --quiet --allow-net --allow-read --parallel --coverage=cov && deno coverage --detailed ./cov && rm -rf ./cov",
+        "coverage-list": "rm -rf ./cov && deno test --quiet --allow-net --allow-read --parallel --coverage=cov && deno coverage ./cov && rm -rf ./cov"
     }
 }

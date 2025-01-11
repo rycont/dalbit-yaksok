@@ -1,5 +1,5 @@
-import { assertEquals } from 'assert'
-import { yaksok } from '../../core/mod.ts'
+import { assertEquals, assertInstanceOf } from 'assert'
+import { NumberValue, yaksok } from '../../core/mod.ts'
 
 function createRandomValue(depth = 0): number | (string | number)[] {
     if (depth > 3 || Math.random() < 0.5) {
@@ -38,6 +38,9 @@ for (let i = 0; i < 10; i++) {
     `
 
         const { scope } = await yaksok(code)
-        assertEquals(scope.getVariable('나이').value, eval(formula))
+        const 나이 = scope.getVariable('나이') as NumberValue
+
+        assertInstanceOf(나이, NumberValue)
+        assertEquals(나이.value, eval(formula))
     })
 }

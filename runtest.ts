@@ -1,10 +1,4 @@
-import { yaksok } from '@dalbit-yaksok/core'
+import { tokenize } from '@dalbit-yaksok/core'
 
-const CODE = `
-번역(JavaScript), (내용) 보여주기
-***
-    return "이거 진짜에요?"
-***
-`
-
-yaksok(CODE)
+const tokenized = tokenize(`"이름이 뭐에"!$`)
+console.log(tokenized)
