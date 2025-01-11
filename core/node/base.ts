@@ -3,6 +3,7 @@ import type { Scope } from '../executer/scope.ts'
 import { NotDefinedIdentifierError } from '../error/variable.ts'
 import { ValueType } from '../value/base.ts'
 import { Token } from '../prepare/tokenize/token.ts'
+import { YaksokError } from '../error/common.ts'
 
 export class Node {
     [key: string]: unknown
@@ -59,6 +60,7 @@ export class Identifier extends Evaluable {
         } catch (e) {
             if (e instanceof NotDefinedIdentifierError) {
                 e.position = this.tokens?.[0].position
+                e.tokens = this.tokens
             }
 
             throw e

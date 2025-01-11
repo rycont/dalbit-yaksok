@@ -1,6 +1,6 @@
 import { DEFAULT_RUNTIME_CONFIG, type RuntimeConfig } from './runtime-config.ts'
 import { FileForRunNotExistError } from '../error/prepare.ts'
-import { printError } from '../error/printError.ts'
+import { renderErrorString } from '../error/render-error-string.ts'
 import { YaksokError } from '../error/common.ts'
 import { CodeFile } from '../type/code-file.ts'
 
@@ -97,7 +97,7 @@ export async function yaksok(
         }
     } catch (e) {
         if (e instanceof YaksokError) {
-            console.error(printError(e))
+            console.error(renderErrorString(e))
         }
 
         throw e
