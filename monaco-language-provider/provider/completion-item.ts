@@ -1,8 +1,7 @@
-import { CancellationToken, editor, languages, Position } from 'monaco-editor'
+import { editor, languages, Position } from 'monaco-editor'
 import { BaseProvider } from './base.ts'
-import { hangulToPhoneme } from '../hangul-to-phoneme.ts'
 
-const COMPLETION_SNIPPETS = createPhonemeIndexedSnippets([
+const COMPLETION_SNIPPETS = [
     {
         label: '보여주기',
         kind: languages.CompletionItemKind.Keyword,
@@ -21,10 +20,10 @@ const COMPLETION_SNIPPETS = createPhonemeIndexedSnippets([
         insertText: '결과: ',
         detail: '약속의 결과를 설정해요',
     },
-])
+]
 
 export function setupCompletion(editorInstance: editor.IStandaloneCodeEditor) {
-    editorInstance.onDidChangeModelContent((e) => {
+    editorInstance.onDidChangeModelContent(() => {
         const position = editorInstance.getPosition()
 
         if (!position) {
@@ -45,7 +44,7 @@ export function setupCompletion(editorInstance: editor.IStandaloneCodeEditor) {
         }
 
         const isMatched = COMPLETION_SNIPPETS.some((snippet) =>
-            snippet.phoneme.includes(hangulToPhoneme(word)),
+            snippet.label.includes(word),
         )
 
         if (!isMatched) {
@@ -68,19 +67,18 @@ export class CompletionItemProvider
         model: editor.ITextModel,
         position: Position,
     ): languages.ProviderResult<languages.CompletionList> {
-        const { word } = model.getWordUntilPosition(position)
-        const wordPhoneme = hangulToPhoneme(word)
+        const word = model.getWordUntilPosition(position).word.trim()
 
-        if (wordPhoneme.length === 0) {
+        if (word.length === 0) {
             return {
                 suggestions: [],
             }
         }
 
         const matchedItems = COMPLETION_SNIPPETS.map((item) => ({
-            score: item.phoneme.startsWith(wordPhoneme)
+            score: item.label.startsWith(word)
                 ? 2
-                : item.phoneme.includes(wordPhoneme)
+                : item.label.includes(word)
                 ? 1
                 : 0,
             item,
@@ -95,21 +93,10 @@ export class CompletionItemProvider
                 range: {
                     startLineNumber: position.lineNumber,
                     endLineNumber: position.lineNumber,
-                    startColumn: position.column,
+                    startColumn: position.column - word.length,
                     endColumn: position.column,
                 },
             })),
         }
     }
-}
-
-function createPhonemeIndexedSnippets<T extends { label: string }>(
-    items: T[],
-): (T & {
-    phoneme: string
-})[] {
-    return items.map((item) => ({
-        ...item,
-        phoneme: hangulToPhoneme(item.label),
-    }))
 }
