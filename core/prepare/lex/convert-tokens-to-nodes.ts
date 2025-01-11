@@ -1,4 +1,3 @@
-import { UnexpectedCharError } from '../../error/prepare.ts'
 import { Expression, Identifier, Node, Operator } from '../../node/base.ts'
 import { FFIBody } from '../../node/ffi.ts'
 import { Mention } from '../../node/mention.ts'
