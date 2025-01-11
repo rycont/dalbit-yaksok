@@ -1,4 +1,4 @@
-import { assertEquals, assertIsError } from 'assert'
+import { assertEquals, assertIsError, unreachable } from 'assert'
 import { yaksok } from '../core/mod.ts'
 import { QuickJS, QuickJSInternalError } from './mod.ts'
 
@@ -27,6 +27,8 @@ Deno.test('Error in QuickJS', async () => {
                 },
             },
         )
+
+        unreachable()
     } catch (error) {
         assertIsError(error, QuickJSInternalError)
     }

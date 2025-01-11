@@ -6,7 +6,7 @@ import { Token } from '../prepare/tokenize/token.ts'
 
 export class Node {
     [key: string]: unknown
-    tokens?: Token[]
+    tokens: Token[] = []
 
     static friendlyName = '노드'
 

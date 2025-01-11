@@ -1,10 +1,7 @@
 import { yaksok } from '@dalbit-yaksok/core'
 
-const CODE = `
-번역(JavaScript), (내용) 보여주기
-***
-    return "이거 진짜에요?"
-***
-`
-
-yaksok(CODE)
+await yaksok({
+    아두이노: `
+약속, 이름`,
+    main: '(@아두이노 이름) 보여주기',
+})
