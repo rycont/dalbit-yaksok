@@ -52,6 +52,9 @@ export default defineConfig(
                         },
                     },
                 },
+                ssr: {
+                    noExternal: ['monaco-editor'],
+                },
             },
         },
         SIDEBAR_CONFIG,

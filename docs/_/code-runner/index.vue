@@ -1,13 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef, watch } from 'vue'
 import AnsiCode from 'ansi-to-html'
-import type { editor, languages } from 'monaco-editor'
+import type { editor } from 'monaco-editor'
 
 import { yaksok } from '@dalbit-yaksok/core'
-import {
-    DalbitYaksokApplier,
-    LANG_ID,
-} from '@dalbit-yaksok/monaco-language-provider'
 
 const props = defineProps({
     code: {
@@ -35,6 +31,10 @@ const ansiCode = new AnsiCode()
 
 async function initializeMonaco() {
     const editorElement = editorRef.value!
+
+    const { DalbitYaksokApplier, LANG_ID } = await import(
+        '@dalbit-yaksok/monaco-language-provider'
+    )
 
     const { editor, KeyCode, KeyMod, languages } = await import(
         'monaco-editor/esm/vs/editor/editor.api'

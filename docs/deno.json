@@ -4,7 +4,7 @@
         "@vue/runtime-dom": "npm:@vue/runtime-dom@^3.5.12",
         "@vueuse/core": "npm:@vueuse/core@^11.2.0",
         "ansi-to-html": "npm:ansi-to-html@^0.7.2",
-        "monaco-editor": "npm:monaco-editor@^0.52.0",
+        "monaco-editor": "npm:monaco-editor@^0.52.2",
         "typedoc": "npm:typedoc@0.27.4",
         "typedoc-plugin-markdown": "npm:typedoc-plugin-markdown@^4.2.10",
         "typedoc-vitepress-theme": "npm:typedoc-vitepress-theme@^1.1.1",
@@ -13,7 +13,7 @@
         "vue": "npm:vue@^3.5.12"
     },
     "tasks": {
-        "purge": "rm -rf ./docs/.vitepress/dist && rm -rf ./docs/.vitepress/cache",
+        "purge": "rm -rf ./docs/.vitepress/dist && rm -rf ./docs/.vitepress/cache && rm -rf ./docs/.vitepress/.temp",
         "typedoc": "deno run --allow-read --allow-write --allow-env --allow-run ./_/create-docs.ts",
         "vitepress-dev": "deno run -A npm:vitepress dev .",
         "vitepress-build": "deno run -A npm:vitepress build .",
