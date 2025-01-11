@@ -36,7 +36,7 @@ export class Runtime {
         }
     }
 
-    run(fileName = this.entryPoint): Promise<ExecuteResult<Block>> {
+    async run(fileName = this.entryPoint): Promise<ExecuteResult<Block>> {
         const codeFile = this.files[fileName]
 
         if (!codeFile) {
@@ -49,7 +49,7 @@ export class Runtime {
         }
 
         try {
-            return codeFile.run()
+            return await codeFile.run()
         } catch (e) {
             if (e instanceof YaksokError && !e.codeFile) {
                 e.codeFile = codeFile
