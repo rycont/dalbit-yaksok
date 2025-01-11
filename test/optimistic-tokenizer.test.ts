@@ -38,3 +38,16 @@ Deno.test('Incompleted String', () => {
         },
     ])
 })
+
+Deno.test('Unknown Character', () => {
+    const tokenized = tokenize(`"이름이 뭐에"!$`)
+    assertEquals(tokenized, [
+        {
+            type: 'STRING',
+            value: '"이름이 뭐에"',
+            position: { column: 1, line: 1 },
+        },
+        { type: 'UNKNOWN', position: { column: 9, line: 1 }, value: '!' },
+        { type: 'UNKNOWN', position: { column: 10, line: 1 }, value: '$' },
+    ])
+})

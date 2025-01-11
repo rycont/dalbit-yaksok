@@ -1,7 +1,4 @@
-import { yaksok } from '@dalbit-yaksok/core'
+import { tokenize } from '@dalbit-yaksok/core'
 
-await yaksok({
-    아두이노: `
-약속, 이름`,
-    main: '(@아두이노 이름) 보여주기',
-})
+const tokenized = tokenize(`"이름이 뭐에"!$`)
+console.log(tokenized)
