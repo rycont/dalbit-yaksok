@@ -30,7 +30,7 @@ export const RULES: {
 }[] = [
     {
         type: TOKEN_TYPE.NUMBER,
-        starter: /\d/,
+        starter: /[0-9\-]/,
         parse: (view, shift) => {
             let value = shift()!
 
@@ -53,9 +53,9 @@ export const RULES: {
                 value += shift()!
             }
 
-            const hasOneOrLessDot = value.split('.').length <= 2
+            const isNumber = !isNaN(parseFloat(value))
 
-            if (!hasOneOrLessDot) {
+            if (!isNumber) {
                 throw new NotAcceptableSignal()
             }
 
