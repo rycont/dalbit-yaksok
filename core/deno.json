@@ -8,5 +8,5 @@
   },
   "name": "@dalbit-yaksok/core",
   "exports": "./mod.ts",
-  "version": "0.2.0-RC.1"
+  "version": "0.2.0-RC.2"
 }
