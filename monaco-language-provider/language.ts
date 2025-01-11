@@ -61,8 +61,12 @@ export class DalbitYaksokApplier {
         )
     }
 
-    public configAutocomplete(editorInstance: editor.IStandaloneCodeEditor) {
+    public configEditor(editorInstance: editor.IStandaloneCodeEditor) {
         setupCompletion(editorInstance)
+
+        editorInstance.onDidChangeModelContent(() => {
+            this.updateCode(editorInstance.getValue())
+        })
     }
 
     updateCode(code: string) {

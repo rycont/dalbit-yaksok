@@ -63,11 +63,9 @@ async function initializeMonaco() {
     editorInstance.onDidChangeModelContent(() => {
         const updatedCode = editorInstance!.getValue()
         code.value = updatedCode
-
-        languageProvider.updateCode(updatedCode)
     })
 
-    languageProvider.configAutocomplete(editorInstance)
+    languageProvider.configEditor(editorInstance)
 
     editorInstance.onDidFocusEditorText(() => {
         editorInstance!.addCommand(KeyMod.CtrlCmd | KeyCode.Enter, runCode)

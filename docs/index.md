@@ -5,12 +5,11 @@ hero:
     name: 달빛약속
     text: 한글 프로그래밍 언어
     tagline: '약속 프로그래밍 언어의 포크, Formerly known as "Yaksok.ts"'
+    actions:
+        - text: 달빛약속 문법 배우기
+          link: /language/1. 시작하기
+          theme: brand
 features:
-    - title: 약속 문법 배우기
-      icon: 📚
-      link: /language/1. 시작하기
-      details: 간단한 예제를 통해 약속 문법을 배워보세요
-      linkText: 시작하기
     - title: 라이브러리로 사용하기
       icon: 📦
       link: /library/1. 시작하기
@@ -26,6 +25,11 @@ features:
       link: https://jsr.dev/@dalbit-yaksok/core
       details: JSR에서 달빛약속을 설치하세요
       linkText: 'jsr: @dalbit-yaksok/core'
+    - title: Monaco Editor와 함께 사용하기
+      icon: 📝
+      link: /monaco/사용 방법
+      details: Monaco Editor에서 달빛약속을 사용하는 방법을 알아보세요
+      linkText: 'jsr: @dalbit-yaksok/monaco-language-provider'
 ---
 
 <script setup>
