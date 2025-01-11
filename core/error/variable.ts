@@ -1,15 +1,19 @@
+import { Token } from '../prepare/tokenize/token.ts'
 import type { Position } from '../type/position.ts'
+import { tokenToText } from './common.ts'
 import { YaksokError } from './common.ts'
 
 export class CannotUseReservedWordForIdentifierNameError extends YaksokError {
     constructor(props: {
         position?: Position
         resource: {
-            name: string
+            token: Token
         }
     }) {
         super(props)
-        this.message = `${props.resource.name}는 변수나 약속의 이름으로 사용할 수 없어요.`
+        this.message = `${tokenToText(
+            props.resource.token,
+        )}는 변수나 약속의 이름으로 사용할 수 없어요.`
     }
 }
 

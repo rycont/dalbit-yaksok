@@ -257,14 +257,14 @@ export class EqualOperator extends Operator {
 }
 
 export class AndOperator extends Operator {
-    static override friendlyName = '이고(그리고)'
+    static override friendlyName = '이고'
 
     constructor(public override tokens: Token[]) {
         super(null, tokens)
     }
 
     override toPrint(): string {
-        return '이고(그리고)'
+        return '이고'
     }
 
     override call(...operands: ValueType[]): BooleanValue {

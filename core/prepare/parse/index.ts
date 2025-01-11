@@ -9,6 +9,7 @@ import { Block } from '../../node/block.ts'
 import type { CodeFile } from '../../type/code-file.ts'
 import type { Rule } from './rule.ts'
 import { getTokensFromNodes } from '../../util/merge-tokens.ts'
+import { YaksokError } from '../../error/common.ts'
 
 interface ParseResult {
     ast: Block
@@ -16,18 +17,28 @@ interface ParseResult {
 }
 
 export function parse(codeFile: CodeFile): ParseResult {
-    const dynamicRules = createDynamicRule(codeFile)
-    const indentedNodes = parseIndent(convertTokensToNodes(codeFile.tokens))
+    try {
+        const dynamicRules = createDynamicRule(codeFile)
+        const indentedNodes = parseIndent(convertTokensToNodes(codeFile.tokens))
 
-    const childNodes = callParseRecursively(indentedNodes, dynamicRules)
-    const childTokens = getTokensFromNodes(childNodes)
+        const childNodes = callParseRecursively(indentedNodes, dynamicRules)
+        const childTokens = getTokensFromNodes(childNodes)
 
-    const ast = new Block(childNodes, childTokens)
+        const ast = new Block(childNodes, childTokens)
 
-    const exportedVariables = getExportedVariablesRules(ast)
-    const exportedRules = [...dynamicRules.flat(), ...exportedVariables]
+        const exportedVariables = getExportedVariablesRules(ast)
+        const exportedRules = [...dynamicRules.flat(), ...exportedVariables]
 
-    return { ast, exportedRules }
+        return { ast, exportedRules }
+    } catch (error) {
+        if (error instanceof YaksokError) {
+            if (!error.codeFile) {
+                error.codeFile = codeFile
+            }
+        }
+
+        throw error
+    }
 }
 
 function getExportedVariablesRules(ast: Block): Rule[] {
