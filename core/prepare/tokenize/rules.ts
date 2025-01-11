@@ -1,5 +1,5 @@
 import { NotAcceptableSignal } from './signal.ts'
-import { TOKEN_TYPE } from './token.ts'
+import { Token, TOKEN_TYPE } from './token.ts'
 
 const OPERATORS = [
     '+',
@@ -25,14 +25,19 @@ export const RULES: {
     parse: (
         view: () => string | undefined,
         shift: () => string | undefined,
+        lastTokens: Token[],
     ) => string
     type: TOKEN_TYPE
 }[] = [
     {
         type: TOKEN_TYPE.NUMBER,
-        starter: /\d/,
-        parse: (view, shift) => {
+        starter: /[0-9\-]/,
+        parse: (view, shift, lastTokens) => {
             let value = shift()!
+
+            if (value === '-' && !isNegativeNumber(lastTokens)) {
+                throw new NotAcceptableSignal()
+            }
 
             while (
                 view() &&
@@ -53,9 +58,9 @@ export const RULES: {
                 value += shift()!
             }
 
-            const hasOneOrLessDot = value.split('.').length <= 2
+            const isNumber = !isNaN(parseFloat(value))
 
-            if (!hasOneOrLessDot) {
+            if (!isNumber) {
                 throw new NotAcceptableSignal()
             }
 
@@ -292,4 +297,31 @@ export const RULES: {
 
 function getAppliableOperators(prefix: string) {
     return OPERATORS.filter((operator) => operator.startsWith(prefix))
+}
+
+function isNegativeNumber(tokens: Token[]) {
+    const lastToken = tokens[tokens.length - 1]
+
+    const isBlank =
+        !lastToken ||
+        lastToken.type === TOKEN_TYPE.SPACE ||
+        lastToken.type === TOKEN_TYPE.NEW_LINE ||
+        lastToken.type === TOKEN_TYPE.INDENT ||
+        lastToken.type === TOKEN_TYPE.LINE_COMMENT
+
+    if (isBlank) {
+        return true
+    }
+
+    const isLastTokenLiteral =
+        lastToken.type === TOKEN_TYPE.NUMBER ||
+        lastToken.type === TOKEN_TYPE.IDENTIFIER ||
+        lastToken.type === TOKEN_TYPE.CLOSING_PARENTHESIS ||
+        lastToken.type === TOKEN_TYPE.CLOSING_BRACKET
+
+    if (isLastTokenLiteral) {
+        return false
+    }
+
+    return true
 }
