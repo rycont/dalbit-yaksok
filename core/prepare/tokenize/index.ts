@@ -50,7 +50,7 @@ class Tokenizer {
                         return shifted
                     }
 
-                    const value = rule.parse(view, shift)
+                    const value = rule.parse(view, shift, this.tokens)
 
                     this.tokens.push({
                         type: rule.type,
