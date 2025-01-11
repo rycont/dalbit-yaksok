@@ -25,6 +25,21 @@ import { SCOPE } from './scope.ts'
 import { parseFunctionDeclareHeader } from './declare-function.ts'
 import { parseListLoopHeader } from './list-loop.ts'
 
+/**
+ * 코드 에디터에서 문법 강조 기능을 구현할 수 있도록, AST 노드를 색상 토큰으로 변환합니다. `Node`를 받아서 `ColorPart[]`를 반환합니다.
+ *
+ * @example
+ * ```ts
+ * const code = `"안녕!" 보여주기`
+ * const { ast } = new CodeFile(code)
+ *
+ * const colorTokens = nodeToColorTokens(ast) // [!code highlight]
+ * console.log(colorTokens)
+ * ```
+ *
+ * @param node 색상 토큰으로 변환할 AST 노드
+ * @returns {ColorPart[]} 추출된 색상 토큰
+ */
 function node(node: Node): ColorPart[] {
     if (node instanceof Block) {
         return block(node)

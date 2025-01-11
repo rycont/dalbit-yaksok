@@ -1,5 +1,4 @@
-import type { languages } from 'monaco-editor'
-import { parse, CodeFile } from '@dalbit-yaksok/core'
+import { CodeFile } from '@dalbit-yaksok/core'
 
 import { getCommentColorParts } from '../ast-to-colorize/get-comment-color-part.ts'
 import { nodeToColorTokens } from '../ast-to-colorize/index.ts'
@@ -16,7 +15,7 @@ export class BaseProvider {
 
     createColorParts(code: string): Map<number, ColorPart[]> {
         const codeFile = new CodeFile(code)
-        const { ast } = parse(codeFile)
+        const { ast } = codeFile
 
         const nodeColorParts = nodeToColorTokens(ast).toSorted(
             (a, b) => a.position.column - b.position.column,
