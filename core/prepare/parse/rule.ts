@@ -47,7 +47,7 @@ export interface PatternUnit {
     type: {
         new (...args: any[]): Node
     }
-    value?: Record<string, unknown> | string | number
+    value?: string
     as?: string
 }
 

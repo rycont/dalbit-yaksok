@@ -1,5 +1,7 @@
+import { RESERVED_WORDS } from '../../../../constant/reserved-words.ts'
 import { FunctionMustHaveOneOrMoreStringPartError } from '../../../../error/function.ts'
 import { UnexpectedTokenError } from '../../../../error/prepare.ts'
+import { CannotUseReservedWordForIdentifierNameError } from '../../../../error/variable.ts'
 import {
     FunctionTemplate,
     FunctionTemplatePiece,
@@ -85,6 +87,17 @@ function assertValidFunctionHeader(
     }
 
     for (const [index, token] of tokens.entries()) {
+        if (token.type === TOKEN_TYPE.IDENTIFIER) {
+            if (RESERVED_WORDS.has(token.value)) {
+                throw new CannotUseReservedWordForIdentifierNameError({
+                    position: token.position,
+                    resource: {
+                        token,
+                    },
+                })
+            }
+        }
+
         if (token.type !== TOKEN_TYPE.OPENING_PARENTHESIS) {
             continue
         }

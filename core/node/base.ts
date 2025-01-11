@@ -86,7 +86,7 @@ export interface OperatorNode {
     call(...operands: ValueType[]): ValueType
 }
 
-export type OperatorClass ={
+export type OperatorClass = {
     new (...args: any[]): OperatorNode
 }
 

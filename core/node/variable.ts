@@ -5,22 +5,7 @@ import { Evaluable } from './base.ts'
 import type { ValueType } from '../value/base.ts'
 import type { Scope } from '../executer/scope.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
-
-export const RESERVED_WORDS = [
-    '약속',
-    '만약',
-    '이고',
-    '고',
-    '거나',
-    '이거나',
-    '이면',
-    '보여주기',
-    '반복',
-    '이전',
-    '의',
-    '마다',
-    '훔쳐오기',
-]
+import { RESERVED_WORDS } from '../constant/reserved-words.ts'
 
 export class SetVariable extends Evaluable {
     static override friendlyName = '변수 정하기'
@@ -48,12 +33,12 @@ export class SetVariable extends Evaluable {
     }
 
     assertValidName() {
-        if (!RESERVED_WORDS.includes(this.name)) return
+        if (!RESERVED_WORDS.has(this.name)) return
 
         throw new CannotUseReservedWordForIdentifierNameError({
             position: this.tokens[0].position,
             resource: {
-                name: this.name,
+                token: this.tokens[0],
             },
         })
     }

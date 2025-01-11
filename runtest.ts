@@ -1,15 +1,10 @@
 import { yaksok } from '@dalbit-yaksok/core'
 
 const CODE = `
-1 - 1 보여주기
-1 - -1 보여주기
-1 - 1.0 보여주기
-1--1 보여주기
-1+-1 보여주기
-1-1 보여주기
-1-2--3 보여주기
-1 - 2 - -3 보여주기
-10 * -3 보여주기
+번역(JavaScript), (내용) 보여주기
+***
+    return "이거 진짜에요?"
+***
 `
 
 yaksok(CODE)
