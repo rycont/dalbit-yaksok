@@ -8,6 +8,7 @@ import { Block } from '../../node/block.ts'
 
 import type { CodeFile } from '../../type/code-file.ts'
 import type { Rule } from './rule.ts'
+import { getTokensFromNodes } from '../../util/merge-tokens.ts'
 
 interface ParseResult {
     ast: Block
@@ -18,7 +19,10 @@ export function parse(codeFile: CodeFile): ParseResult {
     const dynamicRules = createDynamicRule(codeFile)
     const indentedNodes = parseIndent(convertTokensToNodes(codeFile.tokens))
 
-    const ast = new Block(callParseRecursively(indentedNodes, dynamicRules))
+    const childNodes = callParseRecursively(indentedNodes, dynamicRules)
+    const childTokens = getTokensFromNodes(childNodes)
+
+    const ast = new Block(childNodes, childTokens)
 
     const exportedVariables = getExportedVariablesRules(ast)
     const exportedRules = [...dynamicRules.flat(), ...exportedVariables]
@@ -40,7 +44,8 @@ function getExportedVariablesRules(ast: Block): Rule[] {
                         value: variableName,
                     },
                 ],
-                factory: () => new Identifier(variableName),
+                factory: (_nodes, tokens) =>
+                    new Identifier(variableName, tokens),
                 config: {
                     exported: true,
                 },

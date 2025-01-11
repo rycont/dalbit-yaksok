@@ -1,6 +1,8 @@
-<script setup>
+<script setup lang="ts">
 import { onMounted, ref, useTemplateRef, watch } from 'vue'
 import AnsiCode from 'ansi-to-html'
+import type { editor } from 'monaco-editor'
+
 import { yaksok } from '@dalbit-yaksok/core'
 
 const props = defineProps({
@@ -21,17 +23,25 @@ const props = defineProps({
 const editorRef = useTemplateRef('editor')
 
 const code = ref(props.code)
-const stdout = ref([])
-let editorInstance = null
+const stdout = ref<string[]>([])
+
+let editorInstance: editor.IStandaloneCodeEditor | null = null
 
 const ansiCode = new AnsiCode()
 
 async function initializeMonaco() {
-    const editorElement = editorRef.value
+    const editorElement = editorRef.value!
 
-    const { editor, KeyCode, KeyMod } = await import(
+    const { DalbitYaksokApplier, LANG_ID } = await import(
+        '@dalbit-yaksok/monaco-language-provider'
+    )
+
+    const { editor, KeyCode, KeyMod, languages } = await import(
         'monaco-editor/esm/vs/editor/editor.api'
     )
+
+    const languageProvider = new DalbitYaksokApplier(code.value)
+    languageProvider.register(languages)
 
     editorInstance = editor.create(editorElement, {
         automaticLayout: true,
@@ -40,15 +50,25 @@ async function initializeMonaco() {
         minimap: {
             enabled: false,
         },
-        lineNumbersMinChars: 3,
+        language: LANG_ID,
+        theme: 'vs',
+        guides: {
+            highlightActiveIndentation: false,
+            indentation: false,
+        },
+        renderLineHighlight: 'none',
+        lineNumbers: 'off',
     })
 
     editorInstance.onDidChangeModelContent(() => {
-        code.value = editorInstance.getValue()
+        const updatedCode = editorInstance!.getValue()
+        code.value = updatedCode
     })
 
+    languageProvider.configEditor(editorInstance)
+
     editorInstance.onDidFocusEditorText(() => {
-        editorInstance.addCommand(KeyMod.CtrlCmd | KeyCode.Enter, runCode)
+        editorInstance!.addCommand(KeyMod.CtrlCmd | KeyCode.Enter, runCode)
     })
 }
 
@@ -62,7 +82,7 @@ function ansiToHtml(content) {
 }
 
 function viewAnswer() {
-    editorInstance.setValue(props.challenge.answerCode)
+    editorInstance!.setValue(props.challenge.answerCode)
 }
 
 async function runCode() {
@@ -91,7 +111,6 @@ function share() {
 }
 
 watch(stdout, (output) => {
-    console.log(props.challenge?.output, stdout.value.join('\n'))
     if (stdout.value.join('\n') === props?.challenge?.output) {
         alert('정답입니다!')
     }

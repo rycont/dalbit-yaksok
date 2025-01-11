@@ -1,13 +1,15 @@
 import { CallFrame } from '../executer/callFrame.ts'
-import type { Scope } from '../executer/scope.ts'
-import type { Block } from './block.ts'
 import { BreakSignal } from '../executer/signals.ts'
 import { Executable } from './base.ts'
+
+import type { Token } from '../prepare/tokenize/token.ts'
+import type { Scope } from '../executer/scope.ts'
+import type { Block } from './block.ts'
 
 export class Loop extends Executable {
     static override friendlyName = '반복'
 
-    constructor(public body: Block) {
+    constructor(public body: Block, public override tokens: Token[]) {
         super()
     }
 
@@ -29,7 +31,11 @@ export class Loop extends Executable {
 export class Break extends Executable {
     static override friendlyName = '그만'
 
+    constructor(public override tokens: Token[]) {
+        super()
+    }
+
     override execute(_scope: Scope, _callFrame: CallFrame): Promise<never> {
-        throw new BreakSignal(this.position)
+        throw new BreakSignal(this.tokens[0].position)
     }
 }

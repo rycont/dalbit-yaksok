@@ -11,6 +11,10 @@ const SIDEBAR_CONFIG: VitePressSidebarOptions = {
     useTitleFromFrontmatter: true,
 }
 
+const workspacePath = new URL('../..', import.meta.url).pathname
+
+console.log({ workspacePath })
+
 export default defineConfig(
     withSidebar(
         {
@@ -35,10 +39,22 @@ export default defineConfig(
                 },
             },
             vite: {
-                build: {
-                    minify: false,
-                },
                 plugins: [pluginDeno()],
+                server: {
+                    fs: {
+                        allow: [workspacePath],
+                    },
+                },
+                build: {
+                    rollupOptions: {
+                        watch: {
+                            include: [workspacePath],
+                        },
+                    },
+                },
+                ssr: {
+                    noExternal: ['monaco-editor'],
+                },
             },
         },
         SIDEBAR_CONFIG,

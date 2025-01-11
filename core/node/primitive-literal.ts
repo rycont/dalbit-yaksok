@@ -1,14 +1,14 @@
 import { BooleanValue, NumberValue, StringValue } from '../value/primitive.ts'
 import { Evaluable } from './base.ts'
 
+import type { Token } from '../prepare/tokenize/token.ts'
 import type { CallFrame } from '../executer/callFrame.ts'
-import type { Position } from '../type/position.ts'
 import type { Scope } from '../executer/scope.ts'
 
 export class NumberLiteral extends Evaluable {
     static override friendlyName = '숫자'
 
-    constructor(private content: number, public override position?: Position) {
+    constructor(private content: number, public override tokens: Token[]) {
         super()
     }
 
@@ -27,7 +27,7 @@ export class NumberLiteral extends Evaluable {
 export class StringLiteral extends Evaluable {
     static override friendlyName = '문자'
 
-    constructor(private content: string, public override position?: Position) {
+    constructor(private content: string, public override tokens: Token[]) {
         super()
     }
 
@@ -46,7 +46,7 @@ export class StringLiteral extends Evaluable {
 export class BooleanLiteral extends Evaluable {
     static override friendlyName = '참거짓'
 
-    constructor(private content: boolean, public override position?: Position) {
+    constructor(private content: boolean, public override tokens: Token[]) {
         super()
     }
 

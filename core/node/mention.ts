@@ -1,17 +1,18 @@
 import { Evaluable, Executable, Identifier } from './base.ts'
-import type { CallFrame } from '../executer/callFrame.ts'
-import type { Scope } from '../executer/scope.ts'
 import { ErrorInModuleError } from '../error/index.ts'
-import type { Position } from '../type/position.ts'
 import { YaksokError } from '../error/common.ts'
 import { FunctionInvoke } from './function.ts'
 import { evaluateParams } from './function.ts'
 import { ValueType } from '../value/base.ts'
 
+import type { Token } from '../prepare/tokenize/token.ts'
+import type { CallFrame } from '../executer/callFrame.ts'
+import type { Scope } from '../executer/scope.ts'
+
 export class Mention extends Executable {
     static override friendlyName = '불러올 파일 이름'
 
-    constructor(public value: string, public override position?: Position) {
+    constructor(public value: string, public override tokens: Token[]) {
         super()
     }
 
@@ -26,6 +27,7 @@ export class MentionScope extends Evaluable {
     constructor(
         public fileName: string,
         public child: FunctionInvoke | Identifier,
+        public override tokens: Token[],
     ) {
         super()
     }
@@ -34,8 +36,6 @@ export class MentionScope extends Evaluable {
         scope: Scope,
         callFrame: CallFrame,
     ): Promise<ValueType> {
-        this.setChildPosition()
-
         try {
             const moduleCodeFile = scope.codeFile!.runtime!.getCodeFile(
                 this.fileName,
@@ -65,7 +65,7 @@ export class MentionScope extends Evaluable {
                     resource: {
                         fileName: this.fileName,
                     },
-                    position: this.position,
+                    position: this.tokens[0].position,
                     child: error,
                 })
             }
@@ -76,14 +76,5 @@ export class MentionScope extends Evaluable {
 
     override toPrint(): string {
         return '@' + this.fileName + ' ' + this.child.toPrint()
-    }
-
-    private setChildPosition() {
-        if (!this.position) return
-
-        this.child.position = {
-            line: this.position.line,
-            column: this.position.column + 1 + this.fileName.length,
-        }
     }
 }

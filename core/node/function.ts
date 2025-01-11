@@ -7,6 +7,7 @@ import type { Block } from './block.ts'
 import { FunctionObject } from '../value/function.ts'
 import { FFIResultTypeIsNotForYaksokError } from '../error/ffi.ts'
 import { ValueType } from '../value/base.ts'
+import type { Token } from '../prepare/tokenize/token.ts'
 
 export class DeclareFunction extends Executable {
     static override friendlyName = '새 약속 만들기'
@@ -14,7 +15,10 @@ export class DeclareFunction extends Executable {
     name: string
     body: Block
 
-    constructor(props: { body: Block; name: string }) {
+    constructor(
+        props: { body: Block; name: string },
+        public override tokens: Token[],
+    ) {
         super()
 
         this.name = props.name
@@ -35,7 +39,10 @@ export class FunctionInvoke extends Evaluable {
     public name: string
     public params: Record<string, Evaluable>
 
-    constructor(props: { name: string; params: Record<string, Evaluable> }) {
+    constructor(
+        props: { name: string; params: Record<string, Evaluable> },
+        public override tokens: Token[],
+    ) {
         super()
 
         this.name = props.name!
@@ -85,6 +92,6 @@ function assertValidReturnValue(node: FunctionInvoke, returnValue: ValueType) {
     throw new FFIResultTypeIsNotForYaksokError({
         ffiName: node.name,
         value: returnValue,
-        position: node.position,
+        position: node.tokens?.[0].position,
     })
 }

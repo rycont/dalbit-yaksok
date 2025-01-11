@@ -1,4 +1,5 @@
 import { type Node, Indent, EOL, Block } from '../../node/index.ts'
+import { getTokensFromNodes } from '../../util/merge-tokens.ts'
 
 export function parseIndent(_tokens: Node[], indent = 0) {
     const groups: Node[] = []
@@ -42,7 +43,9 @@ export function parseIndent(_tokens: Node[], indent = 0) {
             }
 
             const child = parseIndent(blockTokens, indent + 1)
-            groups.push(new Block(child))
+            const childTokens = getTokensFromNodes(child)
+
+            groups.push(new Block(child, childTokens))
         } else {
             groups.push(token)
         }

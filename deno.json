@@ -19,9 +19,10 @@
         "quickjs",
         "docs",
         "core",
-        "test"
+        "test",
+        "monaco-language-provider"
     ],
-    "version": "0.2.0-alpha.11+20241217.nightly",
+    "version": "0.2.0-alpha.13+20250104.nightly",
     "tasks": {
         "apply-version": "deno run --allow-read --allow-write apply-version.ts",
         "publish": "deno task --recursive test && deno publish --allow-dirty"

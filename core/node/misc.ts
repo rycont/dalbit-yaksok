@@ -1,13 +1,13 @@
+import { Node, Executable, type Evaluable } from './base.ts'
+
 import type { CallFrame } from '../executer/callFrame.ts'
 import type { Scope } from '../executer/scope.ts'
-import { Position } from '../type/position.ts'
-
-import { Node, Executable, type Evaluable } from './base.ts'
+import type { Token } from '../prepare/tokenize/token.ts'
 
 export class EOL extends Node {
     static override friendlyName = '줄바꿈'
 
-    constructor(public override position?: Position) {
+    constructor(public override tokens: Token[]) {
         super()
     }
 }
@@ -15,7 +15,7 @@ export class EOL extends Node {
 export class Indent extends Node {
     static override friendlyName = '들여쓰기'
 
-    constructor(public size: number, public override position?: Position) {
+    constructor(public size: number, public override tokens: Token[]) {
         super()
     }
 }
@@ -23,7 +23,7 @@ export class Indent extends Node {
 export class Print extends Executable {
     static override friendlyName = '보여주기'
 
-    constructor(public value: Evaluable, public override position?: Position) {
+    constructor(public value: Evaluable, public override tokens: Token[]) {
         super()
     }
 

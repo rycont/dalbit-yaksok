@@ -41,6 +41,8 @@ import { ListLoop } from '../../node/listLoop.ts'
 import { IndexedValue } from '../../value/indexed.ts'
 import { NumberValue, StringValue } from '../../value/primitive.ts'
 
+import type { Token } from '../tokenize/token.ts'
+
 export interface PatternUnit {
     type: {
         new (...args: any[]): Node
@@ -51,7 +53,7 @@ export interface PatternUnit {
 
 export type Rule = {
     pattern: PatternUnit[]
-    factory: (nodes: Node[]) => Node
+    factory: (nodes: Node[], tokens: Token[]) => Node
     config?: Record<string, unknown>
 }
 
@@ -74,11 +76,11 @@ export const BASIC_RULES: Rule[][] = [
                     value: ']',
                 },
             ],
-            factory: (nodes) => {
+            factory: (nodes, tokens) => {
                 const target = nodes[0] as Evaluable<IndexedValue>
                 const index = nodes[2] as Evaluable<StringValue | NumberValue>
 
-                return new IndexFetch(target, index)
+                return new IndexFetch(target, index, tokens)
             },
         },
     ],
@@ -97,8 +99,11 @@ export const BASIC_RULES: Rule[][] = [
                     value: ')',
                 },
             ],
-            factory: (nodes) => {
-                const newNode = new ValueWithParenthesis(nodes[1] as Evaluable)
+            factory: (nodes, tokens) => {
+                const newNode = new ValueWithParenthesis(
+                    nodes[1] as Evaluable,
+                    tokens,
+                )
                 newNode.position = nodes[0].position
 
                 return newNode
@@ -118,9 +123,9 @@ export const BASIC_RULES: Rule[][] = [
                     value: ']',
                 },
             ],
-            factory: (nodes) => {
+            factory: (nodes, tokens) => {
                 const sequence = nodes[1] as Sequence
-                return new ListLiteral(sequence.items)
+                return new ListLiteral(sequence.items, tokens)
             },
         },
         {
@@ -135,16 +140,16 @@ export const BASIC_RULES: Rule[][] = [
                     type: Evaluable,
                 },
             ],
-            factory: (nodes) => {
+            factory: (nodes, tokens) => {
                 const left = nodes[0] as Evaluable
                 const operator = nodes[1] as Operator
                 const right = nodes[2] as Evaluable
 
                 if (left instanceof Formula) {
-                    return new Formula([...left.terms, operator, right])
+                    return new Formula([...left.terms, operator, right], tokens)
                 }
 
-                return new Formula([left, operator, right])
+                return new Formula([left, operator, right], tokens)
             },
         },
         {
@@ -154,7 +159,7 @@ export const BASIC_RULES: Rule[][] = [
                     value: '=',
                 },
             ],
-            factory: () => new EqualOperator(),
+            factory: (_nodes, tokens) => new EqualOperator(tokens),
         },
         {
             pattern: [
@@ -163,7 +168,7 @@ export const BASIC_RULES: Rule[][] = [
                     value: '>',
                 },
             ],
-            factory: () => new GreaterThanOperator(),
+            factory: (_nodes, tokens) => new GreaterThanOperator(tokens),
         },
         {
             pattern: [
@@ -172,7 +177,7 @@ export const BASIC_RULES: Rule[][] = [
                     value: '<',
                 },
             ],
-            factory: () => new LessThanOperator(),
+            factory: (_nodes, tokens) => new LessThanOperator(tokens),
         },
         {
             pattern: [
@@ -181,7 +186,7 @@ export const BASIC_RULES: Rule[][] = [
                     value: '>=',
                 },
             ],
-            factory: () => new GreaterThanOrEqualOperator(),
+            factory: (_nodes, tokens) => new GreaterThanOrEqualOperator(tokens),
         },
         {
             pattern: [
@@ -190,7 +195,7 @@ export const BASIC_RULES: Rule[][] = [
                     value: '<=',
                 },
             ],
-            factory: () => new LessThanOrEqualOperator(),
+            factory: (_nodes, tokens) => new LessThanOrEqualOperator(tokens),
         },
         {
             pattern: [
@@ -199,7 +204,7 @@ export const BASIC_RULES: Rule[][] = [
                     value: '//',
                 },
             ],
-            factory: () => new IntegerDivideOperator(),
+            factory: (_nodes, tokens) => new IntegerDivideOperator(tokens),
         },
         {
             pattern: [
@@ -208,7 +213,7 @@ export const BASIC_RULES: Rule[][] = [
                     value: '%',
                 },
             ],
-            factory: () => new ModularOperator(),
+            factory: (_nodes, tokens) => new ModularOperator(tokens),
         },
         {
             pattern: [
@@ -217,7 +222,7 @@ export const BASIC_RULES: Rule[][] = [
                     value: '**',
                 },
             ],
-            factory: () => new PowerOperator(),
+            factory: (_nodes, tokens) => new PowerOperator(tokens),
         },
         {
             pattern: [
@@ -226,7 +231,7 @@ export const BASIC_RULES: Rule[][] = [
                     value: '/',
                 },
             ],
-            factory: () => new DivideOperator(),
+            factory: (_nodes, tokens) => new DivideOperator(tokens),
         },
         {
             pattern: [
@@ -235,7 +240,7 @@ export const BASIC_RULES: Rule[][] = [
                     value: '*',
                 },
             ],
-            factory: () => new MultiplyOperator(),
+            factory: (_nodes, tokens) => new MultiplyOperator(tokens),
         },
         {
             pattern: [
@@ -244,7 +249,7 @@ export const BASIC_RULES: Rule[][] = [
                     value: '+',
                 },
             ],
-            factory: () => new PlusOperator(),
+            factory: (_nodes, tokens) => new PlusOperator(tokens),
         },
         {
             pattern: [
@@ -253,7 +258,7 @@ export const BASIC_RULES: Rule[][] = [
                     value: '-',
                 },
             ],
-            factory: () => new MinusOperator(),
+            factory: (_nodes, tokens) => new MinusOperator(tokens),
         },
         {
             pattern: [
@@ -262,7 +267,7 @@ export const BASIC_RULES: Rule[][] = [
                     value: '이고',
                 },
             ],
-            factory: () => new AndOperator(),
+            factory: (_nodes, tokens) => new AndOperator(tokens),
         },
         {
             pattern: [
@@ -271,7 +276,7 @@ export const BASIC_RULES: Rule[][] = [
                     value: '고',
                 },
             ],
-            factory: () => new AndOperator(),
+            factory: (_nodes, tokens) => new AndOperator(tokens),
         },
         {
             pattern: [
@@ -280,7 +285,7 @@ export const BASIC_RULES: Rule[][] = [
                     value: '이거나',
                 },
             ],
-            factory: () => new OrOperator(),
+            factory: (_nodes, tokens) => new OrOperator(tokens),
         },
         {
             pattern: [
@@ -289,7 +294,7 @@ export const BASIC_RULES: Rule[][] = [
                     value: '거나',
                 },
             ],
-            factory: () => new OrOperator(),
+            factory: (_nodes, tokens) => new OrOperator(tokens),
         },
         {
             pattern: [
@@ -298,7 +303,7 @@ export const BASIC_RULES: Rule[][] = [
                     value: '~',
                 },
             ],
-            factory: () => new RangeOperator(),
+            factory: (_nodes, tokens) => new RangeOperator(tokens),
         },
         {
             pattern: [
@@ -320,7 +325,7 @@ export const BASIC_RULES: Rule[][] = [
                     type: Block,
                 },
             ],
-            factory: (nodes) => {
+            factory: (nodes, tokens) => {
                 const [_, __, functionInvoke, ___, body] = nodes as [
                     unknown,
                     unknown,
@@ -331,10 +336,13 @@ export const BASIC_RULES: Rule[][] = [
 
                 const functionName = functionInvoke.name
 
-                return new DeclareFunction({
-                    body,
-                    name: functionName,
-                })
+                return new DeclareFunction(
+                    {
+                        body,
+                        name: functionName,
+                    },
+                    tokens,
+                )
             },
         },
         {
@@ -360,7 +368,7 @@ export const BASIC_RULES: Rule[][] = [
                     type: FFIBody,
                 },
             ],
-            factory: (nodes) => {
+            factory: (nodes, tokens) => {
                 const [_, runtimeNode, __, functionInvoke, ___, body] =
                     nodes as [
                         unknown,
@@ -374,11 +382,14 @@ export const BASIC_RULES: Rule[][] = [
                 const functionName = functionInvoke.name
                 const runtime = (runtimeNode.value as Identifier).value
 
-                return new DeclareFFI({
-                    body: body.code,
-                    name: functionName,
-                    runtime,
-                })
+                return new DeclareFFI(
+                    {
+                        body: body.code,
+                        name: functionName,
+                        runtime,
+                    },
+                    tokens,
+                )
             },
         },
     ],
@@ -398,11 +409,11 @@ export const ADVANCED_RULES: Rule[] = [
                 type: Evaluable,
             },
         ],
-        factory: (nodes) => {
+        factory: (nodes, tokens) => {
             const a = nodes[0] as Evaluable
             const b = nodes[2] as Evaluable
 
-            return new Sequence([a, b])
+            return new Sequence([a, b], tokens)
         },
     },
     {
@@ -418,11 +429,11 @@ export const ADVANCED_RULES: Rule[] = [
                 type: Evaluable,
             },
         ],
-        factory: (nodes) => {
+        factory: (nodes, tokens) => {
             const a = nodes[0] as Sequence
             const b = nodes[2] as Evaluable
 
-            return new Sequence([...a.items, b])
+            return new Sequence([...a.items, b], tokens)
         },
     },
     {
@@ -436,7 +447,7 @@ export const ADVANCED_RULES: Rule[] = [
                 value: ']',
             },
         ],
-        factory: () => new ListLiteral([]),
+        factory: (_nodes, tokens) => new ListLiteral([], tokens),
     },
     {
         pattern: [
@@ -451,11 +462,11 @@ export const ADVANCED_RULES: Rule[] = [
                 type: Evaluable,
             },
         ],
-        factory: (nodes) => {
+        factory: (nodes, tokens) => {
             const target = nodes[0] as IndexFetch
             const value = nodes[2] as Evaluable
 
-            return new SetToIndex(target, value)
+            return new SetToIndex(target, value, tokens)
         },
     },
     {
@@ -474,11 +485,11 @@ export const ADVANCED_RULES: Rule[] = [
                 type: EOL,
             },
         ],
-        factory: (nodes) => {
+        factory: (nodes, tokens) => {
             const name = (nodes[0] as Identifier).value
             const value = nodes[2] as Evaluable
 
-            return new SetVariable(name, value)
+            return new SetVariable(name, value, tokens)
         },
     },
     {
@@ -490,7 +501,7 @@ export const ADVANCED_RULES: Rule[] = [
                 type: ElseIfStatement,
             },
         ],
-        factory: (nodes) => {
+        factory: (nodes, tokens) => {
             const [ifStatement, elseIfStatement] = nodes as [
                 IfStatement,
                 ElseIfStatement,
@@ -498,6 +509,8 @@ export const ADVANCED_RULES: Rule[] = [
 
             const elseIfCase = elseIfStatement.elseIfCase
             ifStatement.cases.push(elseIfCase)
+
+            ifStatement.tokens = tokens
 
             return ifStatement
         },
@@ -511,7 +524,7 @@ export const ADVANCED_RULES: Rule[] = [
                 type: ElseStatement,
             },
         ],
-        factory: (nodes) => {
+        factory: (nodes, tokens) => {
             const [ifStatement, elseStatement] = nodes as [
                 IfStatement,
                 ElseStatement,
@@ -520,7 +533,9 @@ export const ADVANCED_RULES: Rule[] = [
             const elseCase = {
                 body: elseStatement.body,
             }
+
             ifStatement.cases.push(elseCase)
+            ifStatement.tokens = tokens
 
             return ifStatement
         },
@@ -549,11 +564,11 @@ export const ADVANCED_RULES: Rule[] = [
                 type: Block,
             },
         ],
-        factory: (nodes) => {
+        factory: (nodes, tokens) => {
             const condition = nodes[2] as Evaluable
             const body = nodes[5] as Block
 
-            return new ElseIfStatement({ condition, body })
+            return new ElseIfStatement({ condition, body }, tokens)
         },
     },
     {
@@ -569,10 +584,10 @@ export const ADVANCED_RULES: Rule[] = [
                 type: Block,
             },
         ],
-        factory: (nodes) => {
+        factory: (nodes, tokens) => {
             const body = nodes[2] as Block
 
-            return new ElseStatement(body)
+            return new ElseStatement(body, tokens)
         },
     },
     {
@@ -595,11 +610,11 @@ export const ADVANCED_RULES: Rule[] = [
                 type: Block,
             },
         ],
-        factory: (nodes) => {
+        factory: (nodes, tokens) => {
             const condition = nodes[1] as Evaluable
             const body = nodes[4] as Block
 
-            return new IfStatement([{ condition, body }])
+            return new IfStatement([{ condition, body }], tokens)
         },
     },
     {
@@ -612,9 +627,9 @@ export const ADVANCED_RULES: Rule[] = [
                 value: '보여주기',
             },
         ],
-        factory: (nodes) => {
+        factory: (nodes, tokens) => {
             const value = nodes[0] as Evaluable
-            return new Print(value)
+            return new Print(value, tokens)
         },
     },
     {
@@ -630,7 +645,7 @@ export const ADVANCED_RULES: Rule[] = [
                 type: Block,
             },
         ],
-        factory: (nodes) => new Loop(nodes[2] as Block),
+        factory: (nodes, tokens) => new Loop(nodes[2] as Block, tokens),
     },
     {
         pattern: [
@@ -643,7 +658,7 @@ export const ADVANCED_RULES: Rule[] = [
                 value: '그만',
             },
         ],
-        factory: () => new Break(),
+        factory: (_nodes, tokens) => new Break(tokens),
     },
     {
         pattern: [
@@ -656,7 +671,7 @@ export const ADVANCED_RULES: Rule[] = [
                 value: '그만',
             },
         ],
-        factory: () => new Return(),
+        factory: (_nodes, tokens) => new Return(tokens),
     },
     {
         pattern: [
@@ -685,12 +700,12 @@ export const ADVANCED_RULES: Rule[] = [
                 type: Block,
             },
         ],
-        factory: (nodes) => {
+        factory: (nodes, tokens) => {
             const list = nodes[1] as Evaluable
             const name = (nodes[3] as Identifier).value
             const body = nodes[6] as Block
 
-            return new ListLoop(list, name, body)
+            return new ListLoop(list, name, body, tokens)
         },
     },
 ]

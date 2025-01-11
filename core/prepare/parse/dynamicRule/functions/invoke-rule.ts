@@ -85,16 +85,19 @@ function createRuleFromFunctionTemplate(
 
     return {
         pattern,
-        factory(matchedNodes) {
+        factory(matchedNodes, tokens) {
             const params = parseParameterFromTemplate(
                 functionTemplate,
                 matchedNodes,
             )
 
-            return new FunctionInvoke({
-                name: functionTemplate.name,
-                params,
-            })
+            return new FunctionInvoke(
+                {
+                    name: functionTemplate.name,
+                    params,
+                },
+                tokens,
+            )
         },
         config: {
             exported: true,

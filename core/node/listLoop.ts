@@ -7,6 +7,7 @@ import { Scope } from '../executer/scope.ts'
 
 import type { ValueType } from '../value/base.ts'
 import type { Block } from './block.ts'
+import type { Token } from '../prepare/tokenize/token.ts'
 
 export class ListLoop extends Executable {
     static override friendlyName = '목록 반복'
@@ -15,6 +16,7 @@ export class ListLoop extends Executable {
         public list: Evaluable,
         public variableName: string,
         public body: Block,
+        public override tokens: Token[],
     ) {
         super()
     }
@@ -49,7 +51,7 @@ export class ListLoop extends Executable {
             resource: {
                 value: target,
             },
-            position: this.position,
+            position: this.tokens[0].position,
         })
     }
 }

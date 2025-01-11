@@ -12,39 +12,32 @@ export function convertTokensToNodes(tokens: Token[]): Node[] {
 
 function mapTokenToNode(token: Token) {
     switch (token.type) {
-        case TOKEN_TYPE.NUMBER:
-            return new NumberLiteral(parseFloat(token.value), token.position)
-        case TOKEN_TYPE.STRING:
-            return new StringLiteral(token.value.slice(1, -1), token.position)
-        case TOKEN_TYPE.OPERATOR:
-            return new Operator(token.value, token.position)
         case TOKEN_TYPE.SPACE:
+        case TOKEN_TYPE.LINE_COMMENT:
+        case TOKEN_TYPE.UNKNOWN:
             return null
-        case TOKEN_TYPE.INDENT:
-            return new Indent(token.value.length, token.position)
-        case TOKEN_TYPE.IDENTIFIER:
-            return new Identifier(token.value, token.position)
         case TOKEN_TYPE.COMMA:
         case TOKEN_TYPE.OPENING_PARENTHESIS:
         case TOKEN_TYPE.CLOSING_PARENTHESIS:
         case TOKEN_TYPE.OPENING_BRACKET:
         case TOKEN_TYPE.CLOSING_BRACKET:
         case TOKEN_TYPE.COLON:
-            return new Expression(token.value, token.position)
+            return new Expression(token.value, [token])
+        case TOKEN_TYPE.NUMBER:
+            return new NumberLiteral(parseFloat(token.value), [token])
+        case TOKEN_TYPE.STRING:
+            return new StringLiteral(token.value.slice(1, -1), [token])
+        case TOKEN_TYPE.OPERATOR:
+            return new Operator(token.value, [token])
+        case TOKEN_TYPE.INDENT:
+            return new Indent(token.value.length, [token])
+        case TOKEN_TYPE.IDENTIFIER:
+            return new Identifier(token.value, [token])
         case TOKEN_TYPE.FFI_BODY:
-            return new FFIBody(token.value.slice(3, -3), token.position)
+            return new FFIBody(token.value.slice(3, -3), [token])
         case TOKEN_TYPE.NEW_LINE:
-            return new EOL(token.position)
-        case TOKEN_TYPE.LINE_COMMENT:
-            return null
+            return new EOL([token])
         case TOKEN_TYPE.MENTION:
-            return new Mention(token.value.slice(1), token.position)
-        case TOKEN_TYPE.UNKNOWN:
-            throw new UnexpectedCharError({
-                resource: {
-                    parts: '코드',
-                    char: token.value,
-                },
-            })
+            return new Mention(token.value.slice(1), [token])
     }
 }

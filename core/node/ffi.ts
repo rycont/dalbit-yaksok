@@ -3,11 +3,12 @@ import { Executable, Node } from './base.ts'
 
 import type { Scope } from '../executer/scope.ts'
 import type { Position } from '../type/position.ts'
+import type { Token } from '../prepare/tokenize/token.ts'
 
 export class FFIBody extends Node {
     static override friendlyName = '번역할 내용'
 
-    constructor(public code: string, public override position?: Position) {
+    constructor(public code: string, public override tokens: Token[]) {
         super()
     }
 }
@@ -19,12 +20,15 @@ export class DeclareFFI extends Executable {
     public body: string
     public runtime: string
 
-    constructor(props: {
-        name: string
-        body: string
-        runtime: string
-        position?: Position
-    }) {
+    constructor(
+        props: {
+            name: string
+            body: string
+            runtime: string
+            position?: Position
+        },
+        public override tokens: Token[],
+    ) {
         super()
         this.name = props.name
         this.body = props.body

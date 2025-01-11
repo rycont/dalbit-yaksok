@@ -1,22 +1,19 @@
 import { TargetIsNotIndexedValueError } from '../error/indexed.ts'
-import {
-    ListIndexTypeError,
-    RangeEndMustBeNumberError,
-    RangeStartMustBeLessThanEndError,
-    RangeStartMustBeNumberError,
-} from '../error/indexed.ts'
+import { ListIndexTypeError } from '../error/indexed.ts'
 import { CallFrame } from '../executer/callFrame.ts'
 import { Scope } from '../executer/scope.ts'
 import { ValueType } from '../value/base.ts'
 import { IndexedValue } from '../value/indexed.ts'
 import { ListValue } from '../value/list.ts'
 import { NumberValue, StringValue } from '../value/primitive.ts'
-import { Evaluable, Executable, Node, Operator } from './base.ts'
+import { Evaluable, Executable, Node } from './base.ts'
+
+import type { Token } from '../prepare/tokenize/token.ts'
 
 export class Sequence extends Node {
     static override friendlyName = '나열된 값'
 
-    constructor(public items: Evaluable[]) {
+    constructor(public items: Evaluable[], public override tokens: Token[]) {
         super()
     }
 }
@@ -24,7 +21,7 @@ export class Sequence extends Node {
 export class ListLiteral extends Evaluable {
     static override friendlyName = '목록'
 
-    constructor(public items: Evaluable[]) {
+    constructor(public items: Evaluable[], public override tokens: Token[]) {
         super()
     }
 
@@ -47,6 +44,7 @@ export class IndexFetch extends Evaluable {
     constructor(
         public list: Evaluable<IndexedValue>,
         public index: Evaluable<StringValue | NumberValue | ListValue>,
+        public override tokens: Token[],
     ) {
         super()
     }
@@ -60,7 +58,7 @@ export class IndexFetch extends Evaluable {
 
         if (!(list instanceof IndexedValue)) {
             throw new TargetIsNotIndexedValueError({
-                position: this.position,
+                position: this.tokens[0].position,
                 resource: {
                     target: list,
                 },
@@ -86,7 +84,7 @@ export class IndexFetch extends Evaluable {
 
         if (!(list instanceof IndexedValue)) {
             throw new TargetIsNotIndexedValueError({
-                position: this.position,
+                position: this.tokens[0].position,
                 resource: {
                     target: list,
                 },
@@ -98,7 +96,7 @@ export class IndexFetch extends Evaluable {
             !(index instanceof StringValue)
         ) {
             throw new ListIndexTypeError({
-                position: this.position,
+                position: this.tokens[0].position,
                 resource: {
                     index: index.toPrint(),
                 },
@@ -112,7 +110,11 @@ export class IndexFetch extends Evaluable {
 export class SetToIndex extends Executable {
     static override friendlyName = '목록에 값 넣기'
 
-    constructor(private target: IndexFetch, private value: Evaluable) {
+    constructor(
+        public target: IndexFetch,
+        public value: Evaluable,
+        public override tokens: Token[],
+    ) {
         super()
 
         this.position = target.position
@@ -121,70 +123,5 @@ export class SetToIndex extends Executable {
     override async execute(scope: Scope, callFrame: CallFrame): Promise<void> {
         const value = await this.value.execute(scope, callFrame)
         await this.target.setValue(scope, callFrame, value)
-    }
-}
-
-export class RangeOperator extends Operator {
-    static override friendlyName = '범위에서 목록 만들기(~)'
-
-    override toPrint(): string {
-        return '~'
-    }
-
-    override call(...operands: ValueType[]): ListValue {
-        this.assertProperOperands(operands)
-
-        const [start, end] = operands
-        const items = new Array(end.value - start.value + 1)
-            .fill(null)
-            .map((_, index) => new NumberValue(start.value + index))
-
-        return new ListValue(items)
-    }
-
-    private assertProperOperands(
-        operands: ValueType[],
-    ): asserts operands is [NumberValue, NumberValue] {
-        const [start, end] = operands
-        this.assertProperStartType(start)
-        this.assertProperEndType(end)
-
-        this.assertRangeStartLessThanEnd(start.value, end.value)
-    }
-
-    private assertProperStartType(
-        start: ValueType,
-    ): asserts start is NumberValue {
-        if (start instanceof NumberValue) return
-
-        throw new RangeStartMustBeNumberError({
-            position: this.position,
-            resource: {
-                start,
-            },
-        })
-    }
-
-    private assertProperEndType(end: ValueType): asserts end is NumberValue {
-        if (end instanceof NumberValue) return
-
-        throw new RangeEndMustBeNumberError({
-            position: this.position,
-            resource: {
-                end,
-            },
-        })
-    }
-
-    private assertRangeStartLessThanEnd(start: number, end: number) {
-        if (start <= end) return
-
-        throw new RangeStartMustBeLessThanEndError({
-            position: this.position,
-            resource: {
-                start,
-                end,
-            },
-        })
     }
 }

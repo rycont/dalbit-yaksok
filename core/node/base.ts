@@ -1,12 +1,13 @@
 import type { CallFrame } from '../executer/callFrame.ts'
 import type { Scope } from '../executer/scope.ts'
 import { NotDefinedIdentifierError } from '../error/variable.ts'
-import { Position } from '../type/position.ts'
 import { ValueType } from '../value/base.ts'
+import { Token } from '../prepare/tokenize/token.ts'
 
 export class Node {
     [key: string]: unknown
-    position?: Position
+    tokens?: Token[]
+
     static friendlyName = '노드'
 
     toJSON(): object {
@@ -44,7 +45,7 @@ export class Evaluable<T extends ValueType = ValueType> extends Executable {
 export class Identifier extends Evaluable {
     static override friendlyName = '식별자'
 
-    constructor(public value: string, override position?: Position) {
+    constructor(public value: string, public override tokens: Token[]) {
         super()
     }
 
@@ -57,7 +58,7 @@ export class Identifier extends Evaluable {
             return Promise.resolve(scope.getVariable(this.value))
         } catch (e) {
             if (e instanceof NotDefinedIdentifierError) {
-                e.position = this.position
+                e.position = this.tokens?.[0].position
             }
 
             throw e
@@ -65,15 +66,15 @@ export class Identifier extends Evaluable {
     }
 }
 
-export class Operator extends Node {
+export class Operator extends Node implements OperatorNode {
     static override friendlyName = '연산자'
 
-    constructor(public value?: string, public override position?: Position) {
+    constructor(public value: string | null, public override tokens: Token[]) {
         super()
     }
 
     override toPrint(): string {
-        return this.value ?? 'unknown'
+        return 'unknown'
     }
 
     call(..._operands: ValueType[]): ValueType {
@@ -81,10 +82,18 @@ export class Operator extends Node {
     }
 }
 
+export interface OperatorNode {
+    call(...operands: ValueType[]): ValueType
+}
+
+export type OperatorClass ={
+    new (...args: any[]): OperatorNode
+}
+
 export class Expression extends Node {
     static override friendlyName = '표현식'
 
-    constructor(public value: string, public override position?: Position) {
+    constructor(public value: string, public override tokens: Token[]) {
         super()
     }
 

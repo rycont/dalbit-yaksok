@@ -15,12 +15,13 @@ import {
     OrOperator,
     PlusOperator,
     PowerOperator,
+    RangeOperator,
 } from './operator.ts'
-import { Evaluable, Operator } from './base.ts'
-import { RangeOperator } from './list.ts'
+import { Evaluable, Operator, OperatorClass } from './base.ts'
 import { ValueType } from '../value/base.ts'
+import type { Token } from '../prepare/tokenize/token.ts'
 
-const OPERATOR_PRECEDENCES: Array<(typeof Operator)[]> = [
+const OPERATOR_PRECEDENCES: OperatorClass[][] = [
     [AndOperator, OrOperator],
     [
         EqualOperator,
@@ -38,7 +39,7 @@ const OPERATOR_PRECEDENCES: Array<(typeof Operator)[]> = [
 export class ValueWithParenthesis extends Evaluable {
     static override friendlyName = '괄호로 묶인 값'
 
-    constructor(public value: Evaluable) {
+    constructor(public value: Evaluable, public override tokens: Token[]) {
         super()
     }
 
@@ -55,7 +56,10 @@ export class ValueWithParenthesis extends Evaluable {
 export class Formula extends Evaluable {
     static override friendlyName = '계산식'
 
-    constructor(public terms: (Evaluable | Operator)[]) {
+    constructor(
+        public terms: (Evaluable | Operator)[],
+        public override tokens: Token[],
+    ) {
         super()
     }
 
@@ -95,7 +99,7 @@ export class Formula extends Evaluable {
 
             const isOperator = term instanceof Operator
             const isCurrentPrecedence = currentOperators.includes(
-                term.constructor as typeof Operator,
+                term.constructor as OperatorClass,
             )
 
             if (!isOperator || !isCurrentPrecedence) continue

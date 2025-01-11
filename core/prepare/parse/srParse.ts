@@ -2,8 +2,11 @@ import { type Rule, ADVANCED_RULES, BASIC_RULES } from './rule.ts'
 import { satisfiesPattern } from './satisfiesPattern.ts'
 
 import { Block } from '../../node/block.ts'
+import { TOKEN_TYPE } from '../tokenize/token.ts'
 import { EOL } from '../../node/misc.ts'
+
 import type { Node } from '../../node/base.ts'
+import { getTokensFromNodes } from '../../util/merge-tokens.ts'
 
 export function SRParse(_tokens: Node[], rules: Rule[]) {
     const tokens = [..._tokens]
@@ -37,9 +40,11 @@ export function SRParse(_tokens: Node[], rules: Rule[]) {
     }
 }
 
-export function reduce(tokens: Node[], rule: Rule) {
-    const reduced = rule.factory(tokens)
-    reduced.position = tokens[0].position
+export function reduce(nodes: Node[], rule: Rule) {
+    const tokens = getTokensFromNodes(nodes)
+
+    const reduced = rule.factory(nodes, tokens)
+    reduced.position = nodes[0].position
 
     return reduced
 }
@@ -53,11 +58,23 @@ export function callParseRecursively(
     for (let i = 0; i < parsedTokens.length; i++) {
         const token = parsedTokens[i]
 
-        if (!(token instanceof Block)) continue
-
-        token.children = callParseRecursively(token.children, externalPatterns)
+        if (token instanceof Block) {
+            token.children = callParseRecursively(
+                token.children,
+                externalPatterns,
+            )
+        }
     }
-    parsedTokens.push(new EOL())
+
+    parsedTokens.push(
+        new EOL([
+            {
+                position: { column: 0, line: 0 },
+                value: '\n',
+                type: TOKEN_TYPE.NEW_LINE,
+            },
+        ]),
+    )
 
     const patternsByLevel = [...BASIC_RULES, externalPatterns, ADVANCED_RULES]
 
