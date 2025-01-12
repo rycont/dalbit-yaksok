@@ -109,6 +109,16 @@ function getHintCodeFromErrorTokens(tokens: Token[], code: string) {
 }
 
 function getTokensLength(tokens: Token[]) {
+    const firstLine = tokens[0].position.line
+    const firstLineBreak = tokens.findIndex(
+        (token) => token.position.line !== firstLine,
+    )
+
+    if (firstLineBreak !== -1) {
+        const firstLineTokens = tokens.slice(0, firstLineBreak)
+        return getTokensLength(firstLineTokens)
+    }
+
     const lastToken = tokens[tokens.length - 1]
     const startPosition = tokens[0].position
 

@@ -43,6 +43,7 @@ export class IndentIsNotMultipleOf4Error extends YaksokError {
 export class IndentLevelMismatchError extends YaksokError {
     constructor(props: {
         position?: Position
+        tokens?: Token[]
         resource: {
             expected?: number
         }
@@ -50,7 +51,9 @@ export class IndentLevelMismatchError extends YaksokError {
         super(props)
         this.message = `들여쓰기가 잘못되었어요.`
 
-        if (props.resource.expected !== undefined) {
+        if (props.resource.expected === 0) {
+            this.message += ` 여기선 들여쓰기를 하지 않아야 해요.`
+        } else if (props.resource.expected !== undefined) {
             this.message += ` 여기서는 ${bold(
                 `"${props.resource.expected}"`,
             )}만큼 들여쓰기를 해야해요.`

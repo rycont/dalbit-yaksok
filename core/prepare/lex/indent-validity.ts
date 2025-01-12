@@ -22,7 +22,7 @@ export function assertIndentValidity(_tokens: Token[]) {
             resource: {
                 expected: 0,
             },
-            position: tokens[0].position,
+            tokens: [tokens[0]],
         })
     }
 

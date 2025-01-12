@@ -90,10 +90,7 @@ function assertValidFunctionHeader(
         if (token.type === TOKEN_TYPE.IDENTIFIER) {
             if (RESERVED_WORDS.has(token.value)) {
                 throw new CannotUseReservedWordForIdentifierNameError({
-                    position: token.position,
-                    resource: {
-                        token,
-                    },
+                    tokens: [token],
                 })
             }
         }
