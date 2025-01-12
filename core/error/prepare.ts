@@ -52,11 +52,11 @@ export class IndentLevelMismatchError extends YaksokError {
         this.message = `들여쓰기가 잘못되었어요.`
 
         if (props.resource.expected === 0) {
-            this.message += ` 여기선 들여쓰기를 하지 않아야 해요.`
+            this.message += ` 여기선 들여쓰기를 할 필요가 없어요.`
         } else if (props.resource.expected !== undefined) {
             this.message += ` 여기서는 ${bold(
-                `"${props.resource.expected}"`,
-            )}만큼 들여쓰기를 해야해요.`
+                props.resource.expected * 4 + '칸',
+            )}${dim(`(또는 탭 ${props.resource.expected}번)`)} 띄어써야 해요.`
         }
     }
 }

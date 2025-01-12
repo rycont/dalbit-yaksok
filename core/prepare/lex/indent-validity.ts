@@ -55,6 +55,7 @@ export function assertIndentValidity(_tokens: Token[]) {
                         expected: currentDepth + 1,
                     },
                     position: nextToken.position,
+                    tokens: [nextToken],
                 })
             }
 
