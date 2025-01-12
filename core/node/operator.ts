@@ -4,6 +4,8 @@ import {
     RangeEndMustBeNumberError,
     RangeStartMustBeLessThanEndError,
     RangeStartMustBeNumberError,
+    RangeStartMustBeIntegerError,
+    RangeEndMustBeIntegerError,
 } from '../error/index.ts'
 import { Token } from '../prepare/tokenize/token.ts'
 
@@ -445,9 +447,11 @@ export class RangeOperator extends Operator {
         this.assertProperOperands(operands)
 
         const [start, end] = operands
-        const items = new Array(end.value - start.value + 1)
+        const roundedStart = Math.round(start.value)
+        const roundedEnd = Math.round(end.value)
+        const items = new Array(roundedEnd - roundedStart + 1)
             .fill(null)
-            .map((_, index) => new NumberValue(start.value + index))
+            .map((_, index) => new NumberValue(roundedStart + index))
 
         return new ListValue(items)
     }
@@ -465,25 +469,43 @@ export class RangeOperator extends Operator {
     private assertProperStartType(
         start: ValueType,
     ): asserts start is NumberValue {
-        if (start instanceof NumberValue) return
+        if (!(start instanceof NumberValue)) {
+            throw new RangeStartMustBeNumberError({
+                position: this.tokens[0].position,
+                resource: {
+                    start,
+                },
+            })
+        }
 
-        throw new RangeStartMustBeNumberError({
-            position: this.tokens[0].position,
-            resource: {
-                start,
-            },
-        })
+        if (!Number.isInteger(start.value)) {
+            throw new RangeStartMustBeIntegerError({
+                position: this.tokens[0].position,
+                resource: {
+                    start,
+                },
+            })
+        }
     }
 
     private assertProperEndType(end: ValueType): asserts end is NumberValue {
-        if (end instanceof NumberValue) return
+        if (!(end instanceof NumberValue)) {
+            throw new RangeEndMustBeNumberError({
+                tokens: this.tokens,
+                resource: {
+                    end,
+                },
+            })
+        }
 
-        throw new RangeEndMustBeNumberError({
-            position: this.tokens[0].position,
-            resource: {
-                end,
-            },
-        })
+        if (!Number.isInteger(end.value)) {
+            throw new RangeEndMustBeIntegerError({
+                tokens: this.tokens,
+                resource: {
+                    end,
+                },
+            })
+        }
     }
 
     private assertRangeStartLessThanEnd(start: number, end: number) {
