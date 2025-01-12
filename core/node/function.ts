@@ -92,6 +92,6 @@ function assertValidReturnValue(node: FunctionInvoke, returnValue: ValueType) {
     throw new FFIResultTypeIsNotForYaksokError({
         ffiName: node.name,
         value: returnValue,
-        position: node.tokens?.[0].position,
+        tokens: node.tokens,
     })
 }

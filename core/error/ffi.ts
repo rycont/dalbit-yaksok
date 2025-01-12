@@ -1,8 +1,9 @@
-import type { Position } from '../type/position.ts'
+import type { Token } from '../prepare/tokenize/token.ts'
+
 import { YaksokError, blue, bold, dim } from './common.ts'
 
 export class FFIResultTypeIsNotForYaksokError extends YaksokError {
-    constructor(props: { position?: Position; value: any; ffiName: string }) {
+    constructor(props: { value: any; ffiName: string; tokens: Token[] }) {
         super(props)
 
         let stringValue = ''

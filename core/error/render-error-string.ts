@@ -23,14 +23,20 @@ export function renderErrorString(error: YaksokError) {
 
     output += '> ' + error.message + '\n\n'
 
-    if (code && error.tokens) {
-        output += '┌─────\n'
-        output += getHintCodeFromErrorTokens(error.tokens, code)
-        output += '└─────\n'
-    } else if (code && error.position) {
-        output += '┌─────\n'
-        output += getHintCode(error.position, code)
-        output += '└─────\n'
+    if (code) {
+        const hasMultipleTokens = error.tokens && error.tokens.length > 1
+
+        if (hasMultipleTokens) {
+            output += '┌─────\n'
+            output += getHintCodeFromErrorTokens(error.tokens!, code)
+            output += '└─────\n'
+        } else if (error.position || error.tokens) {
+            const position = error.position || error.tokens![0].position
+
+            output += '┌─────\n'
+            output += getHintCode(position, code)
+            output += '└─────\n'
+        }
     }
 
     if (error.child) {
@@ -70,8 +76,10 @@ function getHintCodeFromErrorTokens(tokens: Token[], code: string) {
     const lines = code.split('\n')
 
     const position = tokens[0].position
+    const lastToken = tokens[tokens.length - 1]
+
     const length =
-        tokens[tokens.length - 1].position.column - position.column + 1
+        lastToken.position.column - position.column + lastToken.value.length
 
     for (let i = 0; i < lines.length; i++) {
         if (i < position.line - 2 || i > position.line + 1) {
