@@ -87,7 +87,7 @@ export const RULES: {
                 shift()
             }
 
-            return ' '.repeat(tabs * 4)
+            return '\t'.repeat(tabs)
         },
     },
     {
@@ -106,7 +106,7 @@ export const RULES: {
                 throw new NotAcceptableSignal()
             }
 
-            return ' '.repeat(spaces)
+            return '\t'.repeat(spaces / 4)
         },
     },
     {

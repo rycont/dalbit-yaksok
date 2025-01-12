@@ -30,7 +30,7 @@ export class CannotParseError extends YaksokError {
 
 export class IndentIsNotMultipleOf4Error extends YaksokError {
     constructor(props: {
-        position?: Position
+        tokens: Token[]
         resource: {
             indent: number
         }

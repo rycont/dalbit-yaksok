@@ -38,7 +38,7 @@ export function assertIndentValidity(_tokens: Token[]) {
                 resource: {
                     indent: nextToken.value.length,
                 },
-                position: nextToken.position,
+                tokens: [nextToken],
             })
         }
 
