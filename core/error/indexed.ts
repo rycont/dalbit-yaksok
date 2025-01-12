@@ -86,6 +86,7 @@ export class ListIndexTypeError extends YaksokError {
 export class RangeStartMustBeNumberError extends YaksokError {
     constructor(props: {
         position?: Position
+        tokens?: Token[]
         resource: {
             start: ValueType
         }

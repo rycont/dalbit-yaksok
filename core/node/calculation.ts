@@ -21,6 +21,12 @@ import { Evaluable, Operator, OperatorClass } from './base.ts'
 import { ValueType } from '../value/base.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import { InvalidTypeForOperatorError } from '../error/calculation.ts'
+import { YaksokError } from '../error/common.ts'
+import {
+    RangeEndMustBeNumberError,
+    RangeStartMustBeNumberError,
+} from '../error/index.ts'
+import { RangeStartMustBeLessThanEndError } from '../error/indexed.ts'
 
 const OPERATOR_PRECEDENCES: OperatorClass[][] = [
     [AndOperator, OrOperator],
@@ -144,8 +150,16 @@ export class Formula extends Evaluable {
 
                 i--
             } catch (e) {
-                if (e instanceof InvalidTypeForOperatorError && !e.tokens) {
-                    e.tokens = mergedTokens
+                if (e instanceof YaksokError && !e.tokens) {
+                    if (e instanceof InvalidTypeForOperatorError) {
+                        e.tokens = mergedTokens
+                    } else if (e instanceof RangeStartMustBeNumberError) {
+                        e.tokens = termsWithToken[i - 1].tokens
+                    } else if (e instanceof RangeEndMustBeNumberError) {
+                        e.tokens = termsWithToken[i + 1].tokens
+                    } else if (e instanceof RangeStartMustBeLessThanEndError) {
+                        e.tokens = mergedTokens
+                    }
                 }
 
                 throw e

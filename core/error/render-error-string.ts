@@ -24,9 +24,10 @@ export function renderErrorString(error: YaksokError) {
     output += '> ' + error.message + '\n\n'
 
     if (code) {
-        const hasMultipleTokens = error.tokens && error.tokens.length > 1
+        const isRegionalError =
+            error.tokens && getTokensLength(error.tokens) > 1
 
-        if (hasMultipleTokens) {
+        if (isRegionalError) {
             output += '┌─────\n'
             output += getHintCodeFromErrorTokens(error.tokens!, code)
             output += '└─────\n'
@@ -76,12 +77,7 @@ function getHintCodeFromErrorTokens(tokens: Token[], code: string) {
     const lines = code.split('\n')
 
     const startPosition = tokens[0].position
-    const lastToken = tokens[tokens.length - 1]
-
-    const length =
-        lastToken.position.column -
-        startPosition.column +
-        lastToken.value.length
+    const length = getTokensLength(tokens)
 
     for (let i = 0; i < lines.length; i++) {
         if (i < startPosition.line - 3 || i > startPosition.line + 2) {
@@ -110,4 +106,15 @@ function getHintCodeFromErrorTokens(tokens: Token[], code: string) {
     }
 
     return output
+}
+
+function getTokensLength(tokens: Token[]) {
+    const lastToken = tokens[tokens.length - 1]
+    const startPosition = tokens[0].position
+
+    return (
+        lastToken.position.column -
+        startPosition.column +
+        lastToken.value.length
+    )
 }

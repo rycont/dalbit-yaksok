@@ -5,7 +5,7 @@ export class ErrorInModuleError extends YaksokError<{
     fileName: string
 }> {
     constructor(props: {
-        tokens: Token[]
+        tokens?: Token[]
         resource: {
             fileName: string
         }
