@@ -59,7 +59,6 @@ export class Identifier extends Evaluable {
             return Promise.resolve(scope.getVariable(this.value))
         } catch (e) {
             if (e instanceof NotDefinedIdentifierError) {
-                e.position = this.tokens?.[0].position
                 e.tokens = this.tokens
             }
 

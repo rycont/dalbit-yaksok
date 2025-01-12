@@ -18,7 +18,7 @@ interface NotDefinedIdentifierErrorResource {
 export class NotDefinedIdentifierError extends YaksokError<NotDefinedIdentifierErrorResource> {
     constructor(props: {
         resource: NotDefinedIdentifierErrorResource
-        tokens: Token[]
+        tokens?: Token[]
     }) {
         super(props)
     }
