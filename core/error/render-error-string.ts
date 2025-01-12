@@ -52,7 +52,7 @@ function getHintCode(position: Position, code: string) {
     const lines = code.split('\n')
 
     for (let i = 0; i < lines.length; i++) {
-        if (i < position.line - 2 || i > position.line + 1) {
+        if (i < position.line - 3 || i > position.line + 2) {
             continue
         }
 
@@ -75,24 +75,26 @@ function getHintCodeFromErrorTokens(tokens: Token[], code: string) {
     let output = ''
     const lines = code.split('\n')
 
-    const position = tokens[0].position
+    const startPosition = tokens[0].position
     const lastToken = tokens[tokens.length - 1]
 
     const length =
-        lastToken.position.column - position.column + lastToken.value.length
+        lastToken.position.column -
+        startPosition.column +
+        lastToken.value.length
 
     for (let i = 0; i < lines.length; i++) {
-        if (i < position.line - 2 || i > position.line + 1) {
+        if (i < startPosition.line - 3 || i > startPosition.line + 2) {
             continue
         }
 
         const lineText = lines[i]
         const lineNum = i + 1
 
-        if (i === position.line - 1) {
+        if (i === startPosition.line - 1) {
             const underlineRange = [
-                position.column - 1,
-                position.column + length,
+                startPosition.column - 1,
+                startPosition.column + length - 1,
             ]
 
             output += '│  ' + lineNum + '  '

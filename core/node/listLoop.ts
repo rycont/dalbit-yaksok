@@ -51,7 +51,7 @@ export class ListLoop extends Executable {
             resource: {
                 value: target,
             },
-            position: this.tokens[0].position,
+            tokens: this.list.tokens,
         })
     }
 }
