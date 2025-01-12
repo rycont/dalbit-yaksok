@@ -74,7 +74,7 @@ export class RangeStartMustBeLessThanEndError extends YaksokError {
 
 export class ListIndexTypeError extends YaksokError {
     constructor(props: {
-        tokens: Token[]
+        tokens?: Token[]
         resource: {
             index: string | number
         }
