@@ -52,9 +52,7 @@ export class RangeStartMustBeIntegerError extends YaksokError {
         super(props)
 
         const startText = valueTypeToText(props.resource.start)
-        this.message = `범위의 시작은 정수여야 해요. ${valueTypeToText(
-            props.resource.start,
-        )}는 정수가 아니에요.`
+        this.message = `범위의 시작은 정수여야 해요. ${startText}는 정수가 아니에요.`
     }
 }
 
@@ -68,8 +66,6 @@ export class RangeEndMustBeIntegerError extends YaksokError {
         super(props)
 
         const endText = valueTypeToText(props.resource.end)
-        this.message = `범위의 끝은 정수여야 해요. ${valueTypeToText(
-            props.resource.end,
-        )}는 정수가 아니에요.`
+        this.message = `범위의 끝은 정수여야 해요. ${endText}는 정수가 아니에요.`
     }
 }

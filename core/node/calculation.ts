@@ -20,7 +20,11 @@ import {
 import { Evaluable, Operator, OperatorClass } from './base.ts'
 import { ValueType } from '../value/base.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
-import { InvalidTypeForOperatorError } from '../error/calculation.ts'
+import {
+    InvalidTypeForOperatorError,
+    RangeEndMustBeIntegerError,
+    RangeStartMustBeIntegerError,
+} from '../error/calculation.ts'
 import { YaksokError } from '../error/common.ts'
 import {
     RangeEndMustBeNumberError,
@@ -153,9 +157,15 @@ export class Formula extends Evaluable {
                 if (e instanceof YaksokError && !e.tokens) {
                     if (e instanceof InvalidTypeForOperatorError) {
                         e.tokens = mergedTokens
-                    } else if (e instanceof RangeStartMustBeNumberError) {
+                    } else if (
+                        e instanceof RangeStartMustBeNumberError ||
+                        e instanceof RangeStartMustBeIntegerError
+                    ) {
                         e.tokens = termsWithToken[i - 1].tokens
-                    } else if (e instanceof RangeEndMustBeNumberError) {
+                    } else if (
+                        e instanceof RangeEndMustBeNumberError ||
+                        e instanceof RangeEndMustBeIntegerError
+                    ) {
                         e.tokens = termsWithToken[i + 1].tokens
                     } else if (e instanceof RangeStartMustBeLessThanEndError) {
                         e.tokens = mergedTokens

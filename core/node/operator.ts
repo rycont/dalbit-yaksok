@@ -471,7 +471,6 @@ export class RangeOperator extends Operator {
     ): asserts start is NumberValue {
         if (!(start instanceof NumberValue)) {
             throw new RangeStartMustBeNumberError({
-                tokens: this.tokens,
                 resource: {
                     start,
                 },
@@ -480,7 +479,6 @@ export class RangeOperator extends Operator {
 
         if (!Number.isInteger(start.value)) {
             throw new RangeStartMustBeIntegerError({
-                tokens: this.tokens,
                 resource: {
                     start,
                 },
@@ -491,7 +489,6 @@ export class RangeOperator extends Operator {
     private assertProperEndType(end: ValueType): asserts end is NumberValue {
         if (!(end instanceof NumberValue)) {
             throw new RangeEndMustBeNumberError({
-                tokens: this.tokens,
                 resource: {
                     end,
                 },
@@ -500,7 +497,6 @@ export class RangeOperator extends Operator {
 
         if (!Number.isInteger(end.value)) {
             throw new RangeEndMustBeIntegerError({
-                tokens: this.tokens,
                 resource: {
                     end,
                 },
