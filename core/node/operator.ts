@@ -471,7 +471,7 @@ export class RangeOperator extends Operator {
     ): asserts start is NumberValue {
         if (!(start instanceof NumberValue)) {
             throw new RangeStartMustBeNumberError({
-                position: this.tokens[0].position,
+                tokens: this.tokens,
                 resource: {
                     start,
                 },
@@ -480,7 +480,7 @@ export class RangeOperator extends Operator {
 
         if (!Number.isInteger(start.value)) {
             throw new RangeStartMustBeIntegerError({
-                position: this.tokens[0].position,
+                tokens: this.tokens,
                 resource: {
                     start,
                 },

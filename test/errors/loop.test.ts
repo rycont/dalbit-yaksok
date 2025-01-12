@@ -8,6 +8,8 @@ import {
     RangeEndMustBeNumberError,
     RangeStartMustBeLessThanEndError,
     RangeStartMustBeNumberError,
+    RangeStartMustBeIntegerError,
+    RangeEndMustBeIntegerError,
     TargetIsNotIndexedValueError,
     ListIndexMustBeGreaterThan1Error,
 } from '../../core/error/index.ts'
@@ -72,6 +74,31 @@ Deno.test('Range end must be number', async () => {
         unreachable()
     } catch (e) {
         assertIsError(e, RangeEndMustBeNumberError)
+    }
+})
+
+Deno.test('Range start must be an integer', async () => {
+    try {
+        await yaksok(`1.5 ~ 5`)
+        unreachable()
+    } catch (e) {
+        assertIsError(e, RangeStartMustBeIntegerError)
+    }
+
+    try {
+        await yaksok(`1.5 ~ 3.2`)
+        unreachable()
+    } catch (e) {
+        assertIsError(e, RangeStartMustBeIntegerError)
+    }
+})
+
+Deno.test('Range end must be an integer', async () => {
+    try {
+        await yaksok(`1 ~ 5.5`)
+        unreachable()
+    } catch (e) {
+        assertIsError(e, RangeEndMustBeIntegerError)
     }
 })
 

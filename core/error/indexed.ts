@@ -46,7 +46,7 @@ export class ListIndexMustBeGreaterThan1Error extends YaksokError {
 
 export class RangeEndMustBeNumberError extends YaksokError {
     constructor(props: {
-        position?: Position
+        tokens: Token[]
         resource: {
             end: ValueType
         }
@@ -74,7 +74,7 @@ export class RangeStartMustBeLessThanEndError extends YaksokError {
 
 export class ListIndexTypeError extends YaksokError {
     constructor(props: {
-        tokens?: Token[]
+        tokens: Token[]
         resource: {
             index: string | number
         }
@@ -86,8 +86,7 @@ export class ListIndexTypeError extends YaksokError {
 
 export class RangeStartMustBeNumberError extends YaksokError {
     constructor(props: {
-        position?: Position
-        tokens?: Token[]
+        tokens: Token[]
         resource: {
             start: ValueType
         }
@@ -102,7 +101,6 @@ export class RangeStartMustBeNumberError extends YaksokError {
 export class TargetIsNotIndexedValueError extends YaksokError {
     constructor(props: {
         tokens: Token[]
-
         resource: {
             target: Evaluable
         }
