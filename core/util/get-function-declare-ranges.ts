@@ -100,10 +100,10 @@ function assertValidYaksokDeclare(
         if (nextNextToken.type !== TOKEN_TYPE.INDENT) {
             throw new UnexpectedTokenError({
                 resource: {
-                    token: nextNextToken,
                     parts: '들여쓰기',
                 },
                 position: nextNextToken.position,
+                tokens: [nextNextToken],
             })
         }
     }
@@ -130,10 +130,10 @@ function assertValidFfiDeclare(
         if (nextNextToken.type !== TOKEN_TYPE.FFI_BODY) {
             throw new UnexpectedTokenError({
                 resource: {
-                    token: nextNextToken,
                     parts: '번역 본문',
                 },
                 position: nextNextToken.position,
+                tokens: [nextNextToken],
             })
         }
     }

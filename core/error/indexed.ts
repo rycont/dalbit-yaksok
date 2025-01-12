@@ -11,6 +11,7 @@ export class IndexOutOfRangeError extends YaksokError {
             index: string
             target: string
         }
+        tokens?: Token[]
     }) {
         super(props)
         this.message = `${props.resource.target}에는 ${props.resource.index}라는 값이 없어요`
