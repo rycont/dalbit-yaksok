@@ -1,9 +1,9 @@
+import { NotDefinedIdentifierError } from '../error/variable.ts'
+
+import type { Token } from '../prepare/tokenize/token.ts'
+import type { ValueType } from '../value/base.ts'
 import type { CallFrame } from '../executer/callFrame.ts'
 import type { Scope } from '../executer/scope.ts'
-import { NotDefinedIdentifierError } from '../error/variable.ts'
-import { ValueType } from '../value/base.ts'
-import { Token } from '../prepare/tokenize/token.ts'
-import { YaksokError } from '../error/common.ts'
 
 export class Node {
     [key: string]: unknown

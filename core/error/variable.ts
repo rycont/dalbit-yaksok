@@ -1,7 +1,7 @@
-import { Token } from '../prepare/tokenize/token.ts'
+import { tokenToText, YaksokError } from './common.ts'
+
+import type { Token } from '../prepare/tokenize/token.ts'
 import type { Position } from '../type/position.ts'
-import { tokenToText } from './common.ts'
-import { YaksokError } from './common.ts'
 
 export class CannotUseReservedWordForIdentifierNameError extends YaksokError {
     constructor(props: {
@@ -30,7 +30,7 @@ export class NotDefinedIdentifierError extends YaksokError<NotDefinedIdentifierE
         super(props)
     }
 
-    override get message() {
+    override get message(): string {
         const name =
             this.resource?.tokens?.map((token) => token.value).join('') ||
             this.resource?.name
