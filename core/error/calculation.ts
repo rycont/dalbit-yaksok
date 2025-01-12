@@ -41,3 +41,31 @@ export class InvalidTypeForOperatorError extends YaksokError {
         )}할 수 없어요.`
     }
 }
+
+export class RangeStartMustBeIntegerError extends YaksokError {
+    constructor(props: {
+        tokens?: Token[]
+        resource: {
+            start: ValueType
+        }
+    }) {
+        super(props)
+
+        const startText = valueTypeToText(props.resource.start)
+        this.message = `범위의 시작은 정수여야 해요. ${startText}는 정수가 아니에요.`
+    }
+}
+
+export class RangeEndMustBeIntegerError extends YaksokError {
+    constructor(props: {
+        tokens?: Token[]
+        resource: {
+            end: ValueType
+        }
+    }) {
+        super(props)
+
+        const endText = valueTypeToText(props.resource.end)
+        this.message = `범위의 끝은 정수여야 해요. ${endText}는 정수가 아니에요.`
+    }
+}
