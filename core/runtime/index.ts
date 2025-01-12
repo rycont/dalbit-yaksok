@@ -97,7 +97,7 @@ export async function yaksok(
         }
     } catch (e) {
         if (e instanceof YaksokError) {
-            console.error(renderErrorString(e))
+            runtime.stderr(renderErrorString(e))
         }
 
         throw e
