@@ -20,6 +20,7 @@ import {
 import { Evaluable, Operator, OperatorClass } from './base.ts'
 import { ValueType } from '../value/base.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
+import { InvalidTypeForOperatorError } from '../error/calculation.ts'
 
 const OPERATOR_PRECEDENCES: OperatorClass[][] = [
     [AndOperator, OrOperator],
@@ -68,7 +69,10 @@ export class Formula extends Evaluable {
         _callFrame: CallFrame,
     ): Promise<ValueType> {
         const callFrame = new CallFrame(this, _callFrame)
-        const terms = [...this.terms]
+        const termsWithToken = this.terms.map((term) => ({
+            value: term,
+            tokens: term.tokens,
+        }))
 
         for (
             let currentPrecedence = OPERATOR_PRECEDENCES.length - 1;
@@ -76,26 +80,29 @@ export class Formula extends Evaluable {
             currentPrecedence--
         ) {
             await this.calculateOperatorWithPrecedence(
-                terms,
+                termsWithToken,
                 currentPrecedence,
                 scope,
                 callFrame,
             )
         }
 
-        return terms[0] as ValueType
+        return termsWithToken[0].value as ValueType
     }
 
     async calculateOperatorWithPrecedence(
-        terms: (Evaluable | Operator | ValueType)[],
+        termsWithToken: {
+            value: Evaluable | Operator | ValueType
+            tokens: Token[]
+        }[],
         precedence: number,
         scope: Scope,
         callFrame: CallFrame,
     ) {
         const currentOperators = OPERATOR_PRECEDENCES[precedence]
 
-        for (let i = 0; i < terms.length; i++) {
-            const term = terms[i]
+        for (let i = 0; i < termsWithToken.length; i++) {
+            const term = termsWithToken[i].value
 
             const isOperator = term instanceof Operator
             const isCurrentPrecedence = currentOperators.includes(
@@ -104,8 +111,12 @@ export class Formula extends Evaluable {
 
             if (!isOperator || !isCurrentPrecedence) continue
 
-            const leftTerm = terms[i - 1] as Evaluable | ValueType
-            const rightTerm = terms[i + 1] as Evaluable | ValueType
+            const leftTerm = termsWithToken[i - 1].value as
+                | Evaluable
+                | ValueType
+            const rightTerm = termsWithToken[i + 1].value as
+                | Evaluable
+                | ValueType
 
             const left =
                 leftTerm instanceof ValueType
@@ -117,10 +128,28 @@ export class Formula extends Evaluable {
                     ? rightTerm
                     : await rightTerm.execute(scope, callFrame)
 
-            const result = term.call(left, right)
-            terms.splice(i - 1, 3, result)
+            const mergedTokens = [
+                ...termsWithToken[i - 1].tokens,
+                ...term.tokens,
+                ...termsWithToken[i + 1].tokens,
+            ]
 
-            i--
+            try {
+                const result = term.call(left, right)
+
+                termsWithToken.splice(i - 1, 3, {
+                    value: result,
+                    tokens: mergedTokens,
+                })
+
+                i--
+            } catch (e) {
+                if (e instanceof InvalidTypeForOperatorError && !e.tokens) {
+                    e.tokens = mergedTokens
+                }
+
+                throw e
+            }
         }
     }
 
