@@ -26,10 +26,10 @@ export class Block extends Executable {
                 continue
             } else {
                 throw new CannotParseError({
-                    position: child.tokens?.[0].position,
                     resource: {
                         part: child,
                     },
+                    tokens: child.tokens,
                 })
             }
         }

@@ -5,7 +5,7 @@ import { YaksokError, blue, bold, dim, tokenToText } from './common.ts'
 
 export class CannotParseError extends YaksokError {
     constructor(props: {
-        position?: Position
+        tokens: Token[]
         resource: {
             part: Node
         }
@@ -30,7 +30,7 @@ export class CannotParseError extends YaksokError {
 
 export class IndentIsNotMultipleOf4Error extends YaksokError {
     constructor(props: {
-        position?: Position
+        tokens: Token[]
         resource: {
             indent: number
         }
@@ -43,6 +43,7 @@ export class IndentIsNotMultipleOf4Error extends YaksokError {
 export class IndentLevelMismatchError extends YaksokError {
     constructor(props: {
         position?: Position
+        tokens?: Token[]
         resource: {
             expected?: number
         }
@@ -50,10 +51,12 @@ export class IndentLevelMismatchError extends YaksokError {
         super(props)
         this.message = `들여쓰기가 잘못되었어요.`
 
-        if (props.resource.expected !== undefined) {
+        if (props.resource.expected === 0) {
+            this.message += ` 여기선 들여쓰기를 할 필요가 없어요.`
+        } else if (props.resource.expected !== undefined) {
             this.message += ` 여기서는 ${bold(
-                `"${props.resource.expected}"`,
-            )}만큼 들여쓰기를 해야해요.`
+                props.resource.expected * 4 + '칸',
+            )}${dim(`(또는 탭 ${props.resource.expected}번)`)} 띄어써야 해요.`
         }
     }
 }
@@ -94,14 +97,16 @@ export class UnexpectedEndOfCodeError extends YaksokError {
 export class UnexpectedTokenError extends YaksokError {
     constructor(props: {
         resource: {
-            token: Token
             parts: string
         }
+        tokens: Token[]
         position?: Position
     }) {
         super(props)
 
-        this.message = `${tokenToText(props.resource.token)}은 ${bold(props.resource.parts)}에 사용할 수 없어요.`
+        this.message = `${tokenToText(props.tokens[0])}은 ${bold(
+            props.resource.parts,
+        )}에 사용할 수 없어요.`
     }
 }
 

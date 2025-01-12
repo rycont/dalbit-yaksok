@@ -36,10 +36,11 @@ export class MentionScope extends Evaluable {
         scope: Scope,
         callFrame: CallFrame,
     ): Promise<ValueType> {
+        const moduleCodeFile = scope.codeFile!.runtime!.getCodeFile(
+            this.fileName,
+        )
+
         try {
-            const moduleCodeFile = scope.codeFile!.runtime!.getCodeFile(
-                this.fileName,
-            )
             await moduleCodeFile.run()
 
             const moduleFileScope = moduleCodeFile.runResult!.scope
@@ -61,11 +62,13 @@ export class MentionScope extends Evaluable {
             return await this.child.execute(moduleFileScope, callFrame)
         } catch (error) {
             if (error instanceof YaksokError) {
+                error.codeFile = moduleCodeFile
+
                 throw new ErrorInModuleError({
                     resource: {
                         fileName: this.fileName,
                     },
-                    position: this.tokens[0].position,
+                    tokens: this.tokens,
                     child: error,
                 })
             }

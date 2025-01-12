@@ -3,6 +3,7 @@ import { operatorToText, valueTypeToText, YaksokError } from './common.ts'
 
 import type { Position } from '../type/position.ts'
 import { ValueType } from '../value/base.ts'
+import { Token } from '../prepare/tokenize/token.ts'
 
 export class InvalidTypeForCompareError extends YaksokError {
     constructor(props: {
@@ -24,6 +25,7 @@ export class InvalidTypeForCompareError extends YaksokError {
 export class InvalidTypeForOperatorError extends YaksokError {
     constructor(props: {
         position?: Position
+        tokens?: Token[]
         resource: {
             operator: Operator
             operands: ValueType[]

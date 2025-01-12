@@ -1,7 +1,7 @@
-import type { Position } from '../type/position.ts'
+import type { Token } from '../prepare/tokenize/token.ts'
 
 export class Signal {
-    constructor(public position?: Position) {}
+    constructor(public tokens: Token[]) {}
 }
 
 export class ReturnSignal extends Signal {}

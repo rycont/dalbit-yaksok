@@ -1,4 +1,5 @@
 import type { Evaluable } from '../node/base.ts'
+import type { Token } from '../prepare/tokenize/token.ts'
 import type { Position } from '../type/position.ts'
 import { ValueType } from '../value/base.ts'
 import { YaksokError, evaluableToText, valueTypeToText } from './common.ts'
@@ -10,6 +11,7 @@ export class IndexOutOfRangeError extends YaksokError {
             index: string
             target: string
         }
+        tokens?: Token[]
     }) {
         super(props)
         this.message = `${props.resource.target}에는 ${props.resource.index}라는 값이 없어요`
@@ -18,7 +20,7 @@ export class IndexOutOfRangeError extends YaksokError {
 
 export class NotEnumerableValueForListLoopError extends YaksokError {
     constructor(props: {
-        position?: Position
+        tokens: Token[]
         resource: {
             value: ValueType
         }
@@ -72,14 +74,12 @@ export class RangeStartMustBeLessThanEndError extends YaksokError {
 
 export class ListIndexTypeError extends YaksokError {
     constructor(props: {
-        position?: Position
-
+        tokens?: Token[]
         resource: {
             index: string | number
         }
     }) {
         super(props)
-
         this.message = `목록의 인덱스는 정수여야 해요. ${props.resource.index}는 정수가 아니에요.`
     }
 }
@@ -87,7 +87,7 @@ export class ListIndexTypeError extends YaksokError {
 export class RangeStartMustBeNumberError extends YaksokError {
     constructor(props: {
         position?: Position
-
+        tokens?: Token[]
         resource: {
             start: ValueType
         }
@@ -101,7 +101,7 @@ export class RangeStartMustBeNumberError extends YaksokError {
 
 export class TargetIsNotIndexedValueError extends YaksokError {
     constructor(props: {
-        position?: Position
+        tokens: Token[]
 
         resource: {
             target: Evaluable

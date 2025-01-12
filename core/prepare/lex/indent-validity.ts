@@ -22,7 +22,7 @@ export function assertIndentValidity(_tokens: Token[]) {
             resource: {
                 expected: 0,
             },
-            position: tokens[0].position,
+            tokens: [tokens[0]],
         })
     }
 
@@ -38,7 +38,7 @@ export function assertIndentValidity(_tokens: Token[]) {
                 resource: {
                     indent: nextToken.value.length,
                 },
-                position: nextToken.position,
+                tokens: [nextToken],
             })
         }
 
@@ -55,6 +55,7 @@ export function assertIndentValidity(_tokens: Token[]) {
                         expected: currentDepth + 1,
                     },
                     position: nextToken.position,
+                    tokens: [nextToken],
                 })
             }
 

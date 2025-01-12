@@ -36,10 +36,7 @@ export class SetVariable extends Evaluable {
         if (!RESERVED_WORDS.has(this.name)) return
 
         throw new CannotUseReservedWordForIdentifierNameError({
-            position: this.tokens[0].position,
-            resource: {
-                token: this.tokens[0],
-            },
+            tokens: this.tokens,
         })
     }
 }

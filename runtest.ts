@@ -1,4 +1,9 @@
-import { tokenize } from '@dalbit-yaksok/core'
+import { yaksok } from '@dalbit-yaksok/core'
 
-const tokenized = tokenize(`"이름이 뭐에"!$`)
-console.log(tokenized)
+await yaksok(`
+약속, (10) 말하기
+반복
+        결과: "안녕하세요"
+
+말하기 보여주기
+`)

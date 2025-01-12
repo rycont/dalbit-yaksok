@@ -1,11 +1,11 @@
-import type { Position } from '../type/position.ts'
+import type { Token } from '../prepare/tokenize/token.ts'
 import { YaksokError, blue, bold } from './common.ts'
 
 export class ErrorInModuleError extends YaksokError<{
     fileName: string
 }> {
     constructor(props: {
-        position?: Position
+        tokens?: Token[]
         resource: {
             fileName: string
         }

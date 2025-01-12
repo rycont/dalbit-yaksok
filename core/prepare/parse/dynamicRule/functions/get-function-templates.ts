@@ -77,12 +77,10 @@ function assertValidFunctionHeader(
     pieces: FunctionTemplatePiece[],
     tokens: Token[],
 ) {
-    const position = tokens[0].position
-
     const hasStaticPiece = pieces.some((piece) => piece.type === 'static')
     if (!hasStaticPiece) {
         throw new FunctionMustHaveOneOrMoreStringPartError({
-            position,
+            tokens,
         })
     }
 
@@ -90,10 +88,7 @@ function assertValidFunctionHeader(
         if (token.type === TOKEN_TYPE.IDENTIFIER) {
             if (RESERVED_WORDS.has(token.value)) {
                 throw new CannotUseReservedWordForIdentifierNameError({
-                    position: token.position,
-                    resource: {
-                        token,
-                    },
+                    tokens: [token],
                 })
             }
         }
@@ -107,11 +102,10 @@ function assertValidFunctionHeader(
 
         if (!isNextTokenValid) {
             throw new UnexpectedTokenError({
-                position: nextToken?.position,
                 resource: {
-                    token: nextToken,
                     parts: '약속 인자',
                 },
+                tokens: [nextToken],
             })
         }
 
@@ -121,11 +115,10 @@ function assertValidFunctionHeader(
 
         if (!isNextNextTokenValid) {
             throw new UnexpectedTokenError({
-                position: nextNextToken?.position,
                 resource: {
-                    token: nextNextToken,
-                    parts: '약속 이름',
+                    parts: '약속 인자를 닫는 괄호',
                 },
+                tokens: [nextNextToken],
             })
         }
     }

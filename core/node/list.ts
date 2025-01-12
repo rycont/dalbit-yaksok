@@ -9,6 +9,7 @@ import { NumberValue, StringValue } from '../value/primitive.ts'
 import { Evaluable, Executable, Node } from './base.ts'
 
 import type { Token } from '../prepare/tokenize/token.ts'
+import { YaksokError } from '../error/common.ts'
 
 export class Sequence extends Node {
     static override friendlyName = '나열된 값'
@@ -58,7 +59,7 @@ export class IndexFetch extends Evaluable {
 
         if (!(list instanceof IndexedValue)) {
             throw new TargetIsNotIndexedValueError({
-                position: this.tokens[0].position,
+                tokens: this.tokens,
                 resource: {
                     target: list,
                 },
@@ -70,8 +71,20 @@ export class IndexFetch extends Evaluable {
             return values
         }
 
-        const value = list.getItem(index.value)
-        return value
+        try {
+            const value = list.getItem(index.value)
+            return value
+        } catch (error) {
+            if (error instanceof YaksokError && !error.tokens) {
+                if (error instanceof ListIndexTypeError) {
+                    error.tokens = this.index.tokens
+                } else {
+                    error.tokens = this.tokens
+                }
+            }
+
+            throw error
+        }
     }
 
     public async setValue(
@@ -84,7 +97,7 @@ export class IndexFetch extends Evaluable {
 
         if (!(list instanceof IndexedValue)) {
             throw new TargetIsNotIndexedValueError({
-                position: this.tokens[0].position,
+                tokens: this.tokens.slice(0, -1),
                 resource: {
                     target: list,
                 },
@@ -96,7 +109,7 @@ export class IndexFetch extends Evaluable {
             !(index instanceof StringValue)
         ) {
             throw new ListIndexTypeError({
-                position: this.tokens[0].position,
+                tokens: this.tokens,
                 resource: {
                     index: index.toPrint(),
                 },

@@ -29,13 +29,13 @@ export async function executer<NodeType extends Executable>(
     } catch (e) {
         if (e instanceof ReturnSignal) {
             throw new CannotReturnOutsideFunctionError({
-                position: e.position,
+                tokens: e.tokens,
             })
         }
 
         if (e instanceof BreakSignal) {
             throw new BreakNotInLoopError({
-                position: e.position,
+                tokens: e.tokens,
             })
         }
 

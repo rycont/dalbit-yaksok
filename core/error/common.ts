@@ -6,15 +6,21 @@ import { ValueType } from '../value/base.ts'
 
 export class YaksokError<T = unknown> extends Error {
     position?: Position
+    tokens?: Token[]
     resource?: T
     codeFile?: CodeFile
     child?: YaksokError
 
-    constructor(props: { position?: Position; resource?: T }) {
+    constructor(props: {
+        position?: Position
+        resource?: T
+        tokens?: Token[]
+    }) {
         super()
 
         this.position = props.position
         this.resource = props.resource
+        this.tokens = props.tokens
     }
 }
 
@@ -65,4 +71,8 @@ export function blue(text: string | number) {
 
 export function dim(text: string | number) {
     return `\x1b[2m${text}\x1b[0m`
+}
+
+export function underline(text: string | number) {
+    return `\x1b[4m${text}\x1b[24m`
 }

@@ -1,8 +1,9 @@
+import { NotDefinedIdentifierError } from '../error/variable.ts'
+
+import type { Token } from '../prepare/tokenize/token.ts'
+import type { ValueType } from '../value/base.ts'
 import type { CallFrame } from '../executer/callFrame.ts'
 import type { Scope } from '../executer/scope.ts'
-import { NotDefinedIdentifierError } from '../error/variable.ts'
-import { ValueType } from '../value/base.ts'
-import { Token } from '../prepare/tokenize/token.ts'
 
 export class Node {
     [key: string]: unknown
@@ -58,7 +59,7 @@ export class Identifier extends Evaluable {
             return Promise.resolve(scope.getVariable(this.value))
         } catch (e) {
             if (e instanceof NotDefinedIdentifierError) {
-                e.position = this.tokens?.[0].position
+                e.tokens = this.tokens
             }
 
             throw e

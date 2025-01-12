@@ -12,6 +12,6 @@ export class Return extends Executable {
     }
 
     override execute(_scope: Scope): Promise<never> {
-        throw new ReturnSignal(this.tokens[0].position)
+        throw new ReturnSignal(this.tokens)
     }
 }

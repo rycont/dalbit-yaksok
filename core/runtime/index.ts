@@ -1,6 +1,6 @@
 import { DEFAULT_RUNTIME_CONFIG, type RuntimeConfig } from './runtime-config.ts'
 import { FileForRunNotExistError } from '../error/prepare.ts'
-import { printError } from '../error/printError.ts'
+import { renderErrorString } from '../error/render-error-string.ts'
 import { YaksokError } from '../error/common.ts'
 import { CodeFile } from '../type/code-file.ts'
 
@@ -36,7 +36,7 @@ export class Runtime {
         }
     }
 
-    run(fileName = this.entryPoint): Promise<ExecuteResult<Block>> {
+    async run(fileName = this.entryPoint): Promise<ExecuteResult<Block>> {
         const codeFile = this.files[fileName]
 
         if (!codeFile) {
@@ -49,7 +49,7 @@ export class Runtime {
         }
 
         try {
-            return codeFile.run()
+            return await codeFile.run()
         } catch (e) {
             if (e instanceof YaksokError && !e.codeFile) {
                 e.codeFile = codeFile
@@ -97,7 +97,7 @@ export async function yaksok(
         }
     } catch (e) {
         if (e instanceof YaksokError) {
-            console.error(printError(e))
+            runtime.stderr(renderErrorString(e))
         }
 
         throw e

@@ -50,11 +50,14 @@ export class Scope {
             return this.parent.getVariable(name)
         }
 
-        throw new NotDefinedIdentifierError({
+        const errorInstance = new NotDefinedIdentifierError({
             resource: {
                 name,
             },
         })
+
+        errorInstance.codeFile = this.codeFile
+        throw errorInstance
     }
 
     addFunctionObject(functionObject: RunnableObject) {
@@ -69,10 +72,13 @@ export class Scope {
             return this.parent.getFunctionObject(name)
         }
 
-        throw new NotDefinedIdentifierError({
+        const errorInstance = new NotDefinedIdentifierError({
             resource: {
                 name,
             },
         })
+
+        errorInstance.codeFile = this.codeFile
+        throw errorInstance
     }
 }
