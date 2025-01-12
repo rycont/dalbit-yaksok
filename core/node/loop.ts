@@ -36,6 +36,6 @@ export class Break extends Executable {
     }
 
     override execute(_scope: Scope, _callFrame: CallFrame): Promise<never> {
-        throw new BreakSignal(this.tokens[0].position)
+        throw new BreakSignal(this.tokens)
     }
 }

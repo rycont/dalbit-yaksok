@@ -28,7 +28,6 @@ export async function executer<NodeType extends Executable>(
         return { scope, result }
     } catch (e) {
         if (e instanceof ReturnSignal) {
-            console.log(e.tokens)
             throw new CannotReturnOutsideFunctionError({
                 tokens: e.tokens,
             })
