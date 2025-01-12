@@ -28,14 +28,15 @@ export async function executer<NodeType extends Executable>(
         return { scope, result }
     } catch (e) {
         if (e instanceof ReturnSignal) {
+            console.log(e.tokens)
             throw new CannotReturnOutsideFunctionError({
-                position: e.position,
+                tokens: e.tokens,
             })
         }
 
         if (e instanceof BreakSignal) {
             throw new BreakNotInLoopError({
-                position: e.position,
+                tokens: e.tokens,
             })
         }
 

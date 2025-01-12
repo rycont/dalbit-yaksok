@@ -1,8 +1,9 @@
+import type { Token } from '../prepare/tokenize/token.ts'
 import type { Position } from '../type/position.ts'
 import { YaksokError } from './common.ts'
 
 export class CannotReturnOutsideFunctionError extends YaksokError {
-    constructor(props: { position?: Position }) {
+    constructor(props: { tokens: Token[]; resource?: unknown }) {
         super(props)
         this.message = `"약속 그만"은 약속 안에서만 사용할 수 있어요.`
     }

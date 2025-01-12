@@ -11,11 +11,16 @@ export class YaksokError<T = unknown> extends Error {
     codeFile?: CodeFile
     child?: YaksokError
 
-    constructor(props: { position?: Position; resource?: T }) {
+    constructor(props: {
+        position?: Position
+        resource?: T
+        tokens?: Token[]
+    }) {
         super()
 
         this.position = props.position
         this.resource = props.resource
+        this.tokens = props.tokens
     }
 }
 

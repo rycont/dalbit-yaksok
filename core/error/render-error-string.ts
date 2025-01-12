@@ -70,7 +70,8 @@ function getHintCodeFromErrorTokens(tokens: Token[], code: string) {
     const lines = code.split('\n')
 
     const position = tokens[0].position
-    const length = tokens.reduce((acc, token) => acc + token.value.length, 0)
+    const length =
+        tokens[tokens.length - 1].position.column - position.column + 1
 
     for (let i = 0; i < lines.length; i++) {
         if (i < position.line - 2 || i > position.line + 1) {
@@ -83,7 +84,7 @@ function getHintCodeFromErrorTokens(tokens: Token[], code: string) {
         if (i === position.line - 1) {
             const underlineRange = [
                 position.column - 1,
-                position.column + length - 1,
+                position.column + length,
             ]
 
             output += '│  ' + lineNum + '  '
