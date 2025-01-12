@@ -1,7 +1,9 @@
 import { yaksok } from '@dalbit-yaksok/core'
 
-await yaksok(
-    `값: 1 = 1
-반복 값 의 숫자 마다
-    숫자 보여주기`,
-)
+await yaksok({
+    아두이노: `
+약속, 이름
+    결과: "아두이노" / 2
+`,
+    main: '(@아두이노 이름) 보여주기',
+})
