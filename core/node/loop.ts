@@ -1,4 +1,3 @@
-import { CallFrame } from '../executer/callFrame.ts'
 import { BreakSignal } from '../executer/signals.ts'
 import { Executable } from './base.ts'
 
@@ -13,12 +12,10 @@ export class Loop extends Executable {
         super()
     }
 
-    override async execute(scope: Scope, _callFrame: CallFrame) {
-        const callFrame = new CallFrame(this, _callFrame)
-
+    override async execute(scope: Scope) {
         try {
             while (true) {
-                await this.body.execute(scope, callFrame)
+                await this.body.execute(scope)
             }
         } catch (e) {
             if (!(e instanceof BreakSignal)) {
@@ -35,7 +32,7 @@ export class Break extends Executable {
         super()
     }
 
-    override execute(_scope: Scope, _callFrame: CallFrame): Promise<never> {
+    override execute(_scope: Scope): Promise<never> {
         throw new BreakSignal(this.tokens)
     }
 }

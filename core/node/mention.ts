@@ -6,7 +6,6 @@ import { evaluateParams } from './function.ts'
 import { ValueType } from '../value/base.ts'
 
 import type { Token } from '../prepare/tokenize/token.ts'
-import type { CallFrame } from '../executer/callFrame.ts'
 import type { Scope } from '../executer/scope.ts'
 
 export class Mention extends Executable {
@@ -32,10 +31,7 @@ export class MentionScope extends Evaluable {
         super()
     }
 
-    override async execute(
-        scope: Scope,
-        callFrame: CallFrame,
-    ): Promise<ValueType> {
+    override async execute(scope: Scope): Promise<ValueType> {
         const moduleCodeFile = scope.codeFile!.runtime!.getCodeFile(
             this.fileName,
         )
@@ -49,17 +45,15 @@ export class MentionScope extends Evaluable {
                 const evaluatedParams = await evaluateParams(
                     this.child.params,
                     scope,
-                    callFrame,
                 )
 
                 return await this.child.execute(
                     moduleFileScope,
-                    callFrame,
                     evaluatedParams,
                 )
             }
 
-            return await this.child.execute(moduleFileScope, callFrame)
+            return await this.child.execute(moduleFileScope)
         } catch (error) {
             if (error instanceof YaksokError) {
                 error.codeFile = moduleCodeFile

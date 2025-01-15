@@ -1,4 +1,3 @@
-import { CallFrame } from '../executer/callFrame.ts'
 import { CannotParseError } from '../error/index.ts'
 import { Executable, type Node } from './base.ts'
 import { EOL } from './misc.ts'
@@ -16,12 +15,10 @@ export class Block extends Executable {
         this.children = content
     }
 
-    override async execute(scope: Scope, _callFrame: CallFrame) {
-        const callFrame = new CallFrame(this, _callFrame)
-
+    override async execute(scope: Scope) {
         for (const child of this.children) {
             if (child instanceof Executable) {
-                await child.execute(scope, callFrame)
+                await child.execute(scope)
             } else if (child instanceof EOL) {
                 continue
             } else {

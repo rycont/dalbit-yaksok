@@ -1,6 +1,5 @@
 import { Node, Executable, type Evaluable } from './base.ts'
 
-import type { CallFrame } from '../executer/callFrame.ts'
 import type { Scope } from '../executer/scope.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 
@@ -27,9 +26,9 @@ export class Print extends Executable {
         super()
     }
 
-    override async execute(scope: Scope, _callFrame: CallFrame): Promise<void> {
+    override async execute(scope: Scope): Promise<void> {
         const printFunction = scope.codeFile?.runtime?.stdout || console.log
-        const evaluated = await this.value.execute(scope, _callFrame)
+        const evaluated = await this.value.execute(scope)
 
         printFunction(evaluated.toPrint())
     }

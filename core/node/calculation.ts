@@ -1,4 +1,3 @@
-import { CallFrame } from '../executer/callFrame.ts'
 import type { Scope } from '../executer/scope.ts'
 import {
     AndOperator,
@@ -54,9 +53,8 @@ export class ValueWithParenthesis extends Evaluable {
         super()
     }
 
-    override execute(scope: Scope, _callFrame: CallFrame): Promise<ValueType> {
-        const callFrame = new CallFrame(this, _callFrame)
-        return this.value.execute(scope, callFrame)
+    override execute(scope: Scope): Promise<ValueType> {
+        return this.value.execute(scope)
     }
 
     override toPrint(): string {
@@ -74,11 +72,7 @@ export class Formula extends Evaluable {
         super()
     }
 
-    override async execute(
-        scope: Scope,
-        _callFrame: CallFrame,
-    ): Promise<ValueType> {
-        const callFrame = new CallFrame(this, _callFrame)
+    override async execute(scope: Scope): Promise<ValueType> {
         const termsWithToken = this.terms.map((term) => ({
             value: term,
             tokens: term.tokens,
@@ -93,7 +87,6 @@ export class Formula extends Evaluable {
                 termsWithToken,
                 currentPrecedence,
                 scope,
-                callFrame,
             )
         }
 
@@ -107,7 +100,6 @@ export class Formula extends Evaluable {
         }[],
         precedence: number,
         scope: Scope,
-        callFrame: CallFrame,
     ) {
         const currentOperators = OPERATOR_PRECEDENCES[precedence]
 
@@ -131,12 +123,12 @@ export class Formula extends Evaluable {
             const left =
                 leftTerm instanceof ValueType
                     ? leftTerm
-                    : await leftTerm.execute(scope, callFrame)
+                    : await leftTerm.execute(scope)
 
             const right =
                 rightTerm instanceof ValueType
                     ? rightTerm
-                    : await rightTerm.execute(scope, callFrame)
+                    : await rightTerm.execute(scope)
 
             const mergedTokens = [
                 ...termsWithToken[i - 1].tokens,

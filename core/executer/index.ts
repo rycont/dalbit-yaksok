@@ -3,7 +3,6 @@ import {
     CannotReturnOutsideFunctionError,
 } from '../error/index.ts'
 import { Scope } from './scope.ts'
-import { CallFrame } from './callFrame.ts'
 import { BreakSignal, ReturnSignal } from './signals.ts'
 
 import type { CodeFile } from '../type/code-file.ts'
@@ -19,10 +18,8 @@ export async function executer<NodeType extends Executable>(
             codeFile,
         })
 
-    const callFrame = new CallFrame(node, undefined)
-
     try {
-        const result = (await node.execute(scope, callFrame)) as ReturnType<
+        const result = (await node.execute(scope)) as ReturnType<
             NodeType['execute']
         >
         return { scope, result }

@@ -1,6 +1,6 @@
 import { NotDefinedIdentifierError } from '../error/variable.ts'
 import { ReturnSignal } from '../executer/signals.ts'
-import { CallFrame } from '../executer/callFrame.ts'
+
 import { Scope } from '../executer/scope.ts'
 import { ObjectValue, ValueType } from './base.ts'
 
@@ -30,10 +30,8 @@ export class FunctionObject extends ObjectValue implements RunnableObject {
             initialVariable: args,
         })
 
-        const callFrame = new CallFrame(this.body)
-
         try {
-            await this.body.execute(functionScope, callFrame)
+            await this.body.execute(functionScope)
         } catch (e) {
             if (!(e instanceof ReturnSignal)) {
                 throw e

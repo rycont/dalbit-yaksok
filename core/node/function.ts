@@ -1,5 +1,5 @@
 import { Evaluable, Executable } from './base.ts'
-import { CallFrame } from '../executer/callFrame.ts'
+
 import { Scope } from '../executer/scope.ts'
 
 import type { FunctionInvokingParams } from '../constant/type.ts'
@@ -25,7 +25,7 @@ export class DeclareFunction extends Executable {
         this.body = props.body
     }
 
-    override execute(scope: Scope, _callFrame: CallFrame): Promise<void> {
+    override execute(scope: Scope): Promise<void> {
         const functionObject = new FunctionObject(this.name, this.body, scope)
         scope.addFunctionObject(functionObject)
 
@@ -51,11 +51,10 @@ export class FunctionInvoke extends Evaluable {
 
     override async execute(
         scope: Scope,
-        callFrame: CallFrame,
         args?: FunctionInvokingParams,
     ): Promise<ValueType> {
         if (!args) {
-            args = await evaluateParams(this.params, scope, callFrame)
+            args = await evaluateParams(this.params, scope)
         }
 
         const functionObject = scope.getFunctionObject(this.name)
@@ -72,13 +71,12 @@ export async function evaluateParams(
         [key: string]: Evaluable
     },
     scope: Scope,
-    callFrame: CallFrame,
 ): Promise<{ [key: string]: ValueType }> {
     const args: FunctionInvokingParams = {}
 
     for (const key in params) {
         const value = params[key]
-        args[key] = await value.execute(scope, callFrame)
+        args[key] = await value.execute(scope)
     }
 
     return args

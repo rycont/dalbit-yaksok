@@ -1,7 +1,7 @@
 import { NotEnumerableValueForListLoopError } from '../error/index.ts'
 import { type Evaluable, Executable } from './base.ts'
 import { BreakSignal } from '../executer/signals.ts'
-import { CallFrame } from '../executer/callFrame.ts'
+
 import { ListValue } from '../value/list.ts'
 import { Scope } from '../executer/scope.ts'
 
@@ -21,23 +21,19 @@ export class ListLoop extends Executable {
         super()
     }
 
-    override async execute(
-        _scope: Scope,
-        _callFrame: CallFrame,
-    ): Promise<void> {
+    override async execute(_scope: Scope): Promise<void> {
         const scope = new Scope({
             parent: _scope,
         })
-        const callFrame = new CallFrame(this, _callFrame)
 
-        const list = await this.list.execute(scope, callFrame)
+        const list = await this.list.execute(scope)
 
         this.assertRepeatTargetIsList(list)
 
         try {
             for (const value of list.enumerate()) {
                 scope.setVariable(this.variableName, value)
-                await this.body.execute(scope, callFrame)
+                await this.body.execute(scope)
             }
         } catch (e) {
             if (!(e instanceof BreakSignal)) throw e
