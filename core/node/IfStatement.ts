@@ -2,7 +2,7 @@ import { Executable, type Evaluable } from './base.ts'
 import type { Block } from './block.ts'
 
 import { isTruthy } from '../executer/internal/isTruthy.ts'
-import { CallFrame } from '../executer/callFrame.ts'
+
 import type { Scope } from '../executer/scope.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 
@@ -18,18 +18,12 @@ export class IfStatement extends Executable {
         super()
     }
 
-    override async execute(scope: Scope, _callFrame: CallFrame) {
-        const callFrame = new CallFrame(this, _callFrame)
-
+    override async execute(scope: Scope) {
         for (const { condition, body } of this.cases) {
-            const shouldStop = await this.shouldStop(
-                condition,
-                scope,
-                callFrame,
-            )
+            const shouldStop = await this.shouldStop(condition, scope)
             if (!shouldStop) continue
 
-            await body.execute(scope, callFrame)
+            await body.execute(scope)
             break
         }
     }
@@ -37,10 +31,8 @@ export class IfStatement extends Executable {
     async shouldStop(
         condition: Evaluable | undefined,
         scope: Scope,
-        _callFrame: CallFrame,
     ): Promise<boolean> {
-        const callFrame = new CallFrame(this, _callFrame)
-        return !condition || isTruthy(await condition.execute(scope, callFrame))
+        return !condition || isTruthy(await condition.execute(scope))
     }
 }
 

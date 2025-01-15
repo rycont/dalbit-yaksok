@@ -1,5 +1,5 @@
 import { CannotUseReservedWordForIdentifierNameError } from '../error/index.ts'
-import { CallFrame } from '../executer/callFrame.ts'
+
 import { Evaluable } from './base.ts'
 
 import type { ValueType } from '../value/base.ts'
@@ -19,14 +19,10 @@ export class SetVariable extends Evaluable {
         this.assertValidName()
     }
 
-    override async execute(
-        scope: Scope,
-        _callFrame: CallFrame,
-    ): Promise<ValueType> {
+    override async execute(scope: Scope): Promise<ValueType> {
         const { name, value } = this
-        const callFrame = new CallFrame(this, _callFrame)
 
-        const result = await value.execute(scope, callFrame)
+        const result = await value.execute(scope)
 
         scope.setVariable(name, result)
         return result

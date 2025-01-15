@@ -2,7 +2,6 @@ import { BooleanValue, NumberValue, StringValue } from '../value/primitive.ts'
 import { Evaluable } from './base.ts'
 
 import type { Token } from '../prepare/tokenize/token.ts'
-import type { CallFrame } from '../executer/callFrame.ts'
 import type { Scope } from '../executer/scope.ts'
 
 export class NumberLiteral extends Evaluable {
@@ -12,10 +11,7 @@ export class NumberLiteral extends Evaluable {
         super()
     }
 
-    override execute(
-        _scope: Scope,
-        _callFrame: CallFrame,
-    ): Promise<NumberValue> {
+    override execute(_scope: Scope): Promise<NumberValue> {
         return Promise.resolve(new NumberValue(this.content))
     }
 
@@ -31,10 +27,7 @@ export class StringLiteral extends Evaluable {
         super()
     }
 
-    override execute(
-        _scope: Scope,
-        _callFrame: CallFrame,
-    ): Promise<StringValue> {
+    override execute(_scope: Scope): Promise<StringValue> {
         return Promise.resolve(new StringValue(this.content))
     }
 
@@ -50,10 +43,7 @@ export class BooleanLiteral extends Evaluable {
         super()
     }
 
-    override execute(
-        _scope: Scope,
-        _callFrame: CallFrame,
-    ): Promise<BooleanValue> {
+    override execute(_scope: Scope): Promise<BooleanValue> {
         return Promise.resolve(new BooleanValue(this.content))
     }
 

@@ -2,7 +2,6 @@ import { NotDefinedIdentifierError } from '../error/variable.ts'
 
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { ValueType } from '../value/base.ts'
-import type { CallFrame } from '../executer/callFrame.ts'
 import type { Scope } from '../executer/scope.ts'
 
 export class Node {
@@ -26,7 +25,7 @@ export class Node {
 export class Executable extends Node {
     static override friendlyName = '실행 가능한 노드'
 
-    execute(_scope: Scope, _callFrame: CallFrame): Promise<unknown> {
+    execute(_scope: Scope): Promise<unknown> {
         throw new Error(`${this.constructor.name} has no execute method`)
     }
 
@@ -38,7 +37,7 @@ export class Executable extends Node {
 export class Evaluable<T extends ValueType = ValueType> extends Executable {
     static override friendlyName = '값이 있는 노드'
 
-    override execute(_scope: Scope, _callFrame: CallFrame): Promise<T> {
+    override execute(_scope: Scope): Promise<T> {
         throw new Error(`${this.constructor.name} has no execute method`)
     }
 }
@@ -54,7 +53,7 @@ export class Identifier extends Evaluable {
         return this.value
     }
 
-    override execute(scope: Scope, _callFrame: CallFrame): Promise<ValueType> {
+    override execute(scope: Scope): Promise<ValueType> {
         try {
             return Promise.resolve(scope.getVariable(this.value))
         } catch (e) {
