@@ -1,4 +1,4 @@
-import { languages, editor } from 'monaco-editor'
+import type { languages, editor } from 'monaco-editor'
 import { LANG_ID } from './const.ts'
 import { BaseProvider } from './provider/base.ts'
 import {
