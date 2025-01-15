@@ -19,6 +19,6 @@
         "vitepress-build": "deno run -A npm:vitepress build .",
         "dev": "deno task typedoc --watch & deno task vitepress-dev",
         "build": "deno task purge; deno task typedoc && deno task vitepress-build",
-        "test": "deno task build; deno task purge"
+        "check": "deno task build; deno task purge"
     }
 }
