@@ -46,6 +46,7 @@ export function parseIndent(_tokens: Node[], indent = 0) {
             const childTokens = getTokensFromNodes(child)
 
             groups.push(new Block(child, childTokens))
+            groups.push(new EOL([]))
         } else {
             groups.push(token)
         }

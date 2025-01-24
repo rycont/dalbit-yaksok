@@ -23,7 +23,6 @@ import {
     Loop,
     MinusOperator,
     MultiplyOperator,
-    type Node,
     Operator,
     PlusOperator,
     Print,
@@ -40,22 +39,7 @@ import {
 import { ListLoop } from '../../node/listLoop.ts'
 import { IndexedValue } from '../../value/indexed.ts'
 import { NumberValue, StringValue } from '../../value/primitive.ts'
-
-import type { Token } from '../tokenize/token.ts'
-
-export interface PatternUnit {
-    type: {
-        new (...args: any[]): Node
-    }
-    value?: string
-    as?: string
-}
-
-export type Rule = {
-    pattern: PatternUnit[]
-    factory: (nodes: Node[], tokens: Token[]) => Node
-    config?: Record<string, unknown>
-}
+import { Rule, RULE_FLAGS } from './type.ts'
 
 export const BASIC_RULES: Rule[][] = [
     [
@@ -344,6 +328,7 @@ export const BASIC_RULES: Rule[][] = [
                     tokens,
                 )
             },
+            flags: [RULE_FLAGS.IS_STATEMENT],
         },
         {
             pattern: [
@@ -391,6 +376,7 @@ export const BASIC_RULES: Rule[][] = [
                     tokens,
                 )
             },
+            flags: [RULE_FLAGS.IS_STATEMENT],
         },
     ],
 ]
@@ -468,6 +454,7 @@ export const ADVANCED_RULES: Rule[] = [
 
             return new SetToIndex(target, value, tokens)
         },
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
     {
         pattern: [
@@ -481,9 +468,6 @@ export const ADVANCED_RULES: Rule[] = [
             {
                 type: Evaluable,
             },
-            {
-                type: EOL,
-            },
         ],
         factory: (nodes, tokens) => {
             const name = (nodes[0] as Identifier).value
@@ -491,6 +475,7 @@ export const ADVANCED_RULES: Rule[] = [
 
             return new SetVariable(name, value, tokens)
         },
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
     {
         pattern: [
@@ -498,12 +483,16 @@ export const ADVANCED_RULES: Rule[] = [
                 type: IfStatement,
             },
             {
+                type: EOL,
+            },
+            {
                 type: ElseIfStatement,
             },
         ],
         factory: (nodes, tokens) => {
-            const [ifStatement, elseIfStatement] = nodes as [
+            const [ifStatement, _, elseIfStatement] = nodes as [
                 IfStatement,
+                EOL,
                 ElseIfStatement,
             ]
 
@@ -514,6 +503,7 @@ export const ADVANCED_RULES: Rule[] = [
 
             return ifStatement
         },
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
     {
         pattern: [
@@ -521,12 +511,16 @@ export const ADVANCED_RULES: Rule[] = [
                 type: IfStatement,
             },
             {
+                type: EOL,
+            },
+            {
                 type: ElseStatement,
             },
         ],
         factory: (nodes, tokens) => {
-            const [ifStatement, elseStatement] = nodes as [
+            const [ifStatement, _, elseStatement] = nodes as [
                 IfStatement,
+                EOL,
                 ElseStatement,
             ]
 
@@ -539,6 +533,7 @@ export const ADVANCED_RULES: Rule[] = [
 
             return ifStatement
         },
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
     {
         pattern: [
@@ -570,6 +565,7 @@ export const ADVANCED_RULES: Rule[] = [
 
             return new ElseIfStatement({ condition, body }, tokens)
         },
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
     {
         pattern: [
@@ -589,6 +585,7 @@ export const ADVANCED_RULES: Rule[] = [
 
             return new ElseStatement(body, tokens)
         },
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
     {
         pattern: [
@@ -616,6 +613,7 @@ export const ADVANCED_RULES: Rule[] = [
 
             return new IfStatement([{ condition, body }], tokens)
         },
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
     {
         pattern: [
@@ -631,6 +629,7 @@ export const ADVANCED_RULES: Rule[] = [
             const value = nodes[0] as Evaluable
             return new Print(value, tokens)
         },
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
     {
         pattern: [
@@ -646,6 +645,7 @@ export const ADVANCED_RULES: Rule[] = [
             },
         ],
         factory: (nodes, tokens) => new Loop(nodes[2] as Block, tokens),
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
     {
         pattern: [
@@ -659,6 +659,7 @@ export const ADVANCED_RULES: Rule[] = [
             },
         ],
         factory: (_nodes, tokens) => new Break(tokens),
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
     {
         pattern: [
@@ -672,6 +673,7 @@ export const ADVANCED_RULES: Rule[] = [
             },
         ],
         factory: (_nodes, tokens) => new Return(tokens),
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
     {
         pattern: [
@@ -707,5 +709,6 @@ export const ADVANCED_RULES: Rule[] = [
 
             return new ListLoop(list, name, body, tokens)
         },
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
 ]

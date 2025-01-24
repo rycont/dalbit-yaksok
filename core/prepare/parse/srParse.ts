@@ -1,42 +1,53 @@
-import { type Rule, ADVANCED_RULES, BASIC_RULES } from './rule.ts'
+import { ADVANCED_RULES, BASIC_RULES } from './rule.ts'
 import { satisfiesPattern } from './satisfiesPattern.ts'
 
 import { Block } from '../../node/block.ts'
-import { TOKEN_TYPE } from '../tokenize/token.ts'
-import { EOL } from '../../node/misc.ts'
 
 import type { Node } from '../../node/base.ts'
 import { getTokensFromNodes } from '../../util/merge-tokens.ts'
+import { Rule, RULE_FLAGS } from './type.ts'
+import { EOL } from '../../node/misc.ts'
 
-export function SRParse(_tokens: Node[], rules: Rule[]) {
-    const tokens = [..._tokens]
-    const stack: Node[] = []
+export function SRParse(_nodes: Node[], rules: Rule[]) {
+    const leftNodes = [..._nodes]
+    const buffer: Node[] = []
 
     let changed = false
 
-    tokenloop: while (true) {
+    nodeloop: while (true) {
         for (const rule of rules) {
-            if (stack.length < rule.pattern.length) continue
+            if (buffer.length < rule.pattern.length) continue
 
-            const stackSlice = stack.slice(-rule.pattern.length)
+            const stackSlice = buffer.slice(-rule.pattern.length)
             const satisfies = satisfiesPattern(stackSlice, rule.pattern)
 
             if (!satisfies) continue
+
+            const isStatement = rule.flags?.includes(RULE_FLAGS.IS_STATEMENT)
+
+            if (isStatement) {
+                const nextNode = leftNodes[0]
+                if (nextNode && !(nextNode instanceof EOL)) continue
+
+                const lastNode = buffer[buffer.length - rule.pattern.length - 1]
+                if (lastNode && !(lastNode instanceof EOL)) continue
+            }
+
             const reduced = reduce(stackSlice, rule)
 
-            stack.splice(-rule.pattern.length, rule.pattern.length, reduced)
+            buffer.splice(-rule.pattern.length, rule.pattern.length, reduced)
 
             changed = true
-            continue tokenloop
+            continue nodeloop
         }
 
-        if (tokens.length === 0) break
-        stack.push(tokens.shift()!)
+        if (leftNodes.length === 0) break
+        buffer.push(leftNodes.shift()!)
     }
 
     return {
         changed,
-        tokens: stack,
+        nodes: buffer,
     }
 }
 
@@ -66,22 +77,12 @@ export function callParseRecursively(
         }
     }
 
-    parsedTokens.push(
-        new EOL([
-            {
-                position: { column: 0, line: 0 },
-                value: '\n',
-                type: TOKEN_TYPE.NEW_LINE,
-            },
-        ]),
-    )
-
     const patternsByLevel = [...BASIC_RULES, externalPatterns, ADVANCED_RULES]
 
     loop1: while (true) {
         for (const patterns of patternsByLevel) {
             const result = SRParse(parsedTokens, patterns)
-            parsedTokens = result.tokens
+            parsedTokens = result.nodes
 
             if (result.changed) continue loop1
         }
