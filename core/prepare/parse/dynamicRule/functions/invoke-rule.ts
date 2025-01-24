@@ -6,8 +6,7 @@ import type {
     FunctionTemplate,
     FunctionTemplatePiece,
 } from '../../../../type/function-template.ts'
-import type { PatternUnit } from '../../rule.ts'
-import type { Rule } from '../../rule.ts'
+import type { Rule, PatternUnit } from '../../type.ts'
 
 interface VariantedPart {
     index: number

@@ -1,11 +1,12 @@
 import { getMentioningFiles } from './mentioning-files.ts'
 import { getExportedRules } from './get-exported-rules.ts'
 
-import type { CodeFile } from '../../../../type/code-file.ts'
+import { FileForRunNotExistError } from '../../../../error/prepare.ts'
 import { ErrorInModuleError } from '../../../../error/mention.ts'
 import { TOKEN_TYPE } from '../../../tokenize/token.ts'
-import { Rule } from '../../rule.ts'
-import { FileForRunNotExistError } from '../../../../error/prepare.ts'
+
+import type { CodeFile } from '../../../../type/code-file.ts'
+import type { Rule } from '../../type.ts'
 
 export function getRulesFromMentioningFile(codeFile: CodeFile): Rule[] {
     if (!codeFile.mounted) {
