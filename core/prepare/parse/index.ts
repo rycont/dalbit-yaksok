@@ -7,7 +7,7 @@ import { parseIndent } from './parse-indent.ts'
 import { Block } from '../../node/block.ts'
 
 import type { CodeFile } from '../../type/code-file.ts'
-import type { Rule } from './rule.ts'
+import type { Rule } from './type.ts'
 import { getTokensFromNodes } from '../../util/merge-tokens.ts'
 import { YaksokError } from '../../error/common.ts'
 

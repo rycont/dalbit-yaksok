@@ -7,7 +7,7 @@ import { parse } from '../prepare/parse/index.ts'
 import { YaksokError } from '../error/common.ts'
 
 import type { Token } from '../prepare/tokenize/token.ts'
-import type { Rule } from '../prepare/parse/rule.ts'
+import type { Rule } from '../prepare/parse/type.ts'
 import type { Runtime } from '../runtime/index.ts'
 import type { Block } from '../node/block.ts'
 

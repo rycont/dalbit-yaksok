@@ -1,9 +1,10 @@
+import { getTokensFromNodes } from '../../../../util/merge-tokens.ts'
 import { Mention, MentionScope } from '../../../../node/mention.ts'
 import { FunctionInvoke } from '../../../../node/function.ts'
 import { Identifier, Node } from '../../../../node/base.ts'
-import { Rule } from '../../rule.ts'
 import { Token } from '../../../tokenize/token.ts'
-import { getTokensFromNodes } from '../../../../util/merge-tokens.ts'
+
+import type { Rule } from '../../type.ts'
 
 export function createMentioningRule(
     fileName: string,
