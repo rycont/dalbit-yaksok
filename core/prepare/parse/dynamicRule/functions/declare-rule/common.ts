@@ -1,7 +1,6 @@
-import { Identifier } from '../../../../../mod.ts'
-import { Expression } from '../../../../../node/base.ts'
-import { Token, TOKEN_TYPE } from '../../../../tokenize/token.ts'
-import { PatternUnit } from '../../../type.ts'
+import { Expression, Identifier } from '../../../../../node/base.ts'
+import { type Token, TOKEN_TYPE } from '../../../../tokenize/token.ts'
+import type { PatternUnit } from '../../../type.ts'
 
 export function functionHeaderToPattern(tokens: Token[]): PatternUnit[] {
     const units = tokens.map(mapTokenToPatternUnit).filter(Boolean)
