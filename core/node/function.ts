@@ -1,13 +1,12 @@
+import { assertValidReturnValue } from '../util/assert-valid-return-value.ts'
+import { FunctionObject } from '../value/function.ts'
 import { Evaluable, Executable } from './base.ts'
-
+import { ValueType } from '../value/base.ts'
 import { Scope } from '../executer/scope.ts'
 
 import type { FunctionInvokingParams } from '../constant/type.ts'
-import type { Block } from './block.ts'
-import { FunctionObject } from '../value/function.ts'
-import { FFIResultTypeIsNotForYaksokError } from '../error/ffi.ts'
-import { ValueType } from '../value/base.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
+import type { Block } from './block.ts'
 
 export class DeclareFunction extends Executable {
     static override friendlyName = '새 약속 만들기'
@@ -64,6 +63,10 @@ export class FunctionInvoke extends Evaluable {
 
         return returnValue
     }
+
+    get value(): string {
+        return this.name
+    }
 }
 
 export async function evaluateParams(
@@ -80,16 +83,4 @@ export async function evaluateParams(
     }
 
     return args
-}
-
-function assertValidReturnValue(node: FunctionInvoke, returnValue: ValueType) {
-    if (returnValue instanceof ValueType) {
-        return
-    }
-
-    throw new FFIResultTypeIsNotForYaksokError({
-        ffiName: node.name,
-        value: returnValue,
-        tokens: node.tokens,
-    })
 }

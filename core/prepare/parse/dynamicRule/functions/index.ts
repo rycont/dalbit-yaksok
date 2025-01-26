@@ -23,8 +23,8 @@ export function createLocalDynamicRules(
         .toSorted((a, b) => b.pattern.length - a.pattern.length)
 
     const ffiDeclareRules = ffiHeaders.map(tokensToFFIDeclareRule)
-
     const yaksokDeclareRules = yaksokHeaders.map(tokensToYaksokDeclareRule)
+
     const declareRules = [...ffiDeclareRules, ...yaksokDeclareRules].toSorted(
         (a, b) => b.pattern.length - a.pattern.length,
     )

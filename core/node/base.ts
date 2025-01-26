@@ -1,3 +1,4 @@
+import { assertValidReturnValue } from '../util/assert-valid-return-value.ts'
 import { NotDefinedIdentifierError } from '../error/variable.ts'
 
 import type { Token } from '../prepare/tokenize/token.ts'
@@ -53,12 +54,25 @@ export class Identifier extends Evaluable {
         return this.value
     }
 
-    override execute(scope: Scope): Promise<ValueType> {
+    override async execute(scope: Scope): Promise<ValueType> {
         try {
-            return Promise.resolve(scope.getVariable(this.value))
+            return scope.getVariable(this.value)
         } catch (e) {
             if (e instanceof NotDefinedIdentifierError) {
-                e.tokens = this.tokens
+                try {
+                    const functionObject = scope.getFunctionObject(this.value)
+                    const functionResult = await functionObject.run({})
+
+                    assertValidReturnValue(this, functionResult)
+
+                    return functionResult
+                } catch (e) {
+                    if (e instanceof NotDefinedIdentifierError) {
+                        e.tokens = this.tokens
+                    }
+
+                    throw e
+                }
             }
 
             throw e
