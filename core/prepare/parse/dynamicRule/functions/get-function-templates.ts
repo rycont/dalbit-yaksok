@@ -8,25 +8,8 @@ import {
 } from '../../../../type/function-template.ts'
 import { Token, TOKEN_TYPE } from '../../../tokenize/token.ts'
 
-export function getFunctionTemplatesFromTokens(
-    tokens: Token[],
-    functionDeclareRanges: [number, number][],
-    type: string,
-) {
-    const functionTemplatesTokens = functionDeclareRanges.map(([start, end]) =>
-        tokens.slice(start, end),
-    )
-
-    const functionTemplates = functionTemplatesTokens.map((tokens) =>
-        convertTokensToFunctionTemplate(tokens, type),
-    )
-
-    return functionTemplates
-}
-
-function convertTokensToFunctionTemplate(
+export function convertTokensToFunctionTemplate(
     _tokens: Token[],
-    type: string,
 ): FunctionTemplate {
     const tokens = _tokens.map((token) => ({ ...token }))
 
@@ -52,9 +35,16 @@ function convertTokensToFunctionTemplate(
                 }
             }
 
+            if (token.value.includes('/')) {
+                return {
+                    type: 'static',
+                    value: [...token.value.split('/'), token.value],
+                }
+            }
+
             return {
                 type: 'static',
-                value: [...token.value.split('/'), token.value],
+                value: [token.value],
             }
         })
         .filter(Boolean) as FunctionTemplatePiece[]
@@ -69,7 +59,6 @@ function convertTokensToFunctionTemplate(
     return {
         name: functionName,
         pieces,
-        type,
     }
 }
 
