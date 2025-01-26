@@ -252,7 +252,13 @@ Deno.test('한 단어로 된 FFI 이름', async () => {
     return "성공"
 ***
 
+번역(QuickJS), (질문) 물어보기
+***
+    return "이건 아님"
+***
+
 (물어보기) + 물어보기 * 3 보여주기
+("뭐라도" 물어보기) + ("뭐라도" 물어보기) * 3 보여주기
 `,
         {
             runFFI(runtime, bodyCode, args) {
@@ -273,5 +279,8 @@ Deno.test('한 단어로 된 FFI 이름', async () => {
         },
     )
 
-    assertEquals(output, '성공성공성공성공\n')
+    assertEquals(
+        output,
+        '성공성공성공성공\n이건 아님이건 아님이건 아님이건 아님\n',
+    )
 })
