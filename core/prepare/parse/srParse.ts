@@ -78,8 +78,9 @@ export function callParseRecursively(
     }
 
     const patternsByLevel = [
-        ...externalPatterns,
+        externalPatterns[0],
         ...BASIC_RULES,
+        ...externalPatterns,
         ADVANCED_RULES,
     ]
 

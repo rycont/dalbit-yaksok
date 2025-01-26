@@ -9,7 +9,14 @@ import {
     UnexpectedTokenError,
 } from '../error/prepare.ts'
 
-export function getFunctionDeclareRanges(tokens: Token[]) {
+interface FunctionDeclareRangesByType {
+    yaksok: [number, number][]
+    ffi: [number, number][]
+}
+
+export function getFunctionDeclareRanges(
+    tokens: Token[],
+): FunctionDeclareRangesByType {
     const yaksokFunctionDeclareRanges = getFunctionDeclareRangesByType(
         tokens,
         'yaksok',
