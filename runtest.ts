@@ -1,40 +1,22 @@
-import { NumberValue, StringValue, yaksok } from '@dalbit-yaksok/core'
+import { yaksok } from '@dalbit-yaksok/core'
 
 await yaksok(
     `
-번역(JavaScript), 입력받기/입력받부기
-***
-    return prompt()
-***
+약속, 회전설정 (회전)
+    결과: "rotate:" + 회전
 
-번역(JavaScript), (message) 입력받기
-***
-    return prompt(message)
-***
+약속, 시간설정 (시간)
+    결과: "time:" + 시간
 
-입력받기 + 4 보여주기
+약속, (A) 합 (B)
+    결과: A + "<join>" + B
+
+약속, (각도)도 회전하기
+    회전설정 각도 보여주기
+
+약속, (시간)초 동안 (각도)도 회전하기
+    (시간설정 시간) 합 (회전설정 각도) 보여주기
+
+(3)초 동안 90 도 회전하기
 `,
-    {
-        async runFFI(_runtime, code, args) {
-            const paramNames = Object.keys(args)
-            const paramsInJS = Object.fromEntries(
-                Object.entries(args).map(([key, value]) => [
-                    key,
-                    typeof value.toPrint() === 'string'
-                        ? `"${value.toPrint()}"`
-                        : value.toPrint(),
-                ]),
-            )
-
-            const returnInJS = await eval(
-                `(async (${paramNames.join(
-                    ', ',
-                )}) => {${code}})(${Object.values(paramsInJS).join(', ')})`,
-            )
-
-            if (Number.isNaN(Number(returnInJS)))
-                return new StringValue(returnInJS)
-            return new NumberValue(Number(returnInJS))
-        },
-    },
 )

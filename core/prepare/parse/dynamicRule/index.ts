@@ -11,5 +11,5 @@ export function createDynamicRule(codeFile: CodeFile) {
 
     const mentioningRules = getRulesFromMentioningFile(codeFile)
 
-    return [...mentioningRules, ...localRules]
+    return [...localRules, mentioningRules]
 }

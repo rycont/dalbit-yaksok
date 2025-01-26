@@ -1,10 +1,10 @@
-import { getFunctionDeclareRanges } from '../../../../util/get-function-declare-ranges.ts'
-import type { Rule } from '../../../parse/type.ts'
-import type { Token } from '../../../tokenize/token.ts'
-import { tokensToFFIDeclareRule } from './declare-rule/ffi-declare-rule.ts'
-
 import { convertTokensToFunctionTemplate } from './get-function-templates.ts'
+import { tokensToFFIDeclareRule } from './declare-rule/ffi-declare-rule.ts'
 import { createFunctionInvokeRule } from './invoke-rule.ts'
+
+import { getFunctionDeclareRanges } from '../../../../util/get-function-declare-ranges.ts'
+import type { Token } from '../../../tokenize/token.ts'
+import { tokensToYaksokDeclareRule } from './declare-rule/yaksok-declare-rule.ts'
 
 export function createLocalDynamicRules(
     tokens: Token[],
@@ -18,15 +18,16 @@ export function createLocalDynamicRules(
     const invokingRules = [...yaksokHeaders, ...ffiHeaders]
         .map(convertTokensToFunctionTemplate)
         .flatMap(createFunctionInvokeRule)
+        .toSorted((a, b) => b.pattern.length - a.pattern.length)
 
     const ffiDeclareRules = ffiHeaders.map(tokensToFFIDeclareRule)
 
-    const rules = [...invokingRules, ...ffiDeclareRules].toSorted(
+    const yaksokDeclareRules = yaksokHeaders.map(tokensToYaksokDeclareRule)
+    const declareRules = [...ffiDeclareRules, ...yaksokDeclareRules].toSorted(
         (a, b) => b.pattern.length - a.pattern.length,
     )
 
-    // console.log(rules)
-    return rules
+    return [declareRules, invokingRules]
 }
 
 const getTokensFromRangeFactory =
