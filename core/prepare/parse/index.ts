@@ -28,7 +28,7 @@ export function parse(codeFile: CodeFile): ParseResult {
         const ast = new Block(childNodes, childTokens)
 
         const exportedVariables = getExportedVariablesRules(ast)
-        const exportedRules = [...dynamicRules.flat(), ...exportedVariables]
+        const exportedRules = [...dynamicRules.flat(2), ...exportedVariables]
 
         return { ast, exportedRules }
     } catch (error) {

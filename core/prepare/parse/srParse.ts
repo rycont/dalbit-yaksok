@@ -62,7 +62,7 @@ export function reduce(nodes: Node[], rule: Rule) {
 
 export function callParseRecursively(
     _tokens: Node[],
-    externalPatterns: Rule[][],
+    externalPatterns: [Rule[][], Rule[][]],
 ): Node[] {
     let parsedTokens = [..._tokens]
 
@@ -78,9 +78,9 @@ export function callParseRecursively(
     }
 
     const patternsByLevel = [
-        externalPatterns[0],
+        ...externalPatterns[0],
         ...BASIC_RULES,
-        ...externalPatterns,
+        ...externalPatterns[1],
         ADVANCED_RULES,
     ]
 

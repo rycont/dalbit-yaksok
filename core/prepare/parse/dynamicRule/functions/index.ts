@@ -3,13 +3,15 @@ import { tokensToFFIDeclareRule } from './declare-rule/ffi-declare-rule.ts'
 import { createFunctionInvokeRule } from './invoke-rule.ts'
 
 import { getFunctionDeclareRanges } from '../../../../util/get-function-declare-ranges.ts'
-import type { Token } from '../../../tokenize/token.ts'
 import { tokensToYaksokDeclareRule } from './declare-rule/yaksok-declare-rule.ts'
+
+import type { Token } from '../../../tokenize/token.ts'
+import type { Rule } from '../../type.ts'
 
 export function createLocalDynamicRules(
     tokens: Token[],
     functionDeclareRanges = getFunctionDeclareRanges(tokens),
-) {
+): [Rule[][], Rule[][]] {
     const getTokensFromRange = getTokensFromRangeFactory(tokens)
 
     const yaksokHeaders = functionDeclareRanges.yaksok.map(getTokensFromRange)
@@ -27,7 +29,7 @@ export function createLocalDynamicRules(
         (a, b) => b.pattern.length - a.pattern.length,
     )
 
-    return [declareRules, invokingRules]
+    return [[declareRules], [invokingRules]]
 }
 
 const getTokensFromRangeFactory =
