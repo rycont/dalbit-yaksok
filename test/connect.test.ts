@@ -242,3 +242,36 @@ wait
 
     assertEquals(output, ['안녕!', '반가워!'])
 })
+
+Deno.test('한 단어로 된 FFI 이름', async () => {
+    let output = ''
+    await yaksok(
+        `
+번역(QuickJS), 물어보기
+***
+    return "성공"
+***
+
+(물어보기) + 물어보기 * 3 보여주기
+`,
+        {
+            runFFI(runtime, bodyCode, args) {
+                if (runtime === 'QuickJS') {
+                    const result = quickJS.run(bodyCode, args)
+                    if (!result) {
+                        throw new Error('Result is null')
+                    }
+
+                    return result
+                }
+
+                throw new Error(`Unknown runtime: ${runtime}`)
+            },
+            stdout(value) {
+                output += value + '\n'
+            },
+        },
+    )
+
+    assertEquals(output, '성공성공성공성공\n')
+})
