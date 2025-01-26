@@ -1,6 +1,4 @@
 import { Formula, ValueWithParenthesis } from '../../node/calculation.ts'
-import { DeclareFFI, FFIBody } from '../../node/ffi.ts'
-import { DeclareFunction, FunctionInvoke } from '../../node/function.ts'
 import {
     AndOperator,
     Block,
