@@ -14,7 +14,9 @@ import type { Block } from '../node/block.ts'
 export class CodeFile {
     private tokenized: Token[] | null = null
     private parsed: Block | null = null
-    private functionDeclareRangesCache: [number, number][] | null = null
+    private functionDeclareRangesCache: ReturnType<
+        typeof getFunctionDeclareRanges
+    > | null = null
     private exportedRulesCache: Rule[] | null = null
 
     public runResult: ExecuteResult<Block> | null = null
@@ -37,7 +39,13 @@ export class CodeFile {
 
         const tokens = tokenize(this.text)
 
-        const functionDeclareRanges = getFunctionDeclareRanges(tokens)
+        const functionDeclareRangesByType = getFunctionDeclareRanges(tokens)
+
+        const functionDeclareRanges = [
+            ...functionDeclareRangesByType.yaksok,
+            ...functionDeclareRangesByType.ffi,
+        ]
+
         const merged = mergeArgumentBranchingTokens(
             tokens,
             functionDeclareRanges,
@@ -57,7 +65,9 @@ export class CodeFile {
         return this.parsed as Block
     }
 
-    public get functionDeclareRanges(): [number, number][] {
+    public get functionDeclareRanges(): ReturnType<
+        typeof getFunctionDeclareRanges
+    > {
         if (this.functionDeclareRangesCache === null) {
             this.functionDeclareRangesCache = getFunctionDeclareRanges(
                 this.tokens,
@@ -91,7 +101,7 @@ export class CodeFile {
 
     public async run(): Promise<ExecuteResult<Block>> {
         if (this.runResult) {
-            return Promise.resolve(this.runResult)
+            return this.runResult
         }
 
         const result = await executer(this.ast, this)

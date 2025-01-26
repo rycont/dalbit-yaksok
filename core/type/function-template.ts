@@ -4,7 +4,6 @@ export interface FunctionTemplatePiece {
 }
 
 export interface FunctionTemplate {
-    type: string
     name: string
     pieces: FunctionTemplatePiece[]
 }

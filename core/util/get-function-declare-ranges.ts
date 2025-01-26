@@ -19,12 +19,10 @@ export function getFunctionDeclareRanges(tokens: Token[]) {
         'ffi',
     )
 
-    const functionDeclareRanges = [
-        ...yaksokFunctionDeclareRanges,
-        ...ffiFunctionDeclareRanges,
-    ]
-
-    return functionDeclareRanges
+    return {
+        yaksok: yaksokFunctionDeclareRanges,
+        ffi: ffiFunctionDeclareRanges,
+    }
 }
 
 function getFunctionDeclareRangesByType(

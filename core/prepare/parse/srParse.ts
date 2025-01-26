@@ -77,7 +77,7 @@ export function callParseRecursively(
         }
     }
 
-    const patternsByLevel = [...BASIC_RULES, externalPatterns, ADVANCED_RULES]
+    const patternsByLevel = [externalPatterns, ...BASIC_RULES, ADVANCED_RULES]
 
     loop1: while (true) {
         for (const patterns of patternsByLevel) {

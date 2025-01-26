@@ -1,33 +1,34 @@
-import { getFunctionTemplatesFromTokens } from './get-function-templates.ts'
-import { createFunctionInvokeRule } from './invoke-rule.ts'
 import { getFunctionDeclareRanges } from '../../../../util/get-function-declare-ranges.ts'
-
+import type { Rule } from '../../../parse/type.ts'
 import type { Token } from '../../../tokenize/token.ts'
+import { tokensToFFIDeclareRule } from './declare-rule/ffi-declare-rule.ts'
+
+import { convertTokensToFunctionTemplate } from './get-function-templates.ts'
+import { createFunctionInvokeRule } from './invoke-rule.ts'
 
 export function createLocalDynamicRules(
     tokens: Token[],
-    functionDeclareRanges: [number, number][] = getFunctionDeclareRanges(
-        tokens,
-    ),
+    functionDeclareRanges = getFunctionDeclareRanges(tokens),
 ) {
-    const yaksokTemplates = getFunctionTemplatesFromTokens(
-        tokens,
-        functionDeclareRanges,
-        'yaksok',
-    )
+    const getTokensFromRange = getTokensFromRangeFactory(tokens)
 
-    const ffiTemplates = getFunctionTemplatesFromTokens(
-        tokens,
-        functionDeclareRanges,
-        'ffi',
-    )
+    const yaksokHeaders = functionDeclareRanges.yaksok.map(getTokensFromRange)
+    const ffiHeaders = functionDeclareRanges.ffi.map(getTokensFromRange)
 
-    const yaksokInvokeRules = yaksokTemplates.flatMap(createFunctionInvokeRule)
-    const ffiInvokeRules = ffiTemplates.flatMap(createFunctionInvokeRule)
+    const invokingRules = [...yaksokHeaders, ...ffiHeaders]
+        .map(convertTokensToFunctionTemplate)
+        .flatMap(createFunctionInvokeRule)
 
-    const allRules = [...yaksokInvokeRules, ...ffiInvokeRules].toSorted(
+    const ffiDeclareRules = ffiHeaders.map(tokensToFFIDeclareRule)
+
+    const rules = [...invokingRules, ...ffiDeclareRules].toSorted(
         (a, b) => b.pattern.length - a.pattern.length,
     )
 
-    return allRules
+    // console.log(rules)
+    return rules
 }
+
+const getTokensFromRangeFactory =
+    (tokens: Token[]) => (range: [number, number]) =>
+        tokens.slice(range[0], range[1])

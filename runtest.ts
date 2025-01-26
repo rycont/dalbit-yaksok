@@ -1,16 +1,40 @@
-import { yaksok } from '@dalbit-yaksok/core'
+import { NumberValue, StringValue, yaksok } from '@dalbit-yaksok/core'
 
 await yaksok(
-    `이름: "재현"
-나이: 20
-국적: '덴마크'
+    `
+번역(JavaScript), 입력받기/입력받부기
+***
+    return prompt()
+***
 
-만약 이름 = "재현" 이고 국적 = "대한민국" 이면
-    "언제나 애국하는 우리 재현이" 보여주기
+번역(JavaScript), (message) 입력받기
+***
+    return prompt(message)
+***
 
-
-
-아니면 만약 국적 = "덴마크" 이면
-    "재현이는 덴마크 사람이에요" 보여주기
+입력받기 + 4 보여주기
 `,
+    {
+        async runFFI(_runtime, code, args) {
+            const paramNames = Object.keys(args)
+            const paramsInJS = Object.fromEntries(
+                Object.entries(args).map(([key, value]) => [
+                    key,
+                    typeof value.toPrint() === 'string'
+                        ? `"${value.toPrint()}"`
+                        : value.toPrint(),
+                ]),
+            )
+
+            const returnInJS = await eval(
+                `(async (${paramNames.join(
+                    ', ',
+                )}) => {${code}})(${Object.values(paramsInJS).join(', ')})`,
+            )
+
+            if (Number.isNaN(Number(returnInJS)))
+                return new StringValue(returnInJS)
+            return new NumberValue(Number(returnInJS))
+        },
+    },
 )
