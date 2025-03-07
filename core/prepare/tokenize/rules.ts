@@ -1,5 +1,6 @@
 import { NotAcceptableSignal } from './signal.ts'
 import { Token, TOKEN_TYPE } from './token.ts'
+import { UnexpectedCharError } from '../../error/prepare.ts'
 
 const OPERATORS = [
     '+',
@@ -244,6 +245,15 @@ export const RULES: {
             while (view() !== quote) {
                 if (view() === undefined) {
                     return value
+                }
+
+                if (view() === '\n') {
+                    throw new UnexpectedCharError({
+                        resource: {
+                            char: '줄바꿈',
+                            parts: '문자열',
+                        },
+                    })
                 }
 
                 value += shift()!
