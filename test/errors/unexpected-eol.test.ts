@@ -1,8 +1,8 @@
 import { assertIsError } from 'assert'
 import { yaksok } from '../../core/mod.ts'
 import {
-    UnexpectedCharError,
     UnexpectedEndOfCodeError,
+    UnexpectedNewlineError,
 } from '../../core/error/index.ts'
 
 Deno.test('예상치 못한 줄바꿈', async () => {
@@ -17,11 +17,11 @@ Deno.test('예상치 못한 줄바꿈', async () => {
 Deno.test('문자열 내 줄바꿈', async () => {
     try {
         await yaksok(`
-"줄바꿈이
-있는 문자열"
+    "줄바꿈이
+    있는 문자열"
         `)
     } catch (error) {
-        assertIsError(error, UnexpectedCharError)
+        assertIsError(error, UnexpectedNewlineError)
         console.log(error)
     }
 })

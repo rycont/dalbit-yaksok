@@ -8,14 +8,9 @@ import { yaksok } from '@dalbit-yaksok/core'
 
 await yaksok(
     `
-약속, 물어보기
-    결과: "성공"
-
-약속, (질문) 물어보기
-    결과: "이건 아님"
-
-(물어보기) + 물어보기 * 3 보여주기
-("뭐라도" 물어보기) + ("뭐라도" 물어보기) * 3 보여주기
+결과: "줄
+바꿈이
+나왔어요"
 `,
     // {
     //     runFFI(runtime, bodyCode, args) {

@@ -2,6 +2,7 @@ import { NotAcceptableSignal } from './signal.ts'
 import { RULES } from './rules.ts'
 
 import { TOKEN_TYPE, type Token } from './token.ts'
+import { YaksokError } from '../../error/common.ts'
 
 class Tokenizer {
     private tokens: Token[] = []
@@ -71,6 +72,13 @@ class Tokenizer {
                 } catch (e) {
                     if (e instanceof NotAcceptableSignal) {
                         continue
+                    }
+
+                    if (e instanceof YaksokError && !e.tokens) {
+                        e.position = {
+                            column: columnCheckpoint,
+                            line: lineCheckpoint,
+                        }
                     }
 
                     throw e
