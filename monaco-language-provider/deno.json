@@ -4,5 +4,5 @@
   },
   "name": "@dalbit-yaksok/monaco-language-provider",
   "exports": "./mod.ts",
-  "version": "0.2.0-RC.9"
+  "version": "0.2.0"
 }
