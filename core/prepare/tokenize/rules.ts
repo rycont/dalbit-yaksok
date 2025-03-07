@@ -1,5 +1,6 @@
 import { NotAcceptableSignal } from './signal.ts'
 import { Token, TOKEN_TYPE } from './token.ts'
+import { UnexpectedNewlineError } from '../../error/prepare.ts'
 
 const OPERATORS = [
     '+',
@@ -244,6 +245,12 @@ export const RULES: {
             while (view() !== quote) {
                 if (view() === undefined) {
                     return value
+                }
+
+                if (view() === '\n') {
+                    throw new UnexpectedNewlineError({
+                        parts: '문자열',
+                    })
                 }
 
                 value += shift()!

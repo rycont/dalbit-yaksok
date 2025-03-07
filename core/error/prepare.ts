@@ -76,6 +76,18 @@ export class UnexpectedCharError extends YaksokError<UnexpectedCharErrorResource
     }
 }
 
+export class UnexpectedNewlineError extends UnexpectedCharError {
+    constructor(props: { parts: string; position?: Position }) {
+        super({
+            resource: {
+                char: '줄바꿈',
+                parts: props.parts,
+            },
+        })
+        this.message = `${bold(blue(props.parts))}엔 줄바꿈을 사용할 수 없어요.`
+    }
+}
+
 export class UnexpectedEndOfCodeError extends YaksokError {
     constructor(props: {
         resource?: {
