@@ -72,6 +72,8 @@ class Tokenizer {
                     if (e instanceof NotAcceptableSignal) {
                         continue
                     }
+
+                    throw e
                 }
             }
 
