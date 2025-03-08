@@ -8,11 +8,12 @@ import type { EnabledFlags } from '../constant/feature-flags.ts'
 import type { ExecuteResult } from '../executer/index.ts'
 import type { Block } from '../node/block.ts'
 
-export class Runtime {
+export class Runtime implements RuntimeConfig {
     public stdout: RuntimeConfig['stdout']
     public stderr: RuntimeConfig['stderr']
     public entryPoint: RuntimeConfig['entryPoint']
     public runFFI: RuntimeConfig['runFFI']
+    public executionDelay: RuntimeConfig['executionDelay']
     public flags: Partial<EnabledFlags> = {}
 
     private files: Record<string, CodeFile> = {}
@@ -24,6 +25,8 @@ export class Runtime {
         this.stdout = config.stdout || DEFAULT_RUNTIME_CONFIG.stdout
         this.stderr = config.stderr || DEFAULT_RUNTIME_CONFIG.stderr
         this.runFFI = config.runFFI || DEFAULT_RUNTIME_CONFIG.runFFI
+        this.executionDelay =
+            config.executionDelay || DEFAULT_RUNTIME_CONFIG.executionDelay
 
         this.entryPoint = config.entryPoint || DEFAULT_RUNTIME_CONFIG.entryPoint
         this.flags = config.flags || DEFAULT_RUNTIME_CONFIG.flags
