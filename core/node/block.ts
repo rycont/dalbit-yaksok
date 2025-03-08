@@ -26,6 +26,15 @@ export class Block extends Executable {
                         setTimeout(r, scope.codeFile?.runtime?.executionDelay),
                     )
                 }
+
+                const startPosition = child.tokens[0].position
+                const endPosition =
+                    child.tokens[child.tokens.length - 1].position
+
+                scope.codeFile?.runtime?.pubsub.pub('runningCode', [
+                    startPosition,
+                    endPosition,
+                ])
             } else if (child instanceof EOL) {
                 continue
             } else {

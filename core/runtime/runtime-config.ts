@@ -1,5 +1,6 @@
 import type { EnabledFlags } from '../constant/feature-flags.ts'
 import type { FunctionInvokingParams } from '../constant/type.ts'
+import type { Position } from '../type/position.ts'
 import type { ValueType } from '../value/base.ts'
 
 /**
@@ -55,6 +56,14 @@ export interface RuntimeConfig {
      * @see {@link EnabledFlags}
      */
     flags: EnabledFlags
+    /**
+     * 코드 실행 중 발생하는 이벤트를 구독합니다.
+     */
+    events: Events
+}
+
+export type Events = {
+    runningCode: (start: Position, end: Position) => void
 }
 
 export const DEFAULT_RUNTIME_CONFIG: RuntimeConfig = {
@@ -66,4 +75,7 @@ export const DEFAULT_RUNTIME_CONFIG: RuntimeConfig = {
     },
     flags: {},
     executionDelay: 0,
+    events: {
+        runningCode: () => {},
+    },
 }
