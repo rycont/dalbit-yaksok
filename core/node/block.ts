@@ -28,8 +28,11 @@ export class Block extends Executable {
                 }
 
                 const startPosition = child.tokens[0].position
-                const endPosition =
-                    child.tokens[child.tokens.length - 1].position
+                const endToken = child.tokens[child.tokens.length - 1]
+                const endPosition = {
+                    line: endToken.position.line,
+                    column: endToken.position.column + endToken.value.length,
+                }
 
                 scope.codeFile?.runtime?.pubsub.pub('runningCode', [
                     startPosition,

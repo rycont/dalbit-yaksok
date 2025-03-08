@@ -9,3 +9,18 @@
     --vp-font-family-mono: 'Goorm Sans Code', sans-serif;
     font-variant-ligatures: none;
 }
+
+.running-code {
+    background-color: var(--vp-c-tip-soft);
+    animation: appear 0.3s;
+    padding: 0.5em;
+}
+
+@keyframes appear {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
