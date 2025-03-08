@@ -8,10 +8,27 @@ import { yaksok } from '@dalbit-yaksok/core'
 
 await yaksok(
     `
-결과: "줄
-바꿈이
-나왔어요"
+"Hello, world!" 보여주기
+"안녕, 세계!" 보여주기
+"안녕하세요, 세계!" 보여주기
+
+반복 1~10의 숫자 마다
+    숫자 보여주기
 `,
+    {
+        executionDelay: 500,
+        events: {
+            runningCode(start, end) {
+                console.log(
+                    '| runningCode > ',
+                    `${start.line}:${start.column} ~ ${end.line}:${end.column}`,
+                )
+            },
+        },
+        stdout(message) {
+            console.log('| stdout > ', message)
+        },
+    },
     // {
     //     runFFI(runtime, bodyCode, args) {
     //         if (runtime === 'JavaScript') {
