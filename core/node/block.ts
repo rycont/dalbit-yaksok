@@ -16,9 +16,16 @@ export class Block extends Executable {
     }
 
     override async execute(scope: Scope) {
+        const executionDelay = scope.codeFile?.runtime?.executionDelay
         for (const child of this.children) {
             if (child instanceof Executable) {
                 await child.execute(scope)
+
+                if (executionDelay) {
+                    await new Promise((r) =>
+                        setTimeout(r, scope.codeFile?.runtime?.executionDelay),
+                    )
+                }
             } else if (child instanceof EOL) {
                 continue
             } else {
