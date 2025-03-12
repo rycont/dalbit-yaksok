@@ -13,6 +13,7 @@ import { PrimitiveValue, ValueType } from '../value/base.ts'
 import { ListValue } from '../value/list.ts'
 import { BooleanValue, NumberValue, StringValue } from '../value/primitive.ts'
 import { Operator } from './base.ts'
+import { FEATURE_FLAG, EnabledFlags } from '../constant/feature-flags.ts'
 
 export class PlusOperator extends Operator {
     static override friendlyName = '더하기(+)'
@@ -237,7 +238,7 @@ export class EqualOperator extends Operator {
         return '='
     }
 
-    override call(...operands: ValueType[]): BooleanValue {
+    override call(...operands: ValueType[], flags: EnabledFlags): BooleanValue {
         const [left, right] = operands
 
         const isSameType = left.constructor === right.constructor
@@ -252,6 +253,10 @@ export class EqualOperator extends Operator {
                 },
                 position: this.tokens?.[0].position,
             })
+        }
+
+        if (flags[FEATURE_FLAG.EQUAL_OPERATOR_DOUBLE_EQUAL]) {
+            return new BooleanValue(left.value == right.value)
         }
 
         return new BooleanValue(left.value === right.value)

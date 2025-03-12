@@ -106,6 +106,19 @@ const WRONG_CASES_FOR_COMPARISON = [
     },
 ]
 
+const WRONG_CASES_FOR_EQUAL_OPERATOR = [
+    {
+        a: "'홍길동'",
+        b: 10,
+        operator: '==',
+    },
+    {
+        a: 10,
+        b: "'홍길동'",
+        operator: '==',
+    },
+]
+
 for (const { a, b, operator } of WRONG_CASES_FOR_CALCULATION) {
     Deno.test(`Invalid type for calculation operator ${operator}`, async () => {
         const code = `
@@ -122,6 +135,20 @@ for (const { a, b, operator } of WRONG_CASES_FOR_CALCULATION) {
 
 for (const { a, b, operator } of WRONG_CASES_FOR_COMPARISON) {
     Deno.test(`Invalid type for comparison operator ${operator}`, async () => {
+        const code = `
+            ${a} ${operator} ${b}
+        `.trim()
+        try {
+            await yaksok(code)
+            unreachable()
+        } catch (error) {
+            assertIsError(error, InvalidTypeForCompareError)
+        }
+    })
+}
+
+for (const { a, b, operator } of WRONG_CASES_FOR_EQUAL_OPERATOR) {
+    Deno.test(`Invalid type for equal operator ${operator}`, async () => {
         const code = `
             ${a} ${operator} ${b}
         `.trim()

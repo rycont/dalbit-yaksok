@@ -30,6 +30,7 @@ import {
     RangeStartMustBeNumberError,
 } from '../error/index.ts'
 import { RangeStartMustBeLessThanEndError } from '../error/indexed.ts'
+import { FEATURE_FLAG, EnabledFlags } from '../constant/feature-flags.ts'
 
 const OPERATOR_PRECEDENCES: OperatorClass[][] = [
     [AndOperator, OrOperator],
