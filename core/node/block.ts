@@ -24,16 +24,10 @@ export class Block extends Executable {
                         setTimeout(r, scope.codeFile?.runtime?.executionDelay),
                     )
                 }
-                const startPosition = child.tokens[0].position
-                const endToken = child.tokens[child.tokens.length - 1]
-                const endPosition = {
-                    line: endToken.position.line,
-                    column: endToken.position.column + endToken.value.length,
+
+                if (child.tokens.length) {
+                    this.reportRunningCode(child, scope)
                 }
-                scope.codeFile?.runtime?.pubsub.pub('runningCode', [
-                    startPosition,
-                    endPosition,
-                ])
 
                 await child.execute(scope)
             } else if (child instanceof EOL) {
@@ -47,5 +41,18 @@ export class Block extends Executable {
                 })
             }
         }
+    }
+
+    reportRunningCode(child: Executable, scope: Scope) {
+        const startPosition = child.tokens[0].position
+        const endToken = child.tokens[child.tokens.length - 1]
+        const endPosition = {
+            line: endToken.position.line,
+            column: endToken.position.column + endToken.value.length,
+        }
+        scope.codeFile?.runtime?.pubsub.pub('runningCode', [
+            startPosition,
+            endPosition,
+        ])
     }
 }
