@@ -29,11 +29,11 @@ export default defineConfig(
                     },
                     {
                         text: 'Language',
-                        link: '/language/',
+                        link: '/language/1.%20시작하기.html',
                     },
                     {
                         text: 'Library',
-                        link: '/library/',
+                        link: '/library/1.%20시작하기.html',
                     },
                 ],
                 socialLinks: [
