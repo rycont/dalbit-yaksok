@@ -143,7 +143,9 @@ async function runCode() {
     }
 
     if (prevDecorations) {
-        ;(prevDecorations as editor.IEditorDecorationsCollection).clear()
+        setTimeout(() => {
+            ;(prevDecorations as editor.IEditorDecorationsCollection).clear()
+        }, 300)
     }
 }
 
