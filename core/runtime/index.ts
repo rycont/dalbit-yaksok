@@ -21,7 +21,7 @@ export class Runtime {
     public executionDelay: RuntimeConfig['executionDelay']
     public flags: Partial<EnabledFlags> = {}
 
-    public pubsub = new PubSub<Events>()
+    public pubsub: PubSub<Events> = new PubSub<Events>()
 
     private files: Record<string, CodeFile> = {}
 
