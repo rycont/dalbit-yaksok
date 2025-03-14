@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef, watch } from 'vue'
+import type { editor, Range } from 'monaco-editor'
 import AnsiCode from 'ansi-to-html'
-import type { editor } from 'monaco-editor'
 
 import { yaksok } from '@dalbit-yaksok/core'
+
+import { loadMonaco } from './load-monaco'
 
 const props = defineProps({
     code: {
@@ -26,6 +28,7 @@ const code = ref(props.code)
 const stdout = ref<string[]>([])
 
 let editorInstance: editor.IStandaloneCodeEditor | null = null
+let monaco: Awaited<ReturnType<typeof loadMonaco>> | null = null
 
 const ansiCode = new AnsiCode()
 
@@ -36,14 +39,12 @@ async function initializeMonaco() {
         '@dalbit-yaksok/monaco-language-provider'
     )
 
-    const { editor, KeyCode, KeyMod, languages } = await import(
-        'monaco-editor/esm/vs/editor/editor.api'
-    )
+    monaco = await loadMonaco()
 
     const languageProvider = new DalbitYaksokApplier(code.value)
-    languageProvider.register(languages)
+    languageProvider.register(monaco.languages)
 
-    editorInstance = editor.create(editorElement, {
+    editorInstance = monaco.editor.create(editorElement, {
         automaticLayout: true,
         value: code.value,
         fontFamily: 'var(--vp-font-family-mono)',
@@ -68,7 +69,10 @@ async function initializeMonaco() {
     languageProvider.configEditor(editorInstance)
 
     editorInstance.onDidFocusEditorText(() => {
-        editorInstance!.addCommand(KeyMod.CtrlCmd | KeyCode.Enter, runCode)
+        editorInstance!.addCommand(
+            monaco!.KeyMod.CtrlCmd | monaco!.KeyCode.Enter,
+            runCode,
+        )
     })
 }
 
@@ -85,7 +89,13 @@ function viewAnswer() {
     editorInstance!.setValue(props.challenge.answerCode)
 }
 
+let prevDecorations: editor.IEditorDecorationsCollection | null = null
+
 async function runCode() {
+    if (!monaco) {
+        monaco = await loadMonaco()
+    }
+
     stdout.value = []
 
     try {
@@ -97,9 +107,45 @@ async function runCode() {
                 console.log({ output })
                 stdout.value = [...stdout.value, ansiToHtml(output)]
             },
+            executionDelay: 500,
+            events: {
+                runningCode(start, end) {
+                    console.log(start, end)
+                    const range = new monaco!.Range(
+                        start.line,
+                        start.column,
+                        end.line,
+                        end.column,
+                    )
+
+                    const decorations =
+                        editorInstance?.createDecorationsCollection([
+                            {
+                                range,
+                                options: {
+                                    className: 'running-code',
+                                },
+                            },
+                        ])
+
+                    if (prevDecorations) {
+                        prevDecorations.clear()
+                    }
+
+                    if (decorations) {
+                        prevDecorations = decorations
+                    }
+                },
+            },
         })
     } catch (error) {
         console.error(error)
+    }
+
+    if (prevDecorations) {
+        setTimeout(() => {
+            ;(prevDecorations as editor.IEditorDecorationsCollection).clear()
+        }, 300)
     }
 }
 

@@ -21,7 +21,21 @@ export default defineConfig(
             title: '달빛약속',
             description: '교육용 프로그래밍 언어, 약속의 포크',
             themeConfig: {
-                nav: [{ text: 'Home', link: '/' }],
+                nav: [
+                    { text: 'Home', link: '/' },
+                    {
+                        text: 'API',
+                        link: '/api/',
+                    },
+                    {
+                        text: 'Language',
+                        link: '/language/1.%20시작하기.html',
+                    },
+                    {
+                        text: 'Library',
+                        link: '/library/1.%20시작하기.html',
+                    },
+                ],
                 socialLinks: [
                     {
                         icon: 'github',

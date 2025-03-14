@@ -1,4 +1,8 @@
-import { DEFAULT_RUNTIME_CONFIG, type RuntimeConfig } from './runtime-config.ts'
+import {
+    DEFAULT_RUNTIME_CONFIG,
+    Events,
+    type RuntimeConfig,
+} from './runtime-config.ts'
 import { FileForRunNotExistError } from '../error/prepare.ts'
 import { renderErrorString } from '../error/render-error-string.ts'
 import { YaksokError } from '../error/common.ts'
@@ -7,13 +11,17 @@ import { CodeFile } from '../type/code-file.ts'
 import type { EnabledFlags } from '../constant/feature-flags.ts'
 import type { ExecuteResult } from '../executer/index.ts'
 import type { Block } from '../node/block.ts'
+import { PubSub } from '../util/pubsub.ts'
 
 export class Runtime {
     public stdout: RuntimeConfig['stdout']
     public stderr: RuntimeConfig['stderr']
     public entryPoint: RuntimeConfig['entryPoint']
     public runFFI: RuntimeConfig['runFFI']
+    public executionDelay: RuntimeConfig['executionDelay']
     public flags: Partial<EnabledFlags> = {}
+
+    public pubsub: PubSub<Events> = new PubSub<Events>()
 
     private files: Record<string, CodeFile> = {}
 
@@ -21,9 +29,16 @@ export class Runtime {
         codeTexts: Record<string, string>,
         config: Partial<RuntimeConfig>,
     ) {
+        for (const _event in config.events) {
+            const event = _event as keyof Events
+            this.pubsub.sub(event as keyof Events, config.events[event])
+        }
+
         this.stdout = config.stdout || DEFAULT_RUNTIME_CONFIG.stdout
         this.stderr = config.stderr || DEFAULT_RUNTIME_CONFIG.stderr
         this.runFFI = config.runFFI || DEFAULT_RUNTIME_CONFIG.runFFI
+        this.executionDelay =
+            config.executionDelay || DEFAULT_RUNTIME_CONFIG.executionDelay
 
         this.entryPoint = config.entryPoint || DEFAULT_RUNTIME_CONFIG.entryPoint
         this.flags = config.flags || DEFAULT_RUNTIME_CONFIG.flags

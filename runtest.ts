@@ -1,29 +1,18 @@
-import { yaksok } from '@dalbit-yaksok/core'
+import { yaksok, RuntimeConfig } from '@dalbit-yaksok/core'
 
-// const quickJS = new QuickJS({
-//     prompt,
-// })
-
-// await quickJS.init()
+const runtimeConfig: Partial<RuntimeConfig> = {
+    executionDelay: 500,
+    events: {
+        runningCode: (start, end) => {
+            console.log('start:', start, 'end:', end)
+        },
+    },
+}
 
 await yaksok(
     `
-결과: "줄
-바꿈이
-나왔어요"
+1 보여주기
+1 + 2 보여주기
 `,
-    // {
-    //     runFFI(runtime, bodyCode, args) {
-    //         if (runtime === 'JavaScript') {
-    //             const result = quickJS.run(bodyCode, args)
-    //             if (!result) {
-    //                 throw new Error('Result is null')
-    //             }
-
-    //             return result
-    //         }
-
-    //         throw new Error(`Unknown runtime: ${runtime}`)
-    //     },
-    // },
+    runtimeConfig,
 )
