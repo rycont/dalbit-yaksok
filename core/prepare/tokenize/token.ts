@@ -4,6 +4,7 @@ export enum TOKEN_TYPE {
     NUMBER = 'NUMBER',
     STRING = 'STRING',
     OPERATOR = 'OPERATOR',
+    ASSIGNMENT = 'ASSIGNMENT',
     SPACE = 'SPACE',
     INDENT = 'INDENT',
     IDENTIFIER = 'IDENTIFIER',
@@ -42,4 +43,5 @@ export const TOKEN_TYPE_TO_TEXT: Record<TOKEN_TYPE, string> = {
     [TOKEN_TYPE.LINE_COMMENT]: '주석',
     [TOKEN_TYPE.MENTION]: '불러오기',
     [TOKEN_TYPE.UNKNOWN]: '알 수 없음',
+    [TOKEN_TYPE.ASSIGNMENT]: '값 정하기',
 }

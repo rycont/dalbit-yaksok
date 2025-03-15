@@ -8,7 +8,6 @@ const OPERATORS = [
     '*',
     '/',
     '>',
-    '=',
     '<',
     '~',
     '%',
@@ -157,6 +156,19 @@ export const RULES: {
         },
     },
     {
+        type: TOKEN_TYPE.ASSIGNMENT,
+        starter: ['='],
+        parse: (view, shift) => {
+            shift()
+
+            if (view() == '=') {
+                throw new NotAcceptableSignal()
+            }
+
+            return '='
+        },
+    },
+    {
         type: TOKEN_TYPE.OPERATOR,
         starter: OPERATORS.map((o) => o[0]),
         parse: (_view, shift) => {
@@ -166,9 +178,15 @@ export const RULES: {
                 const appliable = getAppliableOperators(value)
 
                 const hasMatched = OPERATORS.includes(value)
-                const isOnlyPossibility =
-                    hasMatched &&
+                const noMatchWithNext =
                     getAppliableOperators(value + _view()).length === 0
+
+                const isOnlyPossibility = hasMatched && noMatchWithNext
+                const notPossible = !hasMatched && noMatchWithNext
+
+                if (notPossible) {
+                    throw new NotAcceptableSignal()
+                }
 
                 if (isOnlyPossibility) {
                     break
