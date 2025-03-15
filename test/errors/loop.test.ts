@@ -11,7 +11,7 @@ import {
     RangeStartMustBeIntegerError,
     RangeEndMustBeIntegerError,
     TargetIsNotIndexedValueError,
-    ListIndexMustBeGreaterThan1Error,
+    ListIndexMustBeGreaterOrEqualThan0Error,
 } from '../../core/error/index.ts'
 
 Deno.test('Error raised in loop', async () => {
@@ -104,8 +104,8 @@ Deno.test('Range end must be an integer', async () => {
 
 Deno.test('Index set target is must be indexable', async () => {
     try {
-        await yaksok(`목록: 5
-목록[1]: 10
+        await yaksok(`목록 = 5
+목록[1] = 10
 
 목록 보여주기
 `)
@@ -117,7 +117,7 @@ Deno.test('Index set target is must be indexable', async () => {
 
 Deno.test('Index get target is must be indexable', async () => {
     try {
-        await yaksok(`목록: 5
+        await yaksok(`목록 = 5
 목록[2] 보여주기
 `)
         unreachable()
@@ -128,7 +128,7 @@ Deno.test('Index get target is must be indexable', async () => {
 
 Deno.test('List out of range', async () => {
     try {
-        await yaksok(`목록: [1, 2, 3]
+        await yaksok(`목록 = [1, 2, 3]
 목록[4] 보여주기
 `)
         unreachable()
@@ -139,7 +139,7 @@ Deno.test('List out of range', async () => {
 
 Deno.test('List index must be number', async () => {
     try {
-        await yaksok(`목록: [1, 2, 3]
+        await yaksok(`목록 = [1, 2, 3]
 목록["Hello"] 보여주기
 `)
         unreachable()
@@ -150,7 +150,7 @@ Deno.test('List index must be number', async () => {
 
 Deno.test('List index must be integer', async () => {
     try {
-        await yaksok(`목록: [1, 2, 3]
+        await yaksok(`목록 = [1, 2, 3]
 목록[1.5] 보여주기
 `)
         unreachable()
@@ -160,13 +160,13 @@ Deno.test('List index must be integer', async () => {
     }
 })
 
-Deno.test('List index must bigger than 1', async () => {
+Deno.test('List index must bigger than 0', async () => {
     try {
-        await yaksok(`목록: [1, 2, 3]
-목록[0] 보여주기
+        await yaksok(`목록 = [1, 2, 3]
+목록[-1] 보여주기
 `)
         unreachable()
     } catch (e) {
-        assertIsError(e, ListIndexMustBeGreaterThan1Error)
+        assertIsError(e, ListIndexMustBeGreaterOrEqualThan0Error)
     }
 })

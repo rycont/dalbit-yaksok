@@ -40,7 +40,7 @@ Deno.test('Mentioning', async () => {
         결과 = 140.9
     `,
             차종: `
-KTX이음: "KTX-이음"
+KTX이음 = "KTX-이음"
 무궁화호 = "무궁화호"
 `,
         },

@@ -1,6 +1,6 @@
 import {
+    ListIndexMustBeGreaterOrEqualThan0Error,
     ListIndexTypeError,
-    ListIndexMustBeGreaterThan1Error,
 } from '../error/indexed.ts'
 import { ValueType } from './base.ts'
 import { IndexedValue } from './indexed.ts'
@@ -46,7 +46,7 @@ export class ListValue extends IndexedValue {
             return
         }
 
-        throw new ListIndexMustBeGreaterThan1Error({
+        throw new ListIndexMustBeGreaterOrEqualThan0Error({
             resource: {
                 index,
             },
