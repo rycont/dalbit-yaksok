@@ -1,4 +1,10 @@
-import { Expression, Identifier, Node, Operator } from '../../node/base.ts'
+import {
+    Expression,
+    Identifier,
+    Node,
+    Operator,
+    UnknownNode,
+} from '../../node/base.ts'
 import { FFIBody } from '../../node/ffi.ts'
 import { Mention } from '../../node/mention.ts'
 import { Indent, EOL } from '../../node/misc.ts'
@@ -13,7 +19,6 @@ function mapTokenToNode(token: Token) {
     switch (token.type) {
         case TOKEN_TYPE.SPACE:
         case TOKEN_TYPE.LINE_COMMENT:
-        case TOKEN_TYPE.UNKNOWN:
             return null
         case TOKEN_TYPE.COMMA:
         case TOKEN_TYPE.OPENING_PARENTHESIS:
@@ -38,5 +43,7 @@ function mapTokenToNode(token: Token) {
             return new EOL([token])
         case TOKEN_TYPE.MENTION:
             return new Mention(token.value.slice(1), [token])
+        case TOKEN_TYPE.UNKNOWN:
+            return new UnknownNode(token.value, [token])
     }
 }

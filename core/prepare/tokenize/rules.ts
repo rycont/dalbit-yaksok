@@ -171,31 +171,48 @@ export const RULES: {
     {
         type: TOKEN_TYPE.OPERATOR,
         starter: OPERATORS.map((o) => o[0]),
-        parse: (_view, shift) => {
+        parse: (view, shift) => {
             let value = shift()!
 
             while (true) {
-                const appliable = getAppliableOperators(value)
-
-                const hasMatched = OPERATORS.includes(value)
-                const noMatchWithNext =
-                    getAppliableOperators(value + _view()).length === 0
-
-                const isOnlyPossibility = hasMatched && noMatchWithNext
-                const notPossible = !hasMatched && noMatchWithNext
-
-                if (notPossible) {
-                    throw new NotAcceptableSignal()
-                }
-
-                if (isOnlyPossibility) {
+                const currentlyAppliable = getAppliableOperators(value)
+                if (!currentlyAppliable.length) {
                     break
                 }
 
-                if (appliable.length > 1) {
-                    value += shift()!
-                    continue
+                const exactlyMatched = currentlyAppliable.includes(value)
+                const appliableWithNext = getAppliableOperators(value + view()!)
+
+                if (exactlyMatched && appliableWithNext.length === 0) {
+                    break
                 }
+
+                if (!appliableWithNext.length) {
+                    throw new NotAcceptableSignal()
+                }
+
+                value += shift()!
+
+                // const hasMatched = OPERATORS.includes(value)
+                // const MatchWithNext =
+                //     getAppliableOperators(value + _view()).length === 0
+
+                // const isOnlyPossibility = hasMatched && MatchWithNext
+                // const notPossible = !hasMatched && MatchWithNext
+
+                // if (notPossible) {
+                //     throw new NotAcceptableSignal()
+                // }
+
+                // if (isOnlyPossibility) {
+                //     break
+                // }
+
+                // if (!MatchWithNext) {
+                //     value += shift()!
+                //     continue
+                // }
+                // console.log('?')
             }
 
             return value
