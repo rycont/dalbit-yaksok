@@ -1,4 +1,4 @@
-import { Token } from '../mod.ts'
+import { Token } from '../prepare/tokenize/token.ts'
 import { YaksokError } from './common.ts'
 
 export class UnknownNodeError extends YaksokError {
