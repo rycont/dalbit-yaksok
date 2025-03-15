@@ -12,7 +12,7 @@ export class ListValue extends IndexedValue {
 
     constructor(entries: ValueType[]) {
         const entriesMap = new Map(
-            entries.map((entry, index) => [index + 1, entry]),
+            entries.map((entry, index) => [index, entry]),
         )
 
         super(entriesMap)
@@ -40,7 +40,7 @@ export class ListValue extends IndexedValue {
             })
         }
 
-        const isProperIndex = index >= 1
+        const isProperIndex = index >= 0
 
         if (isProperIndex) {
             return

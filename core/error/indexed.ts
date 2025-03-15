@@ -40,7 +40,7 @@ export class ListIndexMustBeGreaterThan1Error extends YaksokError {
         }
     }) {
         super(props)
-        this.message = `목록의 인덱스는 1보다 크거나 같아야 해요. ${props.resource.index}는 그렇지 않아요.`
+        this.message = `목록의 인덱스는 0보다 크거나 같아야 해요. ${props.resource.index}는 그렇지 않아요.`
     }
 }
 
