@@ -1,6 +1,6 @@
 import {
+    ListIndexMustBeGreaterOrEqualThan0Error,
     ListIndexTypeError,
-    ListIndexMustBeGreaterThan1Error,
 } from '../error/indexed.ts'
 import { ValueType } from './base.ts'
 import { IndexedValue } from './indexed.ts'
@@ -12,7 +12,7 @@ export class ListValue extends IndexedValue {
 
     constructor(entries: ValueType[]) {
         const entriesMap = new Map(
-            entries.map((entry, index) => [index + 1, entry]),
+            entries.map((entry, index) => [index, entry]),
         )
 
         super(entriesMap)
@@ -40,13 +40,13 @@ export class ListValue extends IndexedValue {
             })
         }
 
-        const isProperIndex = index >= 1
+        const isProperIndex = index >= 0
 
         if (isProperIndex) {
             return
         }
 
-        throw new ListIndexMustBeGreaterThan1Error({
+        throw new ListIndexMustBeGreaterOrEqualThan0Error({
             resource: {
                 index,
             },

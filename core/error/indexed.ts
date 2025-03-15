@@ -31,7 +31,7 @@ export class NotEnumerableValueForListLoopError extends YaksokError {
         )}는 목록 반복문에서 사용할 수 없어요. 목록 반복문에서는 목록을 사용해야 해요.`
     }
 }
-export class ListIndexMustBeGreaterThan1Error extends YaksokError {
+export class ListIndexMustBeGreaterOrEqualThan0Error extends YaksokError {
     constructor(props: {
         position?: Position
 
@@ -40,7 +40,7 @@ export class ListIndexMustBeGreaterThan1Error extends YaksokError {
         }
     }) {
         super(props)
-        this.message = `목록의 인덱스는 1보다 크거나 같아야 해요. ${props.resource.index}는 그렇지 않아요.`
+        this.message = `목록의 인덱스는 0보다 크거나 같아야 해요. ${props.resource.index}는 그렇지 않아요.`
     }
 }
 

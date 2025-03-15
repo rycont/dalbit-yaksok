@@ -6,7 +6,7 @@ Deno.test('고정된 부분이 없는 함수', async () => {
     try {
         await yaksok(`
 약속, (A) (B) (C)
-    결과: A + B + C
+    결과 = A + B + C
 
 (10) (20) (30) 보여주기
             `)

@@ -138,7 +138,7 @@ export const BASIC_RULES: Rule[][] = [
             pattern: [
                 {
                     type: Operator,
-                    value: '=',
+                    value: '==',
                 },
             ],
             factory: (_nodes, tokens) => new EqualOperator(tokens),
@@ -351,7 +351,7 @@ export const ADVANCED_RULES: Rule[] = [
             },
             {
                 type: Expression,
-                value: ':',
+                value: '=',
             },
             {
                 type: Evaluable,
@@ -372,7 +372,7 @@ export const ADVANCED_RULES: Rule[] = [
             },
             {
                 type: Expression,
-                value: ':',
+                value: '=',
             },
             {
                 type: Evaluable,

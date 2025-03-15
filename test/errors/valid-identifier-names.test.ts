@@ -4,11 +4,11 @@ import { CannotUseReservedWordForIdentifierNameError } from '../../core/error/in
 
 Deno.test('Valid identifier names', async () => {
     try {
-        await yaksok(`멍멍이: 10`)
-        await yaksok(`야용이: 20`)
-        await yaksok(`ㄱ자_전선: 20`)
-        await yaksok(`내이름은ㄴ이야: 20`)
-        await yaksok(`_사용하지않음: 20`)
+        await yaksok(`멍멍이 = 10`)
+        await yaksok(`야용이 = 20`)
+        await yaksok(`ㄱ자_전선 = 20`)
+        await yaksok(`내이름은ㄴ이야 = 20`)
+        await yaksok(`_사용하지않음 = 20`)
     } catch (_) {
         unreachable()
     }
@@ -16,7 +16,7 @@ Deno.test('Valid identifier names', async () => {
 
 Deno.test('Invalid identifier name', async () => {
     try {
-        await yaksok(`멍멍*이: 10`)
+        await yaksok(`멍멍*이 = 10`)
         unreachable()
     } catch (error) {
         assertIsError(error)
@@ -25,7 +25,7 @@ Deno.test('Invalid identifier name', async () => {
 
 Deno.test('Cannot use reserved words as an identifier', async () => {
     try {
-        await yaksok(`만약: 10`)
+        await yaksok(`만약 = 10`)
         unreachable()
     } catch (error) {
         assertIsError(error, CannotUseReservedWordForIdentifierNameError)
@@ -36,7 +36,7 @@ Deno.test('Cannot use reserved words as a part of a yaksok name', async () => {
     try {
         await yaksok(`
 약속, (내용) 보여주기
-    결과: "이거 진짜에요?"
+    결과 = "이거 진짜에요?"
         `)
         unreachable()
     } catch (error) {

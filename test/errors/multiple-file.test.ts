@@ -28,7 +28,7 @@ Deno.test('Error in importing module', async () => {
     try {
         await yaksok({
             아두이노: `
-이름: "아두이노" / 2
+이름 = "아두이노" / 2
 `,
             main: '(@아두이노 이름) 보여주기',
         })
@@ -54,7 +54,7 @@ Deno.test('Error in using module function', async () => {
         await yaksok({
             아두이노: `
 약속, 이름
-    결과: "아두이노" / 2
+    결과 = "아두이노" / 2
 `,
             main: '(@아두이노 이름) 보여주기',
         })
