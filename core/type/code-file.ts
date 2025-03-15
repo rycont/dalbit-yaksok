@@ -62,8 +62,6 @@ export class CodeFile {
             this.parse()
         }
 
-        // console.log(this.parsed)
-
         return this.parsed as Block
     }
 
