@@ -1,4 +1,4 @@
-import { Expression, Identifier, Node, Operator } from '../../node/base.ts'
+import { Identifier, Node, Operator } from '../../node/base.ts'
 import { FFIBody } from '../../node/ffi.ts'
 import { Mention } from '../../node/mention.ts'
 import { Indent, EOL } from '../../node/misc.ts'
@@ -20,8 +20,6 @@ function mapTokenToNode(token: Token) {
         case TOKEN_TYPE.CLOSING_PARENTHESIS:
         case TOKEN_TYPE.OPENING_BRACKET:
         case TOKEN_TYPE.CLOSING_BRACKET:
-        case TOKEN_TYPE.COLON:
-            return new Expression(token.value, [token])
         case TOKEN_TYPE.NUMBER:
             return new NumberLiteral(parseFloat(token.value), [token])
         case TOKEN_TYPE.STRING:

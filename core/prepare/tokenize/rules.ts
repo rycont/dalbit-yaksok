@@ -16,6 +16,7 @@ const OPERATORS = [
     '//',
     '<=',
     '>=',
+    '==',
 ]
 
 const IDENTIFIER_STARTER_REGEX = /[a-zA-Z_가-힣ㄱ-ㅎ]/
@@ -259,14 +260,6 @@ export const RULES: {
             value += shift()
 
             return value
-        },
-    },
-    {
-        type: TOKEN_TYPE.EQUAL_ASSIGNMENT,
-        starter: ['='],
-        parse: (_, shift) => {
-            shift()
-            return '='
         },
     },
     {

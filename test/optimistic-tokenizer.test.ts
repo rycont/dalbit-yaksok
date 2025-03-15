@@ -2,7 +2,7 @@ import { TOKEN_TYPE, tokenize } from '@dalbit-yaksok/core'
 import { assertEquals } from '@std/assert/equals'
 
 Deno.test('Incompleted String', () => {
-    const tokenized = tokenize(`내_이름: "이름이 뭐에`)
+    const tokenized = tokenize(`내_이름 = "이름이 뭐에`)
     assertEquals(tokenized, [
         {
             type: TOKEN_TYPE.IDENTIFIER,
@@ -13,11 +13,19 @@ Deno.test('Incompleted String', () => {
             },
         },
         {
-            type: TOKEN_TYPE.COLON,
-            value: ':',
+            type: TOKEN_TYPE.SPACE,
+            value: ' ',
             position: {
                 line: 1,
                 column: 5,
+            },
+        },
+        {
+            type: TOKEN_TYPE.OPERATOR,
+            value: '=',
+            position: {
+                line: 1,
+                column: 6,
             },
         },
         {
@@ -25,7 +33,7 @@ Deno.test('Incompleted String', () => {
             value: ' ',
             position: {
                 line: 1,
-                column: 6,
+                column: 7,
             },
         },
         {
@@ -33,7 +41,7 @@ Deno.test('Incompleted String', () => {
             value: '"이름이 뭐에',
             position: {
                 line: 1,
-                column: 7,
+                column: 8,
             },
         },
     ])
