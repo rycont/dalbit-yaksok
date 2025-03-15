@@ -142,9 +142,9 @@ Deno.test('JavaScript bridge function passed object', async () => {
     return allNames()
 ***
 
-더한_결과: (10)와 (20)를 더하기
+더한_결과 = (10)와 (20)를 더하기
 
-모든_이름: 모든 이름
+모든_이름 = 모든 이름
 `,
         {
             runFFI(_, code, args) {
