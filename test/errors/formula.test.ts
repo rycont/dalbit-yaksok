@@ -34,7 +34,7 @@ for (let i = 0; i < 10; i++) {
     const formula = createRandomFormula().join(' ')
     Deno.test(`Compute complex formula: ${i}`, async () => {
         const code = `
-나이: ${formula}
+나이 = ${formula}
     `
 
         const { scope } = await yaksok(code)

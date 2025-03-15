@@ -51,7 +51,7 @@ Deno.test('QuickJS passed number', async () => {
     return 20
 ***
 
-숫자: 랜덤 수
+숫자 = 랜덤 수
         `,
         {
             runFFI(_, code, args) {
@@ -81,7 +81,7 @@ Deno.test('QuickJS passed Array<number>', async () => {
     return [20, 30]
 ***
 
-숫자: 랜덤 수
+숫자 = 랜덤 수
         `,
         {
             runFFI(_, code, args) {
@@ -128,9 +128,9 @@ Deno.test('JavaScript bridge function passed object', async () => {
     return age()
 ***
 
-학생: 학생 정보
-이름: 이름 가져오기
-나이: 나이 가져오기
+학생 = 학생 정보
+이름 = 이름 가져오기
+나이 = 나이 가져오기
 
 번역(QuickJS), (A)와 (B)를 더하기
 ***
