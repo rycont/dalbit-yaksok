@@ -227,14 +227,14 @@ export class IntegerDivideOperator extends Operator {
 }
 
 export class EqualOperator extends Operator {
-    static override friendlyName = '같다(=)'
+    static override friendlyName = '같다(==)'
 
     constructor(public override tokens: Token[]) {
         super(null, tokens)
     }
 
     override toPrint(): string {
-        return '='
+        return '=='
     }
 
     override call(...operands: ValueType[]): BooleanValue {
