@@ -262,11 +262,11 @@ export const RULES: {
         },
     },
     {
-        type: TOKEN_TYPE.COLON,
-        starter: [':'],
+        type: TOKEN_TYPE.EQUAL_ASSIGNMENT,
+        starter: ['='],
         parse: (_, shift) => {
             shift()
-            return ':'
+            return '='
         },
     },
     {
