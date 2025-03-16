@@ -193,27 +193,6 @@ export const RULES: {
                 }
 
                 value += shift()!
-
-                // const hasMatched = OPERATORS.includes(value)
-                // const MatchWithNext =
-                //     getAppliableOperators(value + _view()).length === 0
-
-                // const isOnlyPossibility = hasMatched && MatchWithNext
-                // const notPossible = !hasMatched && MatchWithNext
-
-                // if (notPossible) {
-                //     throw new NotAcceptableSignal()
-                // }
-
-                // if (isOnlyPossibility) {
-                //     break
-                // }
-
-                // if (!MatchWithNext) {
-                //     value += shift()!
-                //     continue
-                // }
-                // console.log('?')
             }
 
             return value

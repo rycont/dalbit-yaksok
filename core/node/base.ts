@@ -114,10 +114,4 @@ export class Expression extends Node {
     override toPrint(): string {
         return this.value
     }
-
-    // override execute(): Promise<never> {
-    //     throw new UnknownNodeError({
-    //         tokens: this.tokens,
-    //     })
-    // }
 }

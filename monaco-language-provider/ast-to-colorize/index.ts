@@ -272,17 +272,6 @@ function ifStatement(current: IfStatement): ColorPart[] {
         },
     ]
 
-    // const newLineIndex = current.tokens.findIndex(
-    //     (token) => token.type === TOKEN_TYPE.NEW_LINE,
-    // )
-
-    // const ifStatementHeaderEnder: ColorPart = {
-    //     position: current.tokens[newLineIndex - 1].position,
-    //     scopes: SCOPE.KEYWORD,
-    // }
-
-    // colorParts.push(ifStatementHeaderEnder)
-
     for (const caseBlock of current.cases) {
         if (caseBlock.condition) {
             if (caseBlock.condition.tokens) {
