@@ -572,6 +572,22 @@ export const ADVANCED_RULES: Rule[] = [
         pattern: [
             {
                 type: Identifier,
+                value: '약속',
+            },
+            {
+                type: Identifier,
+                value: '그만',
+            },
+        ],
+        factory: (_nodes, tokens) => {
+            return new ReturnStatement(tokens)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    },
+    {
+        pattern: [
+            {
+                type: Identifier,
                 value: '반복',
             },
             {
