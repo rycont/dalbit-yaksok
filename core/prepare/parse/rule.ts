@@ -25,7 +25,6 @@ import {
     PlusOperator,
     Print,
     RangeOperator,
-    Return,
     Sequence,
     SetToIndex,
     SetVariable,
@@ -568,20 +567,6 @@ export const ADVANCED_RULES: Rule[] = [
             },
         ],
         factory: (_nodes, tokens) => new Break(tokens),
-        flags: [RULE_FLAGS.IS_STATEMENT],
-    },
-    {
-        pattern: [
-            {
-                type: Identifier,
-                value: '약속',
-            },
-            {
-                type: Identifier,
-                value: '그만',
-            },
-        ],
-        factory: (_nodes, tokens) => new Return(tokens),
         flags: [RULE_FLAGS.IS_STATEMENT],
     },
     {

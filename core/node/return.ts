@@ -1,17 +1,22 @@
 import { ReturnSignal } from '../executer/signals.ts'
-import { Executable } from './base.ts'
+import { Evaluable, Executable } from './base.ts'
 
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { Scope } from '../executer/scope.ts'
 
-export class Return extends Executable {
-    static override friendlyName = '결과'
+export class ReturnStatement extends Executable {
+    static override friendlyName = '반환하기'
 
-    constructor(public override tokens: Token[]) {
+    constructor(public override tokens: Token[], public value?: Evaluable) {
         super()
     }
 
-    override execute(_scope: Scope): Promise<never> {
-        throw new ReturnSignal(this.tokens)
+    override async execute(scope: Scope) {
+        if (!this.value) {
+            throw new ReturnSignal(this.tokens, null)
+        }
+
+        const returnValue = await this.value.execute(scope)
+        throw new ReturnSignal(this.tokens, returnValue)
     }
 }
