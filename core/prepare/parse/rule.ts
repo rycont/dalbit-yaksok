@@ -1,4 +1,8 @@
-import { Formula, ValueWithParenthesis } from '../../node/calculation.ts'
+import {
+    Formula,
+    NotExpression,
+    ValueWithParenthesis,
+} from '../../node/calculation.ts'
 import {
     AndOperator,
     Block,
@@ -296,6 +300,21 @@ export const BASIC_RULES: Rule[][] = [
                 },
             ],
             factory: (_nodes, tokens) => new RangeOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Expression,
+                    value: '!',
+                },
+                {
+                    type: Evaluable,
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const evaluable = nodes[1] as Evaluable
+                return new NotExpression(evaluable, tokens)
+            },
         },
     ],
 ]

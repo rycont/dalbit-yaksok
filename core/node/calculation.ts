@@ -32,6 +32,8 @@ import {
     RangeStartMustBeNumberError,
 } from '../error/index.ts'
 import { RangeStartMustBeLessThanEndError } from '../error/indexed.ts'
+import { BooleanValue } from '../value/primitive.ts'
+import { isTruthy } from '../executer/internal/isTruthy.ts'
 
 const OPERATOR_PRECEDENCES: OperatorClass[][] = [
     [AndOperator, OrOperator],
@@ -183,5 +185,24 @@ export class Formula extends Evaluable {
 
     override toPrint(): string {
         return this.terms.map((term) => term.toPrint()).join(' ')
+    }
+}
+
+export class NotExpression extends Evaluable {
+    static override friendlyName = '아니다'
+
+    constructor(public value: Evaluable, public override tokens: Token[]) {
+        super()
+    }
+
+    override async execute(scope: Scope): Promise<ValueType> {
+        const result = await this.value.execute(scope)
+        const resultValue = isTruthy(result)
+
+        return new BooleanValue(!resultValue)
+    }
+
+    override toPrint(): string {
+        return '!' + this.value.toPrint()
     }
 }
