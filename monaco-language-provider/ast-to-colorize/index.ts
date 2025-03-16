@@ -132,8 +132,8 @@ function setVariable(current: SetVariable) {
         (token) => token.type === TOKEN_TYPE.IDENTIFIER,
     )
 
-    const firstColon = current.tokens.find(
-        (token) => token.type === TOKEN_TYPE.COLON,
+    const firstEqual = current.tokens.find(
+        (token) => token.type === TOKEN_TYPE.ASSIGNMENT,
     )
 
     const variableName: ColorPart[] = [
@@ -142,7 +142,7 @@ function setVariable(current: SetVariable) {
             scopes: SCOPE.VARIABLE_NAME,
         },
         {
-            position: firstColon!.position,
+            position: firstEqual!.position,
             scopes: SCOPE.PUNCTUATION,
         },
     ]
