@@ -54,7 +54,7 @@ Deno.test('Error in using module function', async () => {
         await yaksok({
             아두이노: `
 약속, 이름
-    결과 = "아두이노" / 2
+    "아두이노" / 2 반환하기
 `,
             main: '(@아두이노 이름) 보여주기',
         })
