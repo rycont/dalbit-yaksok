@@ -4,7 +4,6 @@ import { NotDefinedIdentifierError } from '../error/variable.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { ValueType } from '../value/base.ts'
 import type { Scope } from '../executer/scope.ts'
-import { UnknownNodeError } from '../error/unknown-node.ts'
 
 export class Node {
     [key: string]: unknown
@@ -89,7 +88,7 @@ export class Operator extends Node implements OperatorNode {
     }
 
     override toPrint(): string {
-        return 'unknown'
+        return this.value ?? '알 수 없음'
     }
 
     call(..._operands: ValueType[]): ValueType {
@@ -114,19 +113,5 @@ export class Expression extends Node {
 
     override toPrint(): string {
         return this.value
-    }
-}
-
-export class UnknownNode extends Executable {
-    static override friendlyName = '알 수 없는 노드'
-
-    constructor(public value: string, public override tokens: Token[]) {
-        super()
-    }
-
-    override execute(): Promise<never> {
-        throw new UnknownNodeError({
-            tokens: this.tokens,
-        })
     }
 }

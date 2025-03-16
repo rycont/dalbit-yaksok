@@ -11,6 +11,7 @@ import {
     MinusOperator,
     ModularOperator,
     MultiplyOperator,
+    NotEqualOperator,
     OrOperator,
     PlusOperator,
     PowerOperator,
@@ -23,6 +24,7 @@ import {
     InvalidTypeForOperatorError,
     RangeEndMustBeIntegerError,
     RangeStartMustBeIntegerError,
+    UnknownOperatorError,
 } from '../error/calculation.ts'
 import { YaksokError } from '../error/common.ts'
 import {
@@ -30,11 +32,14 @@ import {
     RangeStartMustBeNumberError,
 } from '../error/index.ts'
 import { RangeStartMustBeLessThanEndError } from '../error/indexed.ts'
+import { BooleanValue } from '../value/primitive.ts'
+import { isTruthy } from '../executer/internal/isTruthy.ts'
 
 const OPERATOR_PRECEDENCES: OperatorClass[][] = [
     [AndOperator, OrOperator],
     [
         EqualOperator,
+        NotEqualOperator,
         LessThanOperator,
         GreaterThanOperator,
         LessThanOrEqualOperator,
@@ -88,6 +93,15 @@ export class Formula extends Evaluable {
                 currentPrecedence,
                 scope,
             )
+        }
+
+        if (termsWithToken.length !== 1) {
+            throw new UnknownOperatorError({
+                tokens: this.tokens,
+                resource: {
+                    operator: termsWithToken[1].value as Operator,
+                },
+            })
         }
 
         return termsWithToken[0].value as ValueType
@@ -171,5 +185,24 @@ export class Formula extends Evaluable {
 
     override toPrint(): string {
         return this.terms.map((term) => term.toPrint()).join(' ')
+    }
+}
+
+export class NotExpression extends Evaluable {
+    static override friendlyName = '아니다'
+
+    constructor(public value: Evaluable, public override tokens: Token[]) {
+        super()
+    }
+
+    override async execute(scope: Scope): Promise<ValueType> {
+        const result = await this.value.execute(scope)
+        const resultValue = isTruthy(result)
+
+        return new BooleanValue(!resultValue)
+    }
+
+    override toPrint(): string {
+        return '!' + this.value.toPrint()
     }
 }

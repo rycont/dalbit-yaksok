@@ -1,4 +1,8 @@
-import { Formula, ValueWithParenthesis } from '../../node/calculation.ts'
+import {
+    Formula,
+    NotExpression,
+    ValueWithParenthesis,
+} from '../../node/calculation.ts'
 import {
     AndOperator,
     Block,
@@ -34,6 +38,7 @@ import {
     OrOperator,
 } from '../../node/index.ts'
 import { ListLoop } from '../../node/listLoop.ts'
+import { NotEqualOperator } from '../../node/operator.ts'
 import { ReturnStatement } from '../../node/return.ts'
 import { IndexedValue } from '../../value/indexed.ts'
 import { NumberValue, StringValue } from '../../value/primitive.ts'
@@ -133,6 +138,15 @@ export const BASIC_RULES: Rule[][] = [
 
                 return new Formula([left, operator, right], tokens)
             },
+        },
+        {
+            pattern: [
+                {
+                    type: Operator,
+                    value: '!=',
+                },
+            ],
+            factory: (_nodes, tokens) => new NotEqualOperator(tokens),
         },
         {
             pattern: [
@@ -286,6 +300,21 @@ export const BASIC_RULES: Rule[][] = [
                 },
             ],
             factory: (_nodes, tokens) => new RangeOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Expression,
+                    value: '!',
+                },
+                {
+                    type: Evaluable,
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const evaluable = nodes[1] as Evaluable
+                return new NotExpression(evaluable, tokens)
+            },
         },
     ],
 ]

@@ -5,6 +5,22 @@ import type { Position } from '../type/position.ts'
 import { ValueType } from '../value/base.ts'
 import { Token } from '../prepare/tokenize/token.ts'
 
+export class UnknownOperatorError extends YaksokError {
+    constructor(props: {
+        position?: Position
+        tokens?: Token[]
+        resource: {
+            operator: Operator
+        }
+    }) {
+        super(props)
+
+        this.message = `${operatorToText(
+            props.resource.operator,
+        )}는 알 수 없는 연산자에요.`
+    }
+}
+
 export class InvalidTypeForCompareError extends YaksokError {
     constructor(props: {
         position?: Position
