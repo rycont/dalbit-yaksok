@@ -23,6 +23,7 @@ import {
     InvalidTypeForOperatorError,
     RangeEndMustBeIntegerError,
     RangeStartMustBeIntegerError,
+    UnknownOperatorError,
 } from '../error/calculation.ts'
 import { YaksokError } from '../error/common.ts'
 import {
@@ -88,6 +89,15 @@ export class Formula extends Evaluable {
                 currentPrecedence,
                 scope,
             )
+        }
+
+        if (termsWithToken.length !== 1) {
+            throw new UnknownOperatorError({
+                tokens: this.tokens,
+                resource: {
+                    operator: termsWithToken[1].value as Operator,
+                },
+            })
         }
 
         return termsWithToken[0].value as ValueType

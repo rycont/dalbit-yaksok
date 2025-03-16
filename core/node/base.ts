@@ -89,7 +89,7 @@ export class Operator extends Node implements OperatorNode {
     }
 
     override toPrint(): string {
-        return 'unknown'
+        return this.value ?? '알 수 없음'
     }
 
     call(..._operands: ValueType[]): ValueType {

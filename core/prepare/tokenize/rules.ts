@@ -16,6 +16,8 @@ const OPERATORS = [
     '<=',
     '>=',
     '==',
+    '!=',
+    '!',
 ]
 
 const IDENTIFIER_STARTER_REGEX = /[a-zA-Z_가-힣ㄱ-ㅎ]/
