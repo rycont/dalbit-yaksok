@@ -25,7 +25,6 @@ import {
     PlusOperator,
     Print,
     RangeOperator,
-    Return,
     Sequence,
     SetToIndex,
     SetVariable,
@@ -35,6 +34,7 @@ import {
     OrOperator,
 } from '../../node/index.ts'
 import { ListLoop } from '../../node/listLoop.ts'
+import { ReturnStatement } from '../../node/return.ts'
 import { IndexedValue } from '../../value/indexed.ts'
 import { NumberValue, StringValue } from '../../value/primitive.ts'
 import { Rule, RULE_FLAGS } from './type.ts'
@@ -543,6 +543,50 @@ export const ADVANCED_RULES: Rule[] = [
     {
         pattern: [
             {
+                type: Evaluable,
+            },
+            {
+                type: Identifier,
+                value: '반환하기',
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const value = nodes[0] as Evaluable
+            return new ReturnStatement(tokens, value)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    },
+    {
+        pattern: [
+            {
+                type: Identifier,
+                value: '반환하기',
+            },
+        ],
+        factory: (_nodes, tokens) => {
+            return new ReturnStatement(tokens)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    },
+    {
+        pattern: [
+            {
+                type: Identifier,
+                value: '약속',
+            },
+            {
+                type: Identifier,
+                value: '그만',
+            },
+        ],
+        factory: (_nodes, tokens) => {
+            return new ReturnStatement(tokens)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    },
+    {
+        pattern: [
+            {
                 type: Identifier,
                 value: '반복',
             },
@@ -568,20 +612,6 @@ export const ADVANCED_RULES: Rule[] = [
             },
         ],
         factory: (_nodes, tokens) => new Break(tokens),
-        flags: [RULE_FLAGS.IS_STATEMENT],
-    },
-    {
-        pattern: [
-            {
-                type: Identifier,
-                value: '약속',
-            },
-            {
-                type: Identifier,
-                value: '그만',
-            },
-        ],
-        factory: (_nodes, tokens) => new Return(tokens),
         flags: [RULE_FLAGS.IS_STATEMENT],
     },
     {
