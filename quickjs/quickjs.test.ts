@@ -142,7 +142,7 @@ Deno.test('JavaScript bridge function passed object', async () => {
     return allNames()
 ***
 
-더한_(10)와 (20)를 더하기 반환하기
+더한_결과 = (10)와 (20)를 더하기
 
 모든_이름 = 모든 이름
 `,
@@ -162,7 +162,7 @@ Deno.test('JavaScript bridge function passed object', async () => {
     const 학생 = result.scope.getVariable('학생') as StringValue
     const 이름 = result.scope.getVariable('이름') as StringValue
     const 나이 = result.scope.getVariable('나이') as NumberValue
-    const 더한_result.scope.getVariable('더한_결과') as NumberValue 반환하기
+    const 더한_결과 = result.scope.getVariable('더한_결과') as NumberValue
     const 모든_이름 = result.scope.getVariable('모든_이름') as ListValue
 
     assertInstanceOf(학생, StringValue)
