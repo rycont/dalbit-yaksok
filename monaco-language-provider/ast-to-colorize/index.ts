@@ -19,6 +19,7 @@ import {
     TOKEN_TYPE,
     ValueWithParenthesis,
     ReturnStatement,
+    NotExpression,
 } from '@dalbit-yaksok/core'
 import { ColorPart } from '../type.ts'
 import { SCOPE } from './scope.ts'
@@ -111,6 +112,10 @@ function node(node: Node): ColorPart[] {
 
     if (node instanceof EOL) {
         return []
+    }
+
+    if (node instanceof NotExpression) {
+        return visitNotExpression(node)
     }
 
     console.log('Unknown node:', node)
@@ -395,15 +400,24 @@ function setToIndex(current: SetToIndex): ColorPart[] {
 function visitReturn(current: ReturnStatement): ColorPart[] {
     const lastTokenPosition = current.tokens[current.tokens.length - 1].position
 
-    const colorParts: ColorPart[] = [
-        ...(current.value ? node(current.value) : []),
+    const valueColorParts = current.value ? node(current.value) : []
+    const keywordColorPart: ColorPart[] = [
         {
             position: lastTokenPosition,
             scopes: SCOPE.KEYWORD,
         },
     ]
 
-    return colorParts
+    return valueColorParts.concat(keywordColorPart)
+}
+
+function visitNotExpression(current: NotExpression): ColorPart[] {
+    return [
+        {
+            position: current.tokens[0].position,
+            scopes: SCOPE.OPERATOR,
+        } as ColorPart,
+    ].concat(node(current.value))
 }
 
 export { node as nodeToColorTokens }
