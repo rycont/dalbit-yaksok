@@ -11,6 +11,7 @@ import {
     MinusOperator,
     ModularOperator,
     MultiplyOperator,
+    NotEqualOperator,
     OrOperator,
     PlusOperator,
     PowerOperator,
@@ -36,6 +37,7 @@ const OPERATOR_PRECEDENCES: OperatorClass[][] = [
     [AndOperator, OrOperator],
     [
         EqualOperator,
+        NotEqualOperator,
         LessThanOperator,
         GreaterThanOperator,
         LessThanOrEqualOperator,

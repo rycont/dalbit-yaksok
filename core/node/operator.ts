@@ -258,6 +258,18 @@ export class EqualOperator extends Operator {
     }
 }
 
+export class NotEqualOperator extends EqualOperator {
+    static override friendlyName = '같지 않다(!=)'
+
+    override toPrint(): string {
+        return '!='
+    }
+
+    override call(...operands: ValueType[]): BooleanValue {
+        return new BooleanValue(!super.call(...operands).value)
+    }
+}
+
 export class AndOperator extends Operator {
     static override friendlyName = '이고'
 
