@@ -36,8 +36,10 @@ import {
     ModularOperator,
     PowerOperator,
     OrOperator,
+    Mention,
 } from '../../node/index.ts'
 import { ListLoop } from '../../node/listLoop.ts'
+import { MentionScope } from '../../node/mention.ts'
 import { NotEqualOperator } from '../../node/operator.ts'
 import { ReturnStatement } from '../../node/return.ts'
 import { IndexedValue } from '../../value/indexed.ts'
@@ -314,6 +316,28 @@ export const BASIC_RULES: Rule[][] = [
             factory: (nodes, tokens) => {
                 const evaluable = nodes[1] as Evaluable
                 return new NotExpression(evaluable, tokens)
+            },
+        },
+        {
+            pattern: [
+                {
+                    type: Mention,
+                },
+                {
+                    type: Identifier,
+                },
+            ],
+            factory(nodes, tokens) {
+                const mention = nodes[0] as Mention
+                const identifier = nodes[1] as Identifier
+
+                const mentionScope = new MentionScope(
+                    mention.value,
+                    identifier,
+                    tokens,
+                )
+
+                return mentionScope
             },
         },
     ],
