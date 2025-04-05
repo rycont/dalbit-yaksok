@@ -14,7 +14,7 @@ export function mergeArgumentBranchingTokens(
             const isCurrentSlash = isSlash(currentToken)
             if (!isCurrentSlash) continue
 
-            const mergingEndIndex = getMergingEndIndex(tokens, cursor)
+            const mergingEndIndex = getMergingEndIndex(tokens, cursor, end)
             const mergingTokens = tokens.slice(cursor - 1, mergingEndIndex)
             const mergedString = getMergedSlashedNames(mergingTokens)
 
@@ -35,10 +35,14 @@ function isSlash(token: Token) {
     return token.type === TOKEN_TYPE.OPERATOR && token.value === '/'
 }
 
-function getMergingEndIndex(tokens: (Token | null)[], startIndex: number) {
+function getMergingEndIndex(
+    tokens: (Token | null)[],
+    startIndex: number,
+    functionHeaderEndIndex: number,
+) {
     let endIndex = startIndex
 
-    for (; endIndex < tokens.length; endIndex++) {
+    for (; endIndex < functionHeaderEndIndex; endIndex++) {
         const currentToken = tokens[endIndex]
         if (!currentToken) continue
 
