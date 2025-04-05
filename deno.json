@@ -22,7 +22,7 @@
         "test",
         "monaco-language-provider"
     ],
-    "version": "1.0.0-nightly+20250316c",
+    "version": "1.1.0",
     "tasks": {
         "apply-version": "deno run --allow-read --allow-write apply-version.ts",
         "publish": "deno task --recursive test && deno publish --allow-dirty",
