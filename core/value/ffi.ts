@@ -10,13 +10,13 @@ export class FFIObject extends ObjectValue implements RunnableObject {
         public name: string,
         private code: string,
         private runtime: string,
-        private delcaredIn?: CodeFile,
+        private declaredIn?: CodeFile,
     ) {
         super()
     }
 
     async run(args: Record<string, ValueType>): Promise<ValueType> {
-        const result = await this.delcaredIn!.runtime!.runFFI(
+        const result = await this.declaredIn!.runtime!.runFFI(
             this.runtime,
             this.code,
             args,

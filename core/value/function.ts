@@ -15,14 +15,14 @@ export class FunctionObject extends ObjectValue implements RunnableObject {
     constructor(
         public name: string,
         private body: Block,
-        private delcaredScope?: Scope,
+        private declaredScope?: Scope,
     ) {
         super()
     }
 
     public async run(
         args: Record<string, ValueType>,
-        fileScope: Scope | undefined = this.delcaredScope,
+        fileScope: Scope | undefined = this.declaredScope,
     ) {
         const functionScope = new Scope({
             parent: fileScope,
@@ -37,7 +37,7 @@ export class FunctionObject extends ObjectValue implements RunnableObject {
             }
 
             if (e instanceof YaksokError && !e.codeFile) {
-                e.codeFile = this.delcaredScope?.codeFile
+                e.codeFile = this.declaredScope?.codeFile
             }
 
             throw e
