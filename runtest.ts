@@ -7,6 +7,7 @@ const baseContext: CodeFile = (
 
 약속, 지금/현재/지금의 밀리초 가져오기/말하기
     "그것도 제가 도와드릴 순 없어요.." 보여주기
+    10 / "예?" 보여주기
 `)
 ).codeFiles['main']
 

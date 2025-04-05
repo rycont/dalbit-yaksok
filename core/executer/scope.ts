@@ -18,11 +18,19 @@ export class Scope {
         } = {},
     ) {
         this.variables = config.initialVariable || {}
-        this.parent = config.parent
-        this.codeFile = config.codeFile
 
-        if (config.parent?.codeFile) {
+        if (config.parent) {
+            this.parent = config.parent
+        }
+
+        if (config.codeFile) {
+            this.codeFile = config.codeFile
+        } else if (config.parent?.codeFile) {
             this.codeFile = config.parent.codeFile
+        }
+
+        if (!config.parent && config.codeFile) {
+            this.parent = config.codeFile.runtime?.baseContext?.runResult?.scope
         }
     }
 
