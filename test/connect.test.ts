@@ -284,3 +284,48 @@ Deno.test('한 단어로 된 FFI 이름', async () => {
         '성공성공성공성공\n이건 아님이건 아님이건 아님이건 아님\n',
     )
 })
+
+Deno.test('이름에 변형이 있는 함수 선언', async () => {
+    let output = ''
+
+    await yaksok(
+        `
+번역(QuickJS), 지금/현재 시간 가져오기
+***
+    return 1743823961
+***
+
+번역(QuickJS), 지금/현재 밀리초 가져오기
+***
+    return 1743823977546
+***
+
+지금 시간 가져오기 보여주기
+현재 시간 가져오기 보여주기
+지금 밀리초 가져오기 보여주기
+현재 밀리초 가져오기 보여주기
+`,
+        {
+            runFFI(runtime, bodyCode, args) {
+                if (runtime === 'QuickJS') {
+                    const result = quickJS.run(bodyCode, args)
+                    if (!result) {
+                        throw new Error('Result is null')
+                    }
+
+                    return result
+                }
+
+                throw new Error(`Unknown runtime: ${runtime}`)
+            },
+            stdout(value) {
+                output += value + '\n'
+            },
+        },
+    )
+
+    assertEquals(
+        output,
+        '1743823961\n1743823961\n1743823977546\n1743823977546\n',
+    )
+})
