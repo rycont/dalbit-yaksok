@@ -12,6 +12,7 @@ import type { EnabledFlags } from '../constant/feature-flags.ts'
 import type { ExecuteResult } from '../executer/index.ts'
 import type { Block } from '../node/block.ts'
 import { PubSub } from '../util/pubsub.ts'
+import { Scope } from '../executer/scope.ts'
 
 export class Runtime {
     public stdout: RuntimeConfig['stdout']
@@ -22,12 +23,12 @@ export class Runtime {
     public flags: Partial<EnabledFlags> = {}
 
     public pubsub: PubSub<Events> = new PubSub<Events>()
-
-    private files: Record<string, CodeFile> = {}
+    public files: Record<string, CodeFile> = {}
 
     constructor(
         codeTexts: Record<string, string>,
         config: Partial<RuntimeConfig>,
+        public baseContext?: CodeFile,
     ) {
         for (const _event in config.events) {
             const event = _event as keyof Events
@@ -51,7 +52,7 @@ export class Runtime {
         }
     }
 
-    async run(fileName = this.entryPoint): Promise<ExecuteResult<Block>> {
+    run(fileName = this.entryPoint): Promise<ExecuteResult<Block>> {
         const codeFile = this.files[fileName]
 
         if (!codeFile) {
@@ -64,7 +65,7 @@ export class Runtime {
         }
 
         try {
-            return await codeFile.run()
+            return codeFile.run()
         } catch (e) {
             if (e instanceof YaksokError && !e.codeFile) {
                 e.codeFile = codeFile
@@ -91,16 +92,18 @@ export class Runtime {
 export async function yaksok(
     code: string | Record<string, string>,
     config: Partial<RuntimeConfig> = {},
+    baseContext?: CodeFile,
 ): Promise<{
     runtime: Runtime
-    scope: Record<string, any>
+    mainScope: Scope
+    codeFiles: Record<string, CodeFile>
 }> {
     let runtime: Runtime
 
     if (typeof code === 'string') {
-        runtime = new Runtime({ main: code }, config)
+        runtime = new Runtime({ main: code }, config, baseContext)
     } else {
-        runtime = new Runtime(code, config)
+        runtime = new Runtime(code, config, baseContext)
     }
 
     try {
@@ -108,7 +111,8 @@ export async function yaksok(
 
         return {
             runtime,
-            scope: runtime.getCodeFile().runResult!.scope,
+            mainScope: runtime.getCodeFile().runResult!.scope,
+            codeFiles: runtime.files,
         }
     } catch (e) {
         if (e instanceof YaksokError) {
