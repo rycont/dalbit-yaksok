@@ -1,46 +1,59 @@
-import { UnexpectedEndOfCodeError } from '../../error/prepare.ts'
 import { Token, TOKEN_TYPE } from '../tokenize/token.ts'
 
 export function mergeArgumentBranchingTokens(
     _tokens: Token[],
     functionDeclareRanges: [number, number][],
 ) {
-    const tokens: Token[] = [..._tokens]
+    const tokens: (Token | null)[] = [..._tokens]
 
     for (const [start, end] of functionDeclareRanges) {
-        const functionHeader = tokens.slice(start, end) as (Token | null)[]
-        while (true) {
-            const slashIndex = functionHeader.findIndex(
-                (token) => token && token.type === TOKEN_TYPE.OPERATOR,
-            )
+        for (let cursor = start; cursor < end; cursor++) {
+            const currentToken = tokens[cursor]
+            if (!currentToken) continue
 
-            if (slashIndex === -1) {
-                break
+            const isCurrentSlash = isSlash(currentToken)
+            if (!isCurrentSlash) continue
+
+            const mergingEndIndex = getMergingEndIndex(tokens, cursor)
+            const mergingTokens = tokens.slice(cursor - 1, mergingEndIndex)
+            const mergedString = getMergedSlashedNames(mergingTokens)
+
+            const prevToken = tokens[cursor - 1]!
+            prevToken.value = mergedString
+
+            for (let i = cursor; i < mergingEndIndex; i++) {
+                tokens[i] = null
             }
-
-            const slashPosition = functionHeader[slashIndex]!.position
-
-            const leftValue = functionHeader[slashIndex - 1]?.value
-            functionHeader[slashIndex - 1] = null
-            functionHeader[slashIndex] = null
-
-            const nextSlash = functionHeader[slashIndex + 1]
-            if (!nextSlash || nextSlash.type !== TOKEN_TYPE.IDENTIFIER) {
-                throw new UnexpectedEndOfCodeError({
-                    position: slashPosition,
-                })
-            }
-
-            const rightValue = leftValue + '/' + nextSlash.value
-            nextSlash.value = rightValue
         }
-
-        const newFunctionHeader = functionHeader.filter(
-            (token) => token,
-        ) as Token[]
-
-        tokens.splice(start, end - start, ...newFunctionHeader)
     }
 
-    return tokens
+    const filteredTokens = tokens.filter(Boolean) as Token[]
+    return filteredTokens
+}
+
+function isSlash(token: Token) {
+    return token.type === TOKEN_TYPE.OPERATOR && token.value === '/'
+}
+
+function getMergingEndIndex(tokens: (Token | null)[], startIndex: number) {
+    let endIndex = startIndex
+
+    for (; endIndex < tokens.length; endIndex++) {
+        const currentToken = tokens[endIndex]
+        if (!currentToken) continue
+
+        const isValidTokenTypes =
+            currentToken.type === TOKEN_TYPE.OPERATOR ||
+            currentToken.type === TOKEN_TYPE.IDENTIFIER
+
+        if (!isValidTokenTypes) {
+            break
+        }
+    }
+
+    return endIndex
+}
+
+function getMergedSlashedNames(tokens: (Token | null)[]) {
+    return tokens.map((token) => (token ? token.value : '')).join('')
 }
