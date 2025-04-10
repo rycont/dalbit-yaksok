@@ -5,6 +5,7 @@ import { ReturnSignal } from '../executer/signals.ts'
 import { Scope } from '../executer/scope.ts'
 
 import type { Block } from '../node/block.ts'
+import { YaksokError } from '../error/common.ts'
 
 const DEFAULT_RETURN_VALUE = new NumberValue(0)
 
@@ -14,35 +15,35 @@ export class FunctionObject extends ObjectValue implements RunnableObject {
     constructor(
         public name: string,
         private body: Block,
-        private delcaredScope?: Scope,
+        private declaredScope?: Scope,
     ) {
         super()
     }
 
     public async run(
         args: Record<string, ValueType>,
-        fileScope: Scope | undefined = this.delcaredScope,
+        fileScope: Scope | undefined = this.declaredScope,
     ) {
         const functionScope = new Scope({
             parent: fileScope,
             initialVariable: args,
         })
 
-        let returnValue: ValueType = DEFAULT_RETURN_VALUE
-
         try {
             await this.body.execute(functionScope)
         } catch (e) {
-            if (!(e instanceof ReturnSignal)) {
-                throw e
+            if (e instanceof ReturnSignal) {
+                return e.value || DEFAULT_RETURN_VALUE
             }
 
-            if (e.value) {
-                returnValue = e.value
+            if (e instanceof YaksokError && !e.codeFile) {
+                e.codeFile = this.declaredScope?.codeFile
             }
+
+            throw e
         }
 
-        return returnValue
+        return DEFAULT_RETURN_VALUE
     }
 }
 

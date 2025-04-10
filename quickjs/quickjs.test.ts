@@ -66,8 +66,11 @@ Deno.test('QuickJS passed number', async () => {
         },
     )
 
-    assertInstanceOf(result.scope.getVariable('숫자'), NumberValue)
-    assertEquals((result.scope.getVariable('숫자') as NumberValue).value, 20)
+    assertInstanceOf(result.mainScope.getVariable('숫자'), NumberValue)
+    assertEquals(
+        (result.mainScope.getVariable('숫자') as NumberValue).value,
+        20,
+    )
 })
 
 Deno.test('QuickJS passed Array<number>', async () => {
@@ -96,7 +99,7 @@ Deno.test('QuickJS passed Array<number>', async () => {
         },
     )
 
-    assertEquals(result.scope.getVariable('숫자').toPrint(), '[20, 30]')
+    assertEquals(result.mainScope.getVariable('숫자').toPrint(), '[20, 30]')
 })
 
 Deno.test('JavaScript bridge function passed object', async () => {
@@ -159,11 +162,11 @@ Deno.test('JavaScript bridge function passed object', async () => {
         },
     )
 
-    const 학생 = result.scope.getVariable('학생') as StringValue
-    const 이름 = result.scope.getVariable('이름') as StringValue
-    const 나이 = result.scope.getVariable('나이') as NumberValue
-    const 더한_결과 = result.scope.getVariable('더한_결과') as NumberValue
-    const 모든_이름 = result.scope.getVariable('모든_이름') as ListValue
+    const 학생 = result.mainScope.getVariable('학생') as StringValue
+    const 이름 = result.mainScope.getVariable('이름') as StringValue
+    const 나이 = result.mainScope.getVariable('나이') as NumberValue
+    const 더한_결과 = result.mainScope.getVariable('더한_결과') as NumberValue
+    const 모든_이름 = result.mainScope.getVariable('모든_이름') as ListValue
 
     assertInstanceOf(학생, StringValue)
     assertInstanceOf(이름, StringValue)
