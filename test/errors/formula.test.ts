@@ -37,7 +37,7 @@ for (let i = 0; i < 10; i++) {
 나이 = ${formula}
     `
 
-        const { mainScope: scope } = await yaksok(code)
+        const { scope } = await yaksok(code)
         const 나이 = scope.getVariable('나이') as NumberValue
 
         assertInstanceOf(나이, NumberValue)

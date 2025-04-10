@@ -11,10 +11,5 @@ export function createDynamicRule(codeFile: CodeFile): [Rule[][], Rule[][]] {
     )
 
     const mentioningRules = getRulesFromMentioningFile(codeFile)
-    const baseContextRules = codeFile.runtime?.baseContext?.exportedRules || []
-
-    return [
-        localRules[0],
-        [...localRules[1], mentioningRules, baseContextRules],
-    ]
+    return [localRules[0], [...localRules[1], mentioningRules]]
 }
