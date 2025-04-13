@@ -1,21 +1,13 @@
-import { CodeFile, yaksok } from '@dalbit-yaksok/core'
+import { yaksok } from '@dalbit-yaksok/core'
 
-const baseContext: CodeFile = (
-    await yaksok(`
-카운터 = 1
+await yaksok({
+    main: `
+@직방 보여주기
+`,
+    직방: `
+약속, (위치) 근처 원룸 갯수 가져오기
+    0 반환하기
 
-약속, 힘든 부탁 하기
-    "그건 제가 도와드릴 수 없어요" 보여주기
-    카운터 = 카운터 + 1
-`)
-).codeFiles['main']
-
-await yaksok(`힘든 부탁 하기`, {}, baseContext)
-await yaksok(`힘든 부탁 하기`, {}, baseContext)
-await yaksok(
-    `
-"당신이 힘든 부탁을 한 횟수:" 보여주기
-카운터 보여주기`,
-    {},
-    baseContext,
-)
+앱_버전 = "1.0.0"
+`,
+})

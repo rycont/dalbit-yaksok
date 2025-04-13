@@ -43,6 +43,14 @@ export class Block extends Executable {
         }
     }
 
+    override validate(scope: Scope) {
+        const childErrors = this.children
+            .flatMap((child) => child.validate(scope))
+            .filter((error) => error !== null)
+
+        return childErrors
+    }
+
     reportRunningCode(child: Executable, scope: Scope) {
         const startPosition = child.tokens[0].position
         const endToken = child.tokens[child.tokens.length - 1]

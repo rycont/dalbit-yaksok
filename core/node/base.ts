@@ -4,12 +4,17 @@ import { NotDefinedIdentifierError } from '../error/variable.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { ValueType } from '../value/base.ts'
 import type { Scope } from '../executer/scope.ts'
+import { YaksokError } from '../error/common.ts'
 
 export class Node {
     [key: string]: unknown
     tokens: Token[] = []
 
     static friendlyName = '노드'
+
+    validate(_scope: Scope): YaksokError[] | null {
+        throw new Error(`${this.constructor.name} has no validate method`)
+    }
 
     toJSON(): object {
         return {

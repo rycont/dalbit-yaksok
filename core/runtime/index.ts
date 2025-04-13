@@ -52,6 +52,12 @@ export class Runtime {
         }
     }
 
+    async validate(): Promise<void> {
+        for (const codeFile of Object.values(this.files)) {
+            await codeFile.validate()
+        }
+    }
+
     async run(fileName = this.entryPoint): Promise<ExecuteResult<Block>> {
         const codeFile = this.files[fileName]
 
@@ -107,6 +113,7 @@ export async function yaksok(
     }
 
     try {
+        await runtime.validate()
         await runtime.run()
 
         return {

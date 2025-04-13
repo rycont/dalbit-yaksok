@@ -99,6 +99,10 @@ export class CodeFile {
         this.exportedRulesCache = parseResult.exportedRules
     }
 
+    public async validate(): Promise<void> {
+        await this.ast.validate()
+    }
+
     public async run(): Promise<ExecuteResult<Block>> {
         if (this.runResult) {
             return this.runResult
