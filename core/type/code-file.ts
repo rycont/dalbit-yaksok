@@ -105,8 +105,10 @@ export class CodeFile {
             codeFile: this,
         })
 
+        const errors = this.ast.validate(validatingScope)
+
         return {
-            errors: this.ast.validate(validatingScope),
+            errors,
             validatingScope,
         }
     }

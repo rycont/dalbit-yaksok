@@ -94,8 +94,36 @@ export class MentionScope extends Evaluable {
             this.fileName,
         )
 
-        const { errors, validatingScope } = moduleCodeFile.validate()
+        let validatingScope: Scope | undefined
+        let moduleErrors: YaksokError[] = []
 
-        return [...errors, ...(this.child.validate(validatingScope) || [])]
+        try {
+            const validationResult = moduleCodeFile.validate()
+
+            validatingScope = validationResult.validatingScope
+            moduleErrors = validationResult.errors
+        } catch (error) {
+            if (error instanceof YaksokError) {
+                error.codeFile = moduleCodeFile
+
+                const errorInstance = new ErrorInModuleError({
+                    resource: {
+                        fileName: this.fileName,
+                    },
+                    tokens: this.tokens,
+                    child: error,
+                })
+
+                errorInstance.codeFile = scope.codeFile
+
+                return [errorInstance]
+            }
+
+            throw error
+        }
+
+        const childErrors = this.child.validate(validatingScope)
+
+        return [...moduleErrors, ...(childErrors || [])]
     }
 }
