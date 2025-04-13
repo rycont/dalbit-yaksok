@@ -4,6 +4,7 @@ import { Executable } from './base.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { Scope } from '../executer/scope.ts'
 import type { Block } from './block.ts'
+import { YaksokError } from '../error/common.ts'
 
 export class Loop extends Executable {
     static override friendlyName = '반복'
@@ -23,6 +24,10 @@ export class Loop extends Executable {
             }
         }
     }
+
+    override validate(scope: Scope): YaksokError[] | null {
+        return this.body.validate(scope)
+    }
 }
 
 export class Break extends Executable {
@@ -34,5 +39,9 @@ export class Break extends Executable {
 
     override execute(_scope: Scope): Promise<never> {
         throw new BreakSignal(this.tokens)
+    }
+
+    override validate(): null {
+        return null
     }
 }

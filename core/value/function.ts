@@ -45,6 +45,18 @@ export class FunctionObject extends ObjectValue implements RunnableObject {
 
         return DEFAULT_RETURN_VALUE
     }
+
+    public validate(
+        args: Record<string, ValueType>,
+        fileScope: Scope | undefined = this.declaredScope,
+    ): YaksokError[] | null {
+        const functionScope = new Scope({
+            parent: fileScope,
+            initialVariable: args,
+        })
+
+        return this.body.validate(functionScope)
+    }
 }
 
 export interface RunnableObject extends ObjectValue {

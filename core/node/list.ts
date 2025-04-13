@@ -10,12 +10,24 @@ import { Evaluable, Executable, Node } from './base.ts'
 
 import type { Token } from '../prepare/tokenize/token.ts'
 import { YaksokError } from '../error/common.ts'
+import { NotExecutableNodeError } from '../error/unknown-node.ts'
 
 export class Sequence extends Node {
     static override friendlyName = '나열된 값'
 
     constructor(public items: Evaluable[], public override tokens: Token[]) {
         super()
+    }
+
+    override validate() {
+        return [
+            new NotExecutableNodeError({
+                tokens: this.tokens,
+                resource: {
+                    node: this,
+                },
+            }),
+        ]
     }
 }
 
@@ -33,6 +45,14 @@ export class ListLiteral extends Evaluable {
 
         const value = new ListValue(evaluatedItems)
         return value
+    }
+
+    override validate(scope: Scope) {
+        const errors = this.items
+            .flatMap((item) => item.validate(scope))
+            .filter((error): error is YaksokError => !!error)
+
+        return errors
     }
 }
 
@@ -112,6 +132,15 @@ export class IndexFetch extends Evaluable {
 
         list.setItem(index.value, value)
     }
+
+    override validate(scope: Scope) {
+        const errors = [
+            ...(this.list.validate(scope) || []),
+            ...(this.index.validate(scope) || []),
+        ]
+
+        return errors
+    }
 }
 
 export class SetToIndex extends Executable {
@@ -130,5 +159,14 @@ export class SetToIndex extends Executable {
     override async execute(scope: Scope): Promise<void> {
         const value = await this.value.execute(scope)
         await this.target.setValue(scope, value)
+    }
+
+    override validate(scope: Scope) {
+        const errors = [
+            ...(this.target.validate(scope) || []),
+            ...(this.value.validate(scope) || []),
+        ]
+
+        return errors
     }
 }

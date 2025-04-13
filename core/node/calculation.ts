@@ -17,7 +17,7 @@ import {
     PowerOperator,
     RangeOperator,
 } from './operator.ts'
-import { Evaluable, Operator, OperatorClass } from './base.ts'
+import { Evaluable, Node, Operator, OperatorClass } from './base.ts'
 import { ValueType } from '../value/base.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import {
@@ -64,6 +64,10 @@ export class ValueWithParenthesis extends Evaluable {
 
     override toPrint(): string {
         return '(' + this.value.toPrint() + ')'
+    }
+
+    override validate(scope: Scope) {
+        return this.value.validate(scope)
     }
 }
 
@@ -186,6 +190,16 @@ export class Formula extends Evaluable {
     override toPrint(): string {
         return this.terms.map((term) => term.toPrint()).join(' ')
     }
+
+    override validate(scope: Scope) {
+        const errors = this.terms
+            .filter((term) => term instanceof Node)
+            .map((term) => term.validate(scope))
+            .flat()
+            .filter((error) => error !== undefined) as YaksokError[]
+
+        return errors
+    }
 }
 
 export class NotExpression extends Evaluable {
@@ -204,5 +218,10 @@ export class NotExpression extends Evaluable {
 
     override toPrint(): string {
         return '!' + this.value.toPrint()
+    }
+
+    override validate(scope: Scope) {
+        const errors = this.value.validate(scope)
+        return errors
     }
 }

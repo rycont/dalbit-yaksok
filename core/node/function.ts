@@ -1,13 +1,14 @@
 import { assertValidReturnValue } from '../util/assert-valid-return-value.ts'
-import { FunctionObject } from '../value/function.ts'
+import { FunctionObject, RunnableObject } from '../value/function.ts'
 import { Evaluable, Executable } from './base.ts'
 import { ValueType } from '../value/base.ts'
 import { Scope } from '../executer/scope.ts'
 
 import type { FunctionInvokingParams } from '../constant/type.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
-import type { Block } from './block.ts'
+import { Block } from './block.ts'
 import { YaksokError } from '../error/common.ts'
+import { NumberValue } from '../value/primitive.ts'
 
 export class DeclareFunction extends Executable {
     static override friendlyName = '새 약속 만들기'
@@ -33,7 +34,9 @@ export class DeclareFunction extends Executable {
     }
 
     override validate(scope: Scope) {
-        return this.body.validate(scope)
+        scope.addFunctionObject(new FunctionObject(this.name, this.body, scope))
+
+        return []
     }
 }
 
@@ -74,16 +77,45 @@ export class FunctionInvoke extends Evaluable {
     }
 
     override validate(scope: Scope) {
-        try {
-            scope.getFunctionObject(this.name)
-            return null
-        } catch (e) {
-            if (e instanceof YaksokError) {
-                e.tokens = this.tokens
-            }
+        const errors: YaksokError[] = []
 
-            throw e
+        let runnableObject: RunnableObject | undefined
+
+        try {
+            runnableObject = scope.getFunctionObject(this.name)
+        } catch (error) {
+            if (error instanceof YaksokError) {
+                errors.push(error)
+            } else {
+                throw error
+            }
         }
+
+        const argsError = Object.values(this.params)
+            .map((param) => param.validate(scope))
+            .flat()
+            .filter((error): error is YaksokError => !!error)
+
+        if (argsError.length > 0) {
+            errors.push(...argsError)
+        }
+
+        if (runnableObject instanceof FunctionObject) {
+            const dummyArgs = Object.fromEntries(
+                Object.keys(this.params).map((key) => [key, new ValueType()]),
+            )
+
+            const functionErrors = runnableObject.validate(dummyArgs, scope)
+            if (functionErrors) {
+                errors.push(...functionErrors)
+            }
+        }
+
+        if (errors.length > 0) {
+            return errors
+        }
+
+        return null
     }
 }
 

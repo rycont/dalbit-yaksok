@@ -34,6 +34,19 @@ export class IfStatement extends Executable {
     ): Promise<boolean> {
         return !condition || isTruthy(await condition.execute(scope))
     }
+
+    override validate(scope: Scope) {
+        const errors = this.cases.flatMap((caseItem) => {
+            const { condition, body } = caseItem
+
+            const conditionErrors = condition?.validate(scope) || []
+            const bodyErrors = body?.validate(scope) || []
+
+            return conditionErrors.concat(bodyErrors)
+        })
+
+        return errors
+    }
 }
 
 export class ElseStatement extends Executable {

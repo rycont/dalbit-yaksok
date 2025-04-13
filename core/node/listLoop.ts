@@ -8,6 +8,7 @@ import { Scope } from '../executer/scope.ts'
 import type { ValueType } from '../value/base.ts'
 import type { Block } from './block.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
+import { NumberValue } from '../value/primitive.ts'
 
 export class ListLoop extends Executable {
     static override friendlyName = '목록 반복'
@@ -49,5 +50,19 @@ export class ListLoop extends Executable {
             },
             tokens: this.list.tokens,
         })
+    }
+
+    override validate(scope: Scope) {
+        const listScope = new Scope({
+            parent: scope,
+            initialVariable: {
+                [this.variableName]: new NumberValue(0),
+            },
+        })
+
+        const listErrors = this.list.validate(scope)
+        const bodyErrors = this.body.validate(listScope)
+
+        return [...(listErrors || []), ...(bodyErrors || [])]
     }
 }

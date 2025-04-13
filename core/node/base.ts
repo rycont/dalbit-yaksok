@@ -127,6 +127,10 @@ export class Operator extends Node implements OperatorNode {
     call(..._operands: ValueType[]): ValueType {
         throw new Error(`${this.constructor.name} has no call method`)
     }
+
+    override validate() {
+        return null
+    }
 }
 
 export interface OperatorNode {
