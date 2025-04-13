@@ -18,6 +18,10 @@ export class NumberLiteral extends Evaluable {
     override toPrint(): string {
         return this.content.toString()
     }
+
+    override validate() {
+        return null
+    }
 }
 
 export class StringLiteral extends Evaluable {
@@ -34,6 +38,10 @@ export class StringLiteral extends Evaluable {
     override toPrint(): string {
         return this.content
     }
+
+    override validate() {
+        return null
+    }
 }
 
 export class BooleanLiteral extends Evaluable {
@@ -49,5 +57,9 @@ export class BooleanLiteral extends Evaluable {
 
     override toPrint(): string {
         return this.content ? '참' : '거짓'
+    }
+
+    override validate() {
+        return null
     }
 }
