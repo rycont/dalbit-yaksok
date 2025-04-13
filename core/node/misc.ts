@@ -9,6 +9,10 @@ export class EOL extends Node {
     constructor(public override tokens: Token[]) {
         super()
     }
+
+    override validate() {
+        return null
+    }
 }
 
 export class Indent extends Node {
@@ -16,6 +20,10 @@ export class Indent extends Node {
 
     constructor(public size: number, public override tokens: Token[]) {
         super()
+    }
+
+    override validate() {
+        return null
     }
 }
 
@@ -31,5 +39,9 @@ export class Print extends Executable {
         const evaluated = await this.value.execute(scope)
 
         printFunction(evaluated.toPrint())
+    }
+
+    override validate(scope: Scope) {
+        return this.value.validate(scope)
     }
 }
