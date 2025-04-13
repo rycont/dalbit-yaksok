@@ -19,4 +19,12 @@ export class ReturnStatement extends Executable {
         const returnValue = await this.value.execute(scope)
         throw new ReturnSignal(this.tokens, returnValue)
     }
+
+    override validate(scope: Scope) {
+        if (this.value) {
+            return this.value.validate(scope)
+        }
+
+        return null
+    }
 }
