@@ -5,6 +5,7 @@ import type { Token } from '../prepare/tokenize/token.ts'
 import type { ValueType } from '../value/base.ts'
 import type { Scope } from '../executer/scope.ts'
 import { YaksokError } from '../error/common.ts'
+import { NotExecutableNodeError } from '../error/unknown-node.ts'
 
 export class Node {
     [key: string]: unknown
@@ -150,5 +151,14 @@ export class Expression extends Node {
 
     override toPrint(): string {
         return this.value
+    }
+
+    override validate(): YaksokError[] {
+        const error = new NotExecutableNodeError({
+            tokens: this.tokens,
+            resource: { node: this },
+        })
+
+        return [error]
     }
 }

@@ -1,6 +1,6 @@
 import { Node } from '../node/base.ts'
 import { Token } from '../prepare/tokenize/token.ts'
-import { blue, bold, YaksokError } from './common.ts'
+import { blue, bold, dim, YaksokError } from './common.ts'
 
 export class UnknownNodeError extends YaksokError {
     constructor(props: { tokens: Token[] }) {
@@ -20,12 +20,13 @@ export class NotExecutableNodeError extends YaksokError {
         if (props.resource.message) {
             this.message = props.resource.message
         } else {
-            this.message = `${bold(
-                blue(
-                    (props.resource.node.constructor as typeof Node)
-                        .friendlyName,
-                ),
-            )}는 실행할 수 없는 코드에요.`
+            const tokenText = props.tokens.map((t) => t.value).join('')
+            const nodeName = (props.resource.node.constructor as typeof Node)
+                .friendlyName
+
+            this.message = `${blue(bold('"' + tokenText + '"'))}${dim(
+                `(${nodeName})`,
+            )}은 실행할 수 없는 코드에요.`
         }
     }
 }

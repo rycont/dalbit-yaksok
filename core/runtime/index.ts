@@ -57,7 +57,7 @@ export class Runtime {
         const validationErrors = new Map(
             Object.entries(this.files).map(([fileName, codeFile]) => [
                 fileName,
-                codeFile.validate(),
+                codeFile.validate().errors,
             ]),
         )
 

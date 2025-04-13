@@ -90,6 +90,12 @@ export class MentionScope extends Evaluable {
     }
 
     override validate(scope: Scope) {
-        return this.child.validate(scope)
+        const moduleCodeFile = scope.codeFile!.runtime!.getCodeFile(
+            this.fileName,
+        )
+
+        const { errors, validatingScope } = moduleCodeFile.validate()
+
+        return [...errors, ...(this.child.validate(validatingScope) || [])]
     }
 }
