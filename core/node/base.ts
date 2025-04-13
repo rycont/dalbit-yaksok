@@ -83,6 +83,32 @@ export class Identifier extends Evaluable {
             throw e
         }
     }
+
+    override validate(scope: Scope): YaksokError[] | null {
+        try {
+            scope.getVariable(this.value)
+            return null
+        } catch (variableError) {
+            if (!(variableError instanceof YaksokError)) {
+                throw variableError
+            }
+
+            if (!(variableError instanceof NotDefinedIdentifierError)) {
+                return [variableError]
+            }
+
+            try {
+                scope.getFunctionObject(this.value)
+                return null
+            } catch (functionError) {
+                if (!(functionError instanceof YaksokError)) {
+                    throw functionError
+                }
+            }
+
+            return [variableError]
+        }
+    }
 }
 
 export class Operator extends Node implements OperatorNode {
