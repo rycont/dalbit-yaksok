@@ -10,6 +10,7 @@ import type { Token } from '../prepare/tokenize/token.ts'
 import type { Rule } from '../prepare/parse/type.ts'
 import type { Runtime } from '../runtime/index.ts'
 import type { Block } from '../node/block.ts'
+import { Scope } from '../mod.ts'
 
 export class CodeFile {
     private tokenized: Token[] | null = null
@@ -100,7 +101,11 @@ export class CodeFile {
     }
 
     public async validate(): Promise<void> {
-        await this.ast.validate()
+        const validatingScope = new Scope({
+            codeFile: this,
+        })
+
+        this.ast.validate(validatingScope)
     }
 
     public async run(): Promise<ExecuteResult<Block>> {

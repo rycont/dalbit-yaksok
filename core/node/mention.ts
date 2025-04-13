@@ -1,4 +1,4 @@
-import { Evaluable, Executable, Identifier } from './base.ts'
+import { Evaluable, Identifier, Node } from './base.ts'
 import { ErrorInModuleError } from '../error/index.ts'
 import { YaksokError } from '../error/common.ts'
 import { FunctionInvoke } from './function.ts'
@@ -7,8 +7,9 @@ import { ValueType } from '../value/base.ts'
 
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { Scope } from '../executer/scope.ts'
+import { IncompleteMentionError } from '../error/unknown-node.ts'
 
-export class Mention extends Executable {
+export class Mention extends Node {
     static override friendlyName = '불러올 파일 이름'
 
     constructor(public value: string, public override tokens: Token[]) {
@@ -17,6 +18,19 @@ export class Mention extends Executable {
 
     override toPrint(): string {
         return '@' + this.value
+    }
+
+    override validate(scope: Scope) {
+        const error = new IncompleteMentionError({
+            tokens: this.tokens,
+            resource: {
+                node: this,
+            },
+        })
+
+        error.codeFile = scope.codeFile
+
+        return [error]
     }
 }
 
@@ -73,5 +87,9 @@ export class MentionScope extends Evaluable {
 
     override toPrint(): string {
         return '@' + this.fileName + ' ' + this.child.toPrint()
+    }
+
+    override validate(scope: Scope) {
+        return this.child.validate(scope)
     }
 }

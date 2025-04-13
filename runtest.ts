@@ -2,6 +2,7 @@ import { yaksok } from '@dalbit-yaksok/core'
 
 await yaksok({
     main: `
+@직방
 @직방 보여주기
 `,
     직방: `
