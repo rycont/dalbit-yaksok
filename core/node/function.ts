@@ -7,6 +7,7 @@ import { Scope } from '../executer/scope.ts'
 import type { FunctionInvokingParams } from '../constant/type.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { Block } from './block.ts'
+import { YaksokError } from '../error/common.ts'
 
 export class DeclareFunction extends Executable {
     static override friendlyName = '새 약속 만들기'
@@ -29,6 +30,10 @@ export class DeclareFunction extends Executable {
         scope.addFunctionObject(functionObject)
 
         return Promise.resolve()
+    }
+
+    override validate(scope: Scope) {
+        return this.body.validate(scope)
     }
 }
 
@@ -66,6 +71,19 @@ export class FunctionInvoke extends Evaluable {
 
     get value(): string {
         return this.name
+    }
+
+    override validate(scope: Scope) {
+        try {
+            scope.getFunctionObject(this.name)
+            return null
+        } catch (e) {
+            if (e instanceof YaksokError) {
+                e.tokens = this.tokens
+            }
+
+            throw e
+        }
     }
 }
 
