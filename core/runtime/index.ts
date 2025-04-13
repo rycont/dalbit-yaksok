@@ -125,7 +125,7 @@ export async function yaksok(
     }
 
     try {
-        await runtime.validate()
+        runtime.validate()
         await runtime.run()
 
         return {
@@ -134,6 +134,19 @@ export async function yaksok(
             codeFiles: runtime.files,
         }
     } catch (e) {
+        if (e instanceof ErrorGroups) {
+            const errors = e.errors
+
+            for (const [fileName, errorList] of errors) {
+                const codeFile = runtime.getCodeFile(fileName)
+
+                for (const error of errorList) {
+                    error.codeFile = codeFile
+                    runtime.stderr(renderErrorString(error))
+                }
+            }
+        }
+
         if (e instanceof YaksokError) {
             runtime.stderr(renderErrorString(e))
         }
