@@ -13,6 +13,7 @@ import type { ExecuteResult } from '../executer/index.ts'
 import type { Block } from '../node/block.ts'
 import { PubSub } from '../util/pubsub.ts'
 import { Scope } from '../executer/scope.ts'
+import { ErrorGroups } from '../error/validation.ts'
 
 export class Runtime {
     public stdout: RuntimeConfig['stdout']
@@ -52,10 +53,21 @@ export class Runtime {
         }
     }
 
-    async validate(): Promise<void> {
-        for (const codeFile of Object.values(this.files)) {
-            await codeFile.validate()
+    validate() {
+        const validationErrors = new Map(
+            Object.entries(this.files).map(([fileName, codeFile]) => [
+                fileName,
+                codeFile.validate(),
+            ]),
+        )
+
+        const hasError = [...validationErrors.values()].flat().length > 0
+
+        if (!hasError) {
+            return
         }
+
+        throw new ErrorGroups(validationErrors)
     }
 
     async run(fileName = this.entryPoint): Promise<ExecuteResult<Block>> {

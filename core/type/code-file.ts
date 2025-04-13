@@ -100,12 +100,12 @@ export class CodeFile {
         this.exportedRulesCache = parseResult.exportedRules
     }
 
-    public async validate(): Promise<void> {
+    public validate(): YaksokError[] {
         const validatingScope = new Scope({
             codeFile: this,
         })
 
-        this.ast.validate(validatingScope)
+        return this.ast.validate(validatingScope)
     }
 
     public async run(): Promise<ExecuteResult<Block>> {
