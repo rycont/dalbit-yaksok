@@ -110,7 +110,7 @@ export class FunctionInvoke extends Evaluable {
             errors.push(...argsError)
         }
 
-        return null
+        return errors.length > 0 ? errors : null
     }
 }
 
