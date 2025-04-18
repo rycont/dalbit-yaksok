@@ -139,7 +139,7 @@ function extractParamsFromTokens(allTokens: Token[]): string[] {
 
     const params: string[] = []
 
-    for (let i = 0; i < headers.length; i++) {
+    for (let i = 0; i < headers.length - 1; i++) {
         if (headers[i].type === TOKEN_TYPE.OPENING_PARENTHESIS) {
             params.push(headers[i + 1].value)
         }
