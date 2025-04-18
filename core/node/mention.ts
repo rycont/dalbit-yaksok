@@ -20,7 +20,7 @@ export class Mention extends Node {
         return '@' + this.value
     }
 
-    override validate(scope: Scope) {
+    override validate(scope: Scope): YaksokError[] {
         const error = new IncompleteMentionError({
             tokens: this.tokens,
             resource: {
@@ -89,7 +89,7 @@ export class MentionScope extends Evaluable {
         return '@' + this.fileName + ' ' + this.child.toPrint()
     }
 
-    override validate(scope: Scope) {
+    override validate(scope: Scope): YaksokError[] {
         const moduleCodeFile = scope.codeFile!.runtime!.getCodeFile(
             this.fileName,
         )

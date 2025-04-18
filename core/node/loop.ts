@@ -41,7 +41,7 @@ export class Break extends Executable {
         throw new BreakSignal(this.tokens)
     }
 
-    override validate() {
+    override validate(): YaksokError[] {
         return []
     }
 }

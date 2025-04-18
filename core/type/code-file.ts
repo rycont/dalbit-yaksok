@@ -5,12 +5,12 @@ import { executer, type ExecuteResult } from '../executer/index.ts'
 import { tokenize } from '../prepare/tokenize/index.ts'
 import { parse } from '../prepare/parse/index.ts'
 import { YaksokError } from '../error/common.ts'
+import { Scope } from '../executer/scope.ts'
 
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { Rule } from '../prepare/parse/type.ts'
 import type { Runtime } from '../runtime/index.ts'
 import type { Block } from '../node/block.ts'
-import { Scope } from '../mod.ts'
 
 export class CodeFile {
     private tokenized: Token[] | null = null
@@ -100,7 +100,7 @@ export class CodeFile {
         this.exportedRulesCache = parseResult.exportedRules
     }
 
-    public validate() {
+    public validate(): { errors: YaksokError[]; validatingScope: Scope } {
         const validatingScope = new Scope({
             codeFile: this,
         })

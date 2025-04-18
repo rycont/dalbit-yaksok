@@ -32,7 +32,7 @@ export class DeclareFunction extends Executable {
         return Promise.resolve()
     }
 
-    override validate(scope: Scope) {
+    override validate(scope: Scope): YaksokError[] {
         const paramNames = extractParamsFromTokens(this.tokens)
 
         const params: Record<string, ValueType> = Object.fromEntries(
@@ -88,7 +88,7 @@ export class FunctionInvoke extends Evaluable {
         return this.name
     }
 
-    override validate(scope: Scope) {
+    override validate(scope: Scope): YaksokError[] {
         const errors: YaksokError[] = []
 
         try {

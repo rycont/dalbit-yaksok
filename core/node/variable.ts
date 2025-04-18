@@ -1,4 +1,5 @@
 import { Evaluable } from './base.ts'
+import { YaksokError } from '../error/common.ts'
 
 import { CannotUseReservedWordForIdentifierNameError } from '../error/index.ts'
 import { RESERVED_WORDS } from '../constant/reserved-words.ts'
@@ -36,7 +37,7 @@ export class SetVariable extends Evaluable {
         })
     }
 
-    override validate(scope: Scope) {
+    override validate(scope: Scope): YaksokError[] {
         scope.setVariable(this.name, new NumberValue(0))
         return []
     }

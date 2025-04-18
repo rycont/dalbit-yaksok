@@ -19,7 +19,7 @@ export class Sequence extends Node {
         super()
     }
 
-    override validate() {
+    override validate(): YaksokError[] {
         return [
             new NotExecutableNodeError({
                 tokens: this.tokens,
@@ -47,7 +47,7 @@ export class ListLiteral extends Evaluable {
         return value
     }
 
-    override validate(scope: Scope) {
+    override validate(scope: Scope): YaksokError[] {
         const errors = this.items
             .flatMap((item) => item.validate(scope))
             .filter((error): error is YaksokError => !!error)
@@ -133,7 +133,7 @@ export class IndexFetch extends Evaluable {
         list.setItem(index.value, value)
     }
 
-    override validate(scope: Scope) {
+    override validate(scope: Scope): YaksokError[] {
         const errors = [
             ...(this.list.validate(scope) || []),
             ...(this.index.validate(scope) || []),
@@ -161,7 +161,7 @@ export class SetToIndex extends Executable {
         await this.target.setValue(scope, value)
     }
 
-    override validate(scope: Scope) {
+    override validate(scope: Scope): YaksokError[] {
         const errors = [
             ...(this.target.validate(scope) || []),
             ...(this.value.validate(scope) || []),

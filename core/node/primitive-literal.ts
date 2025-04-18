@@ -1,5 +1,6 @@
 import { BooleanValue, NumberValue, StringValue } from '../value/primitive.ts'
 import { Evaluable } from './base.ts'
+import { YaksokError } from '../error/common.ts'
 
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { Scope } from '../executer/scope.ts'
@@ -19,7 +20,7 @@ export class NumberLiteral extends Evaluable {
         return this.content.toString()
     }
 
-    override validate() {
+    override validate(): YaksokError[] {
         return []
     }
 }
@@ -39,7 +40,7 @@ export class StringLiteral extends Evaluable {
         return this.content
     }
 
-    override validate() {
+    override validate(): YaksokError[] {
         return []
     }
 }
@@ -59,7 +60,7 @@ export class BooleanLiteral extends Evaluable {
         return this.content ? '참' : '거짓'
     }
 
-    override validate() {
+    override validate(): YaksokError[] {
         return []
     }
 }

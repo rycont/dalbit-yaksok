@@ -66,7 +66,7 @@ export class ValueWithParenthesis extends Evaluable {
         return '(' + this.value.toPrint() + ')'
     }
 
-    override validate(scope: Scope) {
+    override validate(scope: Scope): YaksokError[] {
         return this.value.validate(scope)
     }
 }
@@ -191,7 +191,7 @@ export class Formula extends Evaluable {
         return this.terms.map((term) => term.toPrint()).join(' ')
     }
 
-    override validate(scope: Scope) {
+    override validate(scope: Scope): YaksokError[] {
         const errors = this.terms
             .filter((term) => term instanceof Node)
             .map((term) => term.validate(scope))
@@ -220,7 +220,7 @@ export class NotExpression extends Evaluable {
         return '!' + this.value.toPrint()
     }
 
-    override validate(scope: Scope) {
+    override validate(scope: Scope): YaksokError[] {
         const errors = this.value.validate(scope)
         return errors
     }

@@ -1,4 +1,5 @@
 import { Node, Executable, type Evaluable } from './base.ts'
+import { YaksokError } from '../error/common.ts'
 
 import type { Scope } from '../executer/scope.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
@@ -10,7 +11,7 @@ export class EOL extends Node {
         super()
     }
 
-    override validate() {
+    override validate(): YaksokError[] {
         return []
     }
 }
@@ -22,7 +23,7 @@ export class Indent extends Node {
         super()
     }
 
-    override validate() {
+    override validate(): YaksokError[] {
         return []
     }
 }
@@ -41,7 +42,7 @@ export class Print extends Executable {
         printFunction(evaluated.toPrint())
     }
 
-    override validate(scope: Scope) {
+    override validate(scope: Scope): YaksokError[] {
         return this.value.validate(scope)
     }
 }

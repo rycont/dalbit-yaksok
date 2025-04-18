@@ -1,6 +1,7 @@
-import { Node } from '../node/base.ts'
-import { Token } from '../prepare/tokenize/token.ts'
 import { blue, bold, dim, YaksokError } from './common.ts'
+import { Token } from '../prepare/tokenize/token.ts'
+
+import type { Node } from '../node/base.ts'
 
 export class UnknownNodeError extends YaksokError {
     constructor(props: { tokens: Token[] }) {

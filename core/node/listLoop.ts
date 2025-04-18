@@ -1,6 +1,7 @@
 import { NotEnumerableValueForListLoopError } from '../error/index.ts'
 import { type Evaluable, Executable } from './base.ts'
 import { BreakSignal } from '../executer/signals.ts'
+import { YaksokError } from '../error/common.ts'
 
 import { ListValue } from '../value/list.ts'
 import { Scope } from '../executer/scope.ts'
@@ -52,7 +53,7 @@ export class ListLoop extends Executable {
         })
     }
 
-    override validate(scope: Scope) {
+    override validate(scope: Scope): YaksokError[] {
         const listScope = new Scope({
             parent: scope,
             initialVariable: {

@@ -129,7 +129,7 @@ export class Operator extends Node implements OperatorNode {
         throw new Error(`${this.constructor.name} has no call method`)
     }
 
-    override validate() {
+    override validate(): YaksokError[] {
         return []
     }
 }

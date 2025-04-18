@@ -1,5 +1,6 @@
 import { Executable, type Evaluable } from './base.ts'
 import type { Block } from './block.ts'
+import { YaksokError } from '../error/common.ts'
 
 import { isTruthy } from '../executer/internal/isTruthy.ts'
 
@@ -35,7 +36,7 @@ export class IfStatement extends Executable {
         return !condition || isTruthy(await condition.execute(scope))
     }
 
-    override validate(scope: Scope) {
+    override validate(scope: Scope): YaksokError[] {
         const errors = this.cases.flatMap((caseItem) => {
             const { condition, body } = caseItem
 
