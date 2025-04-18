@@ -13,7 +13,7 @@ export class Node {
 
     static friendlyName = '노드'
 
-    validate(_scope: Scope): YaksokError[] | null {
+    validate(_scope: Scope): YaksokError[] {
         throw new Error(`${this.constructor.name} has no validate method`)
     }
 
@@ -85,10 +85,10 @@ export class Identifier extends Evaluable {
         }
     }
 
-    override validate(scope: Scope): YaksokError[] | null {
+    override validate(scope: Scope): YaksokError[] {
         try {
             scope.getVariable(this.value)
-            return null
+            return []
         } catch (variableError) {
             if (!(variableError instanceof YaksokError)) {
                 throw variableError
@@ -101,7 +101,7 @@ export class Identifier extends Evaluable {
 
             try {
                 scope.getFunctionObject(this.value)
-                return null
+                return []
             } catch (functionError) {
                 if (!(functionError instanceof YaksokError)) {
                     throw functionError
@@ -130,7 +130,7 @@ export class Operator extends Node implements OperatorNode {
     }
 
     override validate() {
-        return null
+        return []
     }
 }
 

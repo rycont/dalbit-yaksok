@@ -25,7 +25,7 @@ export class Loop extends Executable {
         }
     }
 
-    override validate(scope: Scope): YaksokError[] | null {
+    override validate(scope: Scope): YaksokError[] {
         return this.body.validate(scope)
     }
 }
@@ -41,7 +41,7 @@ export class Break extends Executable {
         throw new BreakSignal(this.tokens)
     }
 
-    override validate(): null {
-        return null
+    override validate() {
+        return []
     }
 }

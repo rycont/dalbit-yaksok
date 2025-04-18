@@ -20,7 +20,7 @@ export class NumberLiteral extends Evaluable {
     }
 
     override validate() {
-        return null
+        return []
     }
 }
 
@@ -40,7 +40,7 @@ export class StringLiteral extends Evaluable {
     }
 
     override validate() {
-        return null
+        return []
     }
 }
 
@@ -60,6 +60,6 @@ export class BooleanLiteral extends Evaluable {
     }
 
     override validate() {
-        return null
+        return []
     }
 }

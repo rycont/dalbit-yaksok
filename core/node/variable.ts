@@ -38,6 +38,6 @@ export class SetVariable extends Evaluable {
 
     override validate(scope: Scope) {
         scope.setVariable(this.name, new NumberValue(0))
-        return null
+        return []
     }
 }

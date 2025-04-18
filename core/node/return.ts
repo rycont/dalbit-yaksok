@@ -25,6 +25,6 @@ export class ReturnStatement extends Executable {
             return this.value.validate(scope)
         }
 
-        return null
+        return []
     }
 }

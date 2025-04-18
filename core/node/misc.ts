@@ -11,7 +11,7 @@ export class EOL extends Node {
     }
 
     override validate() {
-        return null
+        return []
     }
 }
 
@@ -23,7 +23,7 @@ export class Indent extends Node {
     }
 
     override validate() {
-        return null
+        return []
     }
 }
 

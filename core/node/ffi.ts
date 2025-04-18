@@ -51,6 +51,6 @@ export class DeclareFFI extends Executable {
             new FFIObject(this.name, 'VALIDATION', 'VALIDATION'),
         )
 
-        return null
+        return []
     }
 }

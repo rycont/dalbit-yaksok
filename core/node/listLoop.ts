@@ -63,6 +63,6 @@ export class ListLoop extends Executable {
         const listErrors = this.list.validate(scope)
         const bodyErrors = this.body.validate(listScope)
 
-        return [...(listErrors || []), ...(bodyErrors || [])]
+        return [...listErrors, ...bodyErrors]
     }
 }
