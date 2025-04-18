@@ -1,5 +1,6 @@
 import { ReturnSignal } from '../executer/signals.ts'
 import { Evaluable, Executable } from './base.ts'
+import { YaksokError } from '../error/common.ts'
 
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { Scope } from '../executer/scope.ts'
@@ -18,5 +19,13 @@ export class ReturnStatement extends Executable {
 
         const returnValue = await this.value.execute(scope)
         throw new ReturnSignal(this.tokens, returnValue)
+    }
+
+    override validate(scope: Scope): YaksokError[] {
+        if (this.value) {
+            return this.value.validate(scope)
+        }
+
+        return []
     }
 }

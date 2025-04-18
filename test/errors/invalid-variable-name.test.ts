@@ -3,6 +3,8 @@ import { yaksok } from '@dalbit-yaksok/core'
 import { assertIsError } from 'assert'
 import { NotDefinedIdentifierError } from '../../core/error/variable.ts'
 import { assertEquals } from 'assert/equals'
+import { ErrorGroups } from '../../core/error/validation.ts'
+import { NotExecutableNodeError } from '../../core/error/unknown-node.ts'
 
 Deno.test('Variable name is not a valid identifier', async () => {
     try {
@@ -11,7 +13,18 @@ Deno.test('Variable name is not a valid identifier', async () => {
 1이름 보여주기`)
         unreachable()
     } catch (e) {
-        assertIsError(e, NotDefinedIdentifierError)
-        assertEquals(e.resource?.name, '이름')
+        assertIsError(e, ErrorGroups)
+
+        const errorTypes = [...e.errors.values()]
+            .flat()
+            .map((e) => e.constructor)
+
+        assertEquals(errorTypes, [
+            NotDefinedIdentifierError,
+            NotExecutableNodeError,
+            NotExecutableNodeError,
+            NotDefinedIdentifierError,
+            NotDefinedIdentifierError,
+        ])
     }
 })

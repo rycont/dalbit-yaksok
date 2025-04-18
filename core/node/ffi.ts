@@ -1,7 +1,8 @@
 import { FFIObject } from '../value/ffi.ts'
 import { Executable, Node } from './base.ts'
+import { YaksokError } from '../error/common.ts'
 
-import type { Scope } from '../executer/scope.ts'
+import { Scope } from '../executer/scope.ts'
 import type { Position } from '../type/position.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 
@@ -44,5 +45,13 @@ export class DeclareFFI extends Executable {
     toFFIObject(scope: Scope): FFIObject {
         const codeFile = scope.codeFile
         return new FFIObject(this.name, this.body, this.runtime, codeFile)
+    }
+
+    override validate(scope: Scope): YaksokError[] {
+        scope.addFunctionObject(
+            new FFIObject(this.name, 'VALIDATION', 'VALIDATION'),
+        )
+
+        return []
     }
 }

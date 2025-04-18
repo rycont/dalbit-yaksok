@@ -5,8 +5,9 @@ import { ValueType } from '../value/base.ts'
 import { Scope } from '../executer/scope.ts'
 
 import type { FunctionInvokingParams } from '../constant/type.ts'
-import type { Token } from '../prepare/tokenize/token.ts'
-import type { Block } from './block.ts'
+import { TOKEN_TYPE, type Token } from '../prepare/tokenize/token.ts'
+import { Block } from './block.ts'
+import { YaksokError } from '../error/common.ts'
 
 export class DeclareFunction extends Executable {
     static override friendlyName = '새 약속 만들기'
@@ -29,6 +30,25 @@ export class DeclareFunction extends Executable {
         scope.addFunctionObject(functionObject)
 
         return Promise.resolve()
+    }
+
+    override validate(scope: Scope): YaksokError[] {
+        const paramNames = extractParamsFromTokens(this.tokens)
+
+        const params: Record<string, ValueType> = Object.fromEntries(
+            paramNames.map((name) => [name, new ValueType()]),
+        )
+
+        const functionScope = new Scope({
+            parent: scope,
+            initialVariable: params,
+        })
+
+        scope.addFunctionObject(
+            new FunctionObject(this.name, this.body, functionScope),
+        )
+
+        return this.body.validate(functionScope)
     }
 }
 
@@ -67,6 +87,31 @@ export class FunctionInvoke extends Evaluable {
     get value(): string {
         return this.name
     }
+
+    override validate(scope: Scope): YaksokError[] {
+        const errors: YaksokError[] = []
+
+        try {
+            scope.getFunctionObject(this.name)
+        } catch (error) {
+            if (error instanceof YaksokError) {
+                errors.push(error)
+            } else {
+                throw error
+            }
+        }
+
+        const argsError = Object.values(this.params)
+            .map((param) => param.validate(scope))
+            .flat()
+            .filter((error): error is YaksokError => !!error)
+
+        if (argsError.length > 0) {
+            errors.push(...argsError)
+        }
+
+        return errors
+    }
 }
 
 export async function evaluateParams(
@@ -83,4 +128,22 @@ export async function evaluateParams(
     }
 
     return args
+}
+
+function extractParamsFromTokens(allTokens: Token[]): string[] {
+    const linebreakIndex = allTokens.findIndex(
+        (token) => token.type === TOKEN_TYPE.NEW_LINE,
+    )
+
+    const headers = allTokens.slice(0, linebreakIndex)
+
+    const params: string[] = []
+
+    for (let i = 0; i < headers.length - 1; i++) {
+        if (headers[i].type === TOKEN_TYPE.OPENING_PARENTHESIS) {
+            params.push(headers[i + 1].value)
+        }
+    }
+
+    return params
 }
