@@ -13,6 +13,7 @@ import type { ExecuteResult } from '../executer/index.ts'
 import type { Block } from '../node/block.ts'
 import { PubSub } from '../util/pubsub.ts'
 import { Scope } from '../executer/scope.ts'
+import { ErrorGroups } from '../error/validation.ts'
 
 export class Runtime {
     public stdout: RuntimeConfig['stdout']
@@ -50,6 +51,23 @@ export class Runtime {
 
             this.files[fileName] = codeFile
         }
+    }
+
+    validate() {
+        const validationErrors = new Map(
+            Object.entries(this.files).map(([fileName, codeFile]) => [
+                fileName,
+                codeFile.validate().errors,
+            ]),
+        )
+
+        const hasError = [...validationErrors.values()].flat().length > 0
+
+        if (!hasError) {
+            return
+        }
+
+        throw new ErrorGroups(validationErrors)
     }
 
     async run(fileName = this.entryPoint): Promise<ExecuteResult<Block>> {
@@ -107,6 +125,7 @@ export async function yaksok(
     }
 
     try {
+        runtime.validate()
         await runtime.run()
 
         return {
@@ -115,6 +134,19 @@ export async function yaksok(
             codeFiles: runtime.files,
         }
     } catch (e) {
+        if (e instanceof ErrorGroups) {
+            const errors = e.errors
+
+            for (const [fileName, errorList] of errors) {
+                const codeFile = runtime.getCodeFile(fileName)
+
+                for (const error of errorList) {
+                    error.codeFile = codeFile
+                    runtime.stderr(renderErrorString(error))
+                }
+            }
+        }
+
         if (e instanceof YaksokError) {
             runtime.stderr(renderErrorString(e))
         }

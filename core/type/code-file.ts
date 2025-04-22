@@ -5,6 +5,7 @@ import { executer, type ExecuteResult } from '../executer/index.ts'
 import { tokenize } from '../prepare/tokenize/index.ts'
 import { parse } from '../prepare/parse/index.ts'
 import { YaksokError } from '../error/common.ts'
+import { Scope } from '../executer/scope.ts'
 
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { Rule } from '../prepare/parse/type.ts'
@@ -97,6 +98,19 @@ export class CodeFile {
         const parseResult = parse(this)
         this.parsed = parseResult.ast
         this.exportedRulesCache = parseResult.exportedRules
+    }
+
+    public validate(): { errors: YaksokError[]; validatingScope: Scope } {
+        const validatingScope = new Scope({
+            codeFile: this,
+        })
+
+        const errors = this.ast.validate(validatingScope)
+
+        return {
+            errors,
+            validatingScope,
+        }
     }
 
     public async run(): Promise<ExecuteResult<Block>> {

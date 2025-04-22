@@ -4,12 +4,18 @@ import { NotDefinedIdentifierError } from '../error/variable.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { ValueType } from '../value/base.ts'
 import type { Scope } from '../executer/scope.ts'
+import { YaksokError } from '../error/common.ts'
+import { NotExecutableNodeError } from '../error/unknown-node.ts'
 
 export class Node {
     [key: string]: unknown
     tokens: Token[] = []
 
     static friendlyName = '노드'
+
+    validate(_scope: Scope): YaksokError[] {
+        throw new Error(`${this.constructor.name} has no validate method`)
+    }
 
     toJSON(): object {
         return {
@@ -78,6 +84,34 @@ export class Identifier extends Evaluable {
             throw e
         }
     }
+
+    override validate(scope: Scope): YaksokError[] {
+        try {
+            scope.getVariable(this.value)
+            return []
+        } catch (variableError) {
+            if (!(variableError instanceof YaksokError)) {
+                throw variableError
+            }
+
+            if (!(variableError instanceof NotDefinedIdentifierError)) {
+                variableError.tokens = this.tokens
+                return [variableError]
+            }
+
+            try {
+                scope.getFunctionObject(this.value)
+                return []
+            } catch (functionError) {
+                if (!(functionError instanceof YaksokError)) {
+                    throw functionError
+                }
+            }
+
+            variableError.tokens = this.tokens
+            return [variableError]
+        }
+    }
 }
 
 export class Operator extends Node implements OperatorNode {
@@ -93,6 +127,10 @@ export class Operator extends Node implements OperatorNode {
 
     call(..._operands: ValueType[]): ValueType {
         throw new Error(`${this.constructor.name} has no call method`)
+    }
+
+    override validate(): YaksokError[] {
+        return []
     }
 }
 
@@ -113,5 +151,14 @@ export class Expression extends Node {
 
     override toPrint(): string {
         return this.value
+    }
+
+    override validate(): YaksokError[] {
+        const error = new NotExecutableNodeError({
+            tokens: this.tokens,
+            resource: { node: this },
+        })
+
+        return [error]
     }
 }

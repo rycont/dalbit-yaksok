@@ -1,11 +1,12 @@
-import { CannotUseReservedWordForIdentifierNameError } from '../error/index.ts'
-
 import { Evaluable } from './base.ts'
+import { YaksokError } from '../error/common.ts'
 
+import { CannotUseReservedWordForIdentifierNameError } from '../error/index.ts'
+import { RESERVED_WORDS } from '../constant/reserved-words.ts'
+import type { Token } from '../prepare/tokenize/token.ts'
+import { NumberValue } from '../value/primitive.ts'
 import type { ValueType } from '../value/base.ts'
 import type { Scope } from '../executer/scope.ts'
-import type { Token } from '../prepare/tokenize/token.ts'
-import { RESERVED_WORDS } from '../constant/reserved-words.ts'
 
 export class SetVariable extends Evaluable {
     static override friendlyName = '변수 정하기'
@@ -34,5 +35,10 @@ export class SetVariable extends Evaluable {
         throw new CannotUseReservedWordForIdentifierNameError({
             tokens: this.tokens,
         })
+    }
+
+    override validate(scope: Scope): YaksokError[] {
+        scope.setVariable(this.name, new NumberValue(0))
+        return []
     }
 }

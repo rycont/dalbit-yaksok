@@ -1,6 +1,7 @@
 import { CannotParseError } from '../error/index.ts'
 import { Executable, type Node } from './base.ts'
 import { EOL } from './misc.ts'
+import { YaksokError } from '../error/common.ts'
 
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { Scope } from '../executer/scope.ts'
@@ -41,6 +42,14 @@ export class Block extends Executable {
                 })
             }
         }
+    }
+
+    override validate(scope: Scope): YaksokError[] {
+        const childErrors = this.children
+            .flatMap((child) => child.validate(scope))
+            .filter((error) => error !== null)
+
+        return childErrors
     }
 
     reportRunningCode(child: Executable, scope: Scope) {

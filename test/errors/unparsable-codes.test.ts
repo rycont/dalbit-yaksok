@@ -1,13 +1,16 @@
 import { assertIsError } from '@std/assert'
 import { yaksok } from '../../core/mod.ts'
-import { CannotParseError } from '../../core/error/index.ts'
 import { UnexpectedCharError } from '../../core/error/prepare.ts'
+import { ErrorGroups } from '../../core/error/validation.ts'
+import { NotExecutableNodeError } from '../../core/error/unknown-node.ts'
 
 Deno.test('Unparsable codes', async () => {
     try {
         await yaksok(`]]`)
     } catch (e) {
-        assertIsError(e, CannotParseError)
+        assertIsError(e, ErrorGroups)
+        assertIsError(e.errors.get('main')![0], NotExecutableNodeError)
+        assertIsError(e.errors.get('main')![1], NotExecutableNodeError)
     }
 })
 

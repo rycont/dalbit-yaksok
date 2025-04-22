@@ -1,4 +1,4 @@
-import type { Evaluable, Operator } from '../node/base.ts'
+import type { Evaluable, Expression, Operator } from '../node/base.ts'
 import { Token, TOKEN_TYPE_TO_TEXT } from '../prepare/tokenize/token.ts'
 import type { CodeFile } from '../type/code-file.ts'
 import type { Position } from '../type/position.ts'
@@ -59,6 +59,12 @@ export function operatorToText(operator: Operator) {
 export function tokenToText(token: Token) {
     const type = TOKEN_TYPE_TO_TEXT[token.type]
     return `${bold(`'${token.value}'`)}${dim(`(${type})`)}`
+}
+
+export function expressionToText(node: Expression) {
+    return `${bold(blue(node.toPrint()))}${dim(
+        `(${(node.constructor as typeof Expression).friendlyName})`,
+    )}`
 }
 
 export function bold(text: string | number) {

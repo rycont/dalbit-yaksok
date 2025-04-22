@@ -76,7 +76,7 @@ function getFunctionEndingIndex(tokens: Token[], startingIndex: number) {
 
         throw new UnexpectedEndOfCodeError({
             resource: {
-                expected: '줄넘김',
+                expected: '줄넘김 이후에 함수의 코드',
             },
             position: lastToken.position,
         })
