@@ -61,3 +61,35 @@ KTX이음 = "KTX-이음"
 `,
     )
 })
+
+Deno.test('Mentioning with variable in parameter', async () => {
+    let output = ''
+
+    await yaksok(
+        {
+            하랑봇: `
+약속, (내용) 말하기
+    내용 + "? 어쩌라고." 보여주기
+
+날씨 = "비"
+    `,
+            main: `
+할말 = "뭐라고"
+@하랑봇 할말 말하기
+@하랑봇 (@하랑봇 날씨) 말하기
+    `,
+        },
+        {
+            stdout(text) {
+                output += text + '\n'
+            },
+        },
+    )
+
+    assertEquals(
+        output,
+        `뭐라고? 어쩌라고.
+비? 어쩌라고.
+`,
+    )
+})
