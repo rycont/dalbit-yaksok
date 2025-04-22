@@ -122,8 +122,19 @@ export class MentionScope extends Evaluable {
             throw error
         }
 
-        const childErrors = this.child.validate(validatingScope)
+        let childErrors: YaksokError[] = []
 
-        return [...moduleErrors, ...(childErrors || [])]
+        if (this.child instanceof FunctionInvoke) {
+            for (const paramName in this.child.params) {
+                const param = this.child.params[paramName]
+                childErrors = childErrors.concat(param.validate(scope))
+            }
+        } else {
+            childErrors = childErrors.concat(
+                this.child.validate(validatingScope),
+            )
+        }
+
+        return [...moduleErrors, ...childErrors]
     }
 }
