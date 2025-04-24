@@ -318,28 +318,6 @@ export const BASIC_RULES: Rule[][] = [
                 return new NotExpression(evaluable, tokens)
             },
         },
-        {
-            pattern: [
-                {
-                    type: Mention,
-                },
-                {
-                    type: Identifier,
-                },
-            ],
-            factory(nodes, tokens) {
-                const mention = nodes[0] as Mention
-                const identifier = nodes[1] as Identifier
-
-                const mentionScope = new MentionScope(
-                    mention.value,
-                    identifier,
-                    tokens,
-                )
-
-                return mentionScope
-            },
-        },
     ],
 ]
 
@@ -702,5 +680,21 @@ export const ADVANCED_RULES: Rule[] = [
             return new ListLoop(list, name, body, tokens)
         },
         flags: [RULE_FLAGS.IS_STATEMENT],
+    },
+    {
+        pattern: [
+            {
+                type: Mention,
+            },
+            {
+                type: Identifier,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const mention = nodes[0] as Mention
+            const name = nodes[1] as Identifier
+
+            return new MentionScope(mention.value, name, tokens)
+        },
     },
 ]
