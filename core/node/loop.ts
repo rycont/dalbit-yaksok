@@ -73,7 +73,10 @@ function hasBreakOrReturn(node: Loop) {
             }
         }
 
-        if (token.type === TOKEN_TYPE.IDENTIFIER && token.value === '반환') {
+        if (
+            token.type === TOKEN_TYPE.IDENTIFIER &&
+            token.value === '반환하기'
+        ) {
             return true
         }
     })
