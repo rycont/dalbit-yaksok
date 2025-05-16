@@ -1,10 +1,11 @@
 import { BreakSignal } from '../executer/signals.ts'
 import { Executable } from './base.ts'
 
-import type { Token } from '../prepare/tokenize/token.ts'
+import { TOKEN_TYPE, type Token } from '../prepare/tokenize/token.ts'
 import type { Scope } from '../executer/scope.ts'
 import type { Block } from './block.ts'
 import { YaksokError } from '../error/common.ts'
+import { NoBreakOrReturnError } from '../error/loop.ts'
 
 export class Loop extends Executable {
     static override friendlyName = '반복'
@@ -26,7 +27,17 @@ export class Loop extends Executable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        return this.body.validate(scope)
+        const noBreakOrReturnError = hasBreakOrReturn(this)
+            ? []
+            : [
+                  new NoBreakOrReturnError({
+                      tokens: this.tokens,
+                  }),
+              ]
+
+        const childErrors = this.body.validate(scope)
+
+        return [...noBreakOrReturnError, ...childErrors]
     }
 }
 
@@ -44,4 +55,29 @@ export class Break extends Executable {
     override validate(): YaksokError[] {
         return []
     }
+}
+
+function hasBreakOrReturn(node: Loop) {
+    return node.tokens.some((token, index) => {
+        if (
+            token.type === TOKEN_TYPE.IDENTIFIER &&
+            (token.value === '반복' || token.value === '약속')
+        ) {
+            const nextToken = node.tokens[index + 1]
+            if (
+                nextToken &&
+                nextToken.type === TOKEN_TYPE.IDENTIFIER &&
+                nextToken.value === '그만'
+            ) {
+                return true
+            }
+        }
+
+        if (
+            token.type === TOKEN_TYPE.IDENTIFIER &&
+            token.value === '반환하기'
+        ) {
+            return true
+        }
+    })
 }
