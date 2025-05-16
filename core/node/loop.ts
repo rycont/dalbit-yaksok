@@ -59,7 +59,10 @@ export class Break extends Executable {
 
 function hasBreakOrReturn(node: Loop) {
     return node.tokens.some((token, index) => {
-        if (token.type === TOKEN_TYPE.IDENTIFIER && token.value === '반복') {
+        if (
+            token.type === TOKEN_TYPE.IDENTIFIER &&
+            (token.value === '반복' || token.value === '약속')
+        ) {
             const nextToken = node.tokens[index + 1]
             if (
                 nextToken &&
