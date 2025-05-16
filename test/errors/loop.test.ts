@@ -13,12 +13,15 @@ import {
     TargetIsNotIndexedValueError,
     ListIndexMustBeGreaterOrEqualThan0Error,
 } from '../../core/error/index.ts'
+import { ErrorGroups } from '../../core/error/validation.ts'
+import { NoBreakOrReturnError } from '../../core/error/loop.ts'
 
 Deno.test('Error raised in loop', async () => {
     try {
         await yaksok(`
 반복
     "Hello, world!" * "Hello, world!" 보여주기
+    반복 그만
 `)
         unreachable()
     } catch (e) {
@@ -168,5 +171,16 @@ Deno.test('List index must bigger than 0', async () => {
         unreachable()
     } catch (e) {
         assertIsError(e, ListIndexMustBeGreaterOrEqualThan0Error)
+    }
+})
+
+Deno.test('No break or return in loop', async () => {
+    try {
+        await yaksok(`반복
+    1 + 1 보여주기`)
+        unreachable()
+    } catch (e) {
+        assertIsError(e, ErrorGroups)
+        assertIsError(e.errors.get('main')![0], NoBreakOrReturnError)
     }
 })
