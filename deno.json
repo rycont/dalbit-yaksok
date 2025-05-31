@@ -5,9 +5,13 @@
     },
     "lint": {
         "rules": {
-            "exclude": ["no-explicit-any"],
+            "exclude": [
+                "no-explicit-any"
+            ],
             "include": [],
-            "tags": ["recommended"]
+            "tags": [
+                "recommended"
+            ]
         }
     },
     "nodeModulesDir": "auto",
@@ -18,7 +22,7 @@
         "test",
         "monaco-language-provider"
     ],
-    "version": "1.4.0-RC.1",
+    "version": "1.3.2",
     "tasks": {
         "apply-version": "deno run --allow-read --allow-write apply-version.ts",
         "publish": "deno task apply-version && deno task --recursive test && deno publish --allow-dirty",
