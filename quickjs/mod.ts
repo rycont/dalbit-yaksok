@@ -95,14 +95,24 @@ function convertYaksokDataIntoQuickJSData(data: ValueType) {
     if (data instanceof StringValue) {
         return `"${data.value}"`
     } else if (data instanceof ListValue) {
-        const maxIndex = Math.max(...data.entries.keys(), 1)
-        const targetArray = new Array(maxIndex).fill(null)
-
-        for (const [index, value] of data.entries) {
-            targetArray[index] = convertYaksokDataIntoQuickJSData(value)
+        if (data.entries.size === 0) {
+            return '[]'
         }
 
-        return `[${targetArray.join(', ')}]`
+        const keys = Array.from(data.entries.keys())
+        const maxKey = Math.max(...keys)
+
+        const targetArrayElements = new Array(maxKey + 1)
+
+        for (let i = 0; i <= maxKey; i++) {
+            const value = data.entries.get(i)
+            if (value !== undefined) {
+                targetArrayElements[i] = convertYaksokDataIntoQuickJSData(value)
+            } else {
+                targetArrayElements[i] = 'null'
+            }
+        }
+        return `[${targetArrayElements.join(', ')}]`
     } else if (data instanceof PrimitiveValue) {
         return data.value
     } else {
