@@ -1,4 +1,5 @@
 import {
+    assert,
     assertEquals,
     assertInstanceOf,
     assertIsError,
@@ -180,4 +181,52 @@ Deno.test('JavaScript bridge function passed object', async () => {
     assertEquals(더한_결과.value, 30)
 
     assertEquals(모든_이름.toPrint(), '[홍길동, 임꺽정, 김철수]')
+})
+
+Deno.test('Yaksok Passed List<string>', async () => {
+    const quickJS = new QuickJS()
+    await quickJS.init()
+    let buffer = ''
+
+    const result = await yaksok(
+        `
+번역(QuickJS), (배열) 중 최대값
+***
+    return Math.max(...배열)
+***
+
+번역(QuickJS), (배열)에서 가장 큰 값 제거하기
+***
+    const n = 배열.indexOf(Math.max(...배열))
+    return [...배열.slice(0, n), ...배열.slice(n + 1)]
+***
+
+내_점수 = [80, 90, 100]
+내_점수 중 최대값 보여주기
+
+내_점수 = 내_점수 에서 가장 큰 값 제거하기
+내_점수 보여주기
+내_점수 중 최대값 보여주기
+`,
+        {
+            runFFI(_, code, args) {
+                const result = quickJS.run(code, args)
+
+                if (!result) {
+                    throw new Error('Result is null')
+                }
+
+                return result
+            },
+            stdout(message) {
+                buffer += message + '\n'
+            },
+        },
+    )
+
+    const 내_점수 = result.mainScope.getVariable('내_점수')
+    assertInstanceOf(내_점수, ListValue)
+    assertEquals(내_점수.toPrint(), '[80, 90]')
+
+    assertEquals(buffer, '100\n[80, 90]\n90\n')
 })
