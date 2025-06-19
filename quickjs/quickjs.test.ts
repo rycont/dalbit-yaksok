@@ -229,3 +229,196 @@ Deno.test('Yaksok Passed List<string>', async () => {
 
     assertEquals(buffer, '100\n[80, 90]\n90\n')
 })
+
+Deno.test('QuickJS Passed List<string> - 빈 배열', async () => {
+    const quickJS = new QuickJS()
+    await quickJS.init()
+    let output = ''
+    await yaksok(
+        `번역(QuickJS), (배열) 길이
+***
+    return 배열.length
+***
+
+배열 = []
+배열 길이 보여주기`,
+        {
+            runFFI(_, code, args) {
+                return quickJS.run(code, args)
+            },
+            stdout: (str) => {
+                output += str
+            },
+        },
+    )
+    assertEquals(output, '0')
+})
+
+Deno.test('QuickJS Passed List<string> - 중복 값', async () => {
+    const quickJS = new QuickJS()
+    await quickJS.init()
+    let output = ''
+    await yaksok(
+        `번역(QuickJS), (배열) 합치기
+***
+    return 배열.join(",")
+***
+
+배열 = ["a", "a", "b"]
+배열 합치기 보여주기`,
+        {
+            runFFI(_, code, args) {
+                return quickJS.run(code, args)
+            },
+            stdout: (str) => {
+                output += str
+            },
+        },
+    )
+    assertEquals(output, 'a,a,b')
+})
+
+Deno.test('QuickJS Passed List<string> - 특수문자/이모지/빈문자', async () => {
+    const quickJS = new QuickJS()
+    await quickJS.init()
+    let output = ''
+    await yaksok(
+        `번역(QuickJS), (배열) 합치기
+***
+    return 배열.join("|")
+***
+
+배열 = ["😀", "a!@#", "한글", ""]
+배열 합치기 보여주기`,
+        {
+            runFFI(_, code, args) {
+                return quickJS.run(code, args)
+            },
+            stdout: (str) => {
+                output += str
+            },
+        },
+    )
+    assertEquals(output, '😀|a!@#|한글|')
+})
+
+Deno.test('QuickJS Passed List<string> - 영문 대문자 변환', async () => {
+    const quickJS = new QuickJS()
+    await quickJS.init()
+    let output = ''
+    await yaksok(
+        `번역(QuickJS), (배열) 대문자
+***
+    return 배열.map(x => x.toUpperCase()).join("")
+***
+
+배열 = ["a", "b", "c"]
+배열 대문자 보여주기`,
+        {
+            runFFI(_, code, args) {
+                return quickJS.run(code, args)
+            },
+            stdout: (str) => {
+                output += str
+            },
+        },
+    )
+    assertEquals(output, 'ABC')
+})
+
+Deno.test('QuickJS Passed List<string> - 공백/탭/개행', async () => {
+    const quickJS = new QuickJS()
+    await quickJS.init()
+    let output = ''
+    await yaksok(
+        `번역(QuickJS), (배열) 길이합치기
+***
+    return 배열.map(x => x.length).join(",")
+***
+
+배열 = [" ", "   ", "\\t", "\\n"]
+배열 길이합치기 보여주기`,
+        {
+            runFFI(_, code, args) {
+                return quickJS.run(code, args)
+            },
+            stdout: (str) => {
+                output += str
+            },
+        },
+    )
+    assertEquals(output, '1,3,1,1')
+})
+
+Deno.test('QuickJS Passed List<string> - 한글 포함 여부', async () => {
+    const quickJS = new QuickJS()
+    await quickJS.init()
+    let output = ''
+    await yaksok(
+        `번역(QuickJS), (배열) 포함
+***
+    return 배열.includes("나") ? "Y" : "N"
+***
+
+배열 = ["가", "나", "다"]
+배열 포함 보여주기`,
+        {
+            runFFI(_, code, args) {
+                return quickJS.run(code, args)
+            },
+            stdout: (str) => {
+                output += str
+            },
+        },
+    )
+    assertEquals(output, 'Y')
+})
+
+Deno.test('QuickJS Passed List<string> - 숫자 문자열 합치기', async () => {
+    const quickJS = new QuickJS()
+    await quickJS.init()
+    let output = ''
+    await yaksok(
+        `번역(QuickJS), (배열) 합치기
+***
+    return 배열.reduce((a, b) => a + b, "")
+***
+
+배열 = ["1", "2", "3"]
+배열 합치기 보여주기`,
+        {
+            runFFI(_, code, args) {
+                return quickJS.run(code, args)
+            },
+            stdout: (str) => {
+                output += str
+            },
+        },
+    )
+    assertEquals(output, '123')
+})
+
+Deno.test('QuickJS Passed List<string> - 2차원 배열 flat', async () => {
+    const quickJS = new QuickJS()
+    await quickJS.init()
+    let output = ''
+    await yaksok(
+        `번역(QuickJS), (배열) flat
+***
+    return 배열.flat().join("")
+***
+
+A = ["x", "y"]
+B = [A, ["z", "r"]]
+B flat 보여주기`,
+        {
+            runFFI(_, code, args) {
+                return quickJS.run(code, args)
+            },
+            stdout: (str) => {
+                output += str
+            },
+        },
+    )
+    assertEquals(output, 'xyzr')
+})
