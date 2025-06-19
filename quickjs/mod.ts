@@ -91,11 +91,24 @@ function createWrapperCodeFromFFICall(
     )}) => {${bodyCode}})(${parameterValues.join(', ')})`
 }
 
-function convertYaksokDataIntoQuickJSData(data: PrimitiveValue) {
+function convertYaksokDataIntoQuickJSData(data: ValueType) {
     if (data instanceof StringValue) {
         return `"${data.value}"`
-    } else {
+    } else if (data instanceof ListValue) {
+        const maxIndex = Math.max(...data.entries.keys(), 1)
+        const targetArray = new Array(maxIndex).fill(null)
+
+        for (const [index, value] of data.entries) {
+            targetArray[index] = convertYaksokDataIntoQuickJSData(value)
+        }
+
+        return `[${targetArray.join(', ')}]`
+    } else if (data instanceof PrimitiveValue) {
         return data.value
+    } else {
+        throw new Error(
+            `Cannot convert unsupported data type to JS String Literal: ${data.constructor.name}`,
+        )
     }
 }
 
