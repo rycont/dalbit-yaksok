@@ -3,6 +3,7 @@ import { Token } from '../prepare/tokenize/token.ts'
 import type { Position } from '../type/position.ts'
 import { YaksokError, blue, bold, dim, tokenToText } from './common.ts'
 import { DEFAULT_RUNTIME_CONFIG } from '../runtime/runtime-config.ts'
+import { CodeFile } from '../type/code-file.ts'
 
 export class CannotParseError extends YaksokError {
     constructor(props: {
@@ -134,16 +135,53 @@ export class FileForRunNotExistError extends YaksokError<{
     }) {
         super(props)
 
-        if (props.resource.files.length === 0 && props.resource.fileName === DEFAULT_RUNTIME_CONFIG.entryPoint) {
+        if (
+            props.resource.files.length === 0 &&
+            props.resource.fileName === DEFAULT_RUNTIME_CONFIG.entryPoint
+        ) {
             this.message = '실행할 코드가 없어요.' // 기본 entryPoint('main')를 실행하려는데 파일이 전혀 없는 경우
         } else {
             this.message = `실행하려는 파일 ${blue(
                 `"${props.resource.fileName}"`,
             )}을(를) 찾을 수 없어요. ${
                 props.resource.files.length > 0
-                    ? `현재 사용 가능한 파일: ${dim(props.resource.files.join(', '))}`
+                    ? `현재 사용 가능한 파일: ${dim(
+                          props.resource.files.join(', '),
+                      )}`
                     : ''
             }`.trim()
         }
+    }
+}
+
+export class FFIRuntimeNotFound extends YaksokError<{
+    runtimeName: string
+}> {
+    constructor(props: {
+        resource: { runtimeName: string }
+        position?: Position
+        tokens?: Token[]
+        codeFile?: CodeFile
+    }) {
+        super(props)
+        this.message = `번역${bold(
+            '(' + props.resource.runtimeName + ')',
+        )}을 처리할 수 있는 실행 환경이 없어요.`
+    }
+}
+
+export class MultipleFFIRuntimeError extends YaksokError<{
+    runtimeName: string
+}> {
+    constructor(props: {
+        resource: { runtimeName: string }
+        position?: Position
+        tokens?: Token[]
+        codeFile?: CodeFile
+    }) {
+        super(props)
+        this.message = `번역${bold(
+            '(' + props.resource.runtimeName + ')',
+        )}을 처리할 수 있는 실행 환경이 여러 개 있어요. 실행 환경을 하나로 정해주세요.`
     }
 }

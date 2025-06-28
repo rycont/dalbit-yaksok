@@ -23,7 +23,7 @@ Deno.test('Error in QuickJS', async () => {
 에러 발생`,
             {
                 runFFI(_, code, args) {
-                    const result = quickJS.run(code, args)
+                    const result = quickJS.executeFFI(code, args)
 
                     if (!result) {
                         throw new Error('Result is null')
@@ -55,7 +55,7 @@ Deno.test('QuickJS passed number', async () => {
         `,
         {
             runFFI(_, code, args) {
-                const result = quickJS.run(code, args)
+                const result = quickJS.executeFFI(code, args)
 
                 if (!result) {
                     throw new Error('Result is null')
@@ -88,7 +88,7 @@ Deno.test('QuickJS passed Array<number>', async () => {
         `,
         {
             runFFI(_, code, args) {
-                const result = quickJS.run(code, args)
+                const result = quickJS.executeFFI(code, args)
 
                 if (!result) {
                     throw new Error('Result is null')
@@ -151,7 +151,7 @@ Deno.test('JavaScript bridge function passed object', async () => {
 `,
         {
             runFFI(_, code, args) {
-                const result = quickJS.run(code, args)
+                const result = quickJS.executeFFI(code, args)
 
                 if (!result) {
                     throw new Error('Result is null')

@@ -14,8 +14,15 @@ import {
     type FunctionInvokingParams,
 } from '@dalbit-yaksok/core'
 import { bold, dim } from './util.ts'
+import { Extension, ExtensionManifest } from '../core/extension/extension.ts'
 
-export class QuickJS {
+export class QuickJS implements Extension {
+    public manifest: ExtensionManifest = {
+        ffiRunner: {
+            runtimeName: 'QuickJS',
+        },
+    }
+
     private instance: QuickJSWASMModule | null = null
 
     constructor(
@@ -35,7 +42,10 @@ export class QuickJS {
         this.instance = await newQuickJSWASMModuleFromVariant(variant)
     }
 
-    public run(bodyCode: string, args: FunctionInvokingParams): ValueType {
+    public executeFFI(
+        bodyCode: string,
+        args: FunctionInvokingParams,
+    ): ValueType {
         const wrappedCode = createWrapperCodeFromFFICall(bodyCode, args)
         const vm = this.createContext()
 

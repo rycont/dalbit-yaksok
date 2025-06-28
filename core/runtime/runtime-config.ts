@@ -1,7 +1,5 @@
 import type { EnabledFlags } from '../constant/feature-flags.ts'
-import type { FunctionInvokingParams } from '../constant/type.ts'
 import type { Position } from '../type/position.ts'
-import type { ValueType } from '../value/base.ts'
 
 /**
  * RuntimeConfig 객체를 사용하여 약속 런타임을 설정합니다.
@@ -51,19 +49,6 @@ export interface RuntimeConfig {
      */
     executionDelay: number
     /**
-     * 번역 문법을 사용한 외부 런타임 호출을 처리하는 메소드
-     * ```typescript
-     * function runFFI(runtime: string, code: string, args: FunctionInvokingParams): Promise<ValueType> {
-     *
-     * }
-     * ```
-     */
-    runFFI: (
-        runtime: string,
-        code: string,
-        args: FunctionInvokingParams,
-    ) => Promise<ValueType> | ValueType
-    /**
      * 활성화할 기능 플래그
      */
     flags: EnabledFlags
@@ -87,9 +72,6 @@ export const DEFAULT_RUNTIME_CONFIG: RuntimeConfig = {
     stdout: console.log,
     stderr: console.error,
     entryPoint: 'main',
-    runFFI: (runtime: string) => {
-        throw new Error(`FFI ${runtime} not implemented`)
-    },
     flags: {},
     executionDelay: 0,
     events: {

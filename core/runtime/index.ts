@@ -3,10 +3,15 @@ import {
     Events,
     type RuntimeConfig,
 } from './runtime-config.ts'
-import { FileForRunNotExistError } from '../error/prepare.ts'
+import {
+    FFIRuntimeNotFound,
+    FileForRunNotExistError,
+    MultipleFFIRuntimeError,
+} from '../error/prepare.ts'
 import { renderErrorString } from '../error/render-error-string.ts'
 import { YaksokError } from '../error/common.ts'
 import { CodeFile } from '../type/code-file.ts'
+import { Extension } from '../extension/extension.ts'
 
 import type { EnabledFlags } from '../constant/feature-flags.ts'
 import type { ExecuteResult } from '../executer/index.ts'
@@ -18,16 +23,14 @@ import { ErrorGroups } from '../error/validation.ts'
 export class YaksokSession {
     public stdout: RuntimeConfig['stdout']
     public stderr: RuntimeConfig['stderr']
-    public entryPoint: RuntimeConfig['entryPoint']
-    public runFFI: RuntimeConfig['runFFI']
     public executionDelay: RuntimeConfig['executionDelay']
     public flags: Partial<EnabledFlags> = {}
+    public extensions: Extension[] = []
 
     public pubsub: PubSub<Events> = new PubSub<Events>()
     public files: Record<string, CodeFile> = {}
 
     constructor(
-        codeTexts: Record<string, string> = {},
         config: Partial<RuntimeConfig> = {},
         public baseContext?: CodeFile,
     ) {
@@ -40,23 +43,9 @@ export class YaksokSession {
 
         this.stdout = resolvedConfig.stdout
         this.stderr = resolvedConfig.stderr
-        this.runFFI = resolvedConfig.runFFI
+
         this.executionDelay = resolvedConfig.executionDelay
         this.flags = resolvedConfig.flags
-
-        if (resolvedConfig.entryPoint && codeTexts[resolvedConfig.entryPoint]) {
-            this.entryPoint = resolvedConfig.entryPoint
-        } else if (codeTexts && Object.keys(codeTexts).length > 0) {
-            this.entryPoint = Object.keys(codeTexts)[0]
-        } else {
-            this.entryPoint = resolvedConfig.entryPoint
-        }
-
-        for (const [fileName, text] of Object.entries(codeTexts)) {
-            const codeFile = new CodeFile(text, fileName)
-            codeFile.mount(this)
-            this.files[fileName] = codeFile
-        }
     }
 
     addModule(moduleName: string, code: string): CodeFile {
@@ -71,6 +60,11 @@ export class YaksokSession {
         return codeFile
     }
 
+    async extend(extension: Extension): Promise<void> {
+        this.extensions.push(extension)
+        await extension.init()
+    }
+
     async runModule(moduleName: string): Promise<ExecuteResult<Block>> {
         const codeFile = this.files[moduleName]
         if (!codeFile) {
@@ -81,7 +75,6 @@ export class YaksokSession {
                 },
             })
         }
-        this.entryPoint = moduleName // 실행하려는 모듈을 entryPoint로 설정
 
         try {
             return await codeFile.run()
@@ -94,20 +87,21 @@ export class YaksokSession {
     }
 
     validate(entrypoint?: string): void {
-        const filesToValidate: Record<string, CodeFile> = {};
+        const filesToValidate: Record<string, CodeFile> = {}
         if (entrypoint) {
             if (this.files[entrypoint]) {
-                filesToValidate[entrypoint] = this.files[entrypoint];
+                filesToValidate[entrypoint] = this.files[entrypoint]
             } else {
-                throw new FileForRunNotExistError({ // 또는 다른 적절한 오류 타입
+                throw new FileForRunNotExistError({
+                    // 또는 다른 적절한 오류 타입
                     resource: {
                         fileName: entrypoint,
                         files: Object.keys(this.files),
                     },
-                });
+                })
             }
         } else {
-            Object.assign(filesToValidate, this.files);
+            Object.assign(filesToValidate, this.files)
         }
 
         const validationErrors = new Map(
@@ -115,44 +109,16 @@ export class YaksokSession {
                 fileName,
                 codeFile.validate().errors,
             ]),
-        );
+        )
 
-        const allErrors = [...validationErrors.values()].flat();
+        const allErrors = [...validationErrors.values()].flat()
         if (allErrors.length > 0) {
-            throw new ErrorGroups(validationErrors);
+            throw new ErrorGroups(validationErrors)
         }
     }
 
-    async run(
-        fileNameOrCode: string = this.entryPoint,
-    ): Promise<ExecuteResult<Block>> {
-        let codeFile: CodeFile | undefined = this.files[fileNameOrCode]
-        let isTemporaryFile = false
-        const originalEntryPoint = this.entryPoint
-
-        if (!codeFile) {
-            const isExplictFileRunAttempt =
-                (fileNameOrCode === originalEntryPoint && !this.files[originalEntryPoint]) ||
-                (fileNameOrCode.endsWith('.yak') && !this.files[fileNameOrCode]); // 명시적으로 .yak 파일을 실행하려 했지만 없는 경우도 포함
-
-            if (isExplictFileRunAttempt) {
-                throw new FileForRunNotExistError({
-                    resource: {
-                        fileName: fileNameOrCode,
-                        files: Object.keys(this.files),
-                    },
-                })
-            }
-            else { // 코드로 간주
-                const temporaryEntryPoint = `__temp_main__${Date.now()}`
-                this.entryPoint = temporaryEntryPoint
-                codeFile = new CodeFile(fileNameOrCode, temporaryEntryPoint)
-                codeFile.mount(this)
-                isTemporaryFile = true
-            }
-        } else {
-            this.entryPoint = fileNameOrCode
-        }
+    async run(moduleName: string): Promise<ExecuteResult<Block>> {
+        const codeFile: CodeFile | undefined = this.files[moduleName]
 
         try {
             const result = await codeFile.run()
@@ -162,22 +128,10 @@ export class YaksokSession {
                 e.codeFile = codeFile
             }
             throw e
-        } finally {
-            if (isTemporaryFile && codeFile) {
-                delete this.files[codeFile.fileName]
-                if (this.files[originalEntryPoint]) {
-                    this.entryPoint = originalEntryPoint
-                } else if (this.baseContext && this.files[this.baseContext.fileName]) {
-                    this.entryPoint = this.baseContext.fileName
-                } else {
-                    const availableFiles = Object.keys(this.files)
-                    this.entryPoint = availableFiles.length > 0 ? availableFiles[0] : DEFAULT_RUNTIME_CONFIG.entryPoint
-                }
-            }
         }
     }
 
-    public getCodeFile(fileName: string = this.entryPoint): CodeFile {
+    public getCodeFile(fileName: string): CodeFile {
         if (!this.files[fileName]) {
             throw new FileForRunNotExistError({
                 resource: {
@@ -189,52 +143,79 @@ export class YaksokSession {
 
         return this.files[fileName]
     }
-}
 
-export async function yaksok(
-    code: string | Record<string, string>,
-    config: Partial<RuntimeConfig> = {},
-    baseContext?: CodeFile,
-): Promise<{
-    runtime: YaksokSession
-    mainScope: Scope
-    codeFiles: Record<string, CodeFile>
-}> {
-    let runtime: YaksokSession
+    public async runFFI(
+        runtime: string,
+        code: string,
+        args: Record<string, any>,
+    ) {
+        const availableExtensions = this.extensions.filter(
+            (ext) => ext.manifest.ffiRunner?.runtimeName === runtime,
+        )
 
-    if (typeof code === 'string') {
-        runtime = new YaksokSession({ main: code }, config, baseContext)
-    } else {
-        runtime = new YaksokSession(code, config, baseContext)
-    }
-
-    try {
-        runtime.validate()
-        await runtime.run()
-
-        return {
-            runtime,
-            mainScope: runtime.getCodeFile().runResult!.scope,
-            codeFiles: runtime.files,
-        }
-    } catch (e) {
-        if (e instanceof ErrorGroups) {
-            const errors = e.errors
-
-            for (const [fileName, errorList] of errors) {
-                const codeFile = runtime.getCodeFile(fileName)
-
-                for (const error of errorList) {
-                    error.codeFile = codeFile
-                    runtime.stderr(renderErrorString(error))
-                }
-            }
+        if (availableExtensions.length === 0) {
+            throw new FFIRuntimeNotFound({
+                resource: { runtimeName: runtime },
+            })
         }
 
-        if (e instanceof YaksokError) {
-            runtime.stderr(renderErrorString(e))
+        if (availableExtensions.length > 1) {
+            throw new MultipleFFIRuntimeError({
+                resource: { runtimeName: runtime },
+            })
         }
 
-        throw e
+        const extension = availableExtensions[0]
+
+        const result = await extension.executeFFI(code, args)
+        return result
     }
 }
+
+// export async function yaksok(
+//     code: string | Record<string, string>,
+//     config: Partial<RuntimeConfig> = {},
+//     baseContext?: CodeFile,
+// ): Promise<{
+//     runtime: YaksokSession
+//     mainScope: Scope
+//     codeFiles: Record<string, CodeFile>
+// }> {
+//     let runtime: YaksokSession
+
+//     if (typeof code === 'string') {
+//         runtime = new YaksokSession({ main: code }, config, baseContext)
+//     } else {
+//         runtime = new YaksokSession(code, config, baseContext)
+//     }
+
+//     try {
+//         runtime.validate()
+//         await runtime.run()
+
+//         return {
+//             runtime,
+//             mainScope: runtime.getCodeFile().runResult!.scope,
+//             codeFiles: runtime.files,
+//         }
+//     } catch (e) {
+//         if (e instanceof ErrorGroups) {
+//             const errors = e.errors
+
+//             for (const [fileName, errorList] of errors) {
+//                 const codeFile = runtime.getCodeFile(fileName)
+
+//                 for (const error of errorList) {
+//                     error.codeFile = codeFile
+//                     runtime.stderr(renderErrorString(error))
+//                 }
+//             }
+//         }
+
+//         if (e instanceof YaksokError) {
+//             runtime.stderr(renderErrorString(e))
+//         }
+
+//         throw e
+//     }
+// }
