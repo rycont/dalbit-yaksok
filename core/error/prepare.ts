@@ -1,9 +1,9 @@
-import { Node } from '../node/base.ts'
-import { Token } from '../prepare/tokenize/token.ts'
+import type { Node } from '../node/base.ts'
+import type { Token } from '../prepare/tokenize/token.ts'
 import type { Position } from '../type/position.ts'
 import { YaksokError, blue, bold, dim, tokenToText } from './common.ts'
 import { DEFAULT_RUNTIME_CONFIG } from '../runtime/runtime-config.ts'
-import { CodeFile } from '../type/code-file.ts'
+import type { CodeFile } from '../type/code-file.ts'
 
 export class CannotParseError extends YaksokError {
     constructor(props: {

@@ -19,8 +19,8 @@ export async function executer<NodeType extends Executable>(
         })
 
     try {
-        const result = (await node.execute(scope)) as ReturnType<
-            NodeType['execute']
+        const result = (await node.execute(scope)) as Awaited<
+            ReturnType<NodeType['execute']>
         >
         return { scope, result }
     } catch (e) {
@@ -42,5 +42,5 @@ export async function executer<NodeType extends Executable>(
 
 export interface ExecuteResult<NodeType extends Executable> {
     scope: Scope
-    result: ReturnType<NodeType['execute']>
+    result: Awaited<ReturnType<NodeType['execute']>>
 }

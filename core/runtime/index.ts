@@ -17,8 +17,9 @@ import type { EnabledFlags } from '../constant/feature-flags.ts'
 import type { ExecuteResult } from '../executer/index.ts'
 import type { Block } from '../node/block.ts'
 import { PubSub } from '../util/pubsub.ts'
-import { Scope } from '../executer/scope.ts'
 import { ErrorGroups } from '../error/validation.ts'
+import { ValueType } from '../value/base.ts'
+import { FFIResultTypeIsNotForYaksokError } from '../error/index.ts'
 
 export class YaksokSession {
     public stdout: RuntimeConfig['stdout']
@@ -77,11 +78,31 @@ export class YaksokSession {
         }
 
         try {
-            return await codeFile.run()
+            this.validate(moduleName)
+            const result = await codeFile.run()
+            return result
         } catch (e) {
             if (e instanceof YaksokError && !e.codeFile) {
                 e.codeFile = codeFile
             }
+
+            if (e instanceof ErrorGroups) {
+                const errors = e.errors
+
+                for (const [fileName, errorList] of errors) {
+                    const codeFile = this.getCodeFile(fileName)
+
+                    for (const error of errorList) {
+                        error.codeFile = codeFile
+                        this.stderr(renderErrorString(error))
+                    }
+                }
+            }
+
+            if (e instanceof YaksokError) {
+                this.stderr(renderErrorString(e))
+            }
+
             throw e
         }
     }
@@ -117,20 +138,6 @@ export class YaksokSession {
         }
     }
 
-    async run(moduleName: string): Promise<ExecuteResult<Block>> {
-        const codeFile: CodeFile | undefined = this.files[moduleName]
-
-        try {
-            const result = await codeFile.run()
-            return result
-        } catch (e) {
-            if (e instanceof YaksokError && !e.codeFile) {
-                e.codeFile = codeFile
-            }
-            throw e
-        }
-    }
-
     public getCodeFile(fileName: string): CodeFile {
         if (!this.files[fileName]) {
             throw new FileForRunNotExistError({
@@ -148,7 +155,7 @@ export class YaksokSession {
         runtime: string,
         code: string,
         args: Record<string, any>,
-    ) {
+    ): Promise<ValueType> {
         const availableExtensions = this.extensions.filter(
             (ext) => ext.manifest.ffiRunner?.runtimeName === runtime,
         )
@@ -168,15 +175,37 @@ export class YaksokSession {
         const extension = availableExtensions[0]
 
         const result = await extension.executeFFI(code, args)
+
+        if (!result || !(result instanceof ValueType)) {
+            throw new FFIResultTypeIsNotForYaksokError({
+                value: result,
+                ffiName: code,
+                tokens: [],
+            })
+        }
+
         return result
     }
 }
 
-// export async function yaksok(
-//     code: string | Record<string, string>,
-//     config: Partial<RuntimeConfig> = {},
-//     baseContext?: CodeFile,
-// ): Promise<{
+export async function yaksok(
+    code: string | Record<string, string>,
+    //     config: Partial<RuntimeConfig> = {},
+    //     baseContext?: CodeFile,
+    // ): Promise<{
+) {
+    const session = new YaksokSession()
+
+    if (typeof code === 'string') {
+        session.addModule('main', code)
+    } else {
+        for (const [fileName, fileCode] of Object.entries(code)) {
+            session.addModule(fileName, fileCode)
+        }
+    }
+
+    await session.runModule('main')
+}
 //     runtime: YaksokSession
 //     mainScope: Scope
 //     codeFiles: Record<string, CodeFile>
@@ -218,4 +247,3 @@ export class YaksokSession {
 
 //         throw e
 //     }
-// }

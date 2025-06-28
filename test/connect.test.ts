@@ -92,28 +92,6 @@ Deno.test('다른 파일에 있는 연결 호출', async () => {
 
 Deno.test('배열을 반환하는 연결', async () => {
     let output = ''
-    //     await yaksok(
-    //         `
-    // 번역(QuickJS), (질문) 물어보기
-    // ***
-    // CODES
-    // ***
-
-    // (("이름이 뭐에요?") 물어보기) 보여주기`,
-    //         {
-    //             runFFI() {
-    //                 return new ListValue([
-    //                     new StringValue('황선형'),
-    //                     new StringValue('도지석'),
-    //                 ])
-    //             },
-    //             stdout(value) {
-    //                 output += value + '\n'
-    //             },
-    //         },
-    //     )
-
-    //     assertEquals(output, '[황선형, 도지석]\n')
 
     const session = new YaksokSession({
         stdout(value) {
@@ -142,6 +120,8 @@ Deno.test('배열을 반환하는 연결', async () => {
         'main',
         `번역(mock), (질문) 물어보기
 ***
+RRR
+***
 (("이름이 뭐에요?") 물어보기) 보여주기`,
     )
 
@@ -152,23 +132,6 @@ Deno.test('배열을 반환하는 연결', async () => {
 
 Deno.test('올바르지 않은 연결 반환값: JS String', async () => {
     try {
-        //         await yaksok(
-        //             `번역(mock), (질문) 물어보기
-        // ***
-        // CODES
-        // ***
-        // (("이름이 뭐에요?") 물어보기) 보여주기`,
-        //             {
-        //                 runFFI(runtime) {
-        //                     if (runtime === 'mock') {
-        //                         return 'invalid value' as any
-        //                     }
-
-        //                     throw new Error(`Unknown runtime: ${runtime}`)
-        //                 },
-        //             },
-        //         )
-
         const session = new YaksokSession()
 
         await session.extend({
@@ -200,23 +163,6 @@ Deno.test('올바르지 않은 연결 반환값: JS String', async () => {
 
 Deno.test('올바르지 않은 연결 반환값: JS Object', async () => {
     try {
-        //         await yaksok(
-        //             `번역(mock), (질문) 물어보기
-        // ***
-        // CODES
-        // ***
-        // (("이름이 뭐에요?") 물어보기) 보여주기`,
-        //             {
-        //                 runFFI(runtime) {
-        //                     if (runtime === 'mock') {
-        //                         return {} as any
-        //                     }
-
-        //                     throw new Error(`Unknown runtime: ${runtime}`)
-        //                 },
-        //             },
-        //         )
-
         const session = new YaksokSession()
 
         await session.extend({
@@ -250,23 +196,6 @@ CODES
 
 Deno.test('연결 반환값이 없음', async () => {
     try {
-        //         await yaksok(
-        //             `번역(mock), (질문) 물어보기
-        // ***
-        // CODES
-        // ***
-        // (("이름이 뭐에요?") 물어보기) 보여주기`,
-        //             {
-        //                 runFFI(runtime) {
-        //                     if (runtime === 'mock') {
-        //                         return undefined as any
-        //                     }
-
-        //                     throw new Error(`Unknown runtime: ${runtime}`)
-        //                 },
-        //             },
-        //         )
-
         const session = new YaksokSession()
 
         await session.extend({
@@ -298,14 +227,6 @@ CODES
 
 Deno.test('구현되지 않은 FFI', async () => {
     try {
-        //         await yaksok(
-        //             `번역(mock), (질문) 물어보기
-        // ***
-        // CODES
-        // ***
-        // (("이름이 뭐에요?") 물어보기) 보여주기`,
-        //         )
-
         const session = new YaksokSession()
 
         await session.extend({
@@ -339,31 +260,6 @@ Deno.test('Promise를 반환하는 FFI', async () => {
     const output: string[] = []
 
     const startTime = +new Date()
-
-    //     await yaksok(
-    //         `
-    // 번역(Runtime), (숫자)초 기다리기
-    // ***
-    // wait
-    // ***
-
-    // "안녕!" 보여주기
-    // 1초 기다리기
-    // "반가워!" 보여주기
-    // `,
-    //         {
-    //             async runFFI(_runtime, _code, args) {
-    //                 await new Promise((ok) =>
-    //                     setTimeout(ok, (args.숫자 as NumberValue).value * 1000),
-    //                 )
-
-    //                 return new NumberValue(0)
-    //             },
-    //             stdout(message) {
-    //                 output.push(message)
-    //             },
-    //         },
-    //     )
 
     const session = new YaksokSession({
         stdout(value) {
@@ -401,6 +297,8 @@ wait
 `,
     )
 
+    await session.runModule('main')
+
     const timeDelta = +new Date() - startTime
 
     assert(timeDelta < 2000)
@@ -411,39 +309,6 @@ wait
 
 Deno.test('한 단어로 된 FFI 이름', async () => {
     let output = ''
-    //     await yaksok(
-    //         `
-    // 번역(QuickJS), 물어보기
-    // ***
-    //     return "성공"
-    // ***
-
-    // 번역(QuickJS), (질문) 물어보기
-    // ***
-    //     return "이건 아님"
-    // ***
-
-    // (물어보기) + 물어보기 * 3 보여주기
-    // ("뭐라도" 물어보기) + ("뭐라도" 물어보기) * 3 보여주기
-    // `,
-    //         {
-    //             runFFI(runtime, bodyCode, args) {
-    //                 if (runtime === 'QuickJS') {
-    //                     const result = quickJS.executeFFI(bodyCode, args)
-    //                     if (!result) {
-    //                         throw new Error('Result is null')
-    //                     }
-
-    //                     return result
-    //                 }
-
-    //                 throw new Error(`Unknown runtime: ${runtime}`)
-    //             },
-    //             stdout(value) {
-    //                 output += value + '\n'
-    //             },
-    //         },
-    //     )
 
     const session = new YaksokSession({
         stdout(value) {
@@ -484,42 +349,6 @@ Deno.test('한 단어로 된 FFI 이름', async () => {
 
 Deno.test('이름에 변형이 있는 함수 선언', async () => {
     let output = ''
-
-    //     await yaksok(
-    //         `
-    // 번역(QuickJS), 지금/현재 시간 가져오기
-    // ***
-    //     return 1743823961
-    // ***
-
-    // 번역(QuickJS), 지금/현재 밀리초 가져오기
-    // ***
-    //     return 1743823977546
-    // ***
-
-    // 지금 시간 가져오기 보여주기
-    // 현재 시간 가져오기 보여주기
-    // 지금 밀리초 가져오기 보여주기
-    // 현재 밀리초 가져오기 보여주기
-    // `,
-    //         {
-    //             runFFI(runtime, bodyCode, args) {
-    //                 if (runtime === 'QuickJS') {
-    //                     const result = quickJS.executeFFI(bodyCode, args)
-    //                     if (!result) {
-    //                         throw new Error('Result is null')
-    //                     }
-
-    //                     return result
-    //                 }
-
-    //                 throw new Error(`Unknown runtime: ${runtime}`)
-    //             },
-    //             stdout(value) {
-    //                 output += value + '\n'
-    //             },
-    //         },
-    //     )
 
     const session = new YaksokSession({
         stdout(value) {

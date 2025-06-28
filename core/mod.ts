@@ -4,7 +4,7 @@ export { ListValue } from './value/list.ts'
 
 export { CodeFile } from './type/code-file.ts'
 export type { Position } from './type/position.ts'
-export { YaksokSession } from './runtime/index.ts'
+export { YaksokSession, yaksok } from './runtime/index.ts'
 
 export { Scope } from './executer/scope.ts'
 export * from './node/index.ts'
