@@ -59,7 +59,7 @@ export class YaksokSession {
         }
     }
 
-    async runModule(moduleName: string, code: string): Promise<void> {
+    addModule(moduleName: string, code: string): CodeFile {
         if (this.files[moduleName]) {
             // TODO: 더 적절한 에러 타입 정의 필요
             throw new Error(`Module "${moduleName}" already exists.`)
@@ -67,10 +67,24 @@ export class YaksokSession {
         const codeFile = new CodeFile(code, moduleName)
         codeFile.mount(this)
         this.files[moduleName] = codeFile
-        this.entryPoint = moduleName // 모듈 로드 후 entryPoint를 해당 모듈로 설정
+        // addModule은 entryPoint를 변경하지 않음
+        return codeFile
+    }
+
+    async runModule(moduleName: string): Promise<ExecuteResult<Block>> {
+        const codeFile = this.files[moduleName]
+        if (!codeFile) {
+            throw new FileForRunNotExistError({
+                resource: {
+                    fileName: moduleName,
+                    files: Object.keys(this.files),
+                },
+            })
+        }
+        this.entryPoint = moduleName // 실행하려는 모듈을 entryPoint로 설정
 
         try {
-            await codeFile.run()
+            return await codeFile.run()
         } catch (e) {
             if (e instanceof YaksokError && !e.codeFile) {
                 e.codeFile = codeFile
@@ -79,21 +93,34 @@ export class YaksokSession {
         }
     }
 
-    validate() {
+    validate(entrypoint?: string): void {
+        const filesToValidate: Record<string, CodeFile> = {};
+        if (entrypoint) {
+            if (this.files[entrypoint]) {
+                filesToValidate[entrypoint] = this.files[entrypoint];
+            } else {
+                throw new FileForRunNotExistError({ // 또는 다른 적절한 오류 타입
+                    resource: {
+                        fileName: entrypoint,
+                        files: Object.keys(this.files),
+                    },
+                });
+            }
+        } else {
+            Object.assign(filesToValidate, this.files);
+        }
+
         const validationErrors = new Map(
-            Object.entries(this.files).map(([fileName, codeFile]) => [
+            Object.entries(filesToValidate).map(([fileName, codeFile]) => [
                 fileName,
                 codeFile.validate().errors,
             ]),
-        )
+        );
 
-        const hasError = [...validationErrors.values()].flat().length > 0
-
-        if (!hasError) {
-            return
+        const allErrors = [...validationErrors.values()].flat();
+        if (allErrors.length > 0) {
+            throw new ErrorGroups(validationErrors);
         }
-
-        throw new ErrorGroups(validationErrors)
     }
 
     async run(

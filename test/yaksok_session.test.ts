@@ -1,8 +1,9 @@
-import { assertEquals, assertRejects } from 'https://deno.land/std@0.208.0/assert/mod.ts'
+import { assertEquals, assertRejects, assertThrows } from 'https://deno.land/std@0.208.0/assert/mod.ts'
 import { YaksokSession } from '../core/mod.ts'
 import { QuickJS } from '../quickjs/mod.ts'
 import { DEFAULT_RUNTIME_CONFIG } from '../core/runtime/runtime-config.ts'
 import { FileForRunNotExistError } from '../core/error/prepare.ts'
+import { ErrorGroups } from '../core/error/validation.ts'
 
 Deno.test('YaksokSession with QuickJS FFI', async () => {
     const mockPromptResponses: string[] = ['달빛', '']
@@ -28,13 +29,17 @@ Deno.test('YaksokSession with QuickJS FFI', async () => {
         },
     })
 
-    await runtime.runModule('상수', `
+    const 상수module = runtime.addModule('상수', `
 내_이름 = "달빛"
 `)
-    assertEquals(runtime.entryPoint, '상수', "EntryPoint should be the last module loaded by runModule")
+    assertEquals(상수module.fileName, '상수')
+    // addModule은 entryPoint를 변경하지 않으므로, 이전 entryPoint 또는 기본값을 유지해야 함
+    // 여기서는 초기화 시 {}를 전달했으므로 기본 entryPoint인 'main'이 되어야 함.
+    assertEquals(runtime.entryPoint, DEFAULT_RUNTIME_CONFIG.entryPoint, "EntryPoint should be default after addModule")
 
-    const constantsModule = runtime.getCodeFile('상수')
-    assertEquals(constantsModule.fileName, '상수')
+    await runtime.runModule('상수') // 이제 '상수' 모듈을 실행, entryPoint가 '상수'로 변경됨
+    assertEquals(runtime.entryPoint, '상수', "EntryPoint should be '상수' after runModule('상수')")
+
 
     promptCallCount = 0
     mockPromptResponses[0] = "달빛"
@@ -95,7 +100,8 @@ Deno.test('YaksokSession runModule and access variables', async () => {
     })
     assertEquals(runtime.entryPoint, DEFAULT_RUNTIME_CONFIG.entryPoint, "Initial entryPoint")
 
-    await runtime.runModule('테스트모듈', '변수 = 123')
+    runtime.addModule('테스트모듈', '변수 = 123')
+    await runtime.runModule('테스트모듈') // 수정: addModule 후 runModule 호출
     assertEquals(runtime.entryPoint, '테스트모듈', "EntryPoint after runModule")
     assertEquals(Object.keys(runtime.files).includes('테스트모듈'), true, "Module should be loaded")
 
@@ -113,7 +119,8 @@ Deno.test('YaksokSession run code directly after runModule', async () => {
         },
     })
 
-    await runtime.runModule('테스트모듈', '모듈변수 = "모듈값"')
+    runtime.addModule('테스트모듈', '모듈변수 = "모듈값"')
+    await runtime.runModule('테스트모듈') // 수정: addModule 후 runModule 호출
     assertEquals(runtime.entryPoint, '테스트모듈', "EntryPoint should be '테스트모듈' after runModule")
 
     output = ''
@@ -177,6 +184,46 @@ Deno.test('YaksokSession run non-existent entryPoint file', async () => {
         FileForRunNotExistError,
         'nonExistent.yak'
     );
+});
+
+Deno.test('YaksokSession validate method', () => {
+    const runtime = new YaksokSession();
+    runtime.addModule('validModule', '"유효한 코드" 보여주기');
+    runtime.addModule('invalidModule', '잘못된 코드 ='); // 구문 오류
+
+    // 1. entrypoint 없이 validate() 호출 - 전체 검증 (오류 있는 경우)
+    assertThrows(
+        () => {
+            runtime.validate();
+        },
+        ErrorGroups,
+    );
+
+    // 2. 특정 유효한 entrypoint로 validate() 호출
+    runtime.validate('validModule'); // 오류 발생하지 않아야 함
+
+    // 3. 특정 유효하지 않은 entrypoint로 validate() 호출
+    assertThrows(
+        () => {
+            runtime.validate('invalidModule');
+        },
+        ErrorGroups,
+    );
+
+    // 4. 존재하지 않는 entrypoint로 validate() 호출
+    assertThrows(
+        () => {
+            runtime.validate('nonExistentModule');
+        },
+        FileForRunNotExistError,
+        'nonExistentModule'
+    );
+
+    // 5. 오류 없는 전체 검증
+    const validRuntime = new YaksokSession();
+    validRuntime.addModule('mod1', 'ㄱ = 1');
+    validRuntime.addModule('mod2', 'ㄴ = @mod1 ㄱ');
+    validRuntime.validate(); // 오류 발생하지 않아야 함
 });
 
 Deno.test('YaksokSession run non-existent file by name', async () => {
