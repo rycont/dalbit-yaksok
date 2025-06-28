@@ -130,9 +130,19 @@ export class MentionScope extends Evaluable {
                 childErrors = childErrors.concat(param.validate(scope))
             }
         } else {
-            childErrors = childErrors.concat(
-                this.child.validate(validatingScope),
-            )
+            // validatingScope가 undefined가 아닐 때만 자식 노드의 validate 호출
+            if (validatingScope) {
+                childErrors = childErrors.concat(
+                    this.child.validate(validatingScope),
+                )
+            } else {
+                // validatingScope가 없는 경우 (예: 모듈 유효성 검사 실패 또는 아직 실행 전)
+                // 이 경우 자식 노드의 유효성을 현재 스코프에서 검사할지,
+                // 아니면 오류로 처리할지 정책에 따라 결정 필요.
+                // 여기서는 일단 validatingScope가 있을 때만 검사하도록 함.
+                // 필요하다면 여기에 추가적인 오류 처리 로직을 넣을 수 있음.
+                // 예: this.errors.push(new SomeErrorForMissingModuleScope(...))
+            }
         }
 
         return [...moduleErrors, ...childErrors]
