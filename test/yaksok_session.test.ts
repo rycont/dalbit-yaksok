@@ -36,7 +36,6 @@ Deno.test('YaksokSession with QuickJS FFI', async () => {
     const constantsModule = runtime.getCodeFile('상수')
     assertEquals(constantsModule.fileName, '상수')
 
-    // FFI 함수 정의와 사용을 하나의 run 호출로 합침
     promptCallCount = 0
     mockPromptResponses[0] = "달빛"
     await runtime.run(`
@@ -173,10 +172,10 @@ Deno.test('YaksokSession run non-existent entryPoint file', async () => {
     const runtime = new YaksokSession({}, { entryPoint: 'nonExistent.yak' });
     await assertRejects(
         async () => {
-            await runtime.run(); // 기본 entryPoint 실행 시도
+            await runtime.run();
         },
         FileForRunNotExistError,
-        'nonExistent.yak' // Check if the error message includes the filename
+        'nonExistent.yak'
     );
 });
 
@@ -184,9 +183,9 @@ Deno.test('YaksokSession run non-existent file by name', async () => {
     const runtime = new YaksokSession({ 'actual.yak': '' });
     await assertRejects(
         async () => {
-            await runtime.run('nonExistent.yak'); // 존재하지 않는 파일 이름으로 실행 시도
+            await runtime.run('nonExistent.yak');
         },
         FileForRunNotExistError,
-        'nonExistent.yak' // Check if the error message includes the filename
+        'nonExistent.yak'
     );
 });

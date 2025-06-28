@@ -44,10 +44,10 @@ import { NotEqualOperator } from '../../node/operator.ts'
 import { ReturnStatement } from '../../node/return.ts'
 import { IndexedValue } from '../../value/indexed.ts'
 import { NumberValue, StringValue } from '../../value/primitive.ts'
-import type { Rule } from './type.ts' // Rule을 type으로 import하고 아래에서 export
+import type { Rule } from './type.ts'
 import { RULE_FLAGS } from './type.ts'
 
-export type { Rule } // Rule 타입 export
+export type { Rule }
 export const BASIC_RULES: Rule[][] = [
     [
         {

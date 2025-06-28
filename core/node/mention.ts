@@ -130,6 +130,7 @@ export class MentionScope extends Evaluable {
                 childErrors = childErrors.concat(param.validate(scope))
             }
         } else {
+            // validatingScope가 undefined가 아닐 때만 자식 노드의 validate 호출
             if (validatingScope) {
                 childErrors = childErrors.concat(
                     this.child.validate(validatingScope),

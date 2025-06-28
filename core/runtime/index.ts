@@ -103,28 +103,27 @@ export class YaksokSession {
         let isTemporaryFile = false
         const originalEntryPoint = this.entryPoint
 
-        if (!codeFile) { // 파일이 this.files에 존재하지 않는 경우
-            // 시나리오 1: run() 또는 run(entryPoint명)으로 호출되었는데, 해당 entryPoint 파일이 실제로 없는 경우
-            if (fileNameOrCode === originalEntryPoint && !this.files[originalEntryPoint]) {
+        if (!codeFile) {
+            const isExplictFileRunAttempt =
+                (fileNameOrCode === originalEntryPoint && !this.files[originalEntryPoint]) ||
+                (fileNameOrCode.endsWith('.yak') && !this.files[fileNameOrCode]); // 명시적으로 .yak 파일을 실행하려 했지만 없는 경우도 포함
+
+            if (isExplictFileRunAttempt) {
                 throw new FileForRunNotExistError({
-                    resource: { fileName: originalEntryPoint, files: Object.keys(this.files) },
-                });
+                    resource: {
+                        fileName: fileNameOrCode,
+                        files: Object.keys(this.files),
+                    },
+                })
             }
-            // 시나리오 2: run("someFile.yak")으로 호출되었는데, someFile.yak이 없는 경우
-            else if (fileNameOrCode !== originalEntryPoint && fileNameOrCode.endsWith('.yak') && !this.files[fileNameOrCode]) {
-                 throw new FileForRunNotExistError({
-                    resource: { fileName: fileNameOrCode, files: Object.keys(this.files) },
-                });
-            }
-            // 위 두 시나리오에 해당하지 않으면 코드로 간주
-            else {
+            else { // 코드로 간주
                 const temporaryEntryPoint = `__temp_main__${Date.now()}`
                 this.entryPoint = temporaryEntryPoint
                 codeFile = new CodeFile(fileNameOrCode, temporaryEntryPoint)
                 codeFile.mount(this)
                 isTemporaryFile = true
             }
-        } else { // 파일이 존재하는 경우
+        } else {
             this.entryPoint = fileNameOrCode
         }
 
