@@ -4,36 +4,27 @@ import {
     assertIsError,
     unreachable,
 } from 'assert'
-import { ListValue, StringValue, yaksok } from '../core/mod.ts'
+import { ListValue, StringValue, YaksokSession } from '../core/mod.ts'
 import { QuickJS, QuickJSInternalError } from './mod.ts'
 import { NumberValue } from '../core/value/primitive.ts'
 
 Deno.test('Error in QuickJS', async () => {
-    const quickJS = new QuickJS()
-    await quickJS.init()
+    const session = new YaksokSession()
+    await session.extend(new QuickJS())
 
     try {
-        await yaksok(
-            `
-번역(QuickJS), 에러 발생
+        session.addModule(
+            'main',
+            `번역(QuickJS), 에러 발생
 ***
     throw new Error('QuickJS Error')
 ***
 
-에러 발생`,
-            {
-                runFFI(_, code, args) {
-                    const result = quickJS.executeFFI(code, args)
-
-                    if (!result) {
-                        throw new Error('Result is null')
-                    }
-
-                    return result
-                },
-            },
+에러 발생
+`,
         )
 
+        await session.runModule('main')
         unreachable()
     } catch (error) {
         assertIsError(error, QuickJSInternalError)
@@ -41,43 +32,33 @@ Deno.test('Error in QuickJS', async () => {
 })
 
 Deno.test('QuickJS passed number', async () => {
-    const quickJS = new QuickJS()
-    await quickJS.init()
+    const session = new YaksokSession()
+    await session.extend(new QuickJS())
 
-    const result = await yaksok(
+    session.addModule(
+        'main',
         `
 번역(QuickJS), 랜덤 수
 ***
     return 20
 ***
 
-숫자 = 랜덤 수
-        `,
-        {
-            runFFI(_, code, args) {
-                const result = quickJS.executeFFI(code, args)
-
-                if (!result) {
-                    throw new Error('Result is null')
-                }
-
-                return result
-            },
-        },
+숫자 = 랜덤 수`,
     )
 
-    assertInstanceOf(result.mainScope.getVariable('숫자'), NumberValue)
-    assertEquals(
-        (result.mainScope.getVariable('숫자') as NumberValue).value,
-        20,
-    )
+    const result = await session.runModule('main')
+    const 숫자 = result.scope.getVariable('숫자')
+    assertInstanceOf(숫자, NumberValue)
+    assertEquals(숫자.value, 20)
+    assertEquals(숫자.toPrint(), '20')
 })
 
 Deno.test('QuickJS passed Array<number>', async () => {
-    const quickJS = new QuickJS()
-    await quickJS.init()
+    const session = new YaksokSession()
+    await session.extend(new QuickJS())
 
-    const result = await yaksok(
+    session.addModule(
+        'main',
         `
 번역(QuickJS), 랜덤 수
 ***
@@ -85,21 +66,13 @@ Deno.test('QuickJS passed Array<number>', async () => {
 ***
 
 숫자 = 랜덤 수
-        `,
-        {
-            runFFI(_, code, args) {
-                const result = quickJS.executeFFI(code, args)
-
-                if (!result) {
-                    throw new Error('Result is null')
-                }
-
-                return result
-            },
-        },
+`,
     )
 
-    assertEquals(result.mainScope.getVariable('숫자').toPrint(), '[20, 30]')
+    const result = await session.runModule('main')
+    const 숫자 = result.scope.getVariable('숫자')
+    assertInstanceOf(숫자, ListValue)
+    assertEquals(숫자.toPrint(), '[20, 30]')
 })
 
 Deno.test('JavaScript bridge function passed object', async () => {
@@ -112,9 +85,12 @@ Deno.test('JavaScript bridge function passed object', async () => {
         age: () => 20,
         allNames: () => ['홍길동', '임꺽정', '김철수'],
     })
-    await quickJS.init()
 
-    const result = await yaksok(
+    const session = new YaksokSession()
+    await session.extend(quickJS)
+
+    session.addModule(
+        'main',
         `
 번역(QuickJS), 학생 정보
 ***
@@ -149,24 +125,15 @@ Deno.test('JavaScript bridge function passed object', async () => {
 
 모든_이름 = 모든 이름
 `,
-        {
-            runFFI(_, code, args) {
-                const result = quickJS.executeFFI(code, args)
-
-                if (!result) {
-                    throw new Error('Result is null')
-                }
-
-                return result
-            },
-        },
     )
 
-    const 학생 = result.mainScope.getVariable('학생') as StringValue
-    const 이름 = result.mainScope.getVariable('이름') as StringValue
-    const 나이 = result.mainScope.getVariable('나이') as NumberValue
-    const 더한_결과 = result.mainScope.getVariable('더한_결과') as NumberValue
-    const 모든_이름 = result.mainScope.getVariable('모든_이름') as ListValue
+    const result = await session.runModule('main')
+
+    const 학생 = result.scope.getVariable('학생') as StringValue
+    const 이름 = result.scope.getVariable('이름') as StringValue
+    const 나이 = result.scope.getVariable('나이') as NumberValue
+    const 더한_결과 = result.scope.getVariable('더한_결과') as NumberValue
+    const 모든_이름 = result.scope.getVariable('모든_이름') as ListValue
 
     assertInstanceOf(학생, StringValue)
     assertInstanceOf(이름, StringValue)
