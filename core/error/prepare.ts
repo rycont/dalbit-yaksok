@@ -2,6 +2,7 @@ import { Node } from '../node/base.ts'
 import { Token } from '../prepare/tokenize/token.ts'
 import type { Position } from '../type/position.ts'
 import { YaksokError, blue, bold, dim, tokenToText } from './common.ts'
+import { DEFAULT_RUNTIME_CONFIG } from '../runtime/runtime-config.ts'
 
 export class CannotParseError extends YaksokError {
     constructor(props: {
@@ -133,14 +134,16 @@ export class FileForRunNotExistError extends YaksokError<{
     }) {
         super(props)
 
-        if (props.resource.files.length === 0) {
-            this.message = '실행할 코드가 없어요.'
+        if (props.resource.files.length === 0 && props.resource.fileName === DEFAULT_RUNTIME_CONFIG.entryPoint) {
+            this.message = '실행할 코드가 없어요.' // 기본 entryPoint('main')를 실행하려는데 파일이 전혀 없는 경우
         } else {
-            this.message = `주어진 코드(${dim(
-                props.resource.files.join(', '),
-            )})에서 ${blue(
+            this.message = `실행하려는 파일 ${blue(
                 `"${props.resource.fileName}"`,
-            )} 파일을 찾을 수 없어요. `
+            )}을(를) 찾을 수 없어요. ${
+                props.resource.files.length > 0
+                    ? `현재 사용 가능한 파일: ${dim(props.resource.files.join(', '))}`
+                    : ''
+            }`.trim()
         }
     }
 }

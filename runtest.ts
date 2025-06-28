@@ -1,6 +1,7 @@
-import { yaksok } from '@dalbit-yaksok/core'
+import { YaksokSession } from '@dalbit-yaksok/core'
 
-await yaksok(`
+const session = new YaksokSession();
+await session.run(`
 자리 = [
     [ 1, 2, 3 ],
     [ 4, 5, 6 ],

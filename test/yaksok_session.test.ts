@@ -1,7 +1,8 @@
-import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts'
+import { assertEquals, assertRejects } from 'https://deno.land/std@0.208.0/assert/mod.ts'
 import { YaksokSession } from '../core/mod.ts'
 import { QuickJS } from '../quickjs/mod.ts'
 import { DEFAULT_RUNTIME_CONFIG } from '../core/runtime/runtime-config.ts'
+import { FileForRunNotExistError } from '../core/error/prepare.ts'
 
 Deno.test('YaksokSession with QuickJS FFI', async () => {
     const mockPromptResponses: string[] = ['달빛', '']
@@ -33,10 +34,9 @@ Deno.test('YaksokSession with QuickJS FFI', async () => {
     assertEquals(runtime.entryPoint, '상수', "EntryPoint should be the last module loaded by runModule")
 
     const constantsModule = runtime.getCodeFile('상수')
-    assertEquals(constantsModule.fileName, '상수') // .name -> .fileName
+    assertEquals(constantsModule.fileName, '상수')
 
     // FFI 함수 정의와 사용을 하나의 run 호출로 합침
-    // Test the main logic - correct answer
     promptCallCount = 0
     mockPromptResponses[0] = "달빛"
     await runtime.run(`
@@ -54,7 +54,6 @@ Deno.test('YaksokSession with QuickJS FFI', async () => {
     assertEquals(lastStdout, '정답입니다!')
     assertEquals(runtime.entryPoint, '상수', "EntryPoint should still be the module name after direct code run")
 
-    // Test incorrect answer
     promptCallCount = 0
     mockPromptResponses[0] = "별빛"
     await runtime.run(`
@@ -75,18 +74,16 @@ Deno.test('YaksokSession with QuickJS FFI', async () => {
 
 Deno.test('YaksokSession run code directly without initial files', async () => {
     let output = ''
-    const runtime = new YaksokSession({}, { // codeTexts가 비어있음
+    const runtime = new YaksokSession({}, {
         stdout: (msg: string) => {
             output += msg
         },
     })
-    // 생성자에서 codeTexts가 비어있고 config에 entryPoint가 명시되지 않으면 DEFAULT_RUNTIME_CONFIG.entryPoint ('main')을 사용
     assertEquals(runtime.entryPoint, DEFAULT_RUNTIME_CONFIG.entryPoint, `Initial entryPoint should be ${DEFAULT_RUNTIME_CONFIG.entryPoint}`)
 
     await runtime.run('"헬로월드" 보여주기')
     assertEquals(output, '헬로월드')
     assertEquals(Object.keys(runtime.files).length, 0, "Temporary file should be removed")
-    // 임시 실행 후 파일이 없으면 entryPoint는 DEFAULT_RUNTIME_CONFIG.entryPoint로 복원됨
     assertEquals(runtime.entryPoint, DEFAULT_RUNTIME_CONFIG.entryPoint, `EntryPoint should revert to ${DEFAULT_RUNTIME_CONFIG.entryPoint} after temporary run with no other files`)
 })
 
@@ -123,7 +120,6 @@ Deno.test('YaksokSession run code directly after runModule', async () => {
     output = ''
     await runtime.run('"직접실행" 보여주기')
     assertEquals(output, '직접실행')
-    // 임시 코드 실행 후, entryPoint는 originalEntryPoint ('테스트모듈')로 복원되어야 함
     assertEquals(runtime.entryPoint, '테스트모듈', "EntryPoint should revert to '테스트모듈' after temporary run")
     assertEquals(Object.keys(runtime.files).length, 1, "Only module file should remain")
     assertEquals(Object.keys(runtime.files)[0], '테스트모듈', "Module file name should be correct")
@@ -140,7 +136,7 @@ Deno.test('YaksokSession run existing file', async () => {
     );
     assertEquals(runtime.entryPoint, '메인.yak', "Initial entryPoint with specified file");
 
-    await runtime.run(); // entryPoint '메인.yak' 실행
+    await runtime.run();
     assertEquals(output, '메인파일 실행됨');
     assertEquals(runtime.entryPoint, '메인.yak', "EntryPoint should remain '메인.yak' after running it");
 
@@ -159,8 +155,7 @@ Deno.test('YaksokSession constructor with specific entryPoint and codeTexts', as
         { entryPoint: 'file2.yak' }
     );
     assertEquals(runtime.entryPoint, 'file2.yak', "EntryPoint should be 'file2.yak' as specified in config");
-    await runtime.run(); // file2.yak 실행
-    // stdout 등 확인 로직 추가 가능
+    await runtime.run();
 });
 
 Deno.test('YaksokSession constructor with codeTexts but no explicit entryPoint', async () => {
@@ -169,9 +164,29 @@ Deno.test('YaksokSession constructor with codeTexts but no explicit entryPoint',
             'fileA.yak': '변수A = "a"',
             'fileB.yak': '변수B = "b"',
         }
-        // config에 entryPoint 명시 안함
     );
-    // codeTexts가 있고 entryPoint 명시 안하면 첫번째 파일(fileA.yak)이 entryPoint
     assertEquals(runtime.entryPoint, 'fileA.yak', "EntryPoint should be the first file if not specified in config");
     await runtime.run();
+});
+
+Deno.test('YaksokSession run non-existent entryPoint file', async () => {
+    const runtime = new YaksokSession({}, { entryPoint: 'nonExistent.yak' });
+    await assertRejects(
+        async () => {
+            await runtime.run(); // 기본 entryPoint 실행 시도
+        },
+        FileForRunNotExistError,
+        'nonExistent.yak' // Check if the error message includes the filename
+    );
+});
+
+Deno.test('YaksokSession run non-existent file by name', async () => {
+    const runtime = new YaksokSession({ 'actual.yak': '' });
+    await assertRejects(
+        async () => {
+            await runtime.run('nonExistent.yak'); // 존재하지 않는 파일 이름으로 실행 시도
+        },
+        FileForRunNotExistError,
+        'nonExistent.yak' // Check if the error message includes the filename
+    );
 });

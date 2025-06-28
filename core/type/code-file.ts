@@ -9,7 +9,7 @@ import { Scope } from '../executer/scope.ts'
 
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { Rule } from '../prepare/parse/type.ts'
-import type { YaksokSession } from '../runtime/index.ts' // Runtime -> YaksokSession
+import type { YaksokSession } from '../runtime/index.ts'
 import type { Block } from '../node/block.ts'
 
 export class CodeFile {
@@ -21,11 +21,11 @@ export class CodeFile {
     private exportedRulesCache: Rule[] | null = null
 
     public runResult: ExecuteResult<Block> | null = null
-    public runtime: YaksokSession | null = null // Runtime -> YaksokSession
+    public runtime: YaksokSession | null = null
 
     constructor(public text: string, public fileName: string = '<이름 없음>') {}
 
-    mount(runtime: YaksokSession) { // Runtime -> YaksokSession
+    mount(runtime: YaksokSession) {
         this.runtime = runtime
     }
 

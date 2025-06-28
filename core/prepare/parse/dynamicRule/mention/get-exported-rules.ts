@@ -3,7 +3,7 @@ import { ErrorInModuleError } from '../../../../error/mention.ts'
 import { FileForRunNotExistError } from '../../../../error/prepare.ts'
 import type { YaksokSession } from '../../../../runtime/index.ts'
 import { createMentioningRule } from './create-mentioning-rules.ts'
-import type { Rule } from '../../rule.ts' // Rule 타입 import
+import type { Rule } from '../../rule.ts'
 
 export function getExportedRules(runtime: YaksokSession, fileName: string) {
     const runner = runtime.getCodeFile(fileName)
@@ -11,8 +11,8 @@ export function getExportedRules(runtime: YaksokSession, fileName: string) {
         const rules = runner.exportedRules
 
         const mentioningRules = rules
-            .filter((rule: Rule) => rule.config?.exported) // rule 타입 명시
-            .map((rule: Rule) => createMentioningRule(fileName, rule)) // rule 타입 명시
+            .filter((rule: Rule) => rule.config?.exported)
+            .map((rule: Rule) => createMentioningRule(fileName, rule))
 
         return mentioningRules
     } catch (e) {
