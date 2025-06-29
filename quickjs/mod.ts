@@ -202,7 +202,6 @@ export class QuickJSInternalError extends ErrorInFFIExecution {
 
         super({
             message: output,
-            ffiName: 'QuickJS',
         })
 
         this.name = error.name
