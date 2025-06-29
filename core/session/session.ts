@@ -1,5 +1,6 @@
 import { YaksokError } from '../error/common.ts'
 import {
+    AlreadyRegisteredModuleError,
     FFIRuntimeNotFound,
     FileForRunNotExistError,
     MultipleFFIRuntimeError,
@@ -50,8 +51,11 @@ export class YaksokSession {
 
     addModule(moduleName: string, code: string): CodeFile {
         if (this.files[moduleName]) {
+            throw new AlreadyRegisteredModuleError({
+                resource: { moduleName },
+            })
             // TODO: 더 적절한 에러 타입 정의 필요
-            throw new Error(`Module "${moduleName}" already exists.`)
+            // throw new Error(`Module "${moduleName}" already exists.`)
         }
         const codeFile = new CodeFile(code, moduleName)
         codeFile.mount(this)

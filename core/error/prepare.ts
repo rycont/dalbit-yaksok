@@ -185,3 +185,14 @@ export class MultipleFFIRuntimeError extends YaksokError<{
         )}을 처리할 수 있는 실행 환경이 여러 개 있어요. 실행 환경을 하나로 정해주세요.`
     }
 }
+
+export class AlreadyRegisteredModuleError extends YaksokError<{
+    moduleName: string
+}> {
+    constructor(props: { resource: { moduleName: string } }) {
+        super(props)
+        this.message = `모듈 ${blue(
+            `"${props.resource.moduleName}"`,
+        )}은(는) 이미 등록되어 있어요.`
+    }
+}
