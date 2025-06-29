@@ -12,9 +12,10 @@ import {
     PrimitiveValue,
     StringValue,
     ValueType,
+    type Extension,
+    type ExtensionManifest,
     type FunctionInvokingParams,
 } from '@dalbit-yaksok/core'
-import { Extension, ExtensionManifest } from '../core/extension/extension.ts'
 import { dim } from './util.ts'
 
 export class QuickJS implements Extension {
