@@ -1,25 +1,24 @@
-import {
-    DEFAULT_RUNTIME_CONFIG,
-    Events,
-    type RuntimeConfig,
-} from './runtime-config.ts'
+import { YaksokError } from '../error/common.ts'
 import {
     FFIRuntimeNotFound,
     FileForRunNotExistError,
     MultipleFFIRuntimeError,
 } from '../error/prepare.ts'
 import { renderErrorString } from '../error/render-error-string.ts'
-import { YaksokError } from '../error/common.ts'
+import { ErrorGroups } from '../error/validation.ts'
 import { CodeFile } from '../type/code-file.ts'
-import { Extension } from '../extension/extension.ts'
+import { PubSub } from '../util/pubsub.ts'
+import {
+    DEFAULT_RUNTIME_CONFIG,
+    type Events,
+    type RuntimeConfig,
+} from './runtime-config.ts'
 
 import type { EnabledFlags } from '../constant/feature-flags.ts'
 import type { ExecuteResult } from '../executer/index.ts'
+import type { Extension } from '../extension/extension.ts'
 import type { Block } from '../node/block.ts'
-import { PubSub } from '../util/pubsub.ts'
-import { ErrorGroups } from '../error/validation.ts'
-import { ValueType } from '../value/base.ts'
-import { FFIResultTypeIsNotForYaksokError } from '../error/index.ts'
+import type { ValueType } from '../value/base.ts'
 
 export class YaksokSession {
     public stdout: RuntimeConfig['stdout']
@@ -59,6 +58,12 @@ export class YaksokSession {
         this.files[moduleName] = codeFile
         // addModule은 entryPoint를 변경하지 않음
         return codeFile
+    }
+
+    addModules(modules: Record<string, string>): void {
+        for (const [moduleName, code] of Object.entries(modules)) {
+            this.addModule(moduleName, code)
+        }
     }
 
     async extend(extension: Extension): Promise<void> {
@@ -173,16 +178,7 @@ export class YaksokSession {
         }
 
         const extension = availableExtensions[0]
-
         const result = await extension.executeFFI(code, args)
-
-        if (!result || !(result instanceof ValueType)) {
-            throw new FFIResultTypeIsNotForYaksokError({
-                value: result,
-                ffiName: code,
-                tokens: [],
-            })
-        }
 
         return result
     }
@@ -190,10 +186,7 @@ export class YaksokSession {
 
 export async function yaksok(
     code: string | Record<string, string>,
-    //     config: Partial<RuntimeConfig> = {},
-    //     baseContext?: CodeFile,
-    // ): Promise<{
-) {
+): Promise<ExecuteResult<Block>> {
     const session = new YaksokSession()
 
     if (typeof code === 'string') {
@@ -204,46 +197,6 @@ export async function yaksok(
         }
     }
 
-    await session.runModule('main')
+    const result = await session.runModule('main')
+    return result
 }
-//     runtime: YaksokSession
-//     mainScope: Scope
-//     codeFiles: Record<string, CodeFile>
-// }> {
-//     let runtime: YaksokSession
-
-//     if (typeof code === 'string') {
-//         runtime = new YaksokSession({ main: code }, config, baseContext)
-//     } else {
-//         runtime = new YaksokSession(code, config, baseContext)
-//     }
-
-//     try {
-//         runtime.validate()
-//         await runtime.run()
-
-//         return {
-//             runtime,
-//             mainScope: runtime.getCodeFile().runResult!.scope,
-//             codeFiles: runtime.files,
-//         }
-//     } catch (e) {
-//         if (e instanceof ErrorGroups) {
-//             const errors = e.errors
-
-//             for (const [fileName, errorList] of errors) {
-//                 const codeFile = runtime.getCodeFile(fileName)
-
-//                 for (const error of errorList) {
-//                     error.codeFile = codeFile
-//                     runtime.stderr(renderErrorString(error))
-//                 }
-//             }
-//         }
-
-//         if (e instanceof YaksokError) {
-//             runtime.stderr(renderErrorString(e))
-//         }
-
-//         throw e
-//     }

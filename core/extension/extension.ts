@@ -12,6 +12,6 @@ export interface Extension {
     executeFFI(
         code: string,
         args: FunctionInvokingParams,
-    ): ValueType | Promise<ValueType> | undefined
+    ): ValueType | Promise<ValueType>
     manifest: ExtensionManifest
 }
