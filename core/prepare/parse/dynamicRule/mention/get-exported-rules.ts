@@ -1,14 +1,14 @@
 import { YaksokError } from '../../../../error/common.ts'
 import { ErrorInModuleError } from '../../../../error/mention.ts'
 import { FileForRunNotExistError } from '../../../../error/prepare.ts'
-import type { YaksokSession } from '../../../../runtime/index.ts'
-import { createMentioningRule } from './create-mentioning-rules.ts'
+import type { YaksokSession } from '../../../../session/session.ts'
 import type { Rule } from '../../rule.ts'
+import { createMentioningRule } from './create-mentioning-rules.ts'
 
-export function getExportedRules(runtime: YaksokSession, fileName: string) {
-    const runner = runtime.getCodeFile(fileName)
+export function getExportedRules(session: YaksokSession, fileName: string) {
+    const codeFile = session.getCodeFile(fileName)
     try {
-        const rules = runner.exportedRules
+        const rules = codeFile.exportedRules
 
         const mentioningRules = rules
             .filter((rule: Rule) => rule.config?.exported)

@@ -30,7 +30,7 @@ export class Scope {
         }
 
         if (!config.parent && config.codeFile) {
-            this.parent = config.codeFile.runtime?.baseContext?.runResult?.scope
+            this.parent = config.codeFile.session?.baseContext?.runResult?.scope
         }
     }
 

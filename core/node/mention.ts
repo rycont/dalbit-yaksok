@@ -1,13 +1,12 @@
-import { Evaluable, Identifier, Node } from './base.ts'
-import { ErrorInModuleError } from '../error/index.ts'
 import { YaksokError } from '../error/common.ts'
-import { FunctionInvoke } from './function.ts'
-import { evaluateParams } from './function.ts'
+import { ErrorInModuleError } from '../error/index.ts'
 import { ValueType } from '../value/base.ts'
+import { Evaluable, Identifier, Node } from './base.ts'
+import { evaluateParams, FunctionInvoke } from './function.ts'
 
-import type { Token } from '../prepare/tokenize/token.ts'
-import type { Scope } from '../executer/scope.ts'
 import { IncompleteMentionError } from '../error/unknown-node.ts'
+import type { Scope } from '../executer/scope.ts'
+import type { Token } from '../prepare/tokenize/token.ts'
 
 export class Mention extends Node {
     static override friendlyName = '불러올 파일 이름'
@@ -46,7 +45,7 @@ export class MentionScope extends Evaluable {
     }
 
     override async execute(scope: Scope): Promise<ValueType> {
-        const moduleCodeFile = scope.codeFile!.runtime!.getCodeFile(
+        const moduleCodeFile = scope.codeFile!.session!.getCodeFile(
             this.fileName,
         )
 
@@ -90,7 +89,7 @@ export class MentionScope extends Evaluable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        const moduleCodeFile = scope.codeFile!.runtime!.getCodeFile(
+        const moduleCodeFile = scope.codeFile!.session!.getCodeFile(
             this.fileName,
         )
 

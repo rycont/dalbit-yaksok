@@ -1,9 +1,9 @@
 import type { Node } from '../node/base.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
+import { DEFAULT_SESSION_CONFIG } from '../session/session-config.ts'
+import type { CodeFile } from '../type/code-file.ts'
 import type { Position } from '../type/position.ts'
 import { YaksokError, blue, bold, dim, tokenToText } from './common.ts'
-import { DEFAULT_RUNTIME_CONFIG } from '../runtime/runtime-config.ts'
-import type { CodeFile } from '../type/code-file.ts'
 
 export class CannotParseError extends YaksokError {
     constructor(props: {
@@ -137,7 +137,7 @@ export class FileForRunNotExistError extends YaksokError<{
 
         if (
             props.resource.files.length === 0 &&
-            props.resource.fileName === DEFAULT_RUNTIME_CONFIG.entryPoint
+            props.resource.fileName === DEFAULT_SESSION_CONFIG.entryPoint
         ) {
             this.message = '실행할 코드가 없어요.' // 기본 entryPoint('main')를 실행하려는데 파일이 전혀 없는 경우
         } else {

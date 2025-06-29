@@ -2,12 +2,12 @@ import type { EnabledFlags } from '../constant/feature-flags.ts'
 import type { Position } from '../type/position.ts'
 
 /**
- * RuntimeConfig 객체를 사용하여 약속 런타임을 설정합니다.
+ * SessionConfig 객체를 사용하여 약속 런타임을 설정합니다.
  *
  * ```typescript
- * import { yaksok, RuntimeConfig } from '@dalbit-yaksok/core'
+ * import { yaksok, SessionConfig } from '@dalbit-yaksok/core'
  *
- * const runtimeConfig: RuntimeConfig = {
+ * const sessionConfig: SessionConfig = {
  *    stdout: console.log,
  *    stderr: console.error,
  *    entryPoint: 'main',
@@ -23,11 +23,11 @@ import type { Position } from '../type/position.ts'
  *    }
  * }
  *
- * await yaksok(`"안녕" 보여주기`, runtimeConfig)
+ * await yaksok(`"안녕" 보여주기`, sessionConfig)
  * ```
  */
 
-export interface RuntimeConfig {
+export interface SessionConfig {
     /**
      * `보여주기`에서 전달된 메시지를 처리하는 메소드
      * @default console.log
@@ -68,7 +68,7 @@ export type Events = {
     runningCode: (start: Position, end: Position) => void
 }
 
-export const DEFAULT_RUNTIME_CONFIG: RuntimeConfig = {
+export const DEFAULT_SESSION_CONFIG: SessionConfig = {
     stdout: console.log,
     stderr: console.error,
     entryPoint: 'main',

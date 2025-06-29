@@ -9,10 +9,10 @@ import { ErrorGroups } from '../error/validation.ts'
 import { CodeFile } from '../type/code-file.ts'
 import { PubSub } from '../util/pubsub.ts'
 import {
-    DEFAULT_RUNTIME_CONFIG,
+    DEFAULT_SESSION_CONFIG,
     type Events,
-    type RuntimeConfig,
-} from './runtime-config.ts'
+    type SessionConfig,
+} from './session-config.ts'
 
 import type { EnabledFlags } from '../constant/feature-flags.ts'
 import type { ExecuteResult } from '../executer/index.ts'
@@ -21,9 +21,9 @@ import type { Block } from '../node/block.ts'
 import type { ValueType } from '../value/base.ts'
 
 export class YaksokSession {
-    public stdout: RuntimeConfig['stdout']
-    public stderr: RuntimeConfig['stderr']
-    public executionDelay: RuntimeConfig['executionDelay']
+    public stdout: SessionConfig['stdout']
+    public stderr: SessionConfig['stderr']
+    public executionDelay: SessionConfig['executionDelay']
     public flags: Partial<EnabledFlags> = {}
     public extensions: Extension[] = []
 
@@ -31,10 +31,10 @@ export class YaksokSession {
     public files: Record<string, CodeFile> = {}
 
     constructor(
-        config: Partial<RuntimeConfig> = {},
+        config: Partial<SessionConfig> = {},
         public baseContext?: CodeFile,
     ) {
-        const resolvedConfig = { ...DEFAULT_RUNTIME_CONFIG, ...config }
+        const resolvedConfig = { ...DEFAULT_SESSION_CONFIG, ...config }
 
         for (const _event in resolvedConfig.events) {
             const event = _event as keyof Events
