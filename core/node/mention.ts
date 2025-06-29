@@ -50,9 +50,7 @@ export class MentionScope extends Evaluable {
         )
 
         try {
-            await moduleCodeFile.run()
-
-            const moduleFileScope = moduleCodeFile.runResult!.scope
+            const moduleFileScope = await moduleCodeFile.run()
 
             if (this.child instanceof FunctionInvoke) {
                 const evaluatedParams = await evaluateParams(

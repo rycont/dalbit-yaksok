@@ -5,24 +5,22 @@ import {
 import { Scope } from './scope.ts'
 import { BreakSignal, ReturnSignal } from './signals.ts'
 
-import type { CodeFile } from '../type/code-file.ts'
 import type { Executable } from '../node/base.ts'
+import type { CodeFile } from '../type/code-file.ts'
 
 export async function executer<NodeType extends Executable>(
     node: NodeType,
     codeFile?: CodeFile,
-): Promise<ExecuteResult<NodeType>> {
+): Promise<Scope> {
     const scope =
-        codeFile?.runResult?.scope ||
+        codeFile?.ranScope ||
         new Scope({
             codeFile,
         })
 
     try {
-        const result = (await node.execute(scope)) as Awaited<
-            ReturnType<NodeType['execute']>
-        >
-        return { scope, result }
+        await node.execute(scope)
+        return scope
     } catch (e) {
         if (e instanceof ReturnSignal) {
             throw new CannotReturnOutsideFunctionError({
@@ -38,9 +36,4 @@ export async function executer<NodeType extends Executable>(
 
         throw e
     }
-}
-
-export interface ExecuteResult<NodeType extends Executable> {
-    scope: Scope
-    result: Awaited<ReturnType<NodeType['execute']>>
 }

@@ -1,5 +1,5 @@
 import { YaksokError } from '../error/common.ts'
-import { executer, type ExecuteResult } from '../executer/index.ts'
+import { executer } from '../executer/index.ts'
 import { Scope } from '../executer/scope.ts'
 import { assertIndentValidity } from '../prepare/lex/indent-validity.ts'
 import { mergeArgumentBranchingTokens } from '../prepare/lex/merge-argument-branching-tokens.ts'
@@ -20,7 +20,7 @@ export class CodeFile {
     > | null = null
     private exportedRulesCache: Rule[] | null = null
 
-    public runResult: ExecuteResult<Block> | null = null
+    public ranScope: Scope | null = null
     public session: YaksokSession | null = null
 
     constructor(public text: string, public fileName: string = '<이름 없음>') {}
@@ -113,13 +113,13 @@ export class CodeFile {
         }
     }
 
-    public async run(): Promise<ExecuteResult<Block>> {
-        if (this.runResult) {
-            return this.runResult
+    public async run(): Promise<Scope> {
+        if (this.ranScope) {
+            return this.ranScope
         }
 
         const result = await executer(this.ast, this)
-        this.runResult = result
+        this.ranScope = result
 
         return result
     }

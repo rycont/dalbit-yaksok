@@ -1,4 +1,3 @@
-import { QuickJS } from '@dalbit-yaksok/quickjs'
 import { YaksokSession } from '@dalbit-yaksok/core'
 
 const session = new YaksokSession()
@@ -26,4 +25,5 @@ CODES
 (("이름이 뭐에요?") 물어보기) 보여주기`,
 )
 
-await session.runModule('main')
+const result = await session.runModule('main')
+// await result.evaluate()

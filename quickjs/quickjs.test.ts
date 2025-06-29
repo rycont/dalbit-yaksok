@@ -1,12 +1,13 @@
 import {
+    assert,
     assertEquals,
     assertInstanceOf,
     assertIsError,
     unreachable,
 } from 'assert'
 import { ListValue, StringValue, YaksokSession } from '../core/mod.ts'
-import { QuickJS, QuickJSInternalError } from './mod.ts'
 import { NumberValue } from '../core/value/primitive.ts'
+import { QuickJS, QuickJSInternalError } from './mod.ts'
 
 Deno.test('Error in QuickJS', async () => {
     const session = new YaksokSession()
@@ -47,7 +48,7 @@ Deno.test('QuickJS passed number', async () => {
     )
 
     const result = await session.runModule('main')
-    const 숫자 = result.scope.getVariable('숫자')
+    const 숫자 = result.ranScope!.getVariable('숫자')
     assertInstanceOf(숫자, NumberValue)
     assertEquals(숫자.value, 20)
     assertEquals(숫자.toPrint(), '20')
@@ -70,7 +71,7 @@ Deno.test('QuickJS passed Array<number>', async () => {
     )
 
     const result = await session.runModule('main')
-    const 숫자 = result.scope.getVariable('숫자')
+    const 숫자 = result.ranScope!.getVariable('숫자')
     assertInstanceOf(숫자, ListValue)
     assertEquals(숫자.toPrint(), '[20, 30]')
 })
@@ -127,13 +128,15 @@ Deno.test('JavaScript bridge function passed object', async () => {
 `,
     )
 
-    const result = await session.runModule('main')
+    const { ranScope } = await session.runModule('main')
 
-    const 학생 = result.scope.getVariable('학생') as StringValue
-    const 이름 = result.scope.getVariable('이름') as StringValue
-    const 나이 = result.scope.getVariable('나이') as NumberValue
-    const 더한_결과 = result.scope.getVariable('더한_결과') as NumberValue
-    const 모든_이름 = result.scope.getVariable('모든_이름') as ListValue
+    assert(ranScope, 'ranScope should not be null')
+
+    const 학생 = ranScope.getVariable('학생') as StringValue
+    const 이름 = ranScope.getVariable('이름') as StringValue
+    const 나이 = ranScope.getVariable('나이') as NumberValue
+    const 더한_결과 = ranScope.getVariable('더한_결과') as NumberValue
+    const 모든_이름 = ranScope.getVariable('모든_이름') as ListValue
 
     assertInstanceOf(학생, StringValue)
     assertInstanceOf(이름, StringValue)

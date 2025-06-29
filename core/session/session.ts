@@ -16,9 +16,7 @@ import {
 } from './session-config.ts'
 
 import type { EnabledFlags } from '../constant/feature-flags.ts'
-import type { ExecuteResult } from '../executer/index.ts'
 import type { Extension } from '../extension/extension.ts'
-import type { Block } from '../node/block.ts'
 import type { ValueType } from '../value/base.ts'
 
 export class YaksokSession {
@@ -75,7 +73,7 @@ export class YaksokSession {
         await extension.init()
     }
 
-    async runModule(moduleName: string): Promise<ExecuteResult<Block>> {
+    async runModule(moduleName: string): Promise<CodeFile> {
         const codeFile = this.files[moduleName]
         if (!codeFile) {
             throw new FileForRunNotExistError({
@@ -88,8 +86,8 @@ export class YaksokSession {
 
         try {
             this.validate(moduleName)
-            const result = await codeFile.run()
-            return result
+            await codeFile.run()
+            return codeFile
         } catch (e) {
             if (e instanceof YaksokError && !e.codeFile) {
                 e.codeFile = codeFile
@@ -190,7 +188,7 @@ export class YaksokSession {
 
 export async function yaksok(
     code: string | Record<string, string>,
-): Promise<ExecuteResult<Block>> {
+): Promise<CodeFile> {
     const session = new YaksokSession()
 
     if (typeof code === 'string') {
