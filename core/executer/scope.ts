@@ -29,8 +29,8 @@ export class Scope {
             this.codeFile = config.parent.codeFile
         }
 
-        if (!config.parent && config.codeFile) {
-            this.parent = config.codeFile.session?.baseContext?.ranScope!
+        if (!config.parent && config.codeFile?.session?.baseContext?.ranScope) {
+            this.parent = config.codeFile.session.baseContext.ranScope
         }
     }
 

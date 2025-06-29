@@ -32,7 +32,7 @@ export class FFIResultTypeIsNotForYaksokError extends YaksokError {
 }
 
 export class ErrorInFFIExecution extends YaksokError {
-    constructor(props: { message: string; ffiName: string }) {
+    constructor(props: { message: string }) {
         super({})
         this.message = props.message
     }

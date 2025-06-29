@@ -52,8 +52,6 @@ export class YaksokSession {
             throw new AlreadyRegisteredModuleError({
                 resource: { moduleName: moduleName.toString() },
             })
-            // TODO: 더 적절한 에러 타입 정의 필요
-            // throw new Error(`Module "${moduleName}" already exists.`)
         }
         const codeFile = new CodeFile(code, moduleName)
         codeFile.mount(this)
