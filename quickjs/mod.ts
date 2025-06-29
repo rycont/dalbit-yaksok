@@ -165,14 +165,6 @@ interface QuickJSErrorData {
 
 export class QuickJSInternalError extends ErrorInFFIExecution {
     constructor(error: QuickJSErrorData) {
-        super({
-            message: error.message,
-            ffiName: 'QuickJS',
-        })
-
-        this.name = error.name
-        this.stack = error.stack
-
         let output = ''
 
         output += error.message + '\n\n'
@@ -185,7 +177,13 @@ export class QuickJSInternalError extends ErrorInFFIExecution {
             .join('\n')
         output += '\n└─────'
 
-        this.message = output
+        super({
+            message: output,
+            ffiName: 'QuickJS',
+        })
+
+        this.name = error.name
+        this.stack = error.stack
     }
 }
 
