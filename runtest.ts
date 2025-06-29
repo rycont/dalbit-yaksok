@@ -8,6 +8,7 @@ await session.setBaseContext(
     `
 번역(QuickJS), (문장) 물어보기
 ***
+어쩌라고요
     return prompt(문장)
 ***
 `,

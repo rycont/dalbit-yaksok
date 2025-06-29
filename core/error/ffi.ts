@@ -30,3 +30,25 @@ export class FFIResultTypeIsNotForYaksokError extends YaksokError {
         )}여야 해요.`
     }
 }
+
+export class ErrorInFFIExecution extends YaksokError {
+    constructor(props: { message: string; ffiName: string }) {
+        super({})
+        this.message = props.message
+    }
+}
+
+export class ErrorOccurredWhileRunningFFIExecution extends YaksokError {
+    constructor(props: {
+        ffiName: string
+        tokens: Token[]
+        child: YaksokError
+    }) {
+        super(props)
+        this.child = props.child
+
+        this.message = `번역 ${bold(
+            blue('("' + props.ffiName + '")'),
+        )}을 실행 중에 문제가 발생했어요.`
+    }
+}
