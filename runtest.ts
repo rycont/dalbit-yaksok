@@ -1,31 +1,27 @@
-import { yaksok } from '@dalbit-yaksok/core'
+import { YaksokSession } from '@dalbit-yaksok/core'
 import { QuickJS } from '@dalbit-yaksok/quickjs'
 
-const quickjs = new QuickJS({
-    prompt,
-})
+const session = new YaksokSession()
+await session.extend(new QuickJS({ prompt }))
 
-await quickjs.init()
-
-await yaksok(
+await session.setBaseContext(
     `
-번역(JavaScript), (arr) (n)번째 값 제거
+번역(QuickJS), (문장) 물어보기
 ***
-return [...arr.slice(0, n), ...arr.slice(n + 1)];
+어쩌라고요
+    return prompt(문장)
 ***
-
-배열 = [1, 2, 3, 4, 5]
-배열 보여주기
-배열[2] 보여주기
-
-삭제된거 = 배열 2번째 값 제거
-삭제된거 보여주기
-삭제된거[2] 보여주기
-배열 보여주기
 `,
-    {
-        runFFI(_, code, args) {
-            return quickjs.run(code, args)
-        },
-    },
 )
+
+session.addModule(
+    'main',
+    `
+이름 = "이름이 뭐예요?" 물어보기
+나이 = "몇 살이에요?" 물어보기
+
+"안녕, " + 이름 + "님! 당신은 " + 나이 + "살이군요!" 보여주기
+`,
+)
+
+await session.runModule('main')

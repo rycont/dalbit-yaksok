@@ -1,7 +1,7 @@
 import { Token } from '../prepare/tokenize/token.ts'
 import { Position } from '../type/position.ts'
 
-import { type YaksokError, bold, dim, underline } from './common.ts'
+import { bold, dim, underline, type YaksokError } from './common.ts'
 
 export function renderErrorString(error: YaksokError) {
     const code = error.codeFile?.text
@@ -13,7 +13,7 @@ export function renderErrorString(error: YaksokError) {
 
     output +=
         `🚨  ${bold(`문제가 발생했어요`)}${
-            fileName ? dim(` (${fileName} 파일)`) : ''
+            fileName ? dim(` (${fileName.toString()} 파일)`) : ''
         } 🚨` + '\n'
 
     if (error.position)

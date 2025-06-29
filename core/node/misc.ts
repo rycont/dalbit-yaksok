@@ -1,5 +1,5 @@
-import { Node, Executable, type Evaluable } from './base.ts'
 import { YaksokError } from '../error/common.ts'
+import { Executable, Node, type Evaluable } from './base.ts'
 
 import type { Scope } from '../executer/scope.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
@@ -36,7 +36,7 @@ export class Print extends Executable {
     }
 
     override async execute(scope: Scope): Promise<void> {
-        const printFunction = scope.codeFile?.runtime?.stdout || console.log
+        const printFunction = scope.codeFile?.session?.stdout || console.log
         const evaluated = await this.value.execute(scope)
 
         printFunction(evaluated.toPrint())

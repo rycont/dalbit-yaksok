@@ -1,21 +1,30 @@
 import {
+    newQuickJSWASMModuleFromVariant,
     newVariant,
     RELEASE_SYNC,
-    newQuickJSWASMModuleFromVariant,
 } from 'quickjs-emscripten'
-import type { QuickJSWASMModule, QuickJSContext } from 'quickjs-emscripten-core'
+import type { QuickJSContext, QuickJSWASMModule } from 'quickjs-emscripten-core'
 
 import {
+    ErrorInFFIExecution,
     ListValue,
-    PrimitiveValue,
-    ValueType,
     NumberValue,
+    PrimitiveValue,
     StringValue,
+    ValueType,
+    type Extension,
+    type ExtensionManifest,
     type FunctionInvokingParams,
 } from '@dalbit-yaksok/core'
-import { bold, dim } from './util.ts'
+import { dim } from './util.ts'
 
-export class QuickJS {
+export class QuickJS implements Extension {
+    public manifest: ExtensionManifest = {
+        ffiRunner: {
+            runtimeName: 'QuickJS',
+        },
+    }
+
     private instance: QuickJSWASMModule | null = null
 
     constructor(
@@ -35,7 +44,10 @@ export class QuickJS {
         this.instance = await newQuickJSWASMModuleFromVariant(variant)
     }
 
-    public run(bodyCode: string, args: FunctionInvokingParams): ValueType {
+    public executeFFI(
+        bodyCode: string,
+        args: FunctionInvokingParams,
+    ): ValueType {
         const wrappedCode = createWrapperCodeFromFFICall(bodyCode, args)
         const vm = this.createContext()
 
@@ -175,30 +187,26 @@ interface QuickJSErrorData {
     stack: string
 }
 
-export class QuickJSInternalError extends Error {
+export class QuickJSInternalError extends ErrorInFFIExecution {
     constructor(error: QuickJSErrorData) {
-        super(error.message)
-
-        this.name = error.name
-        this.stack = error.stack
-
         let output = ''
 
-        output += '─────\n\n'
-        output += `🚨  ${bold(`[QuickJS] 문제가 발생했어요`)}  🚨` + '\n\n'
-        output += '> ' + error.message + '\n\n'
+        output += error.message + '\n\n'
 
         output += '┌─────\n'
-
         output += error.stack
             .split('\n')
             .filter((line) => line.length)
             .map((line, index) => `│ ${dim(index + 1)}${line}`)
             .join('\n')
+        output += '\n└─────'
 
-        output += '\n└─────\n'
+        super({
+            message: output,
+        })
 
-        console.error(output)
+        this.name = error.name
+        this.stack = error.stack
     }
 }
 

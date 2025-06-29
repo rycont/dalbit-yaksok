@@ -1,13 +1,12 @@
-import { Evaluable, Identifier, Node } from './base.ts'
-import { ErrorInModuleError } from '../error/index.ts'
 import { YaksokError } from '../error/common.ts'
-import { FunctionInvoke } from './function.ts'
-import { evaluateParams } from './function.ts'
+import { ErrorInModuleError } from '../error/index.ts'
 import { ValueType } from '../value/base.ts'
+import { Evaluable, Identifier, Node } from './base.ts'
+import { evaluateParams, FunctionInvoke } from './function.ts'
 
-import type { Token } from '../prepare/tokenize/token.ts'
-import type { Scope } from '../executer/scope.ts'
 import { IncompleteMentionError } from '../error/unknown-node.ts'
+import type { Scope } from '../executer/scope.ts'
+import type { Token } from '../prepare/tokenize/token.ts'
 
 export class Mention extends Node {
     static override friendlyName = '불러올 파일 이름'
@@ -46,14 +45,12 @@ export class MentionScope extends Evaluable {
     }
 
     override async execute(scope: Scope): Promise<ValueType> {
-        const moduleCodeFile = scope.codeFile!.runtime!.getCodeFile(
+        const moduleCodeFile = scope.codeFile!.session!.getCodeFile(
             this.fileName,
         )
 
         try {
-            await moduleCodeFile.run()
-
-            const moduleFileScope = moduleCodeFile.runResult!.scope
+            const moduleFileScope = await moduleCodeFile.run()
 
             if (this.child instanceof FunctionInvoke) {
                 const evaluatedParams = await evaluateParams(
@@ -90,7 +87,7 @@ export class MentionScope extends Evaluable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        const moduleCodeFile = scope.codeFile!.runtime!.getCodeFile(
+        const moduleCodeFile = scope.codeFile!.session!.getCodeFile(
             this.fileName,
         )
 
@@ -130,9 +127,12 @@ export class MentionScope extends Evaluable {
                 childErrors = childErrors.concat(param.validate(scope))
             }
         } else {
-            childErrors = childErrors.concat(
-                this.child.validate(validatingScope),
-            )
+            // validatingScope가 undefined가 아닐 때만 자식 노드의 validate 호출
+            if (validatingScope) {
+                childErrors = childErrors.concat(
+                    this.child.validate(validatingScope),
+                )
+            }
         }
 
         return [...moduleErrors, ...childErrors]

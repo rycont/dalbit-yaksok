@@ -1,6 +1,6 @@
-import { Node } from '../../../../node/base.ts'
-import { FunctionTemplate } from '../../../../type/function-template.ts'
-import { PatternUnit } from '../../rule.ts'
+import type { Node } from '../../../../node/base.ts'
+import type { FunctionTemplate } from '../../../../type/function-template.ts'
+import type { PatternUnit } from '../../type.ts'
 
 export interface FunctionDeclareRulePreset {
     prefix: PatternUnit[]

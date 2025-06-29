@@ -1,16 +1,16 @@
-import { mergeArgumentBranchingTokens } from '../prepare/lex/merge-argument-branching-tokens.ts'
-import { getFunctionDeclareRanges } from '../util/get-function-declare-ranges.ts'
-import { assertIndentValidity } from '../prepare/lex/indent-validity.ts'
-import { executer, type ExecuteResult } from '../executer/index.ts'
-import { tokenize } from '../prepare/tokenize/index.ts'
-import { parse } from '../prepare/parse/index.ts'
 import { YaksokError } from '../error/common.ts'
+import { executer } from '../executer/index.ts'
 import { Scope } from '../executer/scope.ts'
+import { assertIndentValidity } from '../prepare/lex/indent-validity.ts'
+import { mergeArgumentBranchingTokens } from '../prepare/lex/merge-argument-branching-tokens.ts'
+import { parse } from '../prepare/parse/index.ts'
+import { tokenize } from '../prepare/tokenize/index.ts'
+import { getFunctionDeclareRanges } from '../util/get-function-declare-ranges.ts'
 
-import type { Token } from '../prepare/tokenize/token.ts'
-import type { Rule } from '../prepare/parse/type.ts'
-import type { Runtime } from '../runtime/index.ts'
 import type { Block } from '../node/block.ts'
+import type { Rule } from '../prepare/parse/type.ts'
+import type { Token } from '../prepare/tokenize/token.ts'
+import type { YaksokSession } from '../session/session.ts'
 
 export class CodeFile {
     private tokenized: Token[] | null = null
@@ -20,17 +20,17 @@ export class CodeFile {
     > | null = null
     private exportedRulesCache: Rule[] | null = null
 
-    public runResult: ExecuteResult<Block> | null = null
-    public runtime: Runtime | null = null
+    public ranScope: Scope | null = null
+    public session: YaksokSession | null = null
 
-    constructor(public text: string, public fileName: string = '<이름 없음>') {}
+    constructor(public text: string, public fileName: string | symbol) {}
 
-    mount(runtime: Runtime) {
-        this.runtime = runtime
+    mount(session: YaksokSession) {
+        this.session = session
     }
 
     public get mounted(): boolean {
-        return this.runtime !== null
+        return this.session !== null
     }
 
     public get tokens(): Token[] {
@@ -113,13 +113,13 @@ export class CodeFile {
         }
     }
 
-    public async run(): Promise<ExecuteResult<Block>> {
-        if (this.runResult) {
-            return this.runResult
+    public async run(): Promise<Scope> {
+        if (this.ranScope) {
+            return this.ranScope
         }
 
         const result = await executer(this.ast, this)
-        this.runResult = result
+        this.ranScope = result
 
         return result
     }

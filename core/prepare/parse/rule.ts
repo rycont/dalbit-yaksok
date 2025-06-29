@@ -44,8 +44,10 @@ import { NotEqualOperator } from '../../node/operator.ts'
 import { ReturnStatement } from '../../node/return.ts'
 import { IndexedValue } from '../../value/indexed.ts'
 import { NumberValue, StringValue } from '../../value/primitive.ts'
-import { Rule, RULE_FLAGS } from './type.ts'
+import type { Rule } from './type.ts'
+import { RULE_FLAGS } from './type.ts'
 
+export type { Rule }
 export const BASIC_RULES: Rule[][] = [
     [
         {

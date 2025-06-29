@@ -1,83 +1,71 @@
 import {
+    assert,
     assertEquals,
     assertInstanceOf,
     assertIsError,
     unreachable,
 } from 'assert'
-import { ListValue, StringValue, yaksok } from '../core/mod.ts'
+import {
+    ErrorOccurredWhileRunningFFIExecution,
+    ListValue,
+    NumberValue,
+    StringValue,
+    YaksokSession,
+} from '../core/mod.ts'
 import { QuickJS, QuickJSInternalError } from './mod.ts'
-import { NumberValue } from '../core/value/primitive.ts'
 
 Deno.test('Error in QuickJS', async () => {
-    const quickJS = new QuickJS()
-    await quickJS.init()
+    const session = new YaksokSession()
+    await session.extend(new QuickJS())
 
     try {
-        await yaksok(
-            `
-번역(QuickJS), 에러 발생
+        session.addModule(
+            'main',
+            `번역(QuickJS), 에러 발생
 ***
     throw new Error('QuickJS Error')
 ***
 
-에러 발생`,
-            {
-                runFFI(_, code, args) {
-                    const result = quickJS.run(code, args)
-
-                    if (!result) {
-                        throw new Error('Result is null')
-                    }
-
-                    return result
-                },
-            },
+에러 발생
+`,
         )
 
+        await session.runModule('main')
         unreachable()
     } catch (error) {
-        assertIsError(error, QuickJSInternalError)
+        assertIsError(error, ErrorOccurredWhileRunningFFIExecution)
+        assertIsError(error.child, QuickJSInternalError)
     }
 })
 
 Deno.test('QuickJS passed number', async () => {
-    const quickJS = new QuickJS()
-    await quickJS.init()
+    const session = new YaksokSession()
+    await session.extend(new QuickJS())
 
-    const result = await yaksok(
+    session.addModule(
+        'main',
         `
 번역(QuickJS), 랜덤 수
 ***
     return 20
 ***
 
-숫자 = 랜덤 수
-        `,
-        {
-            runFFI(_, code, args) {
-                const result = quickJS.run(code, args)
-
-                if (!result) {
-                    throw new Error('Result is null')
-                }
-
-                return result
-            },
-        },
+숫자 = 랜덤 수`,
     )
 
-    assertInstanceOf(result.mainScope.getVariable('숫자'), NumberValue)
-    assertEquals(
-        (result.mainScope.getVariable('숫자') as NumberValue).value,
-        20,
-    )
+    const result = await session.runModule('main')
+    const 숫자 = result.ranScope!.getVariable('숫자')
+    assertInstanceOf(숫자, NumberValue)
+    assertEquals(숫자.value, 20)
+    assertEquals(숫자.toPrint(), '20')
 })
 
 Deno.test('QuickJS passed Array<number>', async () => {
-    const quickJS = new QuickJS()
-    await quickJS.init()
+    const session = new YaksokSession()
+    await session.extend(new QuickJS())
 
-    const result = await yaksok(
+    session.addModule(
+        'main',
         `
 번역(QuickJS), 랜덤 수
 ***
@@ -85,21 +73,13 @@ Deno.test('QuickJS passed Array<number>', async () => {
 ***
 
 숫자 = 랜덤 수
-        `,
-        {
-            runFFI(_, code, args) {
-                const result = quickJS.run(code, args)
-
-                if (!result) {
-                    throw new Error('Result is null')
-                }
-
-                return result
-            },
-        },
+`,
     )
 
-    assertEquals(result.mainScope.getVariable('숫자').toPrint(), '[20, 30]')
+    const result = await session.runModule('main')
+    const 숫자 = result.ranScope!.getVariable('숫자')
+    assertInstanceOf(숫자, ListValue)
+    assertEquals(숫자.toPrint(), '[20, 30]')
 })
 
 Deno.test('JavaScript bridge function passed object', async () => {
@@ -112,9 +92,12 @@ Deno.test('JavaScript bridge function passed object', async () => {
         age: () => 20,
         allNames: () => ['홍길동', '임꺽정', '김철수'],
     })
-    await quickJS.init()
 
-    const result = await yaksok(
+    const session = new YaksokSession()
+    await session.extend(quickJS)
+
+    session.addModule(
+        'main',
         `
 번역(QuickJS), 학생 정보
 ***
@@ -149,24 +132,17 @@ Deno.test('JavaScript bridge function passed object', async () => {
 
 모든_이름 = 모든 이름
 `,
-        {
-            runFFI(_, code, args) {
-                const result = quickJS.run(code, args)
-
-                if (!result) {
-                    throw new Error('Result is null')
-                }
-
-                return result
-            },
-        },
     )
 
-    const 학생 = result.mainScope.getVariable('학생') as StringValue
-    const 이름 = result.mainScope.getVariable('이름') as StringValue
-    const 나이 = result.mainScope.getVariable('나이') as NumberValue
-    const 더한_결과 = result.mainScope.getVariable('더한_결과') as NumberValue
-    const 모든_이름 = result.mainScope.getVariable('모든_이름') as ListValue
+    const { ranScope } = await session.runModule('main')
+
+    assert(ranScope, 'ranScope should not be null')
+
+    const 학생 = ranScope.getVariable('학생') as StringValue
+    const 이름 = ranScope.getVariable('이름') as StringValue
+    const 나이 = ranScope.getVariable('나이') as NumberValue
+    const 더한_결과 = ranScope.getVariable('더한_결과') as NumberValue
+    const 모든_이름 = ranScope.getVariable('모든_이름') as ListValue
 
     assertInstanceOf(학생, StringValue)
     assertInstanceOf(이름, StringValue)
@@ -183,11 +159,16 @@ Deno.test('JavaScript bridge function passed object', async () => {
 })
 
 Deno.test('Yaksok Passed List<string>', async () => {
-    const quickJS = new QuickJS()
-    await quickJS.init()
     let buffer = ''
+    const session = new YaksokSession({
+        stdout(message) {
+            buffer += message + '\n'
+        },
+    })
+    await session.extend(new QuickJS())
 
-    const result = await yaksok(
+    session.addModule(
+        'main',
         `
 번역(QuickJS), (배열) 중 최대값
 ***
@@ -207,23 +188,11 @@ Deno.test('Yaksok Passed List<string>', async () => {
 내_점수 보여주기
 내_점수 중 최대값 보여주기
 `,
-        {
-            runFFI(_, code, args) {
-                const result = quickJS.run(code, args)
-
-                if (!result) {
-                    throw new Error('Result is null')
-                }
-
-                return result
-            },
-            stdout(message) {
-                buffer += message + '\n'
-            },
-        },
     )
 
-    const 내_점수 = result.mainScope.getVariable('내_점수')
+    const result = await session.runModule('main')
+
+    const 내_점수 = result.ranScope!.getVariable('내_점수')
     assertInstanceOf(내_점수, ListValue)
     assertEquals(내_점수.toPrint(), '[80, 90]')
 
@@ -231,10 +200,15 @@ Deno.test('Yaksok Passed List<string>', async () => {
 })
 
 Deno.test('QuickJS Passed List<string> - 빈 배열', async () => {
-    const quickJS = new QuickJS()
-    await quickJS.init()
     let output = ''
-    await yaksok(
+    const session = new YaksokSession({
+        stdout: (str) => {
+            output += str
+        },
+    })
+    await session.extend(new QuickJS())
+    session.addModule(
+        'main',
         `번역(QuickJS), (배열) 길이
 ***
     return 배열.length
@@ -242,23 +216,21 @@ Deno.test('QuickJS Passed List<string> - 빈 배열', async () => {
 
 배열 = []
 배열 길이 보여주기`,
-        {
-            runFFI(_, code, args) {
-                return quickJS.run(code, args)
-            },
-            stdout: (str) => {
-                output += str
-            },
-        },
     )
+    await session.runModule('main')
     assertEquals(output, '0')
 })
 
 Deno.test('QuickJS Passed List<string> - 중복 값', async () => {
-    const quickJS = new QuickJS()
-    await quickJS.init()
     let output = ''
-    await yaksok(
+    const session = new YaksokSession({
+        stdout: (str) => {
+            output += str
+        },
+    })
+    await session.extend(new QuickJS())
+    session.addModule(
+        'main',
         `번역(QuickJS), (배열) 합치기
 ***
     return 배열.join(",")
@@ -266,23 +238,21 @@ Deno.test('QuickJS Passed List<string> - 중복 값', async () => {
 
 배열 = ["a", "a", "b"]
 배열 합치기 보여주기`,
-        {
-            runFFI(_, code, args) {
-                return quickJS.run(code, args)
-            },
-            stdout: (str) => {
-                output += str
-            },
-        },
     )
+    await session.runModule('main')
     assertEquals(output, 'a,a,b')
 })
 
 Deno.test('QuickJS Passed List<string> - 특수문자/이모지/빈문자', async () => {
-    const quickJS = new QuickJS()
-    await quickJS.init()
     let output = ''
-    await yaksok(
+    const session = new YaksokSession({
+        stdout: (str) => {
+            output += str
+        },
+    })
+    await session.extend(new QuickJS())
+    session.addModule(
+        'main',
         `번역(QuickJS), (배열) 합치기
 ***
     return 배열.join("|")
@@ -290,23 +260,21 @@ Deno.test('QuickJS Passed List<string> - 특수문자/이모지/빈문자', asyn
 
 배열 = ["😀", "a!@#", "한글", ""]
 배열 합치기 보여주기`,
-        {
-            runFFI(_, code, args) {
-                return quickJS.run(code, args)
-            },
-            stdout: (str) => {
-                output += str
-            },
-        },
     )
+    await session.runModule('main')
     assertEquals(output, '😀|a!@#|한글|')
 })
 
 Deno.test('QuickJS Passed List<string> - 영문 대문자 변환', async () => {
-    const quickJS = new QuickJS()
-    await quickJS.init()
     let output = ''
-    await yaksok(
+    const session = new YaksokSession({
+        stdout: (str) => {
+            output += str
+        },
+    })
+    await session.extend(new QuickJS())
+    session.addModule(
+        'main',
         `번역(QuickJS), (배열) 대문자
 ***
     return 배열.map(x => x.toUpperCase()).join("")
@@ -314,23 +282,21 @@ Deno.test('QuickJS Passed List<string> - 영문 대문자 변환', async () => {
 
 배열 = ["a", "b", "c"]
 배열 대문자 보여주기`,
-        {
-            runFFI(_, code, args) {
-                return quickJS.run(code, args)
-            },
-            stdout: (str) => {
-                output += str
-            },
-        },
     )
+    await session.runModule('main')
     assertEquals(output, 'ABC')
 })
 
 Deno.test('QuickJS Passed List<string> - 공백/탭/개행', async () => {
-    const quickJS = new QuickJS()
-    await quickJS.init()
     let output = ''
-    await yaksok(
+    const session = new YaksokSession({
+        stdout: (str) => {
+            output += str
+        },
+    })
+    await session.extend(new QuickJS())
+    session.addModule(
+        'main',
         `번역(QuickJS), (배열) 길이합치기
 ***
     return 배열.map(x => x.length).join(",")
@@ -338,23 +304,21 @@ Deno.test('QuickJS Passed List<string> - 공백/탭/개행', async () => {
 
 배열 = [" ", "   ", "\\t", "\\n"]
 배열 길이합치기 보여주기`,
-        {
-            runFFI(_, code, args) {
-                return quickJS.run(code, args)
-            },
-            stdout: (str) => {
-                output += str
-            },
-        },
     )
+    await session.runModule('main')
     assertEquals(output, '1,3,1,1')
 })
 
 Deno.test('QuickJS Passed List<string> - 한글 포함 여부', async () => {
-    const quickJS = new QuickJS()
-    await quickJS.init()
     let output = ''
-    await yaksok(
+    const session = new YaksokSession({
+        stdout: (str) => {
+            output += str
+        },
+    })
+    await session.extend(new QuickJS())
+    session.addModule(
+        'main',
         `번역(QuickJS), (배열) 포함
 ***
     return 배열.includes("나") ? "Y" : "N"
@@ -362,23 +326,21 @@ Deno.test('QuickJS Passed List<string> - 한글 포함 여부', async () => {
 
 배열 = ["가", "나", "다"]
 배열 포함 보여주기`,
-        {
-            runFFI(_, code, args) {
-                return quickJS.run(code, args)
-            },
-            stdout: (str) => {
-                output += str
-            },
-        },
     )
+    await session.runModule('main')
     assertEquals(output, 'Y')
 })
 
 Deno.test('QuickJS Passed List<string> - 숫자 문자열 합치기', async () => {
-    const quickJS = new QuickJS()
-    await quickJS.init()
     let output = ''
-    await yaksok(
+    const session = new YaksokSession({
+        stdout: (str) => {
+            output += str
+        },
+    })
+    await session.extend(new QuickJS())
+    session.addModule(
+        'main',
         `번역(QuickJS), (배열) 합치기
 ***
     return 배열.reduce((a, b) => a + b, "")
@@ -386,23 +348,21 @@ Deno.test('QuickJS Passed List<string> - 숫자 문자열 합치기', async () =
 
 배열 = ["1", "2", "3"]
 배열 합치기 보여주기`,
-        {
-            runFFI(_, code, args) {
-                return quickJS.run(code, args)
-            },
-            stdout: (str) => {
-                output += str
-            },
-        },
     )
+    await session.runModule('main')
     assertEquals(output, '123')
 })
 
 Deno.test('QuickJS Passed List<string> - 2차원 배열 flat', async () => {
-    const quickJS = new QuickJS()
-    await quickJS.init()
     let output = ''
-    await yaksok(
+    const session = new YaksokSession({
+        stdout: (str) => {
+            output += str
+        },
+    })
+    await session.extend(new QuickJS())
+    session.addModule(
+        'main',
         `번역(QuickJS), (배열) flat
 ***
     return 배열.flat().join("")
@@ -411,14 +371,7 @@ Deno.test('QuickJS Passed List<string> - 2차원 배열 flat', async () => {
 A = ["x", "y"]
 B = [A, ["z", "r"]]
 B flat 보여주기`,
-        {
-            runFFI(_, code, args) {
-                return quickJS.run(code, args)
-            },
-            stdout: (str) => {
-                output += str
-            },
-        },
     )
+    await session.runModule('main')
     assertEquals(output, 'xyzr')
 })

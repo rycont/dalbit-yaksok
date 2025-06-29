@@ -1,13 +1,17 @@
+import { Scope } from '../executer/scope.ts'
 import { assertValidReturnValue } from '../util/assert-valid-return-value.ts'
+import { ValueType } from '../value/base.ts'
 import { FunctionObject } from '../value/function.ts'
 import { Evaluable, Executable } from './base.ts'
-import { ValueType } from '../value/base.ts'
-import { Scope } from '../executer/scope.ts'
 
 import type { FunctionInvokingParams } from '../constant/type.ts'
+import { YaksokError } from '../error/common.ts'
+import {
+    ErrorInFFIExecution,
+    ErrorOccurredWhileRunningFFIExecution,
+} from '../error/ffi.ts'
 import { TOKEN_TYPE, type Token } from '../prepare/tokenize/token.ts'
 import { Block } from './block.ts'
-import { YaksokError } from '../error/common.ts'
 
 export class DeclareFunction extends Executable {
     static override friendlyName = '새 약속 만들기'
@@ -77,11 +81,28 @@ export class FunctionInvoke extends Evaluable {
         }
 
         const functionObject = scope.getFunctionObject(this.name)
-        const returnValue = await functionObject.run(args)
 
-        assertValidReturnValue(this, returnValue)
+        try {
+            const returnValue = await functionObject.run(args)
+            assertValidReturnValue(this, returnValue)
 
-        return returnValue
+            return returnValue
+        } catch (error) {
+            if (error instanceof ErrorInFFIExecution) {
+                const errorInstance = new ErrorOccurredWhileRunningFFIExecution(
+                    {
+                        child: error,
+                        tokens: this.tokens,
+                        ffiName: this.name,
+                    },
+                )
+
+                errorInstance.codeFile = scope.codeFile
+                throw errorInstance
+            }
+
+            throw error
+        }
     }
 
     get value(): string {

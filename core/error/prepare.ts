@@ -1,5 +1,7 @@
-import { Node } from '../node/base.ts'
-import { Token } from '../prepare/tokenize/token.ts'
+import type { Node } from '../node/base.ts'
+import type { Token } from '../prepare/tokenize/token.ts'
+import { DEFAULT_SESSION_CONFIG } from '../session/session-config.ts'
+import type { CodeFile } from '../type/code-file.ts'
 import type { Position } from '../type/position.ts'
 import { YaksokError, blue, bold, dim, tokenToText } from './common.ts'
 
@@ -133,14 +135,64 @@ export class FileForRunNotExistError extends YaksokError<{
     }) {
         super(props)
 
-        if (props.resource.files.length === 0) {
-            this.message = '실행할 코드가 없어요.'
+        if (
+            props.resource.files.length === 0 &&
+            props.resource.fileName === DEFAULT_SESSION_CONFIG.entryPoint
+        ) {
+            this.message = '실행할 코드가 없어요.' // 기본 entryPoint('main')를 실행하려는데 파일이 전혀 없는 경우
         } else {
-            this.message = `주어진 코드(${dim(
-                props.resource.files.join(', '),
-            )})에서 ${blue(
+            this.message = `실행하려는 파일 ${blue(
                 `"${props.resource.fileName}"`,
-            )} 파일을 찾을 수 없어요. `
+            )}을(를) 찾을 수 없어요. ${
+                props.resource.files.length > 0
+                    ? `현재 사용 가능한 파일: ${dim(
+                          props.resource.files.join(', '),
+                      )}`
+                    : ''
+            }`.trim()
         }
+    }
+}
+
+export class FFIRuntimeNotFound extends YaksokError<{
+    runtimeName: string
+}> {
+    constructor(props: {
+        resource: { runtimeName: string }
+        position?: Position
+        tokens?: Token[]
+        codeFile?: CodeFile
+    }) {
+        super(props)
+        this.message = `번역${bold(
+            '(' + props.resource.runtimeName + ')',
+        )}을 처리할 수 있는 실행 환경이 없어요.`
+    }
+}
+
+export class MultipleFFIRuntimeError extends YaksokError<{
+    runtimeName: string
+}> {
+    constructor(props: {
+        resource: { runtimeName: string }
+        position?: Position
+        tokens?: Token[]
+        codeFile?: CodeFile
+    }) {
+        super(props)
+        this.message = `번역${bold(
+            '(' + props.resource.runtimeName + ')',
+        )}을 처리할 수 있는 실행 환경이 여러 개 있어요. 실행 환경을 하나로 정해주세요.`
+    }
+}
+
+export class AlreadyRegisteredModuleError extends YaksokError<{
+    moduleName: string
+}> {
+    constructor(props: { resource: { moduleName: string } }) {
+        super(props)
+        this.message = `모듈 ${blue(
+            `"${props.resource.moduleName}"`,
+        )}은(는) 이미 등록되어 있어요.`
     }
 }
