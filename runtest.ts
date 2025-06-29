@@ -1,29 +1,26 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
+import { QuickJS } from '@dalbit-yaksok/quickjs'
 
 const session = new YaksokSession()
+await session.extend(new QuickJS({ prompt }))
 
-await session.extend({
-    manifest: {
-        ffiRunner: {
-            runtimeName: 'mock',
-        },
-    },
-    executeFFI() {
-        return {} as any
-    },
-    init() {
-        return Promise.resolve()
-    },
-})
+await session.setBaseContext(
+    `
+번역(QuickJS), (문장) 물어보기
+***
+    return prompt(문장)
+***
+`,
+)
 
 session.addModule(
     'main',
-    `번역(mock), (질문) 물어보기
-***
-CODES
-***
-(("이름이 뭐에요?") 물어보기) 보여주기`,
+    `
+이름 = "이름이 뭐예요?" 물어보기
+나이 = "몇 살이에요?" 물어보기
+
+"안녕, " + 이름 + "님! 당신은 " + 나이 + "살이군요!" 보여주기
+`,
 )
 
-const result = await session.runModule('main')
-// await result.evaluate()
+await session.runModule('main')

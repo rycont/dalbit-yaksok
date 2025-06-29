@@ -20,19 +20,19 @@ import type { Extension } from '../extension/extension.ts'
 import type { ValueType } from '../value/base.ts'
 
 export class YaksokSession {
+    private BASE_CONTEXT_SYMBOL = Symbol('baseContext')
+
     public stdout: SessionConfig['stdout']
     public stderr: SessionConfig['stderr']
     public executionDelay: SessionConfig['executionDelay']
     public flags: Partial<EnabledFlags> = {}
     public extensions: Extension[] = []
+    public baseContext?: CodeFile
 
     public pubsub: PubSub<Events> = new PubSub<Events>()
-    public files: Record<string, CodeFile> = {}
+    public files: Record<string | symbol, CodeFile> = {}
 
-    constructor(
-        config: Partial<SessionConfig> = {},
-        public baseContext?: CodeFile,
-    ) {
+    constructor(config: Partial<SessionConfig> = {}) {
         const resolvedConfig = { ...DEFAULT_SESSION_CONFIG, ...config }
 
         for (const _event in resolvedConfig.events) {
@@ -47,16 +47,17 @@ export class YaksokSession {
         this.flags = resolvedConfig.flags
     }
 
-    addModule(moduleName: string, code: string): CodeFile {
+    addModule(moduleName: string | symbol, code: string): CodeFile {
         if (this.files[moduleName]) {
             throw new AlreadyRegisteredModuleError({
-                resource: { moduleName },
+                resource: { moduleName: moduleName.toString() },
             })
             // TODO: 더 적절한 에러 타입 정의 필요
             // throw new Error(`Module "${moduleName}" already exists.`)
         }
         const codeFile = new CodeFile(code, moduleName)
         codeFile.mount(this)
+
         this.files[moduleName] = codeFile
         // addModule은 entryPoint를 변경하지 않음
         return codeFile
@@ -73,12 +74,12 @@ export class YaksokSession {
         await extension.init()
     }
 
-    async runModule(moduleName: string): Promise<CodeFile> {
+    async runModule(moduleName: string | symbol): Promise<CodeFile> {
         const codeFile = this.files[moduleName]
         if (!codeFile) {
             throw new FileForRunNotExistError({
                 resource: {
-                    fileName: moduleName,
+                    fileName: moduleName.toString(),
                     files: Object.keys(this.files),
                 },
             })
@@ -114,8 +115,13 @@ export class YaksokSession {
         }
     }
 
-    validate(entrypoint?: string): void {
-        const filesToValidate: Record<string, CodeFile> = {}
+    async setBaseContext(code: string) {
+        this.addModule(this.BASE_CONTEXT_SYMBOL, code)
+        this.baseContext = await this.runModule(this.BASE_CONTEXT_SYMBOL)
+    }
+
+    validate(entrypoint?: string | symbol): void {
+        const filesToValidate: Record<string | symbol, CodeFile> = {}
         if (entrypoint) {
             if (this.files[entrypoint]) {
                 filesToValidate[entrypoint] = this.files[entrypoint]
@@ -123,7 +129,7 @@ export class YaksokSession {
                 throw new FileForRunNotExistError({
                     // 또는 다른 적절한 오류 타입
                     resource: {
-                        fileName: entrypoint,
+                        fileName: entrypoint.toString(),
                         files: Object.keys(this.files),
                     },
                 })

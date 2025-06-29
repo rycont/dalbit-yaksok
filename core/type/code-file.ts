@@ -23,7 +23,7 @@ export class CodeFile {
     public ranScope: Scope | null = null
     public session: YaksokSession | null = null
 
-    constructor(public text: string, public fileName: string = '<이름 없음>') {}
+    constructor(public text: string, public fileName: string | symbol) {}
 
     mount(session: YaksokSession) {
         this.session = session
