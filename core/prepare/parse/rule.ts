@@ -105,6 +105,25 @@ export const BASIC_RULES: Rule[][] = [
                     value: '[',
                 },
                 {
+                    type: Evaluable,
+                },
+                {
+                    type: Expression,
+                    value: ']',
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const item = nodes[1] as Evaluable
+                return new ListLiteral([item], tokens)
+            },
+        },
+        {
+            pattern: [
+                {
+                    type: Expression,
+                    value: '[',
+                },
+                {
                     type: Sequence,
                 },
                 {
