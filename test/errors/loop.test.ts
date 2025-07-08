@@ -1,20 +1,21 @@
 import { assertIsError, unreachable } from '@std/assert'
-import { yaksok } from '../../core/mod.ts'
+import { YaksokError } from '../../core/error/common.ts'
 import {
-    InvalidTypeForOperatorError,
     IndexOutOfRangeError,
+    InvalidTypeForOperatorError,
+    ListIndexMustBeGreaterOrEqualThan0Error,
     ListIndexTypeError,
     NotEnumerableValueForListLoopError,
+    RangeEndMustBeIntegerError,
     RangeEndMustBeNumberError,
+    RangeStartMustBeIntegerError,
     RangeStartMustBeLessThanEndError,
     RangeStartMustBeNumberError,
-    RangeStartMustBeIntegerError,
-    RangeEndMustBeIntegerError,
     TargetIsNotIndexedValueError,
-    ListIndexMustBeGreaterOrEqualThan0Error,
 } from '../../core/error/index.ts'
-import { ErrorGroups } from '../../core/error/validation.ts'
 import { NoBreakOrReturnError } from '../../core/error/loop.ts'
+import { ErrorGroups } from '../../core/error/validation.ts'
+import { yaksok } from '../../core/mod.ts'
 
 Deno.test('Error raised in loop', async () => {
     try {
@@ -182,5 +183,27 @@ Deno.test('No break or return in loop', async () => {
     } catch (e) {
         assertIsError(e, ErrorGroups)
         assertIsError(e.errors.get('main')![0], NoBreakOrReturnError)
+    }
+})
+
+Deno.test('Skip validating break or return in loop', async () => {
+    try {
+        await yaksok(
+            `
+순서 = 0
+반복
+    순서 = 순서 + 1
+    만약 순서 == 3 이면
+        [] / 2 보여주기`,
+            {
+                flags: {
+                    'skip-validate-break-or-return-in-loop': true,
+                },
+            },
+        )
+        unreachable()
+    } catch (e) {
+        assertIsError(e, YaksokError)
+        assertIsError(e, InvalidTypeForOperatorError)
     }
 })
