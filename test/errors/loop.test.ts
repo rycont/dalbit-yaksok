@@ -16,6 +16,7 @@ import {
 import { NoBreakOrReturnError } from '../../core/error/loop.ts'
 import { ErrorGroups } from '../../core/error/validation.ts'
 import { yaksok } from '../../core/mod.ts'
+import { YaksokSession } from '../../core/session/session.ts'
 
 Deno.test('Error raised in loop', async () => {
     try {
@@ -188,19 +189,21 @@ Deno.test('No break or return in loop', async () => {
 
 Deno.test('Skip validating break or return in loop', async () => {
     try {
-        await yaksok(
-            `
+        const code = `
 순서 = 0
 반복
     순서 = 순서 + 1
     만약 순서 == 3 이면
-        [] / 2 보여주기`,
-            {
-                flags: {
-                    'skip-validate-break-or-return-in-loop': true,
-                },
+        [] / 2 보여주기`
+        const session = new YaksokSession({
+            flags: {
+                'skip-validate-break-or-return-in-loop': true,
             },
-        )
+        })
+
+        session.addModule('main', code)
+        await session.runModule('main')
+
         unreachable()
     } catch (e) {
         assertIsError(e, YaksokError)
