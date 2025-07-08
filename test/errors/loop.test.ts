@@ -186,7 +186,7 @@ Deno.test('No break or return in loop', async () => {
     }
 })
 
-Deno.test('No break or return in loop', async () => {
+Deno.test('Skip validating break or return in loop', async () => {
     try {
         await yaksok(
             `
