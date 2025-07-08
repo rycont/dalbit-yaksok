@@ -58,10 +58,10 @@ export class Break extends Executable {
 }
 
 function hasBreakOrReturn(node: Loop, scope: Scope): boolean {
-    const hasSkipValidateFlag =
+    const shouldSkipValidation =
         scope.codeFile?.runtime?.flags['skip-validate-break-or-return-in-loop']
 
-    if (hasSkipValidateFlag) {
+    if (shouldSkipValidation) {
         return true
     }
 
