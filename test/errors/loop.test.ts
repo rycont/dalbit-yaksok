@@ -15,6 +15,7 @@ import {
 } from '../../core/error/index.ts'
 import { ErrorGroups } from '../../core/error/validation.ts'
 import { NoBreakOrReturnError } from '../../core/error/loop.ts'
+import { FEATURE_FLAG } from '../../core/constant/feature-flags.ts'
 
 Deno.test('Error raised in loop', async () => {
     try {
@@ -183,4 +184,23 @@ Deno.test('No break or return in loop', async () => {
         assertIsError(e, ErrorGroups)
         assertIsError(e.errors.get('main')![0], NoBreakOrReturnError)
     }
+})
+
+Deno.test('No break or return in loop - disabled with feature flag', async () => {
+    let output = ''
+
+    // With the feature flag enabled, the loop should execute without throwing a NoBreakOrReturnError
+    await yaksok(`반복
+    1 + 1 보여주기
+    반복 그만`, {
+        flags: {
+            [FEATURE_FLAG.DISABLE_DETECT_NO_BREAK_OR_RETURN_ERROR]: true,
+        },
+        stdout(value) {
+            output += value + '\n'
+        },
+    })
+
+    // Should output the result without errors
+    // Note: This loop would normally cause a validation error, but with the flag it should work
 })

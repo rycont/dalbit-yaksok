@@ -6,6 +6,7 @@ import type { Scope } from '../executer/scope.ts'
 import type { Block } from './block.ts'
 import { YaksokError } from '../error/common.ts'
 import { NoBreakOrReturnError } from '../error/loop.ts'
+import { FEATURE_FLAG } from '../constant/feature-flags.ts'
 
 export class Loop extends Executable {
     static override friendlyName = '반복'
@@ -27,7 +28,10 @@ export class Loop extends Executable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        const noBreakOrReturnError = hasBreakOrReturn(this)
+        // Check if the feature flag is enabled to disable break/return detection
+        const isNoBreakOrReturnCheckDisabled = scope.codeFile?.runtime?.flags[FEATURE_FLAG.DISABLE_DETECT_NO_BREAK_OR_RETURN_ERROR]
+        
+        const noBreakOrReturnError = isNoBreakOrReturnCheckDisabled || hasBreakOrReturn(this)
             ? []
             : [
                   new NoBreakOrReturnError({
