@@ -10,4 +10,7 @@ export class ReturnSignal extends Signal {
         super(tokens)
     }
 }
+
 export class BreakSignal extends Signal {}
+
+export class AbortedSessionSignal extends Signal {}

@@ -56,6 +56,10 @@ export interface SessionConfig {
      * 코드 실행 중 발생하는 이벤트를 구독합니다.
      */
     events: Events
+    /**
+     * 코드 실행을 중단시키는 시그널
+     */
+    signal: AbortSignal | null
 }
 
 export type Events = {
@@ -77,4 +81,5 @@ export const DEFAULT_SESSION_CONFIG: SessionConfig = {
     events: {
         runningCode: () => {},
     },
+    signal: null,
 }

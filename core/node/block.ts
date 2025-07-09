@@ -4,6 +4,7 @@ import { Executable, type Node } from './base.ts'
 import { EOL } from './misc.ts'
 
 import type { Scope } from '../executer/scope.ts'
+import { AbortedSessionSignal } from '../executer/signals.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 
 export class Block extends Executable {
@@ -19,6 +20,10 @@ export class Block extends Executable {
     override async execute(scope: Scope) {
         const executionDelay = scope.codeFile?.session?.executionDelay
         for (const child of this.children) {
+            if (scope.codeFile?.session?.signal?.aborted) {
+                throw new AbortedSessionSignal(child.tokens)
+            }
+
             if (child instanceof Executable) {
                 if (executionDelay) {
                     await new Promise((r) =>

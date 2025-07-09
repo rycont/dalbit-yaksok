@@ -1,27 +1,32 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
-import { QuickJS } from '@dalbit-yaksok/quickjs'
 
-const session = new YaksokSession()
-await session.extend(new QuickJS({ prompt }))
+const controller = new AbortController()
 
-await session.setBaseContext(
-    `
-번역(QuickJS), (문장) 물어보기
-***
-어쩌라고요
-    return prompt(문장)
-***
-`,
-)
+let output = ''
+
+const session = new YaksokSession({
+    flags: {
+        'skip-validate-break-or-return-in-loop': true,
+    },
+    signal: controller.signal,
+    stdout: (message: string) => {
+        console.log('Output:', message)
+        output += message + '\n'
+
+        if (output.length > 50) {
+            console.log('Too much output, aborting...')
+            controller.abort()
+        }
+    },
+})
 
 session.addModule(
     'main',
     `
-이름 = "이름이 뭐예요?" 물어보기
-나이 = "몇 살이에요?" 물어보기
-
-"안녕, " + 이름 + "님! 당신은 " + 나이 + "살이군요!" 보여주기
+반복
+    "진짜요?" 보여주기
 `,
 )
 
-await session.runModule('main')
+const result = await session.runModule('main')
+console.log('Result:', result)

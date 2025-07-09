@@ -16,6 +16,8 @@ import {
 } from './session-config.ts'
 
 import type { EnabledFlags } from '../constant/feature-flags.ts'
+import { RunModuleResult } from '../constant/type.ts'
+import { AbortedSessionSignal } from '../executer/signals.ts'
 import type { Extension } from '../extension/extension.ts'
 import type { ValueType } from '../value/base.ts'
 
@@ -28,6 +30,7 @@ export class YaksokSession {
     public flags: Partial<EnabledFlags> = {}
     public extensions: Extension[] = []
     public baseContext?: CodeFile
+    public signal: AbortSignal | null = null
 
     public pubsub: PubSub<Events> = new PubSub<Events>()
     public files: Record<string | symbol, CodeFile> = {}
@@ -45,6 +48,7 @@ export class YaksokSession {
 
         this.executionDelay = resolvedConfig.executionDelay
         this.flags = resolvedConfig.flags
+        this.signal = resolvedConfig.signal ?? null
     }
 
     addModule(moduleName: string | symbol, code: string): CodeFile {
@@ -72,7 +76,7 @@ export class YaksokSession {
         await extension.init()
     }
 
-    async runModule(moduleName: string | symbol): Promise<CodeFile> {
+    async runModule(moduleName: string | symbol): Promise<RunModuleResult> {
         const codeFile = this.files[moduleName]
         if (!codeFile) {
             throw new FileForRunNotExistError({
@@ -86,12 +90,11 @@ export class YaksokSession {
         try {
             this.validate(moduleName)
             await codeFile.run()
-            return codeFile
-        } catch (e) {
-            if (e instanceof YaksokError && !e.codeFile) {
-                e.codeFile = codeFile
+            return {
+                codeFile,
+                reason: 'finish',
             }
-
+        } catch (e) {
             if (e instanceof ErrorGroups) {
                 const errors = e.errors
 
@@ -103,10 +106,33 @@ export class YaksokSession {
                         this.stderr(renderErrorString(error))
                     }
                 }
+
+                return {
+                    codeFile,
+                    reason: 'error',
+                    error: e,
+                }
             }
 
             if (e instanceof YaksokError) {
+                if (!e.codeFile) {
+                    e.codeFile = codeFile
+                }
+
                 this.stderr(renderErrorString(e))
+
+                return {
+                    codeFile,
+                    reason: 'error',
+                    error: e,
+                }
+            }
+
+            if (e instanceof AbortedSessionSignal) {
+                return {
+                    codeFile,
+                    reason: 'aborted',
+                }
             }
 
             throw e
@@ -115,7 +141,9 @@ export class YaksokSession {
 
     async setBaseContext(code: string) {
         this.addModule(this.BASE_CONTEXT_SYMBOL, code)
-        this.baseContext = await this.runModule(this.BASE_CONTEXT_SYMBOL)
+        this.baseContext = (
+            await this.runModule(this.BASE_CONTEXT_SYMBOL)
+        ).codeFile
     }
 
     validate(entrypoint?: string | symbol): void {
@@ -192,7 +220,7 @@ export class YaksokSession {
 
 export async function yaksok(
     code: string | Record<string, string>,
-): Promise<CodeFile> {
+): Promise<RunModuleResult> {
     const session = new YaksokSession()
 
     if (typeof code === 'string') {
@@ -203,6 +231,5 @@ export async function yaksok(
         }
     }
 
-    const result = await session.runModule('main')
-    return result
+    return await session.runModule('main')
 }
