@@ -5,25 +5,24 @@ import type { Position } from '../type/position.ts'
  * SessionConfig 객체를 사용하여 약속 런타임을 설정합니다.
  *
  * ```typescript
- * import { yaksok, SessionConfig } from '@dalbit-yaksok/core'
+ * import { YaksokSession } from '@dalbit-yaksok/core'
  *
- * const sessionConfig: SessionConfig = {
+ * const session = new YaksokSession({
  *    stdout: console.log,
  *    stderr: console.error,
  *    entryPoint: 'main',
  *    executionDelay: 0,
- *    runFFI: (runtime, code, args) => {
- *        throw new Error(`FFI ${runtime} not implemented`)
- *    },
  *    flags: {},
  *    events: {
  *        runningCode: (start, end) => {
  *            //  Do something with start and end
- *        )
- *    }
- * }
+ *        }
+ *    },
+ *    signal: null,
+ * })
  *
- * await yaksok(`"안녕" 보여주기`, sessionConfig)
+ * session.addModule('main', `"안녕" 보여주기`)
+ * await session.runModule('main')
  * ```
  */
 

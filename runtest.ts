@@ -1,32 +1,47 @@
-import { YaksokSession } from '@dalbit-yaksok/core'
+import { NumberValue, YaksokSession } from '@dalbit-yaksok/core'
 
 const controller = new AbortController()
 
-let output = ''
-
 const session = new YaksokSession({
+    signal: controller.signal,
     flags: {
         'skip-validate-break-or-return-in-loop': true,
     },
-    signal: controller.signal,
-    stdout: (message: string) => {
-        console.log('Output:', message)
-        output += message + '\n'
+})
 
-        if (output.length > 50) {
-            console.log('Too much output, aborting...')
-            controller.abort()
-        }
+await session.extend({
+    manifest: {
+        ffiRunner: {
+            runtimeName: 'Runtime',
+        },
+    },
+    async executeFFI(_code, args) {
+        const waitingTime = (args.숫자 as NumberValue).value * 1000
+
+        await new Promise((resolve) => setTimeout(resolve, waitingTime))
+        return new NumberValue(0)
+    },
+    init() {
+        return Promise.resolve()
     },
 })
 
 session.addModule(
     'main',
     `
+번역(Runtime), (숫자)초 기다리기
+***
+    wait
+***
+
 반복
     "진짜요?" 보여주기
+    1초 기다리기
 `,
 )
 
-const result = await session.runModule('main')
-console.log('Result:', result)
+setTimeout(() => {
+    controller.abort()
+}, 3000)
+
+session.runModule('main')

@@ -15,7 +15,10 @@ export * from './prepare/tokenize/token.ts'
 export { parse } from './prepare/parse/index.ts'
 
 export type { FEATURE_FLAG } from './constant/feature-flags.ts'
-export type { FunctionInvokingParams } from './constant/type.ts'
+export type {
+    FunctionInvokingParams,
+    RunModuleResult,
+} from './constant/type.ts'
 export type { Events, SessionConfig } from './session/session-config.ts'
 
 export * from './error/index.ts'
