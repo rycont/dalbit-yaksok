@@ -7,21 +7,30 @@ export interface FunctionInvokingParams {
     [key: string]: ValueType
 }
 
-export type RunModuleResult = {
+interface RunModuleResultBase {
     codeFile: CodeFile
-} & (
-    | {
-          reason: 'finish'
-      }
-    | {
-          reason: 'aborted'
-      }
-    | {
-          reason: 'error'
-          error: YaksokError
-      }
-    | {
-          reason: 'validation'
-          errors: ErrorGroups
-      }
-)
+}
+
+interface SuccessRunModuleResult extends RunModuleResultBase {
+    reason: 'finish'
+}
+
+interface AbortedRunModuleResult extends RunModuleResultBase {
+    reason: 'aborted'
+}
+
+interface ErrorRunModuleResult extends RunModuleResultBase {
+    reason: 'error'
+    error: YaksokError
+}
+
+interface ValidationRunModuleResult extends RunModuleResultBase {
+    reason: 'validation'
+    errors: ErrorGroups
+}
+
+export type RunModuleResult =
+    | SuccessRunModuleResult
+    | AbortedRunModuleResult
+    | ErrorRunModuleResult
+    | ValidationRunModuleResult

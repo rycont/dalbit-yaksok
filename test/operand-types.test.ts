@@ -1,4 +1,4 @@
-import { assertIsError, unreachable } from 'assert'
+import { assert, assertIsError } from 'assert'
 import { yaksok } from '../core/mod.ts'
 import {
     InvalidTypeForCompareError,
@@ -111,12 +111,9 @@ for (const { a, b, operator } of WRONG_CASES_FOR_CALCULATION) {
         const code = `
             ${a} ${operator} ${b}
         `.trim()
-        try {
-            await yaksok(code)
-            unreachable()
-        } catch (error) {
-            assertIsError(error, InvalidTypeForOperatorError)
-        }
+        const result = await yaksok(code)
+        assert(result.reason === 'error', `Expected an error, but got ${result.reason}`)
+        assertIsError(result.error, InvalidTypeForOperatorError)
     })
 }
 
@@ -125,11 +122,8 @@ for (const { a, b, operator } of WRONG_CASES_FOR_COMPARISON) {
         const code = `
             ${a} ${operator} ${b}
         `.trim()
-        try {
-            await yaksok(code)
-            unreachable()
-        } catch (error) {
-            assertIsError(error, InvalidTypeForCompareError)
-        }
+        const result = await yaksok(code)
+        assert(result.reason === 'error', `Expected an error, but got ${result.reason}`)
+        assertIsError(result.error, InvalidTypeForCompareError)
     })
 }
