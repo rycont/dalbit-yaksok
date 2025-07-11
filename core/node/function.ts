@@ -1,13 +1,13 @@
+import { Scope } from '../executer/scope.ts'
 import { assertValidReturnValue } from '../util/assert-valid-return-value.ts'
+import { ValueType } from '../value/base.ts'
 import { FunctionObject } from '../value/function.ts'
 import { Evaluable, Executable } from './base.ts'
-import { ValueType } from '../value/base.ts'
-import { Scope } from '../executer/scope.ts'
 
 import type { FunctionInvokingParams } from '../constant/type.ts'
+import { YaksokError } from '../error/common.ts'
 import { TOKEN_TYPE, type Token } from '../prepare/tokenize/token.ts'
 import { Block } from './block.ts'
-import { YaksokError } from '../error/common.ts'
 
 export class DeclareFunction extends Executable {
     static override friendlyName = '새 약속 만들기'
@@ -27,9 +27,17 @@ export class DeclareFunction extends Executable {
 
     override execute(scope: Scope): Promise<void> {
         const functionObject = new FunctionObject(this.name, this.body, scope)
-        scope.addFunctionObject(functionObject)
 
-        return Promise.resolve()
+        try {
+            scope.addFunctionObject(functionObject)
+            return Promise.resolve()
+        } catch (e) {
+            if (e instanceof YaksokError && !e.tokens) {
+                e.tokens = this.tokens
+            }
+
+            throw e
+        }
     }
 
     override validate(scope: Scope): YaksokError[] {
@@ -44,11 +52,24 @@ export class DeclareFunction extends Executable {
             initialVariable: params,
         })
 
-        scope.addFunctionObject(
-            new FunctionObject(this.name, this.body, functionScope),
-        )
+        const declarationErrors = []
 
-        return this.body.validate(functionScope)
+        try {
+            scope.addFunctionObject(
+                new FunctionObject(this.name, this.body, functionScope),
+            )
+        } catch (error) {
+            if (error instanceof YaksokError) {
+                error.tokens = this.tokens
+                declarationErrors.push(error)
+            } else {
+                throw error
+            }
+        }
+
+        const bodyErrors = this.body.validate(functionScope)
+
+        return [...declarationErrors, ...bodyErrors]
     }
 }
 

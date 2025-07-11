@@ -1,8 +1,8 @@
-import { NotAcceptableSignal } from './signal.ts'
 import { RULES } from './rules.ts'
+import { NotAcceptableSignal } from './signal.ts'
 
-import { TOKEN_TYPE, type Token } from './token.ts'
 import { YaksokError } from '../../error/common.ts'
+import { TOKEN_TYPE, type Token } from './token.ts'
 
 class Tokenizer {
     private tokens: Token[] = []
@@ -47,7 +47,7 @@ class Tokenizer {
                     const view = () => currentParseAttempt_Code[0]
                     const shift = () => {
                         const shiftedChar = currentParseAttempt_Code.shift()
-                        if (shiftedChar === '\\n') {
+                        if (shiftedChar === '\n') {
                             currentParseAttempt_Line++
                             currentParseAttempt_Column = 1
                         } else if (shiftedChar !== undefined) {

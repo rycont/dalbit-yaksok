@@ -1,3 +1,4 @@
+import { AlreadyDefinedFunctionError } from '../error/function.ts'
 import { NotDefinedIdentifierError } from '../error/index.ts'
 import { ValueType } from '../value/base.ts'
 
@@ -69,6 +70,15 @@ export class Scope {
     }
 
     addFunctionObject(functionObject: RunnableObject) {
+        if (this.functions.has(functionObject.name)) {
+            const errorInstance = new AlreadyDefinedFunctionError({
+                resource: {
+                    name: functionObject.name,
+                },
+            })
+            errorInstance.codeFile = this.codeFile
+            throw errorInstance
+        }
         this.functions.set(functionObject.name, functionObject)
     }
 
