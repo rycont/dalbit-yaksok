@@ -16,7 +16,13 @@ import {
 } from './session-config.ts'
 
 import type { EnabledFlags } from '../constant/feature-flags.ts'
-import { RunModuleResult } from '../constant/type.ts'
+import {
+    AbortedRunModuleResult,
+    ErrorRunModuleResult,
+    RunModuleResult,
+    SuccessRunModuleResult,
+    ValidationRunModuleResult,
+} from '../constant/type.ts'
 import { AbortedSessionSignal } from '../executer/signals.ts'
 import type { Extension } from '../extension/extension.ts'
 import type { ValueType } from '../value/base.ts'
@@ -93,7 +99,7 @@ export class YaksokSession {
             return {
                 codeFile,
                 reason: 'finish',
-            }
+            } as SuccessRunModuleResult
         } catch (e) {
             if (e instanceof ErrorGroups) {
                 const errors = e.errors
@@ -109,9 +115,9 @@ export class YaksokSession {
 
                 return {
                     codeFile,
-                    reason: 'error',
-                    error: e,
-                }
+                    reason: 'validation',
+                    errors: e,
+                } as ValidationRunModuleResult
             }
 
             if (e instanceof YaksokError) {
@@ -125,14 +131,14 @@ export class YaksokSession {
                     codeFile,
                     reason: 'error',
                     error: e,
-                }
+                } as ErrorRunModuleResult
             }
 
             if (e instanceof AbortedSessionSignal) {
                 return {
                     codeFile,
                     reason: 'aborted',
-                }
+                } as AbortedRunModuleResult
             }
 
             throw e
