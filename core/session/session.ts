@@ -79,7 +79,7 @@ export class YaksokSession {
 
     async extend(extension: Extension): Promise<void> {
         this.extensions.push(extension)
-        await extension.init()
+        await extension.init?.()
     }
 
     async runModule(moduleName: string | symbol): Promise<RunModuleResult> {

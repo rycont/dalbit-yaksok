@@ -21,9 +21,6 @@ await session.extend({
         await new Promise((resolve) => setTimeout(resolve, waitingTime))
         return new NumberValue(0)
     },
-    init() {
-        return Promise.resolve()
-    },
 })
 
 session.addModule(
@@ -44,4 +41,4 @@ setTimeout(() => {
     controller.abort()
 }, 3000)
 
-session.runModule('main')
+session.runModule('main').then(console.log)

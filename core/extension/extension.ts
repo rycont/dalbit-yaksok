@@ -8,7 +8,7 @@ export interface ExtensionManifest {
 }
 
 export interface Extension {
-    init(): Promise<void>
+    init?(): Promise<void> | void
     executeFFI(
         code: string,
         args: FunctionInvokingParams,
