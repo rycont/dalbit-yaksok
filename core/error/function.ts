@@ -1,6 +1,6 @@
 import type { Token } from '../prepare/tokenize/token.ts'
 
-import { YaksokError, bold, blue } from './common.ts'
+import { YaksokError, blue, bold } from './common.ts'
 
 export class CannotReturnOutsideFunctionError extends YaksokError {
     constructor(props: { tokens: Token[] }) {
@@ -16,9 +16,11 @@ export class FunctionMustHaveOneOrMoreStringPartError extends YaksokError {
     }
 }
 
-export class AlreadyDefinedFunctionError extends YaksokError<{ name: string }> {
+export class AlreadyDefinedFunctionError extends YaksokError {
     constructor(props: { resource: { name: string } }) {
         super(props)
-        this.message = `이미 ${bold(blue(`"${props.resource.name}"`))}라는 약속(번역)이 있어요`
+        this.message = `이미 ${bold(
+            blue(`"${props.resource.name}"`),
+        )}라는 약속(번역)이 있어요`
     }
 }

@@ -1,5 +1,5 @@
-import { NotDefinedIdentifierError } from '../error/index.ts'
 import { AlreadyDefinedFunctionError } from '../error/function.ts'
+import { NotDefinedIdentifierError } from '../error/index.ts'
 import { ValueType } from '../value/base.ts'
 
 import type { CodeFile } from '../type/code-file.ts'
