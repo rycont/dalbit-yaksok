@@ -18,15 +18,17 @@ export class Block extends Executable {
 
     override async execute(scope: Scope) {
         const executionDelay = scope.codeFile?.runtime?.executionDelay
+        const isMainContext = scope.codeFile?.fileName === scope.codeFile?.runtime?.entryPoint
+        
         for (const child of this.children) {
             if (child instanceof Executable) {
-                if (executionDelay) {
+                if (executionDelay && isMainContext) {
                     await new Promise((r) =>
                         setTimeout(r, scope.codeFile?.runtime?.executionDelay),
                     )
                 }
 
-                if (child.tokens.length) {
+                if (child.tokens.length && isMainContext) {
                     this.reportRunningCode(child, scope)
                 }
 
