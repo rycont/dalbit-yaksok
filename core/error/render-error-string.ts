@@ -1,7 +1,7 @@
 import { Token } from '../prepare/tokenize/token.ts'
 import { Position } from '../type/position.ts'
 
-import { type YaksokError, bold, dim, underline } from './common.ts'
+import { bold, dim, underline, type YaksokError } from './common.ts'
 
 export function renderErrorString(error: YaksokError) {
     const code = error.codeFile?.text

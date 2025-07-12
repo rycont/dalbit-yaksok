@@ -1,6 +1,7 @@
 export * from './calculation.ts'
 export * from './ffi.ts'
 export * from './function.ts'
+// Note: function.ts was listed twice, removing duplicate
 export * from './indexed.ts'
 export * from './loop.ts'
 export * from './mention.ts'
