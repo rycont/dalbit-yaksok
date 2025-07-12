@@ -1,10 +1,10 @@
+import { YaksokError } from '../error/common.ts'
 import { CannotParseError } from '../error/index.ts'
 import { Executable, type Node } from './base.ts'
 import { EOL } from './misc.ts'
-import { YaksokError } from '../error/common.ts'
 
-import type { Token } from '../prepare/tokenize/token.ts'
 import type { Scope } from '../executer/scope.ts'
+import type { Token } from '../prepare/tokenize/token.ts'
 
 export class Block extends Executable {
     static override friendlyName = '코드 덩어리'
@@ -18,15 +18,16 @@ export class Block extends Executable {
 
     override async execute(scope: Scope) {
         const executionDelay = scope.codeFile?.runtime?.executionDelay
+        const isMainContext =
+            scope.codeFile?.fileName === scope.codeFile?.runtime?.entryPoint
+
         for (const child of this.children) {
             if (child instanceof Executable) {
-                if (executionDelay) {
-                    await new Promise((r) =>
-                        setTimeout(r, scope.codeFile?.runtime?.executionDelay),
-                    )
+                if (executionDelay && isMainContext) {
+                    await new Promise((r) => setTimeout(r, executionDelay))
                 }
 
-                if (child.tokens.length) {
+                if (child.tokens.length && isMainContext) {
                     this.reportRunningCode(child, scope)
                 }
 
