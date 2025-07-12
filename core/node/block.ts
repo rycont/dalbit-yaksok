@@ -24,9 +24,7 @@ export class Block extends Executable {
         for (const child of this.children) {
             if (child instanceof Executable) {
                 if (executionDelay && isMainContext) {
-                    await new Promise((r) =>
-                        setTimeout(r, scope.codeFile?.runtime?.executionDelay),
-                    )
+                    await new Promise((r) => setTimeout(r, executionDelay))
                 }
 
                 if (child.tokens.length && isMainContext) {

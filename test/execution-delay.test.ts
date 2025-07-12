@@ -1,4 +1,4 @@
-import { assertEquals } from 'assert'
+import { assertEquals, assertGreater, assertLess } from 'assert'
 import { yaksok } from '../core/mod.ts'
 
 Deno.test('Execution Delay in Main Context', async () => {
@@ -24,8 +24,9 @@ Deno.test('Execution Delay in Main Context', async () => {
     const duration = endTime - startTime
 
     assertEquals(output, `abc`)
-    assertEquals(300 < duration, true)
-    assertEquals(duration < 350, true)
+
+    assertGreater(duration, 300)
+    assertLess(duration, 350)
 })
 
 Deno.test('Execution Delay with Imported File', async () => {
@@ -55,8 +56,9 @@ Deno.test('Execution Delay with Imported File', async () => {
     const duration = endTime - startTime
 
     assertEquals(output, 'abc')
-    assertEquals(300 < duration, true)
-    assertEquals(duration < 350, true)
+
+    assertGreater(duration, 300)
+    assertLess(duration, 350)
 })
 
 Deno.test('Execution Delay with Nested Import', async () => {
@@ -91,8 +93,9 @@ Deno.test('Execution Delay with Nested Import', async () => {
     const duration = endTime - startTime
 
     assertEquals(output, 'a!bc')
-    assertEquals(duration > 200, true)
-    assertEquals(duration < 400, true)
+
+    assertGreater(duration, 300)
+    assertLess(duration, 350)
 })
 
 Deno.test('Execution Delay with Function Call', async () => {
@@ -122,6 +125,6 @@ Deno.test('Execution Delay with Function Call', async () => {
     const duration = endTime - startTime
 
     assertEquals(output, '안녕 안녕')
-    assertEquals(800 < duration, true)
-    assertEquals(duration < 850, true)
+    assertGreater(duration, 800)
+    assertLess(duration, 850)
 })
