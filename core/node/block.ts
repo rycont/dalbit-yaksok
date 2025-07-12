@@ -4,6 +4,7 @@ import { Executable, type Node } from './base.ts'
 import { EOL } from './misc.ts'
 
 import type { Scope } from '../executer/scope.ts'
+import { AbortedSessionSignal } from '../executer/signals.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 
 export class Block extends Executable {
@@ -16,12 +17,17 @@ export class Block extends Executable {
         this.children = content
     }
 
-    override async execute(scope: Scope) {
-        const executionDelay = scope.codeFile?.runtime?.executionDelay
+    override async execute(scope: Scope): Promise<void> {
+        const executionDelay = scope.codeFile?.session?.executionDelay
+
         const isMainContext =
-            scope.codeFile?.fileName === scope.codeFile?.runtime?.entryPoint
+            scope.codeFile?.session?.entrypoint === scope.codeFile
 
         for (const child of this.children) {
+            if (scope.codeFile?.session?.signal?.aborted) {
+                throw new AbortedSessionSignal(child.tokens)
+            }
+
             if (child instanceof Executable) {
                 if (executionDelay && isMainContext) {
                     await new Promise((r) => setTimeout(r, executionDelay))
@@ -60,7 +66,7 @@ export class Block extends Executable {
             line: endToken.position.line,
             column: endToken.position.column + endToken.value.length,
         }
-        scope.codeFile?.runtime?.pubsub.pub('runningCode', [
+        scope.codeFile?.session?.pubsub.pub('runningCode', [
             startPosition,
             endPosition,
         ])

@@ -7,6 +7,7 @@ import { ColorPart } from '../type.ts'
 export class BaseProvider {
     public colorPartsByLine: Map<number, ColorPart[]>
     public lines: string[]
+    private TEMP_FILE_NAME = Symbol('BaseProvider.TEMP_FILE')
 
     constructor(private code: string) {
         this.lines = code.split('\n')
@@ -14,7 +15,7 @@ export class BaseProvider {
     }
 
     createColorParts(code: string): Map<number, ColorPart[]> {
-        const codeFile = new CodeFile(code)
+        const codeFile = new CodeFile(code, this.TEMP_FILE_NAME)
         const { ast } = codeFile
 
         const nodeColorParts = nodeToColorTokens(ast).toSorted(

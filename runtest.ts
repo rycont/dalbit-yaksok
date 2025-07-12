@@ -1,20 +1,27 @@
-import { yaksok } from '@dalbit-yaksok/core'
-// import { QuickJS } from '@dalbit-yaksok/quickjs'
+import { YaksokSession } from '@dalbit-yaksok/core'
 
-// const quickjs = new QuickJS({
-//     prompt,
-// })
-
-// await quickjs.init()
-
-try {
-    await yaksok(`
-약속, 테스트하기
-    "첫 번째 약속" 보여주기
-
-약속, 테스트하기
-    "두 번째 약속" 보여주기
-`)
-} catch (error) {
-    // console.error('오류 발생:', error)
+const code = {
+    main: `
+"a" 보여주기
+@imported "b" 출력하기
+"c" 보여주기
+        `,
+    imported: `
+@nested "!"라고 말하기
+약속, (text) 출력하기
+    text 보여주기
+        `,
+    nested: `
+약속, (text)라고 말하기
+    text 보여주기
+        `,
 }
+
+let output = ''
+
+const session = new YaksokSession({
+    executionDelay: 100,
+})
+
+session.addModules(code)
+await session.runModule('main')

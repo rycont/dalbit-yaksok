@@ -1,5 +1,5 @@
-import { assertEquals, assertGreater, assertLess } from 'assert'
-import { yaksok } from '../core/mod.ts'
+import { assert, assertEquals, assertGreater, assertLess } from 'assert'
+import { YaksokSession } from '../core/mod.ts'
 
 Deno.test('Execution Delay in Main Context', async () => {
     const code = {
@@ -11,20 +11,23 @@ Deno.test('Execution Delay in Main Context', async () => {
     }
 
     let output = ''
-    const startTime = Date.now()
 
-    await yaksok(code, {
+    const session = new YaksokSession({
         executionDelay: 100,
         stdout(text) {
             output += text
         },
     })
 
+    const startTime = Date.now()
+
+    session.addModule('main', code.main)
+    await session.runModule('main')
+
     const endTime = Date.now()
     const duration = endTime - startTime
 
     assertEquals(output, `abc`)
-
     assertGreater(duration, 300)
     assertLess(duration, 350)
 })
@@ -43,20 +46,25 @@ Deno.test('Execution Delay with Imported File', async () => {
     }
 
     let output = ''
-    const startTime = Date.now()
 
-    await yaksok(code, {
+    const session = new YaksokSession({
         executionDelay: 100,
         stdout(text) {
             output += text
         },
     })
 
+    const startTime = Date.now()
+
+    session.addModule('main', code.main)
+    session.addModule('imported', code.imported)
+
+    await session.runModule('main')
+
     const endTime = Date.now()
     const duration = endTime - startTime
 
     assertEquals(output, 'abc')
-
     assertGreater(duration, 300)
     assertLess(duration, 350)
 })
@@ -80,16 +88,29 @@ Deno.test('Execution Delay with Nested Import', async () => {
     }
 
     let output = ''
+
     const startTime = Date.now()
 
-    await yaksok(code, {
+    const session = new YaksokSession({
         executionDelay: 100,
         stdout(text) {
             output += text
         },
     })
 
+    session.addModule('main', code.main)
+    session.addModule('imported', code.imported)
+    session.addModule('nested', code.nested)
+
+    const result = await session.runModule('main')
+
     const endTime = Date.now()
+
+    assert(
+        result.reason === 'finish',
+        `Expected finish, but got ${result.reason}`,
+    )
+
     const duration = endTime - startTime
 
     assertEquals(output, 'a!bc')
@@ -99,8 +120,19 @@ Deno.test('Execution Delay with Nested Import', async () => {
 })
 
 Deno.test('Execution Delay with Function Call', async () => {
-    const code = {
-        main: `
+    let output = ''
+    const startTime = Date.now()
+
+    const session = new YaksokSession({
+        executionDelay: 100,
+        stdout(text) {
+            output += text
+        },
+    })
+
+    session.addModule(
+        'main',
+        `
 약속, 인사
     "안" 보여주기
     "녕" 보여주기
@@ -109,18 +141,13 @@ Deno.test('Execution Delay with Function Call', async () => {
 " " 보여주기
 인사
         `,
-    }
+    )
 
-    let output = ''
-    const startTime = Date.now()
-
-    await yaksok(code, {
-        executionDelay: 100,
-        stdout(text) {
-            output += text
-        },
-    })
-
+    const result = await session.runModule('main')
+    assert(
+        result.reason === 'finish',
+        `Expected finish, but got ${result.reason}`,
+    )
     const endTime = Date.now()
     const duration = endTime - startTime
 

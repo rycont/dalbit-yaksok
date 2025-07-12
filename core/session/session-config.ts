@@ -1,35 +1,32 @@
 import type { EnabledFlags } from '../constant/feature-flags.ts'
-import type { FunctionInvokingParams } from '../constant/type.ts'
 import type { Position } from '../type/position.ts'
-import type { ValueType } from '../value/base.ts'
 
 /**
- * RuntimeConfig 객체를 사용하여 약속 런타임을 설정합니다.
+ * SessionConfig 객체를 사용하여 약속 런타임을 설정합니다.
  *
  * ```typescript
- * import { yaksok, RuntimeConfig } from '@dalbit-yaksok/core'
+ * import { YaksokSession } from '@dalbit-yaksok/core'
  *
- * const runtimeConfig: RuntimeConfig = {
+ * const session = new YaksokSession({
  *    stdout: console.log,
  *    stderr: console.error,
  *    entryPoint: 'main',
  *    executionDelay: 0,
- *    runFFI: (runtime, code, args) => {
- *        throw new Error(`FFI ${runtime} not implemented`)
- *    },
  *    flags: {},
  *    events: {
  *        runningCode: (start, end) => {
  *            //  Do something with start and end
- *        )
- *    }
- * }
+ *        }
+ *    },
+ *    signal: null,
+ * })
  *
- * await yaksok(`"안녕" 보여주기`, runtimeConfig)
+ * session.addModule('main', `"안녕" 보여주기`)
+ * await session.runModule('main')
  * ```
  */
 
-export interface RuntimeConfig {
+export interface SessionConfig {
     /**
      * `보여주기`에서 전달된 메시지를 처리하는 메소드
      * @default console.log
@@ -51,19 +48,6 @@ export interface RuntimeConfig {
      */
     executionDelay: number
     /**
-     * 번역 문법을 사용한 외부 런타임 호출을 처리하는 메소드
-     * ```typescript
-     * function runFFI(runtime: string, code: string, args: FunctionInvokingParams): Promise<ValueType> {
-     *
-     * }
-     * ```
-     */
-    runFFI: (
-        runtime: string,
-        code: string,
-        args: FunctionInvokingParams,
-    ) => Promise<ValueType> | ValueType
-    /**
      * 활성화할 기능 플래그
      */
     flags: EnabledFlags
@@ -71,6 +55,10 @@ export interface RuntimeConfig {
      * 코드 실행 중 발생하는 이벤트를 구독합니다.
      */
     events: Events
+    /**
+     * 코드 실행을 중단시키는 시그널
+     */
+    signal: AbortSignal | null
 }
 
 export type Events = {
@@ -83,16 +71,14 @@ export type Events = {
     runningCode: (start: Position, end: Position) => void
 }
 
-export const DEFAULT_RUNTIME_CONFIG: RuntimeConfig = {
+export const DEFAULT_SESSION_CONFIG: SessionConfig = {
     stdout: console.log,
     stderr: console.error,
     entryPoint: 'main',
-    runFFI: (runtime: string) => {
-        throw new Error(`FFI ${runtime} not implemented`)
-    },
     flags: {},
     executionDelay: 0,
     events: {
         runningCode: () => {},
     },
+    signal: null,
 }

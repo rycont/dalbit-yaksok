@@ -146,7 +146,13 @@ export const RULES: {
             let code = starter
 
             while (true) {
-                code += shift()!
+                const shifted = shift()
+
+                if (shifted === undefined) {
+                    break
+                }
+
+                code += shifted
 
                 if (code.endsWith('\n***')) {
                     break
