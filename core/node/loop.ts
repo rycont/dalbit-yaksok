@@ -1,11 +1,11 @@
 import { BreakSignal } from '../executer/signals.ts'
 import { Executable } from './base.ts'
 
-import { TOKEN_TYPE, type Token } from '../prepare/tokenize/token.ts'
-import type { Scope } from '../executer/scope.ts'
-import type { Block } from './block.ts'
 import { YaksokError } from '../error/common.ts'
 import { NoBreakOrReturnError } from '../error/loop.ts'
+import type { Scope } from '../executer/scope.ts'
+import { TOKEN_TYPE, type Token } from '../prepare/tokenize/token.ts'
+import type { Block } from './block.ts'
 
 export class Loop extends Executable {
     static override friendlyName = '반복'
@@ -27,7 +27,7 @@ export class Loop extends Executable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        const noBreakOrReturnError = hasBreakOrReturn(this)
+        const noBreakOrReturnError = hasBreakOrReturn(this, scope)
             ? []
             : [
                   new NoBreakOrReturnError({
@@ -57,7 +57,14 @@ export class Break extends Executable {
     }
 }
 
-function hasBreakOrReturn(node: Loop) {
+function hasBreakOrReturn(node: Loop, scope: Scope): boolean {
+    const shouldSkipValidation =
+        scope.codeFile?.session?.flags['skip-validate-break-or-return-in-loop']
+
+    if (shouldSkipValidation) {
+        return true
+    }
+
     return node.tokens.some((token, index) => {
         if (
             token.type === TOKEN_TYPE.IDENTIFIER &&

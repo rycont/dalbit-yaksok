@@ -1,0 +1,157 @@
+import { assert, assertEquals, assertGreater, assertLess } from 'assert'
+import { YaksokSession } from '../core/mod.ts'
+
+Deno.test('Execution Delay in Main Context', async () => {
+    const code = {
+        main: `
+"a" 보여주기
+"b" 보여주기
+"c" 보여주기
+        `,
+    }
+
+    let output = ''
+
+    const session = new YaksokSession({
+        executionDelay: 100,
+        stdout(text) {
+            output += text
+        },
+    })
+
+    const startTime = Date.now()
+
+    session.addModule('main', code.main)
+    await session.runModule('main')
+
+    const endTime = Date.now()
+    const duration = endTime - startTime
+
+    assertEquals(output, `abc`)
+    assertGreater(duration, 300)
+    assertLess(duration, 350)
+})
+
+Deno.test('Execution Delay with Imported File', async () => {
+    const code = {
+        main: `
+"a" 보여주기
+@imported "b" 라고 말하기
+"c" 보여주기
+        `,
+        imported: `
+약속, (text) 라고 말하기
+    text 보여주기
+        `,
+    }
+
+    let output = ''
+
+    const session = new YaksokSession({
+        executionDelay: 100,
+        stdout(text) {
+            output += text
+        },
+    })
+
+    const startTime = Date.now()
+
+    session.addModule('main', code.main)
+    session.addModule('imported', code.imported)
+
+    await session.runModule('main')
+
+    const endTime = Date.now()
+    const duration = endTime - startTime
+
+    assertEquals(output, 'abc')
+    assertGreater(duration, 300)
+    assertLess(duration, 350)
+})
+
+Deno.test('Execution Delay with Nested Import', async () => {
+    const code = {
+        main: `
+"a" 보여주기
+@imported "b" 출력하기
+"c" 보여주기
+        `,
+        imported: `
+@nested "!"라고 말하기
+약속, (text) 출력하기
+    text 보여주기
+        `,
+        nested: `
+약속, (text)라고 말하기
+    text 보여주기
+        `,
+    }
+
+    let output = ''
+
+    const startTime = Date.now()
+
+    const session = new YaksokSession({
+        executionDelay: 100,
+        stdout(text) {
+            output += text
+        },
+    })
+
+    session.addModule('main', code.main)
+    session.addModule('imported', code.imported)
+    session.addModule('nested', code.nested)
+
+    const result = await session.runModule('main')
+
+    const endTime = Date.now()
+
+    assert(
+        result.reason === 'finish',
+        `Expected finish, but got ${result.reason}`,
+    )
+
+    const duration = endTime - startTime
+
+    assertEquals(output, 'a!bc')
+
+    assertGreater(duration, 300)
+    assertLess(duration, 350)
+})
+
+Deno.test('Execution Delay with Function Call', async () => {
+    let output = ''
+    const startTime = Date.now()
+
+    const session = new YaksokSession({
+        executionDelay: 100,
+        stdout(text) {
+            output += text
+        },
+    })
+
+    session.addModule(
+        'main',
+        `
+약속, 인사
+    "안" 보여주기
+    "녕" 보여주기
+
+인사
+" " 보여주기
+인사
+        `,
+    )
+
+    const result = await session.runModule('main')
+    assert(
+        result.reason === 'finish',
+        `Expected finish, but got ${result.reason}`,
+    )
+    const endTime = Date.now()
+    const duration = endTime - startTime
+
+    assertEquals(output, '안녕 안녕')
+    assertGreater(duration, 800)
+    assertLess(duration, 850)
+})

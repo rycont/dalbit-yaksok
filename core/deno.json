@@ -1,10 +1,10 @@
 {
-  "tasks": {
-    "check-circular-dependencies": "deno run -A npm:madge --circular --extensions ts ./",
-    "check-deploy": "deno publish --dry-run --allow-dirty",
-    "test": "deno task check-circular-dependencies & deno task check-deploy"
-  },
-  "name": "@dalbit-yaksok/core",
-  "exports": "./mod.ts",
-  "version": "1.3.4"
+    "tasks": {
+        "check-circular-dependencies": "deno run -A npm:madge --circular --extensions ts ./",
+        "check-deploy": "deno publish --dry-run --allow-dirty",
+        "test": "deno task check-circular-dependencies & deno task check-deploy"
+    },
+    "name": "@dalbit-yaksok/core",
+    "exports": "./mod.ts",
+    "version": "2.0.0"
 }

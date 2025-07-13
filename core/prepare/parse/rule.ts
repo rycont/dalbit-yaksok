@@ -37,6 +37,12 @@ import {
     Sequence,
     SetToIndex,
     SetVariable,
+    IntegerDivideOperator,
+    ModularOperator,
+    PowerOperator,
+    OrOperator,
+    Mention,
+    TypeOf,
 } from '../../node/index.ts'
 import { ListLoop } from '../../node/listLoop.ts'
 import { MentionScope } from '../../node/mention.ts'
@@ -44,8 +50,10 @@ import { NotEqualOperator } from '../../node/operator.ts'
 import { ReturnStatement } from '../../node/return.ts'
 import { IndexedValue } from '../../value/indexed.ts'
 import { NumberValue, StringValue } from '../../value/primitive.ts'
-import { Rule, RULE_FLAGS } from './type.ts'
+import type { Rule } from './type.ts'
+import { RULE_FLAGS } from './type.ts'
 
+export type { Rule }
 export const BASIC_RULES: Rule[][] = [
     [
         {
@@ -554,6 +562,29 @@ export const ADVANCED_RULES: Rule[] = [
             return new IfStatement([{ condition, body }], tokens)
         },
         flags: [RULE_FLAGS.IS_STATEMENT],
+    },
+    {
+        pattern: [
+            {
+                type: Evaluable,
+            },
+            {
+                type: Identifier,
+                value: '의',
+            },
+            {
+                type: Identifier,
+                value: '값',
+            },
+            {
+                type: Identifier,
+                value: '종류',
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const value = nodes[0] as Evaluable
+            return new TypeOf(value, tokens)
+        },
     },
     {
         pattern: [

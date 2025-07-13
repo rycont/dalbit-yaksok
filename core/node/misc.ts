@@ -1,8 +1,10 @@
-import { Node, Executable, type Evaluable } from './base.ts'
 import { YaksokError } from '../error/common.ts'
+import { Executable, Node, Evaluable } from './base.ts'
 
 import type { Scope } from '../executer/scope.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
+import { StringValue } from '../value/primitive.ts'
+import { ValueType } from '../value/base.ts'
 
 export class EOL extends Node {
     static override friendlyName = '줄바꿈'
@@ -36,10 +38,28 @@ export class Print extends Executable {
     }
 
     override async execute(scope: Scope): Promise<void> {
-        const printFunction = scope.codeFile?.runtime?.stdout || console.log
+        const printFunction = scope.codeFile?.session?.stdout || console.log
         const evaluated = await this.value.execute(scope)
 
         printFunction(evaluated.toPrint())
+    }
+
+    override validate(scope: Scope): YaksokError[] {
+        return this.value.validate(scope)
+    }
+}
+
+export class TypeOf extends Evaluable {
+    static override friendlyName = '값 종류'
+
+    constructor(public value: Evaluable, public override tokens: Token[]) {
+        super()
+    }
+
+    override async execute(scope: Scope): Promise<StringValue> {
+        const evaluated = await this.value.execute(scope)
+
+        return new StringValue((evaluated.constructor as typeof ValueType).friendlyName)
     }
 
     override validate(scope: Scope): YaksokError[] {

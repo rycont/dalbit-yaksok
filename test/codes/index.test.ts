@@ -1,5 +1,5 @@
 import { assertEquals } from 'assert'
-import { yaksok } from '../../core/mod.ts'
+import { YaksokSession } from '../../core/mod.ts'
 
 for (const file of Deno.readDirSync(import.meta.dirname!)) {
     if (file.isFile && file.name.endsWith('.yak')) {
@@ -12,14 +12,19 @@ for (const file of Deno.readDirSync(import.meta.dirname!)) {
             const expectedFilePath = filePath + '.out'
             let expected = await Deno.readTextFile(expectedFilePath)
 
-            await yaksok(code, {
-                stdout: (message) => (printed += message + '\n'),
+            const session = new YaksokSession({
+                stdout(message) {
+                    printed += message + '\n'
+                },
             })
 
-            if(expected.includes("\r")) {
+            session.addModule('main', code)
+            await session.runModule('main')
+
+            if (expected.includes('\r')) {
                 expected = expected.replace(/\r\n/g, '\n')
             }
-            
+
             assertEquals(printed, expected)
         })
     }
