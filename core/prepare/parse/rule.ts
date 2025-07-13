@@ -8,35 +8,35 @@ import {
     Block,
     Break,
     DivideOperator,
-    EOL,
     ElseIfStatement,
     ElseStatement,
+    EOL,
     EqualOperator,
     Evaluable,
     Expression,
     GreaterThanOperator,
     GreaterThanOrEqualOperator,
+    Identifier,
     IfStatement,
     IndexFetch,
-    Identifier,
+    IntegerDivideOperator,
     LessThanOperator,
     LessThanOrEqualOperator,
     ListLiteral,
     Loop,
+    Mention,
     MinusOperator,
+    ModularOperator,
     MultiplyOperator,
     Operator,
+    OrOperator,
     PlusOperator,
+    PowerOperator,
     Print,
     RangeOperator,
     Sequence,
     SetToIndex,
     SetVariable,
-    IntegerDivideOperator,
-    ModularOperator,
-    PowerOperator,
-    OrOperator,
-    Mention,
 } from '../../node/index.ts'
 import { ListLoop } from '../../node/listLoop.ts'
 import { MentionScope } from '../../node/mention.ts'
@@ -96,25 +96,6 @@ export const BASIC_RULES: Rule[][] = [
                 newNode.position = nodes[0].position
 
                 return newNode
-            },
-        },
-        {
-            pattern: [
-                {
-                    type: Expression,
-                    value: '[',
-                },
-                {
-                    type: Evaluable,
-                },
-                {
-                    type: Expression,
-                    value: ']',
-                },
-            ],
-            factory: (nodes, tokens) => {
-                const item = nodes[1] as Evaluable
-                return new ListLiteral([item], tokens)
             },
         },
         {
@@ -714,6 +695,25 @@ export const ADVANCED_RULES: Rule[] = [
             const name = nodes[1] as Identifier
 
             return new MentionScope(mention.value, name, tokens)
+        },
+    },
+    {
+        pattern: [
+            {
+                type: Expression,
+                value: '[',
+            },
+            {
+                type: Evaluable,
+            },
+            {
+                type: Expression,
+                value: ']',
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const item = nodes[1] as Evaluable
+            return new ListLiteral([item], tokens)
         },
     },
 ]
