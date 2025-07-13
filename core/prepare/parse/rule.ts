@@ -37,11 +37,6 @@ import {
     Sequence,
     SetToIndex,
     SetVariable,
-    IntegerDivideOperator,
-    ModularOperator,
-    PowerOperator,
-    OrOperator,
-    Mention,
     TypeOf,
 } from '../../node/index.ts'
 import { ListLoop } from '../../node/listLoop.ts'
