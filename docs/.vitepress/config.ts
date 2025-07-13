@@ -37,6 +37,10 @@ export default defineConfig(
                             text: 'Library',
                             link: '/library/1.%20getting-started.html',
                         },
+                        {
+                            text: 'Contribution',
+                            link: '/codebook/00.introduction.html',
+                        },
                     ],
                     socialLinks: [
                         {
