@@ -37,6 +37,7 @@ import {
     PowerOperator,
     OrOperator,
     Mention,
+    TypeOf,
 } from '../../node/index.ts'
 import { ListLoop } from '../../node/listLoop.ts'
 import { MentionScope } from '../../node/mention.ts'
@@ -556,6 +557,29 @@ export const ADVANCED_RULES: Rule[] = [
             return new IfStatement([{ condition, body }], tokens)
         },
         flags: [RULE_FLAGS.IS_STATEMENT],
+    },
+    {
+        pattern: [
+            {
+                type: Evaluable,
+            },
+            {
+                type: Identifier,
+                value: '의',
+            },
+            {
+                type: Identifier,
+                value: '값',
+            },
+            {
+                type: Identifier,
+                value: '종류',
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const value = nodes[0] as Evaluable
+            return new TypeOf(value, tokens)
+        },
     },
     {
         pattern: [
