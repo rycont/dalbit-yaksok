@@ -23,35 +23,35 @@
 npm i -g deno
 ```
 
-## 1. 코드북 (Codebook)
+## 1. 가이드 (Guide)
 
--   **0. 서문**: [docs/codebook/00.introduction.md](docs/codebook/00.introduction.md)
-    -   이 코드북의 목적과 '달빛 약속' 프로젝트의 철학, 전체 코드 구조, 소스코드 변환 과정, 핵심 클래스 및 함수 역할, 그리고 새로운 기능 추가/버그 수정 시 참고할 부분을 소개합니다.
--   **1. 시작하기: 개발 환경 설정**: [docs/codebook/01.getting-started.md](docs/codebook/01.getting-started.md)
+-   **0. 서문**: [docs/Guide/00.introduction.md](docs/Guide/00.introduction.md)
+    -   이 가이드의 목적과 '달빛 약속' 프로젝트의 철학, 전체 코드 구조, 소스코드 변환 과정, 핵심 클래스 및 함수 역할, 그리고 새로운 기능 추가/버그 수정 시 참고할 부분을 소개합니다.
+-   **1. 시작하기: 개발 환경 설정**: [docs/Guide/01.getting-started.md](docs/Guide/01.getting-started.md)
     -   '달빛 약속' 코드를 실행하고 수정하기 위한 Deno 및 Git 설치 방법, 프로젝트 코드 클론, 그리고 `deno task nested-test` 명령어를 통한 환경 설정 확인 과정을 안내합니다.
--   **2. 전체 아키텍처: 코드 한 줄의 여정**: [docs/codebook/02.architecture-overview.md](docs/codebook/02.architecture-overview.md)
+-   **2. 전체 아키텍처: 코드 한 줄의 여정**: [docs/Guide/02.architecture-overview.md](docs/Guide/02.architecture-overview.md)
     -   '달빛 약속' 코드가 토크나이저, 파서, 실행기를 거쳐 최종 결과물로 변환되는 전체 파이프라인을 높은 수준에서 설명합니다.
--   **Core: 소개**: [docs/codebook/core/00.introduction.md](docs/codebook/core/00.introduction.md)
+-   **Core: 소개**: [docs/Guide/core/00.introduction.md](docs/Guide/core/00.introduction.md)
     -   `core` 디렉터리가 '달빛 약속' 언어의 모든 핵심 로직(토크나이저, 파서, 실행기, 값 시스템, 스코프, 에러 처리 등)을 담고 있는 심장부임을 소개하고 각 부품의 역할을 간략히 설명합니다.
--   **Core: 1. 토크나이저**: [docs/codebook/core/01.tokenizer.md](docs/codebook/core/01.tokenizer.md)
+-   **Core: 1. 토크나이저**: [docs/Guide/core/01.tokenizer.md](docs/Guide/core/01.tokenizer.md)
     -   코드 문자열을 의미 있는 가장 작은 단위인 '토큰'으로 변환하는 과정(토크나이징 또는 어휘 분석)과 토큰의 개념, 그리고 주석과 같은 문법적으로 의미 없는 부분을 걸러내는 역할을 설명합니다.
--   **Core: 2. 파서**: [docs/codebook/core/02.parser.md](docs/codebook/core/02.parser.md)
+-   **Core: 2. 파서**: [docs/Guide/core/02.parser.md](docs/Guide/core/02.parser.md)
     -   토큰 목록을 문법적인 구조를 가진 '추상 구문 트리(AST)'로 엮어내는 과정(파싱 또는 구문 분석)과 AST의 역할, 그리고 '달빛 약속'에서 사용되는 Shift-Reduce 파서의 특징을 설명합니다.
--   **Core: 3. 실행기**: [docs/codebook/core/03.executer.md](docs/codebook/core/03.executer.md)
+-   **Core: 3. 실행기**: [docs/Guide/core/03.executer.md](docs/Guide/core/03.executer.md)
     -   파서가 생성한 AST를 순회하며 실제 작업을 수행하는 '코드 실행의 프로젝트 매니저'로서의 실행기 역할, `Scope` (실행 컨텍스트) 관리, AST 노드 실행 위임, 그리고 `ReturnSignal`, `BreakSignal`과 같은 제어 흐름 시그널 처리 메커니즘을 설명합니다.
--   **Core: 4. Session과 CodeFile**: [docs/codebook/core/04.session-and-codefile.md](docs/codebook/core/04.session-and-codefile.md)
+-   **Core: 4. Session과 CodeFile**: [docs/Guide/core/04.session-and-codefile.md](docs/Guide/core/04.session-and-codefile.md)
     -   '달빛 약속' 코드 실행의 두 가지 핵심 축인 `YaksokSession` (실행 환경의 총괄 지휘자, 공개 API)과 `CodeFile` (소스코드 파일의 대리인, 지연 평가 및 캐싱)의 역할과 상호작용을 설명합니다.
--   **Core: 5. 값 시스템**: [docs/codebook/core/05.value-system.md](docs/codebook/core/05.value-system.md)
+-   **Core: 5. 값 시스템**: [docs/Guide/core/05.value-system.md](docs/Guide/core/05.value-system.md)
     -   '달빛 약속'이 다루는 모든 데이터의 계층 구조(`ValueType`, `PrimitiveValue`, `ObjectValue`)와 주요 값 타입(숫자, 문자열, 불리언, 목록, 함수)의 내부 표현 및 특징을 설명합니다.
--   **Core: 6. 스코프 시스템**: [docs/codebook/core/06.scope-system.md](docs/codebook/core/06.scope-system.md)
+-   **Core: 6. 스코프 시스템**: [docs/Guide/core/06.scope-system.md](docs/Guide/core/06.scope-system.md)
     -   변수와 함수의 유효 범위를 결정하는 `Scope` 클래스의 역할, 스코프 체인을 통한 렉시컬 스코핑 구현, 그리고 전역 스코프, 함수 호출, 블록 스코프 등 새로운 스코프가 생성되는 상황을 설명합니다.
--   **Core: 7. 확장 시스템**: [docs/codebook/core/07.extensions.md](docs/codebook/core/07.extensions.md)
+-   **Core: 7. 확장 시스템**: [docs/Guide/core/07.extensions.md](docs/Guide/core/07.extensions.md)
     -   '달빛 약속'이 외부 JavaScript/TypeScript 환경과 상호작용할 수 있도록 하는 FFI(Foreign Function Interface)의 목적, `Extension` 인터페이스의 구조와 역할, 그리고 `YaksokSession`과의 연동 방식을 QuickJS 확장 예시와 함께 설명합니다.
--   **Core: 8. 에러 처리**: [docs/codebook/core/08.error-handling.md](docs/codebook/core/08.error-handling.md)
+-   **Core: 8. 에러 처리**: [docs/Guide/core/08.error-handling.md](docs/Guide/core/08.error-handling.md)
     -   '달빛 약속'의 체계적인 에러 처리 시스템을 설명하며, 모든 에러의 기본이 되는 `YaksokError` 클래스의 정보(코드, 메시지, 리소스, 위치), 에러의 종류 분류, `renderErrorString` 함수를 통한 사용자 친화적인 메시지 렌더링, 그리고 에러 전파 및 처리 방식을 다룹니다.
--   **부록: 1. 테스트 가이드**: [docs/codebook/appendix/01.test-guide.md](docs/codebook/appendix/01.test-guide.md)
+-   **부록: 1. 테스트 가이드**: [docs/Guide/appendix/01.test-guide.md](docs/Guide/appendix/01.test-guide.md)
     -   '달빛 약속' 프로젝트의 테스트 실행 방법(전체, 특정 파일/케이스), `test/` 디렉터리 구조, `.yak`과 `.yak.out` 파일을 이용한 편리한 테스트 컨벤션, 그리고 TypeScript를 이용한 고급 테스트 작성 방법을 안내하며 테스트의 중요성을 강조합니다.
--   **부록: 2. 기여 가이드**: [docs/codebook/appendix/02.contribution-guide.md](docs/codebook/appendix/02.contribution-guide.md)
+-   **부록: 2. 기여 가이드**: [docs/Guide/appendix/02.contribution-guide.md](docs/Guide/appendix/02.contribution-guide.md)
     -   '달빛 약속' 프로젝트에 기여하는 전반적인 워크플로우(저장소 포크, 코드 변경, 테스트, 풀 리퀘스트 생성)와 코딩 스타일 및 컨벤션(Prettier, Madge)을 설명합니다.
 
 ## 2. 언어 (Language)
@@ -98,7 +98,7 @@ npm i -g deno
 
 ## 4. Monaco Editor 연동
 
--   **0. Monaco Language Provider: 웹 에디터와의 만남**: [docs/codebook/monaco-language-provider/00.introduction-and-syntax-highlighting.md](docs/codebook/monaco-language-provider/00.introduction-and-syntax-highlighting.md)
+-   **0. Monaco Language Provider: 웹 에디터와의 만남**: [docs/Guide/monaco-language-provider/00.introduction-and-syntax-highlighting.md](docs/Guide/monaco-language-provider/00.introduction-and-syntax-highlighting.md)
     -   `monaco-language-provider` 모듈이 Monaco Editor와 '달빛 약속' 언어를 연동하여 구문 강조 기능을 제공하는 역할과 구조를 설명하며, `nodeToColorTokens` 함수가 AST를 기반으로 색상 정보를 생성하는 핵심적인 역할을 함을 강조합니다.
 -   **Monaco Editor에서 달빛약속 사용하기**: [docs/monaco/usage-guide.md](docs/monaco/usage-guide.md)
     -   `jsr:@dalbit-yaksok/monaco-language-provider` 패키지의 설치 방법과 Monaco Editor에 '달빛 약속' 언어 서비스를 적용하는 구체적인 코드 예시를 제공하며, 지원하는 기능(문법 강조, 키워드 자동 완성)을 명시합니다.

@@ -27,9 +27,9 @@ features:
       linkText: rycont/dalbit-yaksok
     - title: 코드베이스 이해하기(기여하기)
       icon: ⚙️
-      link: /codebook/00.introduction.md
+      link: /guide/00.introduction.md
       details: 친절한 튜토리얼이 기다리고 있습니다
-      linkText: Codebook
+      linkText: Guide
 ---
 
 <script setup>
