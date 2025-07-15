@@ -1,6 +1,6 @@
+import { UnexpectedNewlineError } from '../../error/prepare.ts'
 import { NotAcceptableSignal } from './signal.ts'
 import { Token, TOKEN_TYPE } from './token.ts'
-import { UnexpectedNewlineError } from '../../error/prepare.ts'
 
 const OPERATORS = [
     '+',
@@ -41,6 +41,8 @@ export const RULES: {
                 throw new NotAcceptableSignal()
             }
 
+            let hasDot = false
+
             while (
                 view() &&
                 [
@@ -57,6 +59,13 @@ export const RULES: {
                     '.',
                 ].includes(view()!)
             ) {
+                if (view() === '.') {
+                    if (hasDot) {
+                        throw new NotAcceptableSignal()
+                    }
+                    hasDot = true
+                }
+
                 value += shift()!
             }
 

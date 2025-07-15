@@ -1,3 +1,4 @@
+import { UnexpectedEndOfCodeError } from '../../error/prepare.ts'
 import { Expression, Node } from '../../node/base.ts'
 import { Token, TOKEN_TYPE } from '../tokenize/token.ts'
 import { Rule } from './rule.ts'
@@ -56,10 +57,12 @@ export function parseBracket(
         closingPosition++
 
         if (closingPosition >= nodes.length) {
-            throw new Error(
-                'Unmatched opening bracket at position ' +
-                    listOpeningBracketIndex,
-            )
+            throw new UnexpectedEndOfCodeError({
+                resource: {
+                    expected: '닫는 대괄호',
+                },
+                position: nodes[listOpeningBracketIndex].tokens[0].position,
+            })
         }
 
         if (

@@ -1,23 +1,27 @@
-import { assertIsError } from '@std/assert'
-import { yaksok } from '../../core/mod.ts'
-import { UnexpectedCharError } from '../../core/error/prepare.ts'
-import { ErrorGroups } from '../../core/error/validation.ts'
+import { assert, assertIsError } from '@std/assert'
+import { UnexpectedEndOfCodeError } from '../../core/error/prepare.ts'
 import { NotExecutableNodeError } from '../../core/error/unknown-node.ts'
+import { ErrorGroups } from '../../core/error/validation.ts'
+import { yaksok } from '../../core/mod.ts'
 
 Deno.test('Unparsable codes', async () => {
-    try {
-        await yaksok(`]]`)
-    } catch (e) {
-        assertIsError(e, ErrorGroups)
-        assertIsError(e.errors.get('main')![0], NotExecutableNodeError)
-        assertIsError(e.errors.get('main')![1], NotExecutableNodeError)
-    }
+    const result = await yaksok(`]]`)
+    assert(result.reason === 'validation')
+    assertIsError(result.errors, ErrorGroups)
+
+    assertIsError(result.errors.errors.get('main')![0], NotExecutableNodeError)
+    assertIsError(result.errors.errors.get('main')![1], NotExecutableNodeError)
 })
 
 Deno.test('Unparsable numbers', async () => {
-    try {
-        await yaksok(`1.2.3`)
-    } catch (e) {
-        assertIsError(e, UnexpectedCharError)
-    }
+    const result = await yaksok(`1.2.3`)
+
+    assert(result.reason === 'validation')
+    assertIsError(result.errors.errors.get('main')![0], NotExecutableNodeError)
+})
+
+Deno.test('Unparsable list', async () => {
+    const result = await yaksok(`자리표 = [1, 2, [3, 4]`)
+    assert(result.reason === 'error')
+    assertIsError(result.error, UnexpectedEndOfCodeError)
 })
