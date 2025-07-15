@@ -8,16 +8,20 @@ export function parseBracket(
     tokens: Token[],
     dynamicRules: [Rule[][], Rule[][]],
 ) {
-    const lastOpeningBracketIndex = nodes.findLastIndex(
-        (node) => node instanceof Expression && node.value === '[',
-    )
+    let listOpeningBracketIndex = nodes.length - 1
 
-    if (lastOpeningBracketIndex === -1) {
-        return nodes
-    }
+    for (
+        listOpeningBracketIndex;
+        listOpeningBracketIndex >= 0;
+        listOpeningBracketIndex--
+    ) {
+        const node = nodes[listOpeningBracketIndex]
 
-    checkValidPreToken: if (lastOpeningBracketIndex > 0) {
-        const lastOpeningBracketNode = nodes[lastOpeningBracketIndex]
+        if (!(node instanceof Expression) || node.value !== '[') {
+            continue
+        }
+
+        const lastOpeningBracketNode = nodes[listOpeningBracketIndex]
         const lastOpeningBracketToken = lastOpeningBracketNode.tokens[0]
         const lastOpeningBracketTokenIndex = tokens.indexOf(
             lastOpeningBracketToken,
@@ -26,7 +30,7 @@ export function parseBracket(
             tokens[lastOpeningBracketTokenIndex - 1]
 
         if (!lastOpeningBracketPreToken) {
-            break checkValidPreToken
+            break
         }
 
         if (
@@ -38,13 +42,15 @@ export function parseBracket(
                 TOKEN_TYPE.OPENING_PARENTHESIS,
             ].includes(lastOpeningBracketPreToken.type)
         ) {
-            break checkValidPreToken
+            break
         }
+    }
 
+    if (listOpeningBracketIndex < 0) {
         return nodes
     }
 
-    let closingPosition = lastOpeningBracketIndex
+    let closingPosition = listOpeningBracketIndex
 
     while (true) {
         closingPosition++
@@ -52,7 +58,7 @@ export function parseBracket(
         if (closingPosition >= nodes.length) {
             throw new Error(
                 'Unmatched opening bracket at position ' +
-                    lastOpeningBracketIndex,
+                    listOpeningBracketIndex,
             )
         }
 
@@ -65,13 +71,13 @@ export function parseBracket(
     }
 
     const nodesInBrackets = nodes.slice(
-        lastOpeningBracketIndex,
+        listOpeningBracketIndex,
         closingPosition + 1,
     )
 
     const childNodes = callParseRecursively(nodesInBrackets, dynamicRules)
     const newNodes = [
-        ...nodes.slice(0, lastOpeningBracketIndex),
+        ...nodes.slice(0, listOpeningBracketIndex),
         ...childNodes,
         ...nodes.slice(closingPosition + 1),
     ]
