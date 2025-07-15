@@ -1,5 +1,5 @@
-import { assertEquals } from 'assert'
 import { YaksokSession } from '@dalbit-yaksok/core'
+import { assertEquals } from 'assert'
 
 Deno.test('Mentioning', async () => {
     let output = ''
@@ -92,6 +92,38 @@ Deno.test('Mentioning with variable in parameter', async () => {
         output,
         `뭐라고? 어쩌라고.
 비? 어쩌라고.
+`,
+    )
+})
+
+Deno.test('Mentioning with inline list literal', async () => {
+    let output = ''
+
+    const session = new YaksokSession({
+        stdout(message) {
+            output += message + '\n'
+        },
+        // flags: {
+        //     'disable-bracket-first-parsing': true, // 대괄호 우선 파싱 비활성화
+        // },
+    })
+
+    session.addModule(
+        '하랑봇',
+        `약속, 이렇게 (목록) 목록을 말하기
+    목록 보여주기`,
+    )
+
+    session.addModule(
+        'main',
+        `@하랑봇 이렇게 ["사과", "바나나", "체리"] 목록을 말하기`,
+    )
+
+    await session.runModule('main')
+
+    assertEquals(
+        output,
+        `[사과, 바나나, 체리]
 `,
     )
 })

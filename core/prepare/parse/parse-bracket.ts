@@ -1,11 +1,11 @@
-import { TOKEN_TYPE } from '@dalbit-yaksok/core'
 import { Expression, Node } from '../../node/base.ts'
-import { EOL } from '../../node/index.ts'
+import { Token, TOKEN_TYPE } from '../tokenize/token.ts'
 import { Rule } from './rule.ts'
 import { callParseRecursively } from './srParse.ts'
 
 export function parseBracket(
     nodes: Node[],
+    tokens: Token[],
     dynamicRules: [Rule[][], Rule[][]],
 ) {
     const lastOpeningBracketIndex = nodes.findLastIndex(
@@ -17,36 +17,27 @@ export function parseBracket(
     }
 
     checkValidPreToken: if (lastOpeningBracketIndex > 0) {
-        const lastOpeningBracketPrevToken = nodes[lastOpeningBracketIndex - 1]
-        // Is opening parenthesis or whitespace or newline or opening bracket
+        const lastOpeningBracketNode = nodes[lastOpeningBracketIndex]
+        const lastOpeningBracketToken = lastOpeningBracketNode.tokens[0]
+        const lastOpeningBracketTokenIndex = tokens.indexOf(
+            lastOpeningBracketToken,
+        )
+        const lastOpeningBracketPreToken =
+            tokens[lastOpeningBracketTokenIndex - 1]
 
-        const isOpeningParenthesis =
-            lastOpeningBracketPrevToken instanceof Expression &&
-            lastOpeningBracketPrevToken.value === '('
-
-        if (isOpeningParenthesis) {
+        if (!lastOpeningBracketPreToken) {
             break checkValidPreToken
         }
 
-        const isNewLine = lastOpeningBracketPrevToken instanceof EOL
-
-        if (isNewLine) {
-            break checkValidPreToken
-        }
-
-        const isWhitespace =
-            lastOpeningBracketPrevToken.tokens.slice(-1)[0].type ===
-            TOKEN_TYPE.SPACE
-
-        if (isWhitespace) {
-            break checkValidPreToken
-        }
-
-        const isOpeningBracket =
-            lastOpeningBracketPrevToken instanceof Expression &&
-            lastOpeningBracketPrevToken.value === '['
-
-        if (isOpeningBracket) {
+        if (
+            [
+                TOKEN_TYPE.NEW_LINE,
+                TOKEN_TYPE.SPACE,
+                TOKEN_TYPE.INDENT,
+                TOKEN_TYPE.OPENING_BRACKET,
+                TOKEN_TYPE.OPENING_PARENTHESIS,
+            ].includes(lastOpeningBracketPreToken.type)
+        ) {
             break checkValidPreToken
         }
 
@@ -85,5 +76,5 @@ export function parseBracket(
         ...nodes.slice(closingPosition + 1),
     ]
 
-    return parseBracket(newNodes, dynamicRules)
+    return parseBracket(newNodes, tokens, dynamicRules)
 }

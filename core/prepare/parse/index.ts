@@ -25,7 +25,7 @@ export function parse(codeFile: CodeFile): ParseResult {
             'disable-bracket-first-parsing'
         ]
             ? indentedNodes
-            : parseBracket(indentedNodes, dynamicRules)
+            : parseBracket(indentedNodes, codeFile.tokens, dynamicRules)
 
         const childNodes = callParseRecursively(
             bracketParsedNodes,
