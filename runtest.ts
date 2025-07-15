@@ -2,22 +2,12 @@ import { YaksokSession } from '@dalbit-yaksok/core'
 
 const code = {
     main: `
-"a" 보여주기
-@imported "b" 출력하기
-"c" 보여주기
+@코레일 지금 (["집", "회사"])에 가기
         `,
-    imported: `
-@nested "!"라고 말하기
-약속, (text) 출력하기
-    text 보여주기
-        `,
-    nested: `
-약속, (text)라고 말하기
-    text 보여주기
-        `,
+    코레일: `
+약속, 지금 (도착지들)에 가기
+    도착지들[0] + "에 왔습니다" 보여주기`,
 }
-
-let output = ''
 
 const session = new YaksokSession({
     executionDelay: 100,
