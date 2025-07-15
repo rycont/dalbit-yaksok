@@ -2,20 +2,28 @@ import { YaksokSession } from '@dalbit-yaksok/core'
 
 const code = {
     main: `
-@코레일 지금 ["집", ["쌀국수",
-"초계국수",
-"춘권"], "회사"]에 가기
+자리표 = [
+    ["X", "O", "O", "O"],
+    ["O", "X", "O", "O"],
+    ["O", "O", "X", "O"],
+    ["O", "O", "O", "X"]
+]
 
-["집", ["쌀국수", "고수"]][[0, 1]] 보여주기
+반복 자리표 의 줄 마다
+    줄 보여주기
+
+@코레일 계산
+@코레일 단가 보여주기
         `,
     코레일: `
-약속, 지금 (도착지들)에 가기
-    도착지들[0] + "에 왔습니다" 보여주기`,
+약속, 계산
+    "고생하셨습니다" 보여주기
+
+단가 = 10000
+`,
 }
 
-const session = new YaksokSession({
-    executionDelay: 100,
-})
+const session = new YaksokSession()
 
 session.addModules(code)
 await session.runModule('main')

@@ -6,6 +6,8 @@ import { createDynamicRule } from './dynamicRule/index.ts'
 import { parseIndent } from './parse-indent.ts'
 import { callParseRecursively } from './srParse.ts'
 
+import { Identifier, Node } from '../../node/base.ts'
+import { SetVariable } from '../../node/variable.ts'
 import type { CodeFile } from '../../type/code-file.ts'
 import { parseBracket } from './parse-bracket.ts'
 import type { Rule } from './type.ts'
@@ -35,7 +37,13 @@ export function parse(codeFile: CodeFile): ParseResult {
 
         const ast = new Block(childNodes, childTokens)
 
-        const exportedRules = dynamicRules.flat(2)
+        const exportedDynamicRules = dynamicRules.flat(2)
+        const exportedVariables = extractExportedVariables(childNodes)
+
+        const exportedRules: Rule[] = [
+            ...exportedDynamicRules,
+            ...exportedVariables,
+        ]
 
         return { ast, exportedRules }
     } catch (error) {
@@ -47,4 +55,26 @@ export function parse(codeFile: CodeFile): ParseResult {
 
         throw error
     }
+}
+
+function extractExportedVariables(nodes: Node[]): Rule[] {
+    return nodes
+        .filter((node) => node instanceof SetVariable)
+        .map(
+            (node) =>
+                ({
+                    pattern: [
+                        {
+                            type: Identifier,
+                            value: node.name,
+                        },
+                    ],
+                    factory(nodes) {
+                        return nodes[0] as Identifier
+                    },
+                    config: {
+                        exported: true,
+                    },
+                } satisfies Rule),
+        )
 }
