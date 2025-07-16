@@ -54,7 +54,7 @@ import type { ValueType } from '../value/base.ts'
 export class YaksokSession {
     private BASE_CONTEXT_SYMBOL = Symbol('baseContext')
 
-    public isRunning = false
+    public runningPromise: ReturnType<CodeFile['run']> | null = null
     public entrypoint: CodeFile | null = null
 
     public stdout: SessionConfig['stdout']
@@ -163,29 +163,30 @@ export class YaksokSession {
      * @returns 코드 실행 결과를 담은 `RunModuleResult` 객체를 반환합니다.
      */
     async runModule(moduleName: string | symbol): Promise<RunModuleResult> {
-        if (this.isRunning) {
-            throw new Error('이미 실행 중인 세션입니다.')
+        if (this.runningPromise) {
+            await this.runningPromise
         }
-
-        this.isRunning = true
 
         const codeFile = this.files[moduleName]
         if (!codeFile) {
-            this.isRunning = false
-
-            throw new FileForRunNotExistError({
-                resource: {
-                    fileName: moduleName.toString(),
-                    files: Object.keys(this.files),
-                },
-            })
+            return {
+                reason: 'error',
+                error: new FileForRunNotExistError({
+                    resource: {
+                        fileName: moduleName.toString(),
+                        files: Object.keys(this.files),
+                    },
+                }),
+            }
         }
 
         this.entrypoint = codeFile
 
         try {
             this.validate(moduleName)
-            await codeFile.run()
+            this.runningPromise = codeFile.run()
+            await this.runningPromise
+
             return {
                 codeFile,
                 reason: 'finish',
@@ -233,7 +234,7 @@ export class YaksokSession {
 
             throw e
         } finally {
-            this.isRunning = false
+            this.runningPromise = null
         }
     }
 
@@ -242,11 +243,16 @@ export class YaksokSession {
      * 여기에 정의된 변수나 함수는 모든 모듈의 최상위 스코프에서 접근 가능합니다.
      * @param code - 기본 컨텍스트로 사용할 `달빛 약속` 코드입니다.
      */
-    async setBaseContext(code: string) {
+    async setBaseContext(code: string): Promise<RunModuleResult> {
         this.addModule(this.BASE_CONTEXT_SYMBOL, code)
-        this.baseContext = (
-            await this.runModule(this.BASE_CONTEXT_SYMBOL)
-        ).codeFile
+
+        const result = await this.runModule(this.BASE_CONTEXT_SYMBOL)
+
+        if (result.reason === 'finish') {
+            this.baseContext = result.codeFile
+        }
+
+        return result
     }
 
     /**

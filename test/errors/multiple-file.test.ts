@@ -1,4 +1,4 @@
-import { assert, assertIsError, unreachable } from 'assert'
+import { assert, assertIsError } from 'assert'
 import {
     ErrorInModuleError,
     FileForRunNotExistError,
@@ -6,24 +6,19 @@ import {
 import { yaksok } from '../../core/mod.ts'
 
 Deno.test('Cannot find entry point in files', async () => {
-    try {
-        await yaksok({
-            dummy1: '',
-            dummy2: '',
-        })
-        unreachable()
-    } catch (error) {
-        assertIsError(error, FileForRunNotExistError)
-    }
+    const result = await yaksok({
+        dummy1: '',
+        dummy2: '',
+    })
+
+    assert(result.reason === 'error')
+    assertIsError(result.error, FileForRunNotExistError)
 })
 
 Deno.test('No files to run', async () => {
-    try {
-        await yaksok({})
-        unreachable()
-    } catch (error) {
-        assertIsError(error, FileForRunNotExistError)
-    }
+    const result = await yaksok({})
+    assert(result.reason === 'error')
+    assertIsError(result.error, FileForRunNotExistError)
 })
 
 Deno.test('Error in importing module', async () => {
