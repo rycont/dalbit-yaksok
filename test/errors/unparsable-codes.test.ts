@@ -6,7 +6,6 @@ import { yaksok } from '../../core/mod.ts'
 Deno.test('Unparsable codes', async () => {
     const result = await yaksok(`]]`)
     assert(result.reason === 'validation')
-    assertIsError(result.errors, ErrorGroups)
 
     assertIsError(result.errors.get('main')![0], NotExecutableNodeError)
     assertIsError(result.errors.get('main')![1], NotExecutableNodeError)

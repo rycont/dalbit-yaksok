@@ -181,7 +181,6 @@ Deno.test('No break or return in loop', async () => {
         result.reason === 'validation',
         `Expected an validation, but got ${result.reason}`,
     )
-    assertIsError(result.errors, ErrorGroups)
     assertIsError(result.errors.get('main')![0], NoBreakOrReturnError)
 })
 

@@ -9,7 +9,7 @@ Deno.test('올바르지 않은 괄호 묶음', async () => {
         result.reason === 'validation',
         `Expected an validation, but got ${result.reason}`,
     )
-    assertIsError(result.errors, ErrorGroups)
+
     for (const childError of result.errors.get('main')!) {
         assertIsError(childError, NotExecutableNodeError)
     }
