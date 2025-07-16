@@ -7,8 +7,8 @@ Deno.test('없는 파일 실행 요청', async () => {
         main: `@코레일 출발하기`,
     })
 
-    assert(result.reason === 'error')
-    assertIsError(result.error, FileForRunNotExistError)
+    assert(result.reason === 'validation')
+    assertIsError(result.errors.get('main')![0], FileForRunNotExistError)
 
     const result2 = await yaksok({
         코레일: `

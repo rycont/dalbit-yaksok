@@ -20,6 +20,6 @@ Deno.test('Unparsable numbers', async () => {
 
 Deno.test('Unparsable list', async () => {
     const result = await yaksok(`자리표 = [1, 2, [3, 4]`)
-    assert(result.reason === 'error')
-    assertIsError(result.error, UnexpectedEndOfCodeError)
+    assert(result.reason === 'validation')
+    assertIsError(result.errors.get('main')![0], UnexpectedEndOfCodeError)
 })

@@ -42,10 +42,13 @@ Deno.test('Invalid identifier name', async () => {
 Deno.test('Cannot use reserved words as an identifier', async () => {
     const result = await yaksok(`만약 = 10`)
     assert(
-        result.reason === 'error',
+        result.reason === 'validation',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, CannotUseReservedWordForIdentifierNameError)
+    assertIsError(
+        result.errors.get('main')![0],
+        CannotUseReservedWordForIdentifierNameError,
+    )
 })
 
 Deno.test('Cannot use reserved words as a part of a yaksok name', async () => {
@@ -54,10 +57,13 @@ Deno.test('Cannot use reserved words as a part of a yaksok name', async () => {
     "이거 진짜에요?" 반환하기
         `)
     assert(
-        result.reason === 'error',
+        result.reason === 'validation',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, CannotUseReservedWordForIdentifierNameError)
+    assertIsError(
+        result.errors.get('main')![0],
+        CannotUseReservedWordForIdentifierNameError,
+    )
 })
 
 Deno.test('Cannot use reserved words as a part of a connect name', async () => {
@@ -68,8 +74,11 @@ Deno.test('Cannot use reserved words as a part of a connect name', async () => {
 ***
         `)
     assert(
-        result.reason === 'error',
+        result.reason === 'validation',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, CannotUseReservedWordForIdentifierNameError)
+    assertIsError(
+        result.errors.get('main')![0],
+        CannotUseReservedWordForIdentifierNameError,
+    )
 })

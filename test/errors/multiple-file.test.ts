@@ -38,8 +38,8 @@ Deno.test('Error in parsing module file', async () => {
         아두이노: `약속, 이름`,
     })
 
-    assert(result.reason === 'error')
-    assertIsError(result.error, ErrorInModuleError)
+    assert(result.reason === 'validation')
+    assertIsError(result.errors.get('main')![0], ErrorInModuleError)
 })
 
 Deno.test('Error in using module function', async () => {

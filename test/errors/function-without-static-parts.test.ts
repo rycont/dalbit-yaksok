@@ -1,6 +1,6 @@
 import { assert, assertIsError } from 'assert'
-import { yaksok } from '../../core/mod.ts'
 import { FunctionMustHaveOneOrMoreStringPartError } from '../../core/error/index.ts'
+import { yaksok } from '../../core/mod.ts'
 
 Deno.test('고정된 부분이 없는 함수', async () => {
     const result = await yaksok(`
@@ -9,6 +9,12 @@ Deno.test('고정된 부분이 없는 함수', async () => {
 
 (10) (20) (30) 보여주기
             `)
-    assert(result.reason === 'error', `Expected an error, but got ${result.reason}`)
-    assertIsError(result.error, FunctionMustHaveOneOrMoreStringPartError)
+    assert(
+        result.reason === 'validation',
+        `Expected an error, but got ${result.reason}`,
+    )
+    assertIsError(
+        result.errors.get('main')![0],
+        FunctionMustHaveOneOrMoreStringPartError,
+    )
 })
