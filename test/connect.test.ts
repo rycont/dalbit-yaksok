@@ -1,9 +1,12 @@
-import { assertEquals, assertIsError, assert } from '@std/assert'
 import { QuickJS } from '@dalbit-yaksok/quickjs'
-import { YaksokSession } from '../core/mod.ts'
+import { assert, assertEquals, assertIsError } from '@std/assert'
 import { FFIResultTypeIsNotForYaksokError } from '../core/error/ffi.ts'
-import { NumberValue, StringValue } from '../core/value/primitive.ts'
+import {
+    ErrorOccurredWhileRunningFFIExecution,
+    YaksokSession,
+} from '../core/mod.ts'
 import { ListValue } from '../core/value/list.ts'
+import { NumberValue, StringValue } from '../core/value/primitive.ts'
 
 Deno.test('연결 문법을 사용하여 자바스크립트 함수 호출', async () => {
     let output = ''
@@ -131,129 +134,128 @@ RRR
 })
 
 Deno.test('올바르지 않은 연결 반환값: JS String', async () => {
-    try {
-        const session = new YaksokSession()
+    const session = new YaksokSession()
 
-        await session.extend({
-            manifest: {
-                ffiRunner: {
-                    runtimeName: 'mock',
-                },
+    await session.extend({
+        manifest: {
+            ffiRunner: {
+                runtimeName: 'mock',
             },
-            executeFFI() {
-                return 'invalid value' as any
-            },
-            init() {
-                return Promise.resolve()
-            },
-        })
+        },
+        executeFFI() {
+            return 'invalid value' as any
+        },
+        init() {
+            return Promise.resolve()
+        },
+    })
 
-        session.addModule(
-            'main',
-            `번역(mock), (질문) 물어보기
+    session.addModule(
+        'main',
+        `번역(mock), (질문) 물어보기
+***
+SOMETHING
 ***
 (("이름이 뭐에요?") 물어보기) 보여주기`,
-        )
+    )
 
-        await session.runModule('main')
-    } catch (e) {
-        assertIsError(e, FFIResultTypeIsNotForYaksokError)
-    }
+    const result = await session.runModule('main')
+    console.log(result)
+    assert(result.reason === 'error')
+    assertIsError(result.error, FFIResultTypeIsNotForYaksokError)
 })
 
 Deno.test('올바르지 않은 연결 반환값: JS Object', async () => {
-    try {
-        const session = new YaksokSession()
+    const session = new YaksokSession()
 
-        await session.extend({
-            manifest: {
-                ffiRunner: {
-                    runtimeName: 'mock',
-                },
+    await session.extend({
+        manifest: {
+            ffiRunner: {
+                runtimeName: 'mock',
             },
-            executeFFI() {
-                return {} as any
-            },
-            init() {
-                return Promise.resolve()
-            },
-        })
+        },
+        executeFFI() {
+            return {} as any
+        },
+        init() {
+            return Promise.resolve()
+        },
+    })
 
-        session.addModule(
-            'main',
-            `번역(mock), (질문) 물어보기
+    session.addModule(
+        'main',
+        `번역(mock), (질문) 물어보기
 ***
 CODES
 ***
 (("이름이 뭐에요?") 물어보기) 보여주기`,
-        )
+    )
 
-        await session.runModule('main')
-    } catch (e) {
-        assertIsError(e, FFIResultTypeIsNotForYaksokError)
-    }
+    const result = await session.runModule('main')
+    assert(result.reason === 'error')
+    assertIsError(result.error, FFIResultTypeIsNotForYaksokError)
 })
 
 Deno.test('연결 반환값이 없음', async () => {
-    try {
-        const session = new YaksokSession()
+    const session = new YaksokSession()
 
-        await session.extend({
-            manifest: {
-                ffiRunner: {
-                    runtimeName: 'mock',
-                },
+    await session.extend({
+        manifest: {
+            ffiRunner: {
+                runtimeName: 'mock',
             },
-            executeFFI() {
-                return undefined as any
-            },
-            init() {
-                return Promise.resolve()
-            },
-        })
+        },
+        executeFFI() {
+            return undefined as any
+        },
+        init() {
+            return Promise.resolve()
+        },
+    })
 
-        session.addModule(
-            'main',
-            `번역(mock), (질문) 물어보기
+    session.addModule(
+        'main',
+        `번역(mock), (질문) 물어보기
 ***
 CODES
 ***
 (("이름이 뭐에요?") 물어보기) 보여주기`,
-        )
-    } catch (e) {
-        assertIsError(e, FFIResultTypeIsNotForYaksokError)
-    }
+    )
+
+    const result = await session.runModule('main')
+    assert(result.reason === 'error')
+    assertIsError(result.error, FFIResultTypeIsNotForYaksokError)
 })
 
 Deno.test('구현되지 않은 FFI', async () => {
-    try {
-        const session = new YaksokSession()
+    const session = new YaksokSession()
 
-        await session.extend({
-            manifest: {
-                ffiRunner: {
-                    runtimeName: 'mock',
-                },
+    await session.extend({
+        manifest: {
+            ffiRunner: {
+                runtimeName: 'mock',
             },
-            executeFFI() {
-                throw new Error('Not implemented')
-            },
-            init() {
-                return Promise.resolve()
-            },
-        })
+        },
+        executeFFI() {
+            throw new Error('Not implemented')
+        },
+        init() {
+            return Promise.resolve()
+        },
+    })
 
-        session.addModule(
-            'main',
-            `번역(mock), (질문) 물어보기
+    session.addModule(
+        'main',
+        `번역(mock), (질문) 물어보기
 ***
 CODES
 ***
 (("이름이 뭐에요?") 물어보기) 보여주기`,
-        )
-    } catch (e) {
-        assertIsError(e)
-    }
+    )
+
+    const result = await session.runModule('main')
+    assert(result.reason === 'error')
+    assertIsError(result.error, ErrorOccurredWhileRunningFFIExecution)
 })
 
 Deno.test('Promise를 반환하는 FFI', async () => {

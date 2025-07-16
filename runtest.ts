@@ -1,29 +1,29 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
 
-const code = {
-    main: `
-자리표 = [
-    ["X", "O", "O", "O"],
-    ["O", "X", "O", "O"],
-    ["O", "O", "X", "O"],
-    ["O", "O", "O", "X"]
-]
-
-반복 자리표 의 줄 마다
-    줄 보여주기
-
-@코레일 계산
-@코레일 단가 보여주기
-        `,
-    코레일: `
-약속, 계산
-    "고생하셨습니다" 보여주기
-
-단가 = 10000
-`,
-}
-
 const session = new YaksokSession()
 
-session.addModules(code)
-await session.runModule('main')
+await session.extend({
+    manifest: {
+        ffiRunner: {
+            runtimeName: 'mock',
+        },
+    },
+    executeFFI() {
+        return 'invalid value' as any
+    },
+    init() {
+        return Promise.resolve()
+    },
+})
+
+session.addModule(
+    'main',
+    `번역(mock), (질문) 물어보기
+***
+aasdf
+***
+(("이름이 뭐에요?") 물어보기) 보여주기`,
+)
+
+const result = await session.runModule('main')
+// console.log(result)
