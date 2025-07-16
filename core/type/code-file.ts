@@ -153,11 +153,22 @@ export class CodeFile {
             codeFile: this,
         })
 
-        const errors = this.ast.validate(validatingScope)
+        try {
+            const errors = this.ast.validate(validatingScope)
 
-        return {
-            errors,
-            validatingScope,
+            return {
+                errors,
+                validatingScope,
+            }
+        } catch (error) {
+            if (error instanceof YaksokError) {
+                return {
+                    errors: [error],
+                    validatingScope,
+                }
+            }
+
+            throw error
         }
     }
 
