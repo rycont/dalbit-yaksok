@@ -1,4 +1,4 @@
-import { assertEquals, assertInstanceOf } from 'assert'
+import { assert, assertEquals, assertInstanceOf } from 'assert'
 import { NumberValue, yaksok } from '../../core/mod.ts'
 
 function createRandomValue(depth = 0): number | (string | number)[] {
@@ -38,7 +38,10 @@ for (let i = 0; i < 10; i++) {
     `
 
         const result = await yaksok(code)
-        const 나이 = result.codeFile.ranScope!.getVariable('나이') as NumberValue
+        assert(result.reason === 'finish')
+        const 나이 = result.codeFile.ranScope!.getVariable(
+            '나이',
+        ) as NumberValue
 
         assertInstanceOf(나이, NumberValue)
         assertEquals(나이.value, eval(formula))

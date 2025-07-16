@@ -6,7 +6,6 @@ import {
     MultipleFFIRuntimeError,
 } from '../error/prepare.ts'
 import { renderErrorString } from '../error/render-error-string.ts'
-import { ErrorGroups } from '../error/validation.ts'
 import { CodeFile } from '../type/code-file.ts'
 import { PubSub } from '../util/pubsub.ts'
 import {
@@ -15,7 +14,7 @@ import {
     type SessionConfig,
 } from './session-config.ts'
 
-import { ErrorInFFIExecution } from '@dalbit-yaksok/core'
+import { ErrorGroups, ErrorInFFIExecution } from '@dalbit-yaksok/core'
 import type { EnabledFlags } from '../constant/feature-flags.ts'
 import {
     AbortedRunModuleResult,
@@ -54,7 +53,7 @@ import type { ValueType } from '../value/base.ts'
 export class YaksokSession {
     private BASE_CONTEXT_SYMBOL = Symbol('baseContext')
 
-    public isRunning = false
+    public runningPromise: ReturnType<CodeFile['run']> | null = null
     public entrypoint: CodeFile | null = null
 
     public stdout: SessionConfig['stdout']
@@ -163,38 +162,34 @@ export class YaksokSession {
      * @returns 코드 실행 결과를 담은 `RunModuleResult` 객체를 반환합니다.
      */
     async runModule(moduleName: string | symbol): Promise<RunModuleResult> {
-        if (this.isRunning) {
-            throw new Error('이미 실행 중인 세션입니다.')
+        if (this.runningPromise) {
+            await this.runningPromise
         }
-
-        this.isRunning = true
 
         const codeFile = this.files[moduleName]
         if (!codeFile) {
-            this.isRunning = false
-
-            throw new FileForRunNotExistError({
-                resource: {
-                    fileName: moduleName.toString(),
-                    files: Object.keys(this.files),
-                },
-            })
+            return {
+                reason: 'error',
+                error: new FileForRunNotExistError({
+                    resource: {
+                        fileName: moduleName.toString(),
+                        files: Object.keys(this.files),
+                    },
+                }),
+            }
         }
 
         this.entrypoint = codeFile
 
         try {
-            this.validate(moduleName)
-            await codeFile.run()
-            return {
-                codeFile,
-                reason: 'finish',
-            } as SuccessRunModuleResult
-        } catch (e) {
-            if (e instanceof ErrorGroups) {
-                const errors = e.errors
+            const validationErrors = this.validate(moduleName)
+            const allErrors = [...validationErrors.values()].flat()
 
-                for (const [fileName, errorList] of errors) {
+            if (allErrors.length > 0) {
+                for (const [
+                    fileName,
+                    errorList,
+                ] of validationErrors.entries()) {
                     const codeFile = this.getCodeFile(fileName)
 
                     for (const error of errorList) {
@@ -206,10 +201,18 @@ export class YaksokSession {
                 return {
                     codeFile,
                     reason: 'validation',
-                    errors: e,
+                    errors: validationErrors,
                 } as ValidationRunModuleResult
             }
 
+            this.runningPromise = codeFile.run()
+            await this.runningPromise
+
+            return {
+                codeFile,
+                reason: 'finish',
+            } as SuccessRunModuleResult
+        } catch (e) {
             if (e instanceof YaksokError) {
                 if (!e.codeFile) {
                     e.codeFile = codeFile
@@ -233,7 +236,7 @@ export class YaksokSession {
 
             throw e
         } finally {
-            this.isRunning = false
+            this.runningPromise = null
         }
     }
 
@@ -242,18 +245,23 @@ export class YaksokSession {
      * 여기에 정의된 변수나 함수는 모든 모듈의 최상위 스코프에서 접근 가능합니다.
      * @param code - 기본 컨텍스트로 사용할 `달빛 약속` 코드입니다.
      */
-    async setBaseContext(code: string) {
+    async setBaseContext(code: string): Promise<RunModuleResult> {
         this.addModule(this.BASE_CONTEXT_SYMBOL, code)
-        this.baseContext = (
-            await this.runModule(this.BASE_CONTEXT_SYMBOL)
-        ).codeFile
+
+        const result = await this.runModule(this.BASE_CONTEXT_SYMBOL)
+
+        if (result.reason === 'finish') {
+            this.baseContext = result.codeFile
+        }
+
+        return result
     }
 
     /**
      * 지정된 엔트리포인트부터 시작하여 모든 참조된 코드의 유효성을 검사합니다.
      * @param entrypoint - 유효성 검사를 시작할 모듈의 이름입니다. 지정하지 않으면 모든 모듈을 검사합니다.
      */
-    validate(entrypoint?: string | symbol): void {
+    validate(entrypoint?: string | symbol): ErrorGroups {
         const filesToValidate: Record<string | symbol, CodeFile> = {}
         if (entrypoint) {
             if (this.files[entrypoint]) {
@@ -278,10 +286,7 @@ export class YaksokSession {
             ]),
         )
 
-        const allErrors = [...validationErrors.values()].flat()
-        if (allErrors.length > 0) {
-            throw new ErrorGroups(validationErrors)
-        }
+        return validationErrors
     }
 
     /**

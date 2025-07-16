@@ -7,28 +7,28 @@ import { yaksok } from '../../core/mod.ts'
 
 Deno.test('온전하지 않은 약속 정의', async () => {
     const result = await yaksok(`약속, (A)와 (`)
-    assert(result.reason === 'error')
-    assertIsError(result.error, UnexpectedEndOfCodeError)
+    assert(result.reason === 'validation')
+    assertIsError(result.errors.get('main')![0], UnexpectedEndOfCodeError)
 })
 
 Deno.test('온전하지 않은 약속 정의: 조사 변형이 안끝남', async () => {
     const result = await yaksok(`약속, (A)와/
 A 보여주기`)
-    assert(result.reason === 'error')
+    assert(result.reason === 'validation')
 })
 
 Deno.test('약속 정의 문법이 틀림', async () => {
     const result = await yaksok(`약속, (A)와 (((((
 "여보세요?" 보여주기
 `)
-    assert(result.reason === 'error')
-    assertIsError(result.error, UnexpectedTokenError)
+    assert(result.reason === 'validation')
+    assertIsError(result.errors.get('main')![0], UnexpectedTokenError)
 })
 
 Deno.test('온전하지 않은 번역: 정의가 없음', async () => {
     const result = await yaksok(`번역(Runtime),`)
-    assert(result.reason === 'error')
-    assertIsError(result.error, UnexpectedEndOfCodeError)
+    assert(result.reason === 'validation')
+    assertIsError(result.errors.get('main')![0], UnexpectedEndOfCodeError)
 })
 
 Deno.test('온전하지 않은 번역: 사실 번역이 아님', async () => {

@@ -1,7 +1,6 @@
 import { assert, assertIsError } from 'assert'
 
 import { NotExecutableNodeError } from '../../core/error/unknown-node.ts'
-import { ErrorGroups } from '../../core/error/validation.ts'
 import { yaksok } from '../../core/mod.ts'
 
 Deno.test('올바르지 않은 괄호 묶음', async () => {
@@ -10,8 +9,8 @@ Deno.test('올바르지 않은 괄호 묶음', async () => {
         result.reason === 'validation',
         `Expected an validation, but got ${result.reason}`,
     )
-    assertIsError(result.errors, ErrorGroups)
-    for (const childError of result.errors.errors.get('main')!) {
+
+    for (const childError of result.errors.get('main')!) {
         assertIsError(childError, NotExecutableNodeError)
     }
 })

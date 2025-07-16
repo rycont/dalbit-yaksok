@@ -8,8 +8,8 @@ Deno.test('온전하지 않은 인덴트', async () => {
     이름 = '홍길동'
      나이 = 20
 `)
-    assert(result.reason === 'error')
-    assertIsError(result.error, IndentLevelMismatchError)
+    assert(result.reason === 'validation')
+    assertIsError(result.errors.get('main')![0], IndentLevelMismatchError)
 })
 
 Deno.test('길이가 잘못된 인덴트', async () => {
@@ -17,8 +17,8 @@ Deno.test('길이가 잘못된 인덴트', async () => {
 이름 = '홍길동'
      나이 = 20
 `)
-    assert(result.reason === 'error')
-    assertIsError(result.error, IndentIsNotMultipleOf4Error)
+    assert(result.reason === 'validation')
+    assertIsError(result.errors.get('main')![0], IndentIsNotMultipleOf4Error)
 })
 
 Deno.test('시작부터 들어간 인덴트', async () => {
@@ -26,8 +26,8 @@ Deno.test('시작부터 들어간 인덴트', async () => {
     이름 = '홍길동'
      나이 = 20
 `)
-    assert(result.reason === 'error')
-    assertIsError(result.error, IndentLevelMismatchError)
+    assert(result.reason === 'validation')
+    assertIsError(result.errors.get('main')![0], IndentLevelMismatchError)
 })
 
 Deno.test('레벨을 초월한 인덴트', async () => {
@@ -35,6 +35,6 @@ Deno.test('레벨을 초월한 인덴트', async () => {
 이름 = '홍길동'
         나이 = 20
 `)
-    assert(result.reason === 'error')
-    assertIsError(result.error, IndentLevelMismatchError)
+    assert(result.reason === 'validation')
+    assertIsError(result.errors.get('main')![0], IndentLevelMismatchError)
 })

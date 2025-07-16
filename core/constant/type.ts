@@ -15,7 +15,7 @@ export interface RunModuleResultBase {
     /**
      * 실행된 코드 파일.
      */
-    codeFile: CodeFile
+    codeFile?: CodeFile
 }
 
 /**
@@ -30,6 +30,7 @@ export interface RunModuleResultBase {
  */
 export interface SuccessRunModuleResult extends RunModuleResultBase {
     reason: 'finish'
+    codeFile: CodeFile
 }
 
 /**
@@ -51,6 +52,7 @@ export interface SuccessRunModuleResult extends RunModuleResultBase {
  */
 export interface AbortedRunModuleResult extends RunModuleResultBase {
     reason: 'aborted'
+    codeFile: CodeFile
 }
 
 /**
@@ -81,7 +83,10 @@ export interface ErrorRunModuleResult extends RunModuleResultBase {
  * // result.reason is 'validation'
  * ```
  */
-export interface ValidationRunModuleResult extends RunModuleResultBase {
+export type ValidationRunModuleResult = Omit<
+    RunModuleResultBase,
+    'codeFile'
+> & {
     reason: 'validation'
     /**
      * 발생한 유효성 검사 오류 그룹.

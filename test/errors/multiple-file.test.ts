@@ -1,4 +1,4 @@
-import { assert, assertIsError, unreachable } from 'assert'
+import { assert, assertIsError } from 'assert'
 import {
     ErrorInModuleError,
     FileForRunNotExistError,
@@ -6,24 +6,19 @@ import {
 import { yaksok } from '../../core/mod.ts'
 
 Deno.test('Cannot find entry point in files', async () => {
-    try {
-        await yaksok({
-            dummy1: '',
-            dummy2: '',
-        })
-        unreachable()
-    } catch (error) {
-        assertIsError(error, FileForRunNotExistError)
-    }
+    const result = await yaksok({
+        dummy1: '',
+        dummy2: '',
+    })
+
+    assert(result.reason === 'error')
+    assertIsError(result.error, FileForRunNotExistError)
 })
 
 Deno.test('No files to run', async () => {
-    try {
-        await yaksok({})
-        unreachable()
-    } catch (error) {
-        assertIsError(error, FileForRunNotExistError)
-    }
+    const result = await yaksok({})
+    assert(result.reason === 'error')
+    assertIsError(result.error, FileForRunNotExistError)
 })
 
 Deno.test('Error in importing module', async () => {
@@ -43,8 +38,8 @@ Deno.test('Error in parsing module file', async () => {
         아두이노: `약속, 이름`,
     })
 
-    assert(result.reason === 'error')
-    assertIsError(result.error, ErrorInModuleError)
+    assert(result.reason === 'validation')
+    assertIsError(result.errors.get('main')![0], ErrorInModuleError)
 })
 
 Deno.test('Error in using module function', async () => {

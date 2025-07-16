@@ -14,7 +14,6 @@ import {
     TargetIsNotIndexedValueError,
 } from '../../core/error/index.ts'
 import { NoBreakOrReturnError } from '../../core/error/loop.ts'
-import { ErrorGroups } from '../../core/error/validation.ts'
 import { yaksok } from '../../core/mod.ts'
 import { YaksokSession } from '../../core/session/session.ts'
 
@@ -182,8 +181,7 @@ Deno.test('No break or return in loop', async () => {
         result.reason === 'validation',
         `Expected an validation, but got ${result.reason}`,
     )
-    assertIsError(result.errors, ErrorGroups)
-    assertIsError(result.errors.errors.get('main')![0], NoBreakOrReturnError)
+    assertIsError(result.errors.get('main')![0], NoBreakOrReturnError)
 })
 
 Deno.test('Skip validating break or return in loop', async () => {
