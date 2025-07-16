@@ -15,6 +15,7 @@ import {
     type SessionConfig,
 } from './session-config.ts'
 
+import { ErrorInFFIExecution } from '@dalbit-yaksok/core'
 import type { EnabledFlags } from '../constant/feature-flags.ts'
 import {
     AbortedRunModuleResult,
@@ -330,9 +331,26 @@ export class YaksokSession {
         }
 
         const extension = availableExtensions[0]
-        const result = await extension.executeFFI(code, args)
 
-        return result
+        try {
+            const result = await extension.executeFFI(code, args)
+
+            return result
+        } catch (error) {
+            if (error instanceof ErrorInFFIExecution) {
+                throw error
+            }
+
+            if (error instanceof Error) {
+                throw new ErrorInFFIExecution({
+                    message: `FFI 실행 중 오류 발생: ${error.message}`,
+                })
+            }
+
+            throw new ErrorInFFIExecution({
+                message: `FFI 실행 중 알 수 없는 오류 발생: ${error}`,
+            })
+        }
     }
 }
 

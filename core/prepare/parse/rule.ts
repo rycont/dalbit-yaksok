@@ -24,7 +24,6 @@ import {
     LessThanOrEqualOperator,
     ListLiteral,
     Loop,
-    Mention,
     MinusOperator,
     ModularOperator,
     MultiplyOperator,
@@ -40,7 +39,6 @@ import {
     TypeOf,
 } from '../../node/index.ts'
 import { ListLoop } from '../../node/listLoop.ts'
-import { MentionScope } from '../../node/mention.ts'
 import { NotEqualOperator } from '../../node/operator.ts'
 import { ReturnStatement } from '../../node/return.ts'
 import { IndexedValue } from '../../value/indexed.ts'
@@ -706,22 +704,6 @@ export const ADVANCED_RULES: Rule[] = [
             return new ListLoop(list, name, body, tokens)
         },
         flags: [RULE_FLAGS.IS_STATEMENT],
-    },
-    {
-        pattern: [
-            {
-                type: Mention,
-            },
-            {
-                type: Identifier,
-            },
-        ],
-        factory: (nodes, tokens) => {
-            const mention = nodes[0] as Mention
-            const name = nodes[1] as Identifier
-
-            return new MentionScope(mention.value, name, tokens)
-        },
     },
     {
         pattern: [

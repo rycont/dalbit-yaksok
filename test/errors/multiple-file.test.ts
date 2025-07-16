@@ -1,9 +1,9 @@
-import { assertIsError } from 'assert'
-import { yaksok } from '../../core/mod.ts'
+import { assert, assertIsError, unreachable } from 'assert'
 import {
     ErrorInModuleError,
     FileForRunNotExistError,
 } from '../../core/error/index.ts'
+import { yaksok } from '../../core/mod.ts'
 
 Deno.test('Cannot find entry point in files', async () => {
     try {
@@ -11,6 +11,7 @@ Deno.test('Cannot find entry point in files', async () => {
             dummy1: '',
             dummy2: '',
         })
+        unreachable()
     } catch (error) {
         assertIsError(error, FileForRunNotExistError)
     }
@@ -19,46 +20,41 @@ Deno.test('Cannot find entry point in files', async () => {
 Deno.test('No files to run', async () => {
     try {
         await yaksok({})
+        unreachable()
     } catch (error) {
         assertIsError(error, FileForRunNotExistError)
     }
 })
 
 Deno.test('Error in importing module', async () => {
-    try {
-        await yaksok({
-            main: '(@아두이노 이름) 보여주기',
-            아두이노: `
+    const result = await yaksok({
+        main: '(@아두이노 이름) 보여주기',
+        아두이노: `
 이름 = "아두이노" / 2
 `,
-        })
-    } catch (error) {
-        assertIsError(error, ErrorInModuleError)
-    }
+    })
+    assert(result.reason === 'error')
+    assertIsError(result.error, ErrorInModuleError)
 })
 
 Deno.test('Error in parsing module file', async () => {
-    try {
-        await yaksok({
-            main: '(@아두이노 이름) 보여주기',
-            아두이노: `
-약속, 이름`,
-        })
-    } catch (error) {
-        assertIsError(error, ErrorInModuleError)
-    }
+    const result = await yaksok({
+        main: '(@아두이노 이름) 보여주기',
+        아두이노: `약속, 이름`,
+    })
+
+    assert(result.reason === 'error')
+    assertIsError(result.error, ErrorInModuleError)
 })
 
 Deno.test('Error in using module function', async () => {
-    try {
-        await yaksok({
-            main: '(@아두이노 이름) 보여주기',
-            아두이노: `
-약속, 이름
+    const result = await yaksok({
+        main: '(@아두이노 이름) 보여주기',
+        아두이노: `약속, 이름
     "아두이노" / 2 반환하기
 `,
-        })
-    } catch (error) {
-        assertIsError(error, ErrorInModuleError)
-    }
+    })
+
+    assert(result.reason === 'error')
+    assertIsError(result.error, ErrorInModuleError)
 })
