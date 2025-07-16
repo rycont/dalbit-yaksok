@@ -3,7 +3,6 @@ import {
     AlreadyDefinedFunctionError,
     InvalidTypeForOperatorError,
 } from '../../core/error/index.ts'
-import { ErrorGroups } from '../../core/error/validation.ts'
 import { yaksok, YaksokSession } from '../../core/mod.ts'
 
 Deno.test('약속 안에서 발생한 오류', async () => {
@@ -54,11 +53,7 @@ Deno.test('동일한 이름으로 약속 재정의 오류', async () => {
 
     const result = await session.runModule('main')
     assert(result.reason === 'validation')
-    assertIsError(result.errors, ErrorGroups)
-    assertIsError(
-        result.errors.errors.get('main')![0],
-        AlreadyDefinedFunctionError,
-    )
+    assertIsError(result.errors.get('main')![0], AlreadyDefinedFunctionError)
 
     assertEquals(
         stderrOutput,

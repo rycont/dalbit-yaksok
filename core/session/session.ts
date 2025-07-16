@@ -6,7 +6,6 @@ import {
     MultipleFFIRuntimeError,
 } from '../error/prepare.ts'
 import { renderErrorString } from '../error/render-error-string.ts'
-import { ErrorGroups } from '../error/validation.ts'
 import { CodeFile } from '../type/code-file.ts'
 import { PubSub } from '../util/pubsub.ts'
 import {
@@ -15,7 +14,7 @@ import {
     type SessionConfig,
 } from './session-config.ts'
 
-import { ErrorInFFIExecution } from '@dalbit-yaksok/core'
+import { ErrorGroups, ErrorInFFIExecution } from '@dalbit-yaksok/core'
 import type { EnabledFlags } from '../constant/feature-flags.ts'
 import {
     AbortedRunModuleResult,
@@ -183,19 +182,14 @@ export class YaksokSession {
         this.entrypoint = codeFile
 
         try {
-            this.validate(moduleName)
-            this.runningPromise = codeFile.run()
-            await this.runningPromise
+            const validationErrors = this.validate(moduleName)
+            const allErrors = [...validationErrors.values()].flat()
 
-            return {
-                codeFile,
-                reason: 'finish',
-            } as SuccessRunModuleResult
-        } catch (e) {
-            if (e instanceof ErrorGroups) {
-                const errors = e.errors
-
-                for (const [fileName, errorList] of errors) {
+            if (allErrors.length > 0) {
+                for (const [
+                    fileName,
+                    errorList,
+                ] of validationErrors.entries()) {
                     const codeFile = this.getCodeFile(fileName)
 
                     for (const error of errorList) {
@@ -207,10 +201,18 @@ export class YaksokSession {
                 return {
                     codeFile,
                     reason: 'validation',
-                    errors: e,
+                    errors: validationErrors,
                 } as ValidationRunModuleResult
             }
 
+            this.runningPromise = codeFile.run()
+            await this.runningPromise
+
+            return {
+                codeFile,
+                reason: 'finish',
+            } as SuccessRunModuleResult
+        } catch (e) {
             if (e instanceof YaksokError) {
                 if (!e.codeFile) {
                     e.codeFile = codeFile
@@ -259,7 +261,7 @@ export class YaksokSession {
      * 지정된 엔트리포인트부터 시작하여 모든 참조된 코드의 유효성을 검사합니다.
      * @param entrypoint - 유효성 검사를 시작할 모듈의 이름입니다. 지정하지 않으면 모든 모듈을 검사합니다.
      */
-    validate(entrypoint?: string | symbol): void {
+    validate(entrypoint?: string | symbol): ErrorGroups {
         const filesToValidate: Record<string | symbol, CodeFile> = {}
         if (entrypoint) {
             if (this.files[entrypoint]) {
@@ -284,10 +286,7 @@ export class YaksokSession {
             ]),
         )
 
-        const allErrors = [...validationErrors.values()].flat()
-        if (allErrors.length > 0) {
-            throw new ErrorGroups(validationErrors)
-        }
+        return validationErrors
     }
 
     /**
