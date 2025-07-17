@@ -1,4 +1,4 @@
-import { ADVANCED_RULES, BASIC_RULES, INDEXING_RULES } from './rule.ts'
+import { ADVANCED_RULES, BASIC_RULES } from './rule.ts'
 import { satisfiesPattern } from './satisfiesPattern.ts'
 
 import { Block } from '../../node/block.ts'
@@ -78,7 +78,6 @@ export function callParseRecursively(
     }
 
     const patternsByLevel = [
-        INDEXING_RULES,
         ...externalPatterns[0],
         ...BASIC_RULES,
         ...externalPatterns[1],
