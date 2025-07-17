@@ -38,9 +38,9 @@ export class SetVariable extends Evaluable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        const validate = this.value.validate(scope)
+        const errors = this.value.validate(scope)
         scope.setVariable(this.name, new NumberValue(0))
 
-        return validate
+        return errors
     }
 }
