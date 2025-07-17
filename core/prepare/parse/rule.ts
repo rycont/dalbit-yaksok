@@ -47,33 +47,35 @@ import type { Rule } from './type.ts'
 import { RULE_FLAGS } from './type.ts'
 
 export type { Rule }
-export const BASIC_RULES: Rule[][] = [
-    [
-        {
-            pattern: [
-                {
-                    type: Evaluable,
-                },
-                {
-                    type: Expression,
-                    value: '[',
-                },
-                {
-                    type: Evaluable,
-                },
-                {
-                    type: Expression,
-                    value: ']',
-                },
-            ],
-            factory: (nodes, tokens) => {
-                const target = nodes[0] as Evaluable<IndexedValue>
-                const index = nodes[2] as Evaluable<StringValue | NumberValue>
 
-                return new IndexFetch(target, index, tokens)
+export const INDEXING_RULES: Rule[] = [
+    {
+        pattern: [
+            {
+                type: Evaluable,
             },
+            {
+                type: Expression,
+                value: '[',
+            },
+            {
+                type: Evaluable,
+            },
+            {
+                type: Expression,
+                value: ']',
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const target = nodes[0] as Evaluable<IndexedValue>
+            const index = nodes[2] as Evaluable<StringValue | NumberValue>
+
+            return new IndexFetch(target, index, tokens)
         },
-    ],
+    },
+]
+
+export const BASIC_RULES: Rule[][] = [
     [
         {
             pattern: [
