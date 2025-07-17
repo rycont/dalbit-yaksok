@@ -48,7 +48,6 @@ import { RULE_FLAGS } from './type.ts'
 
 export type { Rule }
 export const BASIC_RULES: Rule[][] = [
-    [],
     [
         {
             pattern: [
@@ -74,6 +73,8 @@ export const BASIC_RULES: Rule[][] = [
                 return new IndexFetch(target, index, tokens)
             },
         },
+    ],
+    [
         {
             pattern: [
                 {

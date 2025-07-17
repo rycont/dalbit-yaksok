@@ -4,6 +4,7 @@ import { satisfiesPattern } from './satisfiesPattern.ts'
 import { Block } from '../../node/block.ts'
 
 import type { Node } from '../../node/base.ts'
+import { Evaluable, Expression, Operator } from '../../node/base.ts'
 import { getTokensFromNodes } from '../../util/merge-tokens.ts'
 import { Rule, RULE_FLAGS } from './type.ts'
 import { EOL } from '../../node/misc.ts'
@@ -22,6 +23,19 @@ export function SRParse(_nodes: Node[], rules: Rule[]) {
             const satisfies = satisfiesPattern(stackSlice, rule.pattern)
 
             if (!satisfies) continue
+
+            // Special case: avoid matching binary operator pattern when indexing might follow
+            if (rule.pattern.length === 3 && 
+                rule.pattern[0].type === Evaluable &&
+                rule.pattern[1].type === Operator &&
+                rule.pattern[2].type === Evaluable) {
+                
+                // Check if the next token is '[' indicating indexing
+                const nextToken = leftNodes[0]
+                if (nextToken && nextToken instanceof Expression && nextToken.value === '[') {
+                    continue
+                }
+            }
 
             const isStatement = rule.flags?.includes(RULE_FLAGS.IS_STATEMENT)
 
