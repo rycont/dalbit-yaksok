@@ -1,6 +1,7 @@
 import { UnexpectedEndOfCodeError } from '../../error/prepare.ts'
 import { Expression, Node } from '../../node/base.ts'
-import { Token, TOKEN_TYPE } from '../tokenize/token.ts'
+import { ListLiteral, Sequence } from '../../node/list.ts'
+import { Token } from '../tokenize/token.ts'
 import { Rule } from './rule.ts'
 import { callParseRecursively } from './srParse.ts'
 
@@ -8,82 +9,106 @@ export function parseBracket(
     nodes: Node[],
     tokens: Token[],
     dynamicRules: [Rule[][], Rule[][]],
+    optimistic = false,
 ) {
-    let listOpeningBracketIndex = nodes.length - 1
+    let openingBracketIndex = nodes.length - 1
+    let closingPosition = -1
 
-    for (
-        listOpeningBracketIndex;
-        listOpeningBracketIndex >= 0;
-        listOpeningBracketIndex--
+    rangeSeekingLoop: for (
+        openingBracketIndex;
+        openingBracketIndex >= 0;
+        openingBracketIndex--
     ) {
-        const node = nodes[listOpeningBracketIndex]
+        const openingBracketNode = nodes[openingBracketIndex]
 
-        if (!(node instanceof Expression) || node.value !== '[') {
+        const isNotOpeningBracketNode =
+            !(openingBracketNode instanceof Expression) ||
+            openingBracketNode.value !== '['
+
+        if (isNotOpeningBracketNode) {
             continue
         }
 
-        const lastOpeningBracketNode = nodes[listOpeningBracketIndex]
-        const lastOpeningBracketToken = lastOpeningBracketNode.tokens[0]
-        const lastOpeningBracketTokenIndex = tokens.indexOf(
-            lastOpeningBracketToken,
-        )
-        const lastOpeningBracketPreToken =
-            tokens[lastOpeningBracketTokenIndex - 1]
+        let closingIndexCandidate = openingBracketIndex
+        let depth = 0
 
-        if (!lastOpeningBracketPreToken) {
-            break
-        }
+        while (true) {
+            closingIndexCandidate++
+            const seekingClosingNode = nodes[closingIndexCandidate]
 
-        if (
-            [
-                TOKEN_TYPE.NEW_LINE,
-                TOKEN_TYPE.SPACE,
-                TOKEN_TYPE.INDENT,
-                TOKEN_TYPE.OPENING_BRACKET,
-                TOKEN_TYPE.OPENING_PARENTHESIS,
-            ].includes(lastOpeningBracketPreToken.type)
-        ) {
-            break
+            const isClosingBracket =
+                seekingClosingNode instanceof Expression &&
+                seekingClosingNode.value === ']'
+
+            if (isClosingBracket) {
+                if (closingIndexCandidate - openingBracketIndex <= 2) {
+                    continue rangeSeekingLoop
+                }
+
+                if (0 < depth) {
+                    depth--
+                    continue rangeSeekingLoop
+                }
+
+                closingPosition = closingIndexCandidate
+                break rangeSeekingLoop
+            }
+
+            const isOpeningBracket =
+                seekingClosingNode instanceof Expression &&
+                seekingClosingNode.value === '['
+
+            if (isOpeningBracket) {
+                depth++
+                continue rangeSeekingLoop
+            }
+
+            if (nodes.length - 1 === closingIndexCandidate) {
+                if (optimistic) {
+                    continue rangeSeekingLoop
+                }
+
+                throw new UnexpectedEndOfCodeError({
+                    resource: {
+                        expected: '닫는 대괄호',
+                    },
+                    position: nodes[openingBracketIndex].tokens[0].position,
+                })
+            }
         }
     }
 
-    if (listOpeningBracketIndex < 0) {
+    if (openingBracketIndex < 0) {
         return nodes
     }
 
-    let closingPosition = listOpeningBracketIndex
-
-    while (true) {
-        closingPosition++
-
-        if (closingPosition >= nodes.length) {
-            throw new UnexpectedEndOfCodeError({
-                resource: {
-                    expected: '닫는 대괄호',
-                },
-                position: nodes[listOpeningBracketIndex].tokens[0].position,
-            })
-        }
-
-        if (
-            nodes[closingPosition] instanceof Expression &&
-            nodes[closingPosition].value === ']'
-        ) {
-            break
-        }
-    }
-
     const nodesInBrackets = nodes.slice(
-        listOpeningBracketIndex,
-        closingPosition + 1,
+        openingBracketIndex + 1,
+        closingPosition,
     )
 
-    const childNodes = callParseRecursively(nodesInBrackets, dynamicRules)
-    const newNodes = [
-        ...nodes.slice(0, listOpeningBracketIndex),
-        ...childNodes,
-        ...nodes.slice(closingPosition + 1),
-    ]
+    const mergedNode = callParseRecursively(nodesInBrackets, dynamicRules)
 
-    return parseBracket(newNodes, tokens, dynamicRules)
+    if (mergedNode.length === 1 && mergedNode[0] instanceof Sequence) {
+        const listLiteral = new ListLiteral(
+            mergedNode[0].items,
+            nodes[openingBracketIndex].tokens,
+        )
+
+        const newNodes = [
+            ...nodes.slice(0, openingBracketIndex),
+            listLiteral,
+            ...nodes.slice(closingPosition + 1),
+        ]
+
+        return parseBracket(newNodes, tokens, dynamicRules)
+    } else {
+        const newNodes = [
+            ...nodes.slice(0, openingBracketIndex + 1),
+            ...mergedNode,
+            ...nodes.slice(closingPosition),
+        ]
+
+        return parseBracket(newNodes, tokens, dynamicRules)
+    }
 }

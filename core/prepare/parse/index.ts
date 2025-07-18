@@ -10,7 +10,6 @@ import { Identifier, Node } from '../../node/base.ts'
 import { SetVariable } from '../../node/variable.ts'
 import type { CodeFile } from '../../type/code-file.ts'
 import { parseBracket } from './parse-bracket.ts'
-import { parseIndexFetch } from './parse-index-fetch.ts'
 import type { Rule } from './type.ts'
 
 interface ParseResult {
@@ -24,17 +23,11 @@ export function parse(codeFile: CodeFile): ParseResult {
         const nodes = convertTokensToNodes(codeFile.tokens)
         const indentedNodes = parseIndent(nodes)
 
-        const bracketParsedNodes = codeFile.session?.flags[
+        const indexFetchParsedNodes = codeFile.session?.flags[
             'disable-bracket-first-parsing'
         ]
             ? indentedNodes
             : parseBracket(indentedNodes, codeFile.tokens, dynamicRules)
-
-        const indexFetchParsedNodes = codeFile.session?.flags[
-            'disable-bracket-first-parsing'
-        ]
-            ? bracketParsedNodes
-            : parseIndexFetch(bracketParsedNodes, codeFile.tokens, dynamicRules)
 
         const childNodes = callParseRecursively(
             indexFetchParsedNodes,
