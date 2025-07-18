@@ -101,6 +101,13 @@ export class CodeFile {
     }
 
     /**
+     *
+     */
+    public parseOptimistically(): Block {
+        return parse(this, true).ast
+    }
+
+    /**
      * 코드 내의 함수 선언 범위를 반환합니다.
      */
     public get functionDeclareRanges(): ReturnType<
