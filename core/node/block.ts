@@ -36,7 +36,7 @@ export class Block extends Executable {
                     await new Promise((r) => setTimeout(r, executionDelay))
                 }
 
-                if (child.tokens.length && isMainContext && !isBaseContext) {
+                if (child.tokens.length) {
                     this.reportRunningCode(child, scope)
                 }
 
@@ -70,8 +70,12 @@ export class Block extends Executable {
             column: endToken.position.column + endToken.value.length,
         }
         scope.codeFile?.session?.pubsub.pub('runningCode', [
-            startPosition,
+            {
+                line: startPosition.line,
+                column: startPosition.column,
+            },
             endPosition,
+            scope,
         ])
     }
 }

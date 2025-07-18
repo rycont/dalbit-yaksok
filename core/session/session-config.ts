@@ -1,4 +1,5 @@
 import type { EnabledFlags } from '../constant/feature-flags.ts'
+import type { Scope } from '../executer/scope.ts'
 import type { Position } from '../type/position.ts'
 
 /**
@@ -68,7 +69,7 @@ export type Events = {
      * @param end
      * @returns
      */
-    runningCode: (start: Position, end: Position) => void
+    runningCode: (start: Position, end: Position, scope: Scope) => void
 }
 
 export const DEFAULT_SESSION_CONFIG: SessionConfig = {
