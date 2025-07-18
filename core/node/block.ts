@@ -22,6 +22,9 @@ export class Block extends Executable {
 
         const isMainContext =
             scope.codeFile?.session?.entrypoint === scope.codeFile
+        const isBaseContext =
+            scope.codeFile?.fileName ===
+            scope.codeFile?.session?.BASE_CONTEXT_SYMBOL
 
         for (const child of this.children) {
             if (scope.codeFile?.session?.signal?.aborted) {
@@ -29,11 +32,11 @@ export class Block extends Executable {
             }
 
             if (child instanceof Executable) {
-                if (executionDelay && isMainContext) {
+                if (executionDelay && isMainContext && !isBaseContext) {
                     await new Promise((r) => setTimeout(r, executionDelay))
                 }
 
-                if (child.tokens.length && isMainContext) {
+                if (child.tokens.length && isMainContext && !isBaseContext) {
                     this.reportRunningCode(child, scope)
                 }
 
