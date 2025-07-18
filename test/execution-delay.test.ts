@@ -155,3 +155,50 @@ Deno.test('Execution Delay with Function Call', async () => {
     assertGreater(duration, 800)
     assertLess(duration, 850)
 })
+
+Deno.test('Execution Delay with Base Context', async () => {
+    const expectedOutputs = ['그래요', '그렇군요']
+
+    let lastInstructionTime = new Date().getTime()
+
+    const session = new YaksokSession({
+        executionDelay: 100,
+        stdout(text) {
+            assertEquals(text, expectedOutputs.shift())
+            const currentTime = new Date().getTime()
+            const timeDiff = currentTime - lastInstructionTime
+            assertGreater(timeDiff, 100)
+            assertLess(timeDiff, 150)
+            lastInstructionTime = currentTime
+        },
+    })
+
+    const baseContextStartTime = Date.now()
+    await session.setBaseContext(`
+내_이름 = "달빛"
+내_나이 = 3        
+`)
+    const baseContextEndTime = Date.now()
+    const baseContextDuration = baseContextEndTime - baseContextStartTime
+
+    assertGreater(baseContextDuration, 0)
+    assertLess(baseContextDuration, 50)
+
+    const mainContextStartTime = Date.now()
+
+    session.addModule(
+        'main',
+        `
+"그래요" 보여주기
+"그렇군요" 보여주기
+`,
+    )
+
+    await session.runModule('main')
+
+    const mainContextEndTime = Date.now()
+    const mainContextDuration = mainContextEndTime - mainContextStartTime
+
+    assertGreater(mainContextDuration, 200)
+    assertLess(mainContextDuration, 250)
+})

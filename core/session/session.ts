@@ -51,10 +51,7 @@ import type { ValueType } from '../value/base.ts'
  * ```
  */
 export class YaksokSession {
-    readonly #BASE_CONTEXT_SYMBOL = Symbol('baseContext')
-    public get BASE_CONTEXT_SYMBOL(): symbol {
-        return this.#BASE_CONTEXT_SYMBOL
-    }
+    public readonly BASE_CONTEXT_SYMBOL = Symbol('baseContext')
 
     public runningPromise: ReturnType<CodeFile['run']> | null = null
     public entrypoint: CodeFile | null = null
