@@ -17,20 +17,25 @@ interface ParseResult {
     exportedRules: Rule[]
 }
 
-export function parse(codeFile: CodeFile): ParseResult {
+export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
     try {
         const dynamicRules = createDynamicRule(codeFile)
         const nodes = convertTokensToNodes(codeFile.tokens)
         const indentedNodes = parseIndent(nodes)
 
-        const bracketParsedNodes = codeFile.session?.flags[
+        const indexFetchParsedNodes = codeFile.session?.flags[
             'disable-bracket-first-parsing'
         ]
             ? indentedNodes
-            : parseBracket(indentedNodes, codeFile.tokens, dynamicRules)
+            : parseBracket(
+                  indentedNodes,
+                  codeFile.tokens,
+                  dynamicRules,
+                  optimistic,
+              )
 
         const childNodes = callParseRecursively(
-            bracketParsedNodes,
+            indexFetchParsedNodes,
             dynamicRules,
         )
         const childTokens = getTokensFromNodes(childNodes)
