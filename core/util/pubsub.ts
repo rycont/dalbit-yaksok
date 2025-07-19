@@ -47,9 +47,16 @@ export class PubSub<
     public sub<EventName extends keyof Events>(
         event: EventName,
         listener: Events[EventName],
-    ) {
+    ): () => void {
         if (!this.handlers[event]) this.handlers[event] = []
         this.handlers[event]!.push(listener)
+
+        return () => {
+            const index = this.handlers[event]!.indexOf(listener)
+            if (index !== -1) {
+                this.handlers[event]!.splice(index, 1)
+            }
+        }
     }
 
     /**
