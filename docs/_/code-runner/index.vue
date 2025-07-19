@@ -105,7 +105,6 @@ async function runCode() {
             stderr: (output) => {
                 stdout.value = [...stdout.value, ansiToHtml(output)]
             },
-            executionDelay: 400,
             events: {
                 runningCode(start, end, scope, tokens) {
                     const range = new monaco!.Range(
@@ -136,7 +135,9 @@ async function runCode() {
             },
         })
 
-        session.addModule('main', code.value)
+        session.addModule('main', code.value, {
+            executionDelay: 400,
+        })
 
         console.log(await session.runModule('main'))
     } catch (error) {
