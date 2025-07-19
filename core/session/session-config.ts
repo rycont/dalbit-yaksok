@@ -45,11 +45,6 @@ export interface SessionConfig {
      */
     entryPoint: string
     /**
-     * 각 라인의 실행을 지연시킬 시간 (밀리초). 코드 시각화 목적으로 사용합니다.
-     * @default 0
-     */
-    executionDelay: number
-    /**
      * 활성화할 기능 플래그
      */
     flags: EnabledFlags
@@ -83,7 +78,6 @@ export const DEFAULT_SESSION_CONFIG: SessionConfig = {
     stderr: console.error,
     entryPoint: 'main',
     flags: {},
-    executionDelay: 0,
     events: {
         runningCode: () => {},
     },

@@ -29,6 +29,7 @@ export class CodeFile {
 
     public ranScope: Scope | null = null
     public session: YaksokSession | null = null
+    public executionDelay: number | null = null
 
     constructor(public text: string, public fileName: string | symbol) {}
 
@@ -199,4 +200,8 @@ export class CodeFile {
 
         return result
     }
+}
+
+export interface CodeFileConfig {
+    executionDelay?: number
 }

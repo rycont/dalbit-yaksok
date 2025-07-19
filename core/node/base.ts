@@ -41,15 +41,9 @@ export class Executable extends Node {
     }
 
     protected async onRunChild(scope: Scope, childTokens: Token[]) {
-        const executionDelay = scope.codeFile?.session?.executionDelay
+        const executionDelay = scope.codeFile?.executionDelay
 
-        const isMainContext =
-            scope.codeFile?.session?.entrypoint === scope.codeFile
-        const isBaseContext =
-            scope.codeFile?.fileName ===
-            scope.codeFile?.session?.BASE_CONTEXT_SYMBOL
-
-        if (executionDelay && isMainContext && !isBaseContext) {
+        if (executionDelay) {
             await new Promise((r) => setTimeout(r, executionDelay))
         }
 
