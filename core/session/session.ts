@@ -374,11 +374,15 @@ export class YaksokSession {
         this.pubsub.pub('pause', [])
     }
 
-    public resume(): Promise<void> | undefined {
+    public resume(): Promise<void> {
         this.paused = false
         this.pubsub.pub('resume', [])
 
-        return this.runningPromise?.then()
+        if (this.runningPromise) {
+            return this.runningPromise?.then()
+        }
+
+        return Promise.resolve()
     }
 }
 

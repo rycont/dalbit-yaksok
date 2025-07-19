@@ -53,9 +53,7 @@ export class Executable extends Node {
                     'resume',
                     () => {
                         resolve(undefined)
-                        if (unsubscribe) {
-                            unsubscribe()
-                        }
+                        unsubscribe!()
                     },
                 )
             })
