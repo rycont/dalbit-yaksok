@@ -29,9 +29,9 @@ if (!isWatch) {
 console.log('Waiting for file changes...')
 
 const watcher = Deno.watchFs(
-    ['\\..\\..\\core', '\\..\\..\\monaco-language-provider'].map(
-        (path) => import.meta.dirname + path,
-        // (path) => new URL(path, import.meta.url).pathname,
+    ['.\\..\\..\\core', '.\\..\\..\\monaco-language-provider'].map(
+        // (path) => import.meta.dirname + path,
+        (path) => new URL(path, import.meta.url).pathname,
     ),
     {
         recursive: true,

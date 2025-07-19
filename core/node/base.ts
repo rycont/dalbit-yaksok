@@ -1,11 +1,11 @@
-import { assertValidReturnValue } from '../util/assert-valid-return-value.ts'
 import { NotDefinedIdentifierError } from '../error/variable.ts'
+import { assertValidReturnValue } from '../util/assert-valid-return-value.ts'
 
-import type { Token } from '../prepare/tokenize/token.ts'
-import type { ValueType } from '../value/base.ts'
-import type { Scope } from '../executer/scope.ts'
 import { YaksokError } from '../error/common.ts'
 import { NotExecutableNodeError } from '../error/unknown-node.ts'
+import type { Scope } from '../executer/scope.ts'
+import type { Token } from '../prepare/tokenize/token.ts'
+import type { ValueType } from '../value/base.ts'
 
 export class Node {
     [key: string]: unknown
@@ -38,6 +38,37 @@ export class Executable extends Node {
 
     override toPrint(): string {
         throw new Error(`${this.constructor.name} has no toPrint method`)
+    }
+
+    protected async onRunChild(scope: Scope, childTokens: Token[]) {
+        const executionDelay = scope.codeFile?.executionDelay
+
+        if (executionDelay) {
+            await new Promise((r) => setTimeout(r, executionDelay))
+        }
+
+        if (childTokens.length) {
+            this.reportRunningCode(childTokens, scope)
+        }
+    }
+
+    private reportRunningCode(childTokens: Token[], scope: Scope) {
+        const startPosition = childTokens[0].position
+        const endToken = childTokens[childTokens.length - 1]
+        const endPosition = {
+            line: endToken.position.line,
+            column: endToken.position.column + endToken.value.length,
+        }
+
+        scope.codeFile?.session?.pubsub.pub('runningCode', [
+            {
+                line: startPosition.line,
+                column: startPosition.column,
+            },
+            endPosition,
+            scope,
+            childTokens,
+        ])
     }
 }
 

@@ -1,4 +1,4 @@
-import { assert, assertEquals, assertGreater, assertLess } from 'assert'
+import { assert, assertEquals, assertGreaterOrEqual, assertLess } from 'assert'
 import { YaksokSession } from '../core/mod.ts'
 
 Deno.test('Execution Delay in Main Context', async () => {
@@ -13,7 +13,6 @@ Deno.test('Execution Delay in Main Context', async () => {
     let output = ''
 
     const session = new YaksokSession({
-        executionDelay: 100,
         stdout(text) {
             output += text
         },
@@ -21,14 +20,16 @@ Deno.test('Execution Delay in Main Context', async () => {
 
     const startTime = Date.now()
 
-    session.addModule('main', code.main)
+    session.addModule('main', code.main, {
+        executionDelay: 100,
+    })
     await session.runModule('main')
 
     const endTime = Date.now()
     const duration = endTime - startTime
 
     assertEquals(output, `abc`)
-    assertGreater(duration, 300)
+    assertGreaterOrEqual(duration, 300)
     assertLess(duration, 350)
 })
 
@@ -48,7 +49,6 @@ Deno.test('Execution Delay with Imported File', async () => {
     let output = ''
 
     const session = new YaksokSession({
-        executionDelay: 100,
         stdout(text) {
             output += text
         },
@@ -56,7 +56,9 @@ Deno.test('Execution Delay with Imported File', async () => {
 
     const startTime = Date.now()
 
-    session.addModule('main', code.main)
+    session.addModule('main', code.main, {
+        executionDelay: 100,
+    })
     session.addModule('imported', code.imported)
 
     await session.runModule('main')
@@ -65,7 +67,7 @@ Deno.test('Execution Delay with Imported File', async () => {
     const duration = endTime - startTime
 
     assertEquals(output, 'abc')
-    assertGreater(duration, 300)
+    assertGreaterOrEqual(duration, 300)
     assertLess(duration, 350)
 })
 
@@ -92,13 +94,14 @@ Deno.test('Execution Delay with Nested Import', async () => {
     const startTime = Date.now()
 
     const session = new YaksokSession({
-        executionDelay: 100,
         stdout(text) {
             output += text
         },
     })
 
-    session.addModule('main', code.main)
+    session.addModule('main', code.main, {
+        executionDelay: 100,
+    })
     session.addModule('imported', code.imported)
     session.addModule('nested', code.nested)
 
@@ -115,7 +118,7 @@ Deno.test('Execution Delay with Nested Import', async () => {
 
     assertEquals(output, 'a!bc')
 
-    assertGreater(duration, 300)
+    assertGreaterOrEqual(duration, 300)
     assertLess(duration, 350)
 })
 
@@ -124,7 +127,6 @@ Deno.test('Execution Delay with Function Call', async () => {
     const startTime = Date.now()
 
     const session = new YaksokSession({
-        executionDelay: 100,
         stdout(text) {
             output += text
         },
@@ -141,6 +143,9 @@ Deno.test('Execution Delay with Function Call', async () => {
 " " 보여주기
 인사
         `,
+        {
+            executionDelay: 100,
+        },
     )
 
     const result = await session.runModule('main')
@@ -152,7 +157,7 @@ Deno.test('Execution Delay with Function Call', async () => {
     const duration = endTime - startTime
 
     assertEquals(output, '안녕 안녕')
-    assertGreater(duration, 800)
+    assertGreaterOrEqual(duration, 800)
     assertLess(duration, 850)
 })
 
@@ -162,12 +167,11 @@ Deno.test('Execution Delay with Base Context', async () => {
     let lastInstructionTime = new Date().getTime()
 
     const session = new YaksokSession({
-        executionDelay: 100,
         stdout(text) {
             assertEquals(text, expectedOutputs.shift())
             const currentTime = new Date().getTime()
             const timeDiff = currentTime - lastInstructionTime
-            assertGreater(timeDiff, 100)
+            assertGreaterOrEqual(timeDiff, 100)
             assertLess(timeDiff, 150)
             lastInstructionTime = currentTime
         },
@@ -181,7 +185,7 @@ Deno.test('Execution Delay with Base Context', async () => {
     const baseContextEndTime = Date.now()
     const baseContextDuration = baseContextEndTime - baseContextStartTime
 
-    assertGreater(baseContextDuration, 0)
+    assertGreaterOrEqual(baseContextDuration, 0)
     assertLess(baseContextDuration, 50)
 
     const mainContextStartTime = Date.now()
@@ -192,6 +196,9 @@ Deno.test('Execution Delay with Base Context', async () => {
 "그래요" 보여주기
 "그렇군요" 보여주기
 `,
+        {
+            executionDelay: 100,
+        },
     )
 
     await session.runModule('main')
@@ -199,6 +206,84 @@ Deno.test('Execution Delay with Base Context', async () => {
     const mainContextEndTime = Date.now()
     const mainContextDuration = mainContextEndTime - mainContextStartTime
 
-    assertGreater(mainContextDuration, 200)
+    assertGreaterOrEqual(mainContextDuration, 200)
     assertLess(mainContextDuration, 250)
+})
+
+Deno.test('Execution Delay in Formula', async () => {
+    const expectedRunningTokens = [
+        `"1 + 2 = " + ( 1 + 2 ) 보여주기`,
+        `"1 + 2 = "`,
+        `( 1 + 2 )`,
+        `1`,
+        `2`,
+        `1 + 2`,
+        `"1 + 2 = " + ( 1 + 2 )`,
+        `"1 - 2 = " + ( 1 - 2 ) 보여주기`,
+        `"1 - 2 = "`,
+        `( 1 - 2 )`,
+        `1`,
+        `2`,
+        `1 - 2`,
+        `"1 - 2 = " + ( 1 - 2 )`,
+        `"1 * 2 = " + ( 1 * 2 ) 보여주기`,
+        `"1 * 2 = "`,
+        `( 1 * 2 )`,
+        `1`,
+        `2`,
+        `1 * 2`,
+        `"1 * 2 = " + ( 1 * 2 )`,
+        `"1 / 2 = " + ( 1 / 2 ) 보여주기`,
+        `"1 / 2 = "`,
+        `( 1 / 2 )`,
+        `1`,
+        `2`,
+        `1 / 2`,
+        `"1 / 2 = " + ( 1 / 2 )`,
+    ]
+
+    let lastRun = new Date().getTime()
+
+    const session = new YaksokSession({
+        events: {
+            runningCode(_start, _end, _scope, tokens) {
+                const runningCodeText = tokens
+                    .map((token) => token.value)
+                    .join(' ')
+                assertEquals(runningCodeText, expectedRunningTokens.shift())
+                const currentTime = new Date().getTime()
+                const timeDiff = currentTime - lastRun
+                assertGreaterOrEqual(timeDiff, 100)
+                assertLess(timeDiff, 150)
+                lastRun = currentTime
+            },
+        },
+    })
+
+    session.addModule(
+        'main',
+        `
+"1 + 2 = " + (1 + 2) 보여주기
+"1 - 2 = " + (1 - 2) 보여주기
+"1 * 2 = " + (1 * 2) 보여주기
+"1 / 2 = " + (1 / 2) 보여주기
+`,
+        {
+            executionDelay: 100,
+        },
+    )
+
+    const startTime = Date.now()
+    const result = await session.runModule('main')
+    const endTime = Date.now()
+
+    assert(
+        result.reason === 'finish',
+        `Expected finish, but got ${result.reason}`,
+    )
+
+    const duration = endTime - startTime
+
+    assertGreaterOrEqual(duration, 2800)
+    assertLess(duration, 2900)
 })

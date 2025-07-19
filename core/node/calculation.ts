@@ -1,4 +1,21 @@
+import {
+    InvalidTypeForOperatorError,
+    RangeEndMustBeIntegerError,
+    RangeStartMustBeIntegerError,
+    UnknownOperatorError,
+} from '../error/calculation.ts'
+import { YaksokError } from '../error/common.ts'
+import {
+    RangeEndMustBeNumberError,
+    RangeStartMustBeNumberError,
+} from '../error/index.ts'
+import { RangeStartMustBeLessThanEndError } from '../error/indexed.ts'
+import { isTruthy } from '../executer/internal/isTruthy.ts'
 import type { Scope } from '../executer/scope.ts'
+import type { Token } from '../prepare/tokenize/token.ts'
+import { ValueType } from '../value/base.ts'
+import { BooleanValue } from '../value/primitive.ts'
+import { Evaluable, Node, Operator, OperatorClass } from './base.ts'
 import {
     AndOperator,
     DivideOperator,
@@ -17,23 +34,6 @@ import {
     PowerOperator,
     RangeOperator,
 } from './operator.ts'
-import { Evaluable, Node, Operator, OperatorClass } from './base.ts'
-import { ValueType } from '../value/base.ts'
-import type { Token } from '../prepare/tokenize/token.ts'
-import {
-    InvalidTypeForOperatorError,
-    RangeEndMustBeIntegerError,
-    RangeStartMustBeIntegerError,
-    UnknownOperatorError,
-} from '../error/calculation.ts'
-import { YaksokError } from '../error/common.ts'
-import {
-    RangeEndMustBeNumberError,
-    RangeStartMustBeNumberError,
-} from '../error/index.ts'
-import { RangeStartMustBeLessThanEndError } from '../error/indexed.ts'
-import { BooleanValue } from '../value/primitive.ts'
-import { isTruthy } from '../executer/internal/isTruthy.ts'
 
 const OPERATOR_PRECEDENCES: OperatorClass[][] = [
     [AndOperator, OrOperator],
@@ -120,6 +120,8 @@ export class Formula extends Evaluable {
         scope: Scope,
     ) {
         const currentOperators = OPERATOR_PRECEDENCES[precedence]
+        const disableOperandExecutionDelay =
+            scope.codeFile?.session?.flags['disable-operand-execution-delay']
 
         for (let i = 0; i < termsWithToken.length; i++) {
             const term = termsWithToken[i].value
@@ -138,10 +140,18 @@ export class Formula extends Evaluable {
                 | Evaluable
                 | ValueType
 
+            if (!disableOperandExecutionDelay && leftTerm instanceof Node) {
+                await this.onRunChild(scope, leftTerm.tokens)
+            }
+
             const left =
                 leftTerm instanceof ValueType
                     ? leftTerm
                     : await leftTerm.execute(scope)
+
+            if (!disableOperandExecutionDelay && rightTerm instanceof Node) {
+                await this.onRunChild(scope, rightTerm.tokens)
+            }
 
             const right =
                 rightTerm instanceof ValueType
@@ -155,6 +165,10 @@ export class Formula extends Evaluable {
             ]
 
             try {
+                if (!disableOperandExecutionDelay) {
+                    await this.onRunChild(scope, mergedTokens)
+                }
+
                 const result = term.call(left, right)
 
                 termsWithToken.splice(i - 1, 3, {

@@ -6,7 +6,7 @@ import {
     MultipleFFIRuntimeError,
 } from '../error/prepare.ts'
 import { renderErrorString } from '../error/render-error-string.ts'
-import { CodeFile } from '../type/code-file.ts'
+import { CodeFile, CodeFileConfig } from '../type/code-file.ts'
 import { PubSub } from '../util/pubsub.ts'
 import {
     DEFAULT_SESSION_CONFIG,
@@ -61,7 +61,6 @@ export class YaksokSession {
 
     public stdout: SessionConfig['stdout']
     public stderr: SessionConfig['stderr']
-    public executionDelay: SessionConfig['executionDelay']
     public flags: Partial<EnabledFlags> = {}
     public extensions: Extension[] = []
     public baseContext?: CodeFile
@@ -75,7 +74,6 @@ export class YaksokSession {
      * @param config - 세션의 동작을 사용자화하는 설정 객체입니다.
      *   - `stdout`: 코드 내 `보여주기` 명령의 출력 스트림을 지정합니다.
      *   - `stderr`: 오류 메시지 출력 스트림을 지정합니다.
-     *   - `executionDelay`: 각 실행 가능한 코드 라인 사이의 지연 시간(ms)을 설정합니다. 디버깅이나 시각화에 유용합니다.
      *   - `events`: 'runningCode'와 같은 내부 이벤트를 구독할 핸들러를 등록합니다.
      */
     constructor(config: Partial<SessionConfig> = {}) {
@@ -89,7 +87,6 @@ export class YaksokSession {
         this.stdout = resolvedConfig.stdout
         this.stderr = resolvedConfig.stderr
 
-        this.executionDelay = resolvedConfig.executionDelay
         this.flags = resolvedConfig.flags
         this.signal = resolvedConfig.signal ?? null
     }
@@ -112,13 +109,19 @@ export class YaksokSession {
      * session.addModule('main', '(@utils 더하기 1 2) 보여주기');
      * ```
      */
-    addModule(moduleName: string | symbol, code: string): CodeFile {
+    addModule(
+        moduleName: string | symbol,
+        code: string,
+        codeFileConfig: Partial<CodeFileConfig> = {},
+    ): CodeFile {
         if (this.files[moduleName]) {
             throw new AlreadyRegisteredModuleError({
                 resource: { moduleName: moduleName.toString() },
             })
         }
+
         const codeFile = new CodeFile(code, moduleName)
+        codeFile.executionDelay = codeFileConfig.executionDelay ?? null
         codeFile.mount(this)
 
         this.files[moduleName] = codeFile

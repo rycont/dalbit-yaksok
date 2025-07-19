@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { onMounted, ref, useTemplateRef, watch } from 'vue'
-import type { editor, Range } from 'monaco-editor'
+import { YaksokSession } from '@dalbit-yaksok/core'
 import AnsiCode from 'ansi-to-html'
-
-import { yaksok } from '@dalbit-yaksok/core'
+import type { editor } from 'monaco-editor'
+import { onMounted, ref, useTemplateRef, watch } from 'vue'
 
 import { loadMonaco } from './load-monaco'
 
@@ -99,18 +98,15 @@ async function runCode() {
     stdout.value = []
 
     try {
-        await yaksok(code.value, {
+        const session = new YaksokSession({
             stdout: (output) => {
                 stdout.value = [...stdout.value, output]
             },
             stderr: (output) => {
-                console.log({ output })
                 stdout.value = [...stdout.value, ansiToHtml(output)]
             },
-            executionDelay: 500,
             events: {
-                runningCode(start, end) {
-                    console.log(start, end)
+                runningCode(start, end, scope, tokens) {
                     const range = new monaco!.Range(
                         start.line,
                         start.column,
@@ -138,6 +134,12 @@ async function runCode() {
                 },
             },
         })
+
+        session.addModule('main', code.value, {
+            executionDelay: 400,
+        })
+
+        console.log(await session.runModule('main'))
     } catch (error) {
         console.error(error)
     }
@@ -145,7 +147,7 @@ async function runCode() {
     if (prevDecorations) {
         setTimeout(() => {
             ;(prevDecorations as editor.IEditorDecorationsCollection).clear()
-        }, 300)
+        }, 400)
     }
 }
 

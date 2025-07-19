@@ -76,8 +76,8 @@ class Tokenizer {
                             type: rule.type,
                             value: value,
                             position: {
-                                column: initialColumnForToken,
                                 line: initialLineForToken,
+                                column: initialColumnForToken,
                             },
                         })
 
@@ -126,8 +126,8 @@ class Tokenizer {
             this.tokens.push({
                 type: TOKEN_TYPE.UNKNOWN,
                 position: {
-                    column: this.column,
                     line: this.line,
+                    column: this.column,
                 },
                 value: char,
             })

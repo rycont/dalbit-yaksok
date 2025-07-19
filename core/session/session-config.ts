@@ -1,4 +1,6 @@
 import type { EnabledFlags } from '../constant/feature-flags.ts'
+import type { Scope } from '../executer/scope.ts'
+import type { Token } from '../prepare/tokenize/token.ts'
 import type { Position } from '../type/position.ts'
 
 /**
@@ -11,7 +13,6 @@ import type { Position } from '../type/position.ts'
  *    stdout: console.log,
  *    stderr: console.error,
  *    entryPoint: 'main',
- *    executionDelay: 0,
  *    flags: {},
  *    events: {
  *        runningCode: (start, end) => {
@@ -43,11 +44,6 @@ export interface SessionConfig {
      */
     entryPoint: string
     /**
-     * 각 라인의 실행을 지연시킬 시간 (밀리초). 코드 시각화 목적으로 사용합니다.
-     * @default 0
-     */
-    executionDelay: number
-    /**
      * 활성화할 기능 플래그
      */
     flags: EnabledFlags
@@ -68,7 +64,12 @@ export type Events = {
      * @param end
      * @returns
      */
-    runningCode: (start: Position, end: Position) => void
+    runningCode: (
+        start: Position,
+        end: Position,
+        scope: Scope,
+        tokens: Token[],
+    ) => void
 }
 
 export const DEFAULT_SESSION_CONFIG: SessionConfig = {
@@ -76,7 +77,6 @@ export const DEFAULT_SESSION_CONFIG: SessionConfig = {
     stderr: console.error,
     entryPoint: 'main',
     flags: {},
-    executionDelay: 0,
     events: {
         runningCode: () => {},
     },
