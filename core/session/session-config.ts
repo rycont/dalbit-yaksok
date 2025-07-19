@@ -13,7 +13,6 @@ import type { Position } from '../type/position.ts'
  *    stdout: console.log,
  *    stderr: console.error,
  *    entryPoint: 'main',
- *    executionDelay: 0,
  *    flags: {},
  *    events: {
  *        runningCode: (start, end) => {
