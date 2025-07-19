@@ -41,6 +41,12 @@ export class Executable extends Node {
     }
 
     protected async onRunChild(scope: Scope, childTokens: Token[]) {
+        const executionDelay = scope.codeFile?.executionDelay
+
+        if (executionDelay) {
+            await new Promise((r) => setTimeout(r, executionDelay))
+        }
+
         if (scope.codeFile?.session?.paused) {
             await new Promise((resolve) => {
                 const unsubscribe = scope.codeFile?.session?.pubsub.sub(
@@ -53,12 +59,6 @@ export class Executable extends Node {
                     },
                 )
             })
-        }
-
-        const executionDelay = scope.codeFile?.executionDelay
-
-        if (executionDelay) {
-            await new Promise((r) => setTimeout(r, executionDelay))
         }
 
         if (childTokens.length) {
