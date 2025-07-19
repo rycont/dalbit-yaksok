@@ -18,28 +18,13 @@ export class Block extends Executable {
     }
 
     override async execute(scope: Scope): Promise<void> {
-        const executionDelay = scope.codeFile?.session?.executionDelay
-
-        const isMainContext =
-            scope.codeFile?.session?.entrypoint === scope.codeFile
-        const isBaseContext =
-            scope.codeFile?.fileName ===
-            scope.codeFile?.session?.BASE_CONTEXT_SYMBOL
-
         for (const child of this.children) {
             if (scope.codeFile?.session?.signal?.aborted) {
                 throw new AbortedSessionSignal(child.tokens)
             }
 
             if (child instanceof Executable) {
-                if (executionDelay && isMainContext && !isBaseContext) {
-                    await new Promise((r) => setTimeout(r, executionDelay))
-                }
-
-                if (child.tokens.length) {
-                    this.reportRunningCode(child, scope)
-                }
-
+                await this.onRunChild(scope, child.tokens)
                 await child.execute(scope)
             } else if (child instanceof EOL) {
                 continue
@@ -60,22 +45,5 @@ export class Block extends Executable {
             .filter((error) => error !== null)
 
         return childErrors
-    }
-
-    reportRunningCode(child: Executable, scope: Scope) {
-        const startPosition = child.tokens[0].position
-        const endToken = child.tokens[child.tokens.length - 1]
-        const endPosition = {
-            line: endToken.position.line,
-            column: endToken.position.column + endToken.value.length,
-        }
-        scope.codeFile?.session?.pubsub.pub('runningCode', [
-            {
-                line: startPosition.line,
-                column: startPosition.column,
-            },
-            endPosition,
-            scope,
-        ])
     }
 }
