@@ -1,4 +1,10 @@
-import { assert, assertEquals, assertGreater, assertLess } from 'assert'
+import {
+    assert,
+    assertEquals,
+    assertGreater,
+    assertGreaterOrEqual,
+    assertLess,
+} from 'assert'
 import { YaksokSession } from '../core/mod.ts'
 
 Deno.test('Execution Delay in Main Context', async () => {
@@ -201,4 +207,80 @@ Deno.test('Execution Delay with Base Context', async () => {
 
     assertGreater(mainContextDuration, 200)
     assertLess(mainContextDuration, 250)
+})
+
+Deno.test('Execution Delay in Formula', async () => {
+    const expectedRunningTokens = [
+        `"1 + 2 = " + ( 1 + 2 ) 보여주기`,
+        `"1 + 2 = "`,
+        `( 1 + 2 )`,
+        `1`,
+        `2`,
+        `1 + 2`,
+        `"1 + 2 = " + ( 1 + 2 )`,
+        `"1 - 2 = " + ( 1 - 2 ) 보여주기`,
+        `"1 - 2 = "`,
+        `( 1 - 2 )`,
+        `1`,
+        `2`,
+        `1 - 2`,
+        `"1 - 2 = " + ( 1 - 2 )`,
+        `"1 * 2 = " + ( 1 * 2 ) 보여주기`,
+        `"1 * 2 = "`,
+        `( 1 * 2 )`,
+        `1`,
+        `2`,
+        `1 * 2`,
+        `"1 * 2 = " + ( 1 * 2 )`,
+        `"1 / 2 = " + ( 1 / 2 ) 보여주기`,
+        `"1 / 2 = "`,
+        `( 1 / 2 )`,
+        `1`,
+        `2`,
+        `1 / 2`,
+        `"1 / 2 = " + ( 1 / 2 )`,
+    ]
+
+    let lastRun = new Date().getTime()
+
+    const session = new YaksokSession({
+        executionDelay: 100,
+        events: {
+            runningCode(_start, _end, _scope, tokens) {
+                const runningCodeText = tokens
+                    .map((token) => token.value)
+                    .join(' ')
+                assertEquals(runningCodeText, expectedRunningTokens.shift())
+                const currentTime = new Date().getTime()
+                const timeDiff = currentTime - lastRun
+                assertGreaterOrEqual(timeDiff, 100)
+                assertLess(timeDiff, 150)
+                lastRun = currentTime
+            },
+        },
+    })
+
+    session.addModule(
+        'main',
+        `
+"1 + 2 = " + (1 + 2) 보여주기
+"1 - 2 = " + (1 - 2) 보여주기
+"1 * 2 = " + (1 * 2) 보여주기
+"1 / 2 = " + (1 / 2) 보여주기
+`,
+    )
+
+    const startTime = Date.now()
+    const result = await session.runModule('main')
+    const endTime = Date.now()
+
+    assert(
+        result.reason === 'finish',
+        `Expected finish, but got ${result.reason}`,
+    )
+
+    const duration = endTime - startTime
+
+    assertGreater(duration, 2800)
+    assertLess(duration, 2900)
 })
