@@ -41,6 +41,20 @@ export class Executable extends Node {
     }
 
     protected async onRunChild(scope: Scope, childTokens: Token[]) {
+        if (scope.codeFile?.session?.paused) {
+            await new Promise((resolve) => {
+                const unsubscribe = scope.codeFile?.session?.pubsub.sub(
+                    'resume',
+                    () => {
+                        resolve(undefined)
+                        if (unsubscribe) {
+                            unsubscribe()
+                        }
+                    },
+                )
+            })
+        }
+
         const executionDelay = scope.codeFile?.executionDelay
 
         if (executionDelay) {
