@@ -47,6 +47,18 @@ export class Executable extends Node {
             await new Promise((r) => setTimeout(r, executionDelay))
         }
 
+        if (scope.codeFile?.session?.paused) {
+            await new Promise((resolve) => {
+                const unsubscribe = scope.codeFile?.session?.pubsub.sub(
+                    'resume',
+                    () => {
+                        resolve(undefined)
+                        unsubscribe!()
+                    },
+                )
+            })
+        }
+
         if (childTokens.length) {
             this.reportRunningCode(childTokens, scope)
         }

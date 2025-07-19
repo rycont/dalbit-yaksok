@@ -65,6 +65,7 @@ export class YaksokSession {
     public extensions: Extension[] = []
     public baseContext?: CodeFile
     public signal: AbortSignal | null = null
+    public paused: boolean = false
 
     public pubsub: PubSub<Events> = new PubSub<Events>()
     public files: Record<string | symbol, CodeFile> = {}
@@ -81,7 +82,11 @@ export class YaksokSession {
 
         for (const _event in resolvedConfig.events) {
             const event = _event as keyof Events
-            this.pubsub.sub(event as keyof Events, resolvedConfig.events[event])
+
+            this.pubsub.sub(
+                event as keyof Events,
+                resolvedConfig.events[event as keyof Events]!,
+            )
         }
 
         this.stdout = resolvedConfig.stdout
@@ -362,6 +367,22 @@ export class YaksokSession {
                 message: `FFI 실행 중 알 수 없는 오류 발생: ${error}`,
             })
         }
+    }
+
+    public pause() {
+        this.paused = true
+        this.pubsub.pub('pause', [])
+    }
+
+    public resume(): Promise<void> {
+        this.paused = false
+        this.pubsub.pub('resume', [])
+
+        if (this.runningPromise) {
+            return this.runningPromise?.then()
+        }
+
+        return Promise.resolve()
     }
 }
 
