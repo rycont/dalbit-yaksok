@@ -23,7 +23,7 @@ const OPERATORS = [
     '/=',
 ]
 
-const ASSIGNERS = ['=', '+=', '-=', '*=', '/=']
+const ASSIGNERS = ['=', '+=', '-=', '*=', '/=', '%=']
 
 const IDENTIFIER_STARTER_REGEX = /[a-zA-Z_가-힣ㄱ-ㅎ]/
 const IDENTIFIER_REGEX = /[a-zA-Z_가-힣ㄱ-ㅎ0-9]/

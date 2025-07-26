@@ -16,11 +16,11 @@ import {
 } from './operator.ts'
 
 const operatorToNodeMap = {
-    '+': PlusOperator,
-    '-': MinusOperator,
-    '*': MultiplyOperator,
-    '/': DivideOperator,
-    '%': ModularOperator,
+    '+=': PlusOperator,
+    '-=': MinusOperator,
+    '*=': MultiplyOperator,
+    '/=': DivideOperator,
+    '%=': ModularOperator,
 } as const
 
 export class SetVariable extends Evaluable {
