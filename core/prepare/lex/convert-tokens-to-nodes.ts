@@ -1,7 +1,7 @@
 import { Expression, Identifier, Node, Operator } from '../../node/base.ts'
 import { FFIBody } from '../../node/ffi.ts'
 import { Mention } from '../../node/mention.ts'
-import { Indent, EOL } from '../../node/misc.ts'
+import { EOL, Indent } from '../../node/misc.ts'
 import { NumberLiteral, StringLiteral } from '../../node/primitive-literal.ts'
 import { Token, TOKEN_TYPE } from '../tokenize/token.ts'
 
@@ -19,7 +19,7 @@ function mapTokenToNode(token: Token) {
         case TOKEN_TYPE.CLOSING_PARENTHESIS:
         case TOKEN_TYPE.OPENING_BRACKET:
         case TOKEN_TYPE.CLOSING_BRACKET:
-        case TOKEN_TYPE.ASSIGNMENT:
+        case TOKEN_TYPE.ASSIGNER:
         case TOKEN_TYPE.UNKNOWN:
             return new Expression(token.value, [token])
         case TOKEN_TYPE.NUMBER:

@@ -10,21 +10,21 @@ import {
     ListLiteral,
     ListLoop,
     Node,
+    NotExpression,
     NumberLiteral,
     Operator,
     Print,
+    ReturnStatement,
     SetToIndex,
     SetVariable,
     StringLiteral,
     TOKEN_TYPE,
     ValueWithParenthesis,
-    ReturnStatement,
-    NotExpression,
 } from '@dalbit-yaksok/core'
 import { ColorPart } from '../type.ts'
-import { SCOPE } from './scope.ts'
 import { parseFunctionDeclareHeader } from './declare-function.ts'
 import { parseListLoopHeader } from './list-loop.ts'
+import { SCOPE } from './scope.ts'
 
 /**
  * 코드 에디터에서 문법 강조 기능을 구현할 수 있도록, AST 노드를 색상 토큰으로 변환합니다. `Node`를 받아서 `ColorPart[]`를 반환합니다.
@@ -137,8 +137,8 @@ function setVariable(current: SetVariable) {
         (token) => token.type === TOKEN_TYPE.IDENTIFIER,
     )
 
-    const firstEqual = current.tokens.find(
-        (token) => token.type === TOKEN_TYPE.ASSIGNMENT,
+    const assignerToken = current.tokens.find(
+        (token) => token.type === TOKEN_TYPE.ASSIGNER,
     )
 
     const variableName: ColorPart[] = [
@@ -147,7 +147,7 @@ function setVariable(current: SetVariable) {
             scopes: SCOPE.VARIABLE_NAME,
         },
         {
-            position: firstEqual!.position,
+            position: assignerToken!.position,
             scopes: SCOPE.PUNCTUATION,
         },
     ]

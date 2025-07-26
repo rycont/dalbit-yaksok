@@ -1,11 +1,11 @@
 import { InvalidTypeForCompareError } from '../error/calculation.ts'
 import {
     InvalidTypeForOperatorError,
+    RangeEndMustBeIntegerError,
     RangeEndMustBeNumberError,
+    RangeStartMustBeIntegerError,
     RangeStartMustBeLessThanEndError,
     RangeStartMustBeNumberError,
-    RangeStartMustBeIntegerError,
-    RangeEndMustBeIntegerError,
 } from '../error/index.ts'
 import { Token } from '../prepare/tokenize/token.ts'
 
@@ -528,3 +528,11 @@ export class RangeOperator extends Operator {
         })
     }
 }
+
+export const assignerToOperatorMap = {
+    '+=': PlusOperator,
+    '-=': MinusOperator,
+    '*=': MultiplyOperator,
+    '/=': DivideOperator,
+    '%=': ModularOperator,
+} as const

@@ -21,7 +21,7 @@ Deno.test('Incompleted String', () => {
             },
         },
         {
-            type: TOKEN_TYPE.ASSIGNMENT,
+            type: TOKEN_TYPE.ASSIGNER,
             value: '=',
             position: {
                 line: 1,
