@@ -1,12 +1,12 @@
-import { ADVANCED_RULES, BASIC_RULES } from './rule.ts'
+import { ADVANCED_RULES, BASIC_RULES } from './rule/index.ts'
 import { satisfiesPattern } from './satisfiesPattern.ts'
 
 import { Block } from '../../node/block.ts'
 
 import type { Node } from '../../node/base.ts'
+import { EOL } from '../../node/misc.ts'
 import { getTokensFromNodes } from '../../util/merge-tokens.ts'
 import { Rule, RULE_FLAGS } from './type.ts'
-import { EOL } from '../../node/misc.ts'
 
 export function SRParse(_nodes: Node[], rules: Rule[]) {
     const leftNodes = [..._nodes]

@@ -2,7 +2,7 @@ import {
     Formula,
     NotExpression,
     ValueWithParenthesis,
-} from '../../node/calculation.ts'
+} from '../../../node/calculation.ts'
 import {
     AndOperator,
     Block,
@@ -37,15 +37,16 @@ import {
     SetToIndex,
     SetVariable,
     TypeOf,
-} from '../../node/index.ts'
-import { ListLoop } from '../../node/listLoop.ts'
-import { NotEqualOperator } from '../../node/operator.ts'
-import { ReturnStatement } from '../../node/return.ts'
-import { IndexedValue } from '../../value/indexed.ts'
-import { NumberValue, StringValue } from '../../value/primitive.ts'
-import { ASSIGNERS } from '../tokenize/rules.ts'
-import type { Rule } from './type.ts'
-import { RULE_FLAGS } from './type.ts'
+} from '../../../node/index.ts'
+import { NotEqualOperator } from '../../../node/operator.ts'
+import { ReturnStatement } from '../../../node/return.ts'
+import { IndexedValue } from '../../../value/indexed.ts'
+import { NumberValue, StringValue } from '../../../value/primitive.ts'
+import { ASSIGNERS } from '../../tokenize/rules.ts'
+import type { Rule } from '../type.ts'
+import { RULE_FLAGS } from '../type.ts'
+import { COUNT_LOOP_RULES } from './count-loop.ts'
+import { LIST_LOOP_RULES } from './list-loop.ts'
 
 export type { Rule }
 export const BASIC_RULES: Rule[][] = [
@@ -663,6 +664,22 @@ export const ADVANCED_RULES: Rule[] = [
         pattern: [
             {
                 type: Identifier,
+                value: '반복하기',
+            },
+            {
+                type: EOL,
+            },
+            {
+                type: Block,
+            },
+        ],
+        factory: (nodes, tokens) => new Loop(nodes[2] as Block, tokens),
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    },
+    {
+        pattern: [
+            {
+                type: Identifier,
                 value: '반복',
             },
             {
@@ -673,42 +690,8 @@ export const ADVANCED_RULES: Rule[] = [
         factory: (_nodes, tokens) => new Break(tokens),
         flags: [RULE_FLAGS.IS_STATEMENT],
     },
-    {
-        pattern: [
-            {
-                type: Identifier,
-                value: '반복',
-            },
-            {
-                type: Evaluable,
-            },
-            {
-                type: Identifier,
-                value: '의',
-            },
-            {
-                type: Identifier,
-            },
-            {
-                type: Identifier,
-                value: '마다',
-            },
-            {
-                type: EOL,
-            },
-            {
-                type: Block,
-            },
-        ],
-        factory: (nodes, tokens) => {
-            const list = nodes[1] as Evaluable
-            const name = (nodes[3] as Identifier).value
-            const body = nodes[6] as Block
-
-            return new ListLoop(list, name, body, tokens)
-        },
-        flags: [RULE_FLAGS.IS_STATEMENT],
-    },
+    ...LIST_LOOP_RULES,
+    ...COUNT_LOOP_RULES,
     {
         pattern: [
             {

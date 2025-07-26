@@ -3,23 +3,7 @@ import { YaksokSession } from '@dalbit-yaksok/core'
 const abortController = new AbortController()
 
 const session = new YaksokSession({
-    stdout(text) {
-        console.log(text)
-        if (text === '12') {
-            console.log('Killed')
-            abortController.abort()
-        }
-    },
-    events: {
-        runningCode(start, end, scope, tokens) {
-            const code = tokens.map((token) => token.value).join('')
-            console.log('Matched code:', code)
-        },
-    },
     signal: abortController.signal,
-    flags: {
-        'skip-validate-break-or-return-in-loop': true,
-    },
 })
 
 session.addModule(

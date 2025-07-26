@@ -2,7 +2,7 @@ import { YaksokError } from '../../../../error/common.ts'
 import { ErrorInModuleError } from '../../../../error/mention.ts'
 import { FileForRunNotExistError } from '../../../../error/prepare.ts'
 import type { YaksokSession } from '../../../../session/session.ts'
-import type { Rule } from '../../rule.ts'
+import type { Rule } from '../../rule/index.ts'
 import { createMentioningRule } from './create-mentioning-rules.ts'
 
 export function getExportedRules(session: YaksokSession, fileName: string) {

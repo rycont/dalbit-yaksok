@@ -13,7 +13,10 @@ import {
     RangeStartMustBeNumberError,
     TargetIsNotIndexedValueError,
 } from '../../core/error/index.ts'
-import { NoBreakOrReturnError } from '../../core/error/loop.ts'
+import {
+    LoopCountIsNotNumberError,
+    NoBreakOrReturnError,
+} from '../../core/error/loop.ts'
 import { yaksok } from '../../core/mod.ts'
 import { YaksokSession } from '../../core/session/session.ts'
 
@@ -206,4 +209,14 @@ Deno.test('Skip validating break or return in loop', async () => {
     )
     assertIsError(result.error, YaksokError)
     assertIsError(result.error, InvalidTypeForOperatorError)
+})
+
+Deno.test('Loop Count is not a number', async () => {
+    const result = await yaksok(`반복 "Hello" 번
+    1 + 1 보여주기`)
+    assert(
+        result.reason === 'error',
+        `Expected an error, but got ${result.reason}`,
+    )
+    assertIsError(result.error, LoopCountIsNotNumberError)
 })

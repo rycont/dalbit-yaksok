@@ -2,7 +2,7 @@ import { UnexpectedEndOfCodeError } from '../../error/prepare.ts'
 import { Expression, Node } from '../../node/base.ts'
 import { ListLiteral, Sequence } from '../../node/list.ts'
 import { Token } from '../tokenize/token.ts'
-import { Rule } from './rule.ts'
+import type { Rule } from './rule/index.ts'
 import { callParseRecursively } from './srParse.ts'
 
 export function parseBracket(
