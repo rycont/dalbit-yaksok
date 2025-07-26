@@ -140,8 +140,12 @@ export class Formula extends Evaluable {
                 | Evaluable
                 | ValueType
 
-            if (!disableOperandExecutionDelay && leftTerm instanceof Node) {
-                await this.onRunChild(scope, leftTerm.tokens)
+            if (leftTerm instanceof Node) {
+                await this.onRunChild({
+                    childTokens: leftTerm.tokens,
+                    scope,
+                    skipReport: disableOperandExecutionDelay,
+                })
             }
 
             const left =
@@ -149,8 +153,12 @@ export class Formula extends Evaluable {
                     ? leftTerm
                     : await leftTerm.execute(scope)
 
-            if (!disableOperandExecutionDelay && rightTerm instanceof Node) {
-                await this.onRunChild(scope, rightTerm.tokens)
+            if (rightTerm instanceof Node) {
+                await this.onRunChild({
+                    childTokens: rightTerm.tokens,
+                    scope,
+                    skipReport: disableOperandExecutionDelay,
+                })
             }
 
             const right =
@@ -165,9 +173,11 @@ export class Formula extends Evaluable {
             ]
 
             try {
-                if (!disableOperandExecutionDelay) {
-                    await this.onRunChild(scope, mergedTokens)
-                }
+                await this.onRunChild({
+                    childTokens: mergedTokens,
+                    scope,
+                    skipReport: disableOperandExecutionDelay,
+                })
 
                 const result = term.call(left, right)
 

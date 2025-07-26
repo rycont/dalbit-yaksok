@@ -4,6 +4,7 @@ import { assertValidReturnValue } from '../util/assert-valid-return-value.ts'
 import { YaksokError } from '../error/common.ts'
 import { NotExecutableNodeError } from '../error/unknown-node.ts'
 import type { Scope } from '../executer/scope.ts'
+import { AbortedSessionSignal } from '../executer/signals.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { ValueType } from '../value/base.ts'
 
@@ -40,11 +41,27 @@ export class Executable extends Node {
         throw new Error(`${this.constructor.name} has no toPrint method`)
     }
 
-    protected async onRunChild(scope: Scope, childTokens: Token[]) {
+    protected async onRunChild({
+        scope,
+        childTokens,
+        skipReport = false,
+    }: {
+        scope: Scope
+        childTokens: Token[]
+        skipReport?: boolean
+    }) {
+        if (scope.codeFile?.session?.signal?.aborted) {
+            throw new AbortedSessionSignal(childTokens)
+        }
+
         const executionDelay = scope.codeFile?.executionDelay
 
-        if (executionDelay) {
+        if (executionDelay && !skipReport) {
             await new Promise((r) => setTimeout(r, executionDelay))
+        }
+
+        if (!skipReport && childTokens.length) {
+            this.reportRunningCode(childTokens, scope)
         }
 
         if (scope.codeFile?.session?.paused) {
@@ -57,10 +74,6 @@ export class Executable extends Node {
                     },
                 )
             })
-        }
-
-        if (childTokens.length) {
-            this.reportRunningCode(childTokens, scope)
         }
     }
 

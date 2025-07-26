@@ -17,6 +17,11 @@ export class Loop extends Executable {
     override async execute(scope: Scope) {
         try {
             while (true) {
+                await this.onRunChild({
+                    scope,
+                    childTokens: this.body.tokens,
+                    skipReport: true,
+                })
                 await this.body.execute(scope)
             }
         } catch (e) {

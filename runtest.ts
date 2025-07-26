@@ -1,26 +1,37 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
 
+const abortController = new AbortController()
+
 const session = new YaksokSession({
+    stdout(text) {
+        console.log(text)
+        if (text === '12') {
+            console.log('Killed')
+            abortController.abort()
+        }
+    },
     events: {
-        runningCode: (start, end, scope, tokens) => {
-            console.log(tokens.map((token) => token.value).join(' '))
+        runningCode(start, end, scope, tokens) {
+            const code = tokens.map((token) => token.value).join('')
+            console.log('Matched code:', code)
         },
     },
-    stdout(text) {
-        // console.log(text)
+    signal: abortController.signal,
+    flags: {
+        'skip-validate-break-or-return-in-loop': true,
     },
 })
 
 session.addModule(
     'main',
     `
-"1 + 2 = " + (1 + 2) 보여주기
-"1 - 2 = " + (1 - 2) 보여주기
-"1 * 2 = " + (1 * 2) 보여주기
-"1 / 2 = " + (1 / 2) 보여주기
+숫자 = 0
+반복
+    숫자 보여주기
+    숫자 = 숫자 + 1
 `,
     {
-        executionDelay: 0, // No delay for testing
+        // executionDelay: 500,
     },
 )
 

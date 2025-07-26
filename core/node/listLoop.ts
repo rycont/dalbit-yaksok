@@ -1,15 +1,15 @@
-import { NotEnumerableValueForListLoopError } from '../error/index.ts'
-import { type Evaluable, Executable } from './base.ts'
-import { BreakSignal } from '../executer/signals.ts'
 import { YaksokError } from '../error/common.ts'
+import { NotEnumerableValueForListLoopError } from '../error/index.ts'
+import { BreakSignal } from '../executer/signals.ts'
+import { Executable, type Evaluable } from './base.ts'
 
-import { ListValue } from '../value/list.ts'
 import { Scope } from '../executer/scope.ts'
+import { ListValue } from '../value/list.ts'
 
-import type { ValueType } from '../value/base.ts'
-import type { Block } from './block.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
+import type { ValueType } from '../value/base.ts'
 import { NumberValue } from '../value/primitive.ts'
+import type { Block } from './block.ts'
 
 export class ListLoop extends Executable {
     static override friendlyName = '목록 반복'
@@ -34,6 +34,11 @@ export class ListLoop extends Executable {
 
         try {
             for (const value of list.enumerate()) {
+                await this.onRunChild({
+                    scope,
+                    childTokens: this.body.tokens,
+                    skipReport: true,
+                })
                 scope.setVariable(this.variableName, value)
                 await this.body.execute(scope)
             }
