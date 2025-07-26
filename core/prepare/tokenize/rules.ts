@@ -17,7 +17,13 @@ const OPERATORS = [
     '>=',
     '==',
     '!=',
+    '+=',
+    '-=',
+    '*=',
+    '/=',
 ]
+
+const ASSIGNERS = ['=', '+=', '-=', '*=', '/=']
 
 const IDENTIFIER_STARTER_REGEX = /[a-zA-Z_가-힣ㄱ-ㅎ]/
 const IDENTIFIER_REGEX = /[a-zA-Z_가-힣ㄱ-ㅎ0-9]/
@@ -172,16 +178,24 @@ export const RULES: {
         },
     },
     {
-        type: TOKEN_TYPE.ASSIGNMENT,
-        starter: ['='],
+        type: TOKEN_TYPE.ASSIGNER,
+        starter: ASSIGNERS.map((a) => a[0]),
         parse: (view, shift) => {
-            shift()
+            const starter = shift()!
 
-            if (view() == '=') {
+            if (starter === '=') {
+                if (view() === '=') {
+                    throw new NotAcceptableSignal()
+                }
+
+                return '='
+            }
+
+            if (view() !== '=') {
                 throw new NotAcceptableSignal()
             }
 
-            return '='
+            return starter + shift()!
         },
     },
     {
