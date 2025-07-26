@@ -25,8 +25,13 @@ const session = new YaksokSession({
 session.addModule(
     'main',
     `
-내_나이 = 10
-내_나이 -= "오류"
+목록 = [1, 2, 3, 4, 5]
+목록[0] += 10
+목록[1] -= 2
+목록[2] *= 3
+목록[3] /= 2
+목록[4] %= 3
+목록 보여주기
 `,
     {
         // executionDelay: 500,

@@ -7,21 +7,7 @@ import type { Scope } from '../executer/scope.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { ValueType } from '../value/base.ts'
 import { NumberValue } from '../value/primitive.ts'
-import {
-    DivideOperator,
-    MinusOperator,
-    ModularOperator,
-    MultiplyOperator,
-    PlusOperator,
-} from './operator.ts'
-
-const operatorToNodeMap = {
-    '+=': PlusOperator,
-    '-=': MinusOperator,
-    '*=': MultiplyOperator,
-    '/=': DivideOperator,
-    '%=': ModularOperator,
-} as const
+import { assignerToOperatorMap } from './operator.ts'
 
 export class SetVariable extends Evaluable {
     static override friendlyName = '변수 정하기'
@@ -40,7 +26,9 @@ export class SetVariable extends Evaluable {
         const { name, value } = this
 
         const operatorNode =
-            operatorToNodeMap[this.operator as keyof typeof operatorToNodeMap]
+            assignerToOperatorMap[
+                this.operator as keyof typeof assignerToOperatorMap
+            ]
 
         const operand = await value.execute(scope)
 

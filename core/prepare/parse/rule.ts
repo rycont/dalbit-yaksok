@@ -43,6 +43,7 @@ import { NotEqualOperator } from '../../node/operator.ts'
 import { ReturnStatement } from '../../node/return.ts'
 import { IndexedValue } from '../../value/indexed.ts'
 import { NumberValue, StringValue } from '../../value/primitive.ts'
+import { ASSIGNERS } from '../tokenize/rules.ts'
 import type { Rule } from './type.ts'
 import { RULE_FLAGS } from './type.ts'
 
@@ -376,14 +377,15 @@ export const ADVANCED_RULES: Rule[] = [
         ],
         factory: (_nodes, tokens) => new ListLiteral([], tokens),
     },
-    {
+
+    ...ASSIGNERS.map<Rule>((assigner) => ({
         pattern: [
             {
                 type: IndexFetch,
             },
             {
                 type: Expression,
-                value: '=',
+                value: assigner,
             },
             {
                 type: Evaluable,
@@ -391,20 +393,21 @@ export const ADVANCED_RULES: Rule[] = [
         ],
         factory: (nodes, tokens) => {
             const target = nodes[0] as IndexFetch
+            const operator = nodes[1] as Expression
             const value = nodes[2] as Evaluable
 
-            return new SetToIndex(target, value, tokens)
+            return new SetToIndex(target, value, operator.value, tokens)
         },
         flags: [RULE_FLAGS.IS_STATEMENT],
-    },
-    {
+    })),
+    ...ASSIGNERS.map<Rule>((assigner) => ({
         pattern: [
             {
                 type: Identifier,
             },
             {
                 type: Expression,
-                value: '=',
+                value: assigner,
             },
             {
                 type: Evaluable,
@@ -418,117 +421,7 @@ export const ADVANCED_RULES: Rule[] = [
             return new SetVariable(name, value, tokens, operator.value)
         },
         flags: [RULE_FLAGS.IS_STATEMENT],
-    },
-    {
-        pattern: [
-            {
-                type: Identifier,
-            },
-            {
-                type: Expression,
-                value: '+=',
-            },
-            {
-                type: Evaluable,
-            },
-        ],
-        factory: (nodes, tokens) => {
-            const name = (nodes[0] as Identifier).value
-            const operator = nodes[1] as Expression
-            const value = nodes[2] as Evaluable
-
-            return new SetVariable(name, value, tokens, operator.value)
-        },
-        flags: [RULE_FLAGS.IS_STATEMENT],
-    },
-    {
-        pattern: [
-            {
-                type: Identifier,
-            },
-            {
-                type: Expression,
-                value: '/=',
-            },
-            {
-                type: Evaluable,
-            },
-        ],
-        factory: (nodes, tokens) => {
-            const name = (nodes[0] as Identifier).value
-            const operator = nodes[1] as Expression
-            const value = nodes[2] as Evaluable
-
-            return new SetVariable(name, value, tokens, operator.value)
-        },
-        flags: [RULE_FLAGS.IS_STATEMENT],
-    },
-    {
-        pattern: [
-            {
-                type: Identifier,
-            },
-            {
-                type: Expression,
-                value: '-=',
-            },
-            {
-                type: Evaluable,
-            },
-        ],
-        factory: (nodes, tokens) => {
-            const name = (nodes[0] as Identifier).value
-            const operator = nodes[1] as Expression
-            const value = nodes[2] as Evaluable
-
-            return new SetVariable(name, value, tokens, operator.value)
-        },
-        flags: [RULE_FLAGS.IS_STATEMENT],
-    },
-    {
-        pattern: [
-            {
-                type: Identifier,
-            },
-            {
-                type: Expression,
-                value: '*=',
-            },
-            {
-                type: Evaluable,
-            },
-        ],
-        factory: (nodes, tokens) => {
-            const name = (nodes[0] as Identifier).value
-            const operator = nodes[1] as Expression
-            const value = nodes[2] as Evaluable
-
-            return new SetVariable(name, value, tokens, operator.value)
-        },
-        flags: [RULE_FLAGS.IS_STATEMENT],
-    },
-    {
-        pattern: [
-            {
-                type: Identifier,
-            },
-            {
-                type: Expression,
-                value: '%=',
-            },
-            {
-                type: Evaluable,
-            },
-        ],
-        factory: (nodes, tokens) => {
-            const name = (nodes[0] as Identifier).value
-            const operator = nodes[1] as Expression
-            const value = nodes[2] as Evaluable
-
-            return new SetVariable(name, value, tokens, operator.value)
-        },
-        flags: [RULE_FLAGS.IS_STATEMENT],
-    },
+    })),
     {
         pattern: [
             {

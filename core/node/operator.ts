@@ -528,3 +528,11 @@ export class RangeOperator extends Operator {
         })
     }
 }
+
+export const assignerToOperatorMap = {
+    '+=': PlusOperator,
+    '-=': MinusOperator,
+    '*=': MultiplyOperator,
+    '/=': DivideOperator,
+    '%=': ModularOperator,
+} as const

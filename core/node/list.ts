@@ -1,5 +1,7 @@
-import { TargetIsNotIndexedValueError } from '../error/indexed.ts'
-import { ListIndexTypeError } from '../error/indexed.ts'
+import {
+    ListIndexTypeError,
+    TargetIsNotIndexedValueError,
+} from '../error/indexed.ts'
 
 import { Scope } from '../executer/scope.ts'
 import { ValueType } from '../value/base.ts'
@@ -8,9 +10,10 @@ import { ListValue } from '../value/list.ts'
 import { NumberValue, StringValue } from '../value/primitive.ts'
 import { Evaluable, Executable, Node } from './base.ts'
 
-import type { Token } from '../prepare/tokenize/token.ts'
 import { YaksokError } from '../error/common.ts'
 import { NotExecutableNodeError } from '../error/unknown-node.ts'
+import type { Token } from '../prepare/tokenize/token.ts'
+import { assignerToOperatorMap } from './index.ts'
 
 export class Sequence extends Node {
     static override friendlyName = '나열된 값'
@@ -149,6 +152,7 @@ export class SetToIndex extends Executable {
     constructor(
         public target: IndexFetch,
         public value: Evaluable,
+        private readonly operator: string,
         public override tokens: Token[],
     ) {
         super()
@@ -157,8 +161,36 @@ export class SetToIndex extends Executable {
     }
 
     override async execute(scope: Scope): Promise<void> {
-        const value = await this.value.execute(scope)
-        await this.target.setValue(scope, value)
+        const operatorNode =
+            assignerToOperatorMap[
+                this.operator as keyof typeof assignerToOperatorMap
+            ]
+
+        const operand = await this.value.execute(scope)
+        let newValue = operand
+
+        if (operatorNode) {
+            const oldValue = await this.target.execute(scope)
+            const tempOperator = new operatorNode(this.tokens)
+
+            try {
+                newValue = tempOperator.call(oldValue, operand)
+            } catch (error) {
+                if (error instanceof YaksokError) {
+                    if (!error.tokens) {
+                        error.tokens = this.tokens
+                    }
+
+                    if (!error.codeFile) {
+                        error.codeFile = scope.codeFile
+                    }
+                }
+
+                throw error
+            }
+        }
+
+        await this.target.setValue(scope, newValue)
     }
 
     override validate(scope: Scope): YaksokError[] {
