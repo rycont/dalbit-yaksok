@@ -9,8 +9,16 @@ const session = new YaksokSession({
 session.addModule(
     'main',
     `
-27번 반복
-    "대한민국 만세!" 보여주기
+목록 = 1 ~ 4
+
+목록 의 숫자 마다 반복하기
+    숫자 보여주기
+
+목록 의 숫자 마다 반복
+    숫자 보여주기
+
+반복 목록 의 숫자 마다
+    숫자 보여주기
 `,
     {
         // executionDelay: 500,
