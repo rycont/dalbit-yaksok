@@ -25,10 +25,10 @@ const session = new YaksokSession({
 session.addModule(
     'main',
     `
-숫자 = 0
-반복
-    숫자 보여주기
-    숫자 = 숫자 + 1
+숫자 = 10
+숫자 += 10
+
+숫자 보여주기
 `,
     {
         // executionDelay: 500,

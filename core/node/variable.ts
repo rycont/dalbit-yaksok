@@ -7,6 +7,21 @@ import type { Scope } from '../executer/scope.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { ValueType } from '../value/base.ts'
 import { NumberValue } from '../value/primitive.ts'
+import {
+    DivideOperator,
+    MinusOperator,
+    ModularOperator,
+    MultiplyOperator,
+    PlusOperator,
+} from './operator.ts'
+
+const operatorToNodeMap = {
+    '+': PlusOperator,
+    '-': MinusOperator,
+    '*': MultiplyOperator,
+    '/': DivideOperator,
+    '%': ModularOperator,
+} as const
 
 export class SetVariable extends Evaluable {
     static override friendlyName = '변수 정하기'
@@ -15,6 +30,7 @@ export class SetVariable extends Evaluable {
         public name: string,
         public value: Evaluable,
         public override tokens: Token[],
+        public operator: string,
     ) {
         super()
         this.assertValidName()
@@ -23,10 +39,21 @@ export class SetVariable extends Evaluable {
     override async execute(scope: Scope): Promise<ValueType> {
         const { name, value } = this
 
-        const result = await value.execute(scope)
+        const operatorNode =
+            operatorToNodeMap[this.operator as keyof typeof operatorToNodeMap]
 
-        scope.setVariable(name, result)
-        return result
+        const operand = await value.execute(scope)
+
+        let newValue = operand
+
+        if (operatorNode) {
+            const oldValue = scope.getVariable(name)
+            const tempOperator = new operatorNode(this.tokens)
+            newValue = tempOperator.call(oldValue, operand)
+        }
+
+        scope.setVariable(name, newValue)
+        return newValue
     }
 
     assertValidName() {
