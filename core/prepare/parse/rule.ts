@@ -3,6 +3,7 @@ import {
     NotExpression,
     ValueWithParenthesis,
 } from '../../node/calculation.ts'
+import { CountLoop } from '../../node/count-loop.ts'
 import {
     AndOperator,
     Block,
@@ -702,6 +703,62 @@ export const ADVANCED_RULES: Rule[] = [
             const body = nodes[6] as Block
 
             return new ListLoop(list, name, body, tokens)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    },
+    {
+        pattern: [
+            {
+                type: Identifier,
+                value: '반복',
+            },
+            {
+                type: Evaluable,
+            },
+            {
+                type: Identifier,
+                value: '번',
+            },
+            {
+                type: EOL,
+            },
+            {
+                type: Block,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const list = nodes[1] as Evaluable
+            const body = nodes[4] as Block
+
+            return new CountLoop(list, body, tokens)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    },
+    {
+        pattern: [
+            {
+                type: Evaluable,
+            },
+            {
+                type: Identifier,
+                value: '번',
+            },
+            {
+                type: Identifier,
+                value: '반복',
+            },
+            {
+                type: EOL,
+            },
+            {
+                type: Block,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const list = nodes[0] as Evaluable
+            const body = nodes[4] as Block
+
+            return new CountLoop(list, body, tokens)
         },
         flags: [RULE_FLAGS.IS_STATEMENT],
     },
