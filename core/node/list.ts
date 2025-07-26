@@ -13,7 +13,7 @@ import { Evaluable, Executable, Node } from './base.ts'
 import { YaksokError } from '../error/common.ts'
 import { NotExecutableNodeError } from '../error/unknown-node.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
-import { assignerToOperatorMap } from './index.ts'
+import { assignerToOperatorMap } from './operator.ts'
 
 export class Sequence extends Node {
     static override friendlyName = '나열된 값'
