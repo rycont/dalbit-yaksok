@@ -49,7 +49,21 @@ export class SetVariable extends Evaluable {
         if (operatorNode) {
             const oldValue = scope.getVariable(name)
             const tempOperator = new operatorNode(this.tokens)
-            newValue = tempOperator.call(oldValue, operand)
+            try {
+                newValue = tempOperator.call(oldValue, operand)
+            } catch (error) {
+                if (error instanceof YaksokError) {
+                    if (!error.tokens) {
+                        error.tokens = this.tokens
+                    }
+
+                    if (!error.codeFile) {
+                        error.codeFile = scope.codeFile
+                    }
+                }
+
+                throw error
+            }
         }
 
         scope.setVariable(name, newValue)
