@@ -1,6 +1,6 @@
 import { IndexOutOfRangeError, ListIndexTypeError } from '../error/indexed.ts'
-import { NumberValue, StringValue } from './primitive.ts'
 import { ObjectValue, ValueType } from './base.ts'
+import { NumberValue, StringValue } from './primitive.ts'
 
 import type { ListValue } from './list.ts'
 
@@ -56,5 +56,12 @@ export class IndexedValue extends ObjectValue {
         }
 
         return new IndexedValue(entries)
+    }
+
+    override toPrint(): string {
+        return `{\n\t${[...this.entries.entries()]
+            .map(([key, value]) => `${key}: ${value.toPrint()}`)
+            .join(',\n\t')}
+}`
     }
 }

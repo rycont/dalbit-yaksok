@@ -89,6 +89,10 @@ export function parseBracket(
 
     const mergedNode = callParseRecursively(nodesInBrackets, dynamicRules)
 
+    if (mergedNode.length === nodesInBrackets.length) {
+        return nodes // No change in nodes, return original
+    }
+
     if (mergedNode.length === 1 && mergedNode[0] instanceof Sequence) {
         const listLiteral = new ListLiteral(
             mergedNode[0].items,

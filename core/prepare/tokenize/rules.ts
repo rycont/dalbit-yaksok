@@ -277,6 +277,30 @@ export const RULES: {
         },
     },
     {
+        type: TOKEN_TYPE.OPENING_BRACE,
+        starter: ['{'],
+        parse: (_, shift) => {
+            shift()
+            return '{'
+        },
+    },
+    {
+        type: TOKEN_TYPE.CLOSING_BRACE,
+        starter: ['}'],
+        parse: (_, shift) => {
+            shift()
+            return '}'
+        },
+    },
+    {
+        type: TOKEN_TYPE.COLON,
+        starter: [':'],
+        parse: (_, shift) => {
+            shift()
+            return ':'
+        },
+    },
+    {
         type: TOKEN_TYPE.STRING,
         starter: ['"', "'"],
         parse: (view, shift) => {

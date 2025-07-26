@@ -82,9 +82,15 @@ class Tokenizer {
                         })
 
                         // Update bracketDepth AFTER adding the token, so it reflects state *after* this token.
-                        if (rule.type === TOKEN_TYPE.OPENING_BRACKET) {
+                        if (
+                            rule.type === TOKEN_TYPE.OPENING_BRACKET ||
+                            rule.type === TOKEN_TYPE.OPENING_BRACE
+                        ) {
                             this.bracketDepth++
-                        } else if (rule.type === TOKEN_TYPE.CLOSING_BRACKET) {
+                        } else if (
+                            rule.type === TOKEN_TYPE.CLOSING_BRACKET ||
+                            rule.type === TOKEN_TYPE.CLOSING_BRACE
+                        ) {
                             this.bracketDepth--
                             if (this.bracketDepth < 0) {
                                 // Safety: Unmatched closing bracket. Parser will likely error.
