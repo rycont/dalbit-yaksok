@@ -60,8 +60,20 @@ export class IndexedValue extends ObjectValue {
 
     override toPrint(): string {
         return `{\n\t${[...this.entries.entries()]
-            .map(([key, value]) => `${key}: ${value.toPrint()}`)
-            .join(',\n\t')}
+            .map(([key, value]) => {
+                let valueString = value.toPrint()
+
+                if (valueString.includes('\n')) {
+                    const lines = valueString.split('\n')
+                    valueString = [
+                        lines[0],
+                        ...lines.slice(1).map((l) => '\t' + l),
+                    ].join('\n')
+                }
+
+                return `${key}: ${valueString}`
+            })
+            .join('\n\t')}
 }`
     }
 }
