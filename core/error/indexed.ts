@@ -11,11 +11,11 @@ import {
     valueTypeToText,
 } from './common.ts'
 
-export class IndexOutOfRangeError extends YaksokError {
+export class IndexKeyNotFoundError extends YaksokError {
     constructor(props: {
         position?: Position
         resource: {
-            index: string
+            index: string | number
             target: IndexedValue
         }
         tokens?: Token[]
@@ -28,7 +28,7 @@ export class IndexOutOfRangeError extends YaksokError {
                     typeof props.resource.index === 'number' ? '숫자' : '문자'
                 })`,
             )
-        }라는 값이 없어요`
+        }라는 값이 없어요. `
     }
 }
 

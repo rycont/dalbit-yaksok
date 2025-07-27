@@ -1,4 +1,4 @@
-import { IndexOutOfRangeError, ListIndexTypeError } from '../error/indexed.ts'
+import { IndexKeyNotFoundError, ListIndexTypeError } from '../error/indexed.ts'
 import { ObjectValue, ValueType } from './base.ts'
 import { NumberValue, StringValue } from './primitive.ts'
 
@@ -15,10 +15,10 @@ export class IndexedValue extends ObjectValue {
 
     getItem(index: string | number): ValueType {
         if (!this.entries.has(index)) {
-            throw new IndexOutOfRangeError({
+            throw new IndexKeyNotFoundError({
                 resource: {
                     target: this,
-                    index: index.toString(),
+                    index,
                 },
             })
         }
