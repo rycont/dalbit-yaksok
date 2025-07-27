@@ -75,4 +75,13 @@ export class IndexedValue extends ObjectValue {
             .join('\n\t')}
 }`
     }
+
+    public enumerate(): Iterable<ValueType> {
+        const keys = this.entries.keys().toArray()
+        const keysInStringValue = keys.map((k) =>
+            typeof k === 'string' ? new StringValue(k) : new NumberValue(k),
+        )
+
+        return keysInStringValue
+    }
 }

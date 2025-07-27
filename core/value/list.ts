@@ -69,7 +69,7 @@ export class ListValue extends IndexedValue {
             .join(', ')}]`
     }
 
-    public enumerate(): Iterable<ValueType> {
+    public override enumerate(): Iterable<ValueType> {
         return this.entries.values()
     }
 

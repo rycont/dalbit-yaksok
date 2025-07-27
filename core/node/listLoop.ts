@@ -4,10 +4,10 @@ import { BreakSignal } from '../executer/signals.ts'
 import { Executable, type Evaluable } from './base.ts'
 
 import { Scope } from '../executer/scope.ts'
-import { ListValue } from '../value/list.ts'
 
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { ValueType } from '../value/base.ts'
+import { IndexedValue } from '../value/indexed.ts'
 import { NumberValue } from '../value/primitive.ts'
 import type { Block } from './block.ts'
 
@@ -47,8 +47,10 @@ export class ListLoop extends Executable {
         }
     }
 
-    assertRepeatTargetIsList(target: ValueType): asserts target is ListValue {
-        if (target instanceof ListValue) return
+    assertRepeatTargetIsList(
+        target: ValueType,
+    ): asserts target is IndexedValue {
+        if (target instanceof IndexedValue) return
 
         throw new NotEnumerableValueForListLoopError({
             resource: {
