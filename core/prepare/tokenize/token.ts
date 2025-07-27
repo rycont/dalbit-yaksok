@@ -38,6 +38,7 @@ export const TOKEN_TYPE_TO_TEXT: Record<TOKEN_TYPE, string> = {
     [TOKEN_TYPE.INDENT]: '들여쓰기',
     [TOKEN_TYPE.IDENTIFIER]: '식별자',
     [TOKEN_TYPE.COMMA]: '쉼표',
+    [TOKEN_TYPE.COLON]: '쌍점',
     [TOKEN_TYPE.OPENING_PARENTHESIS]: '여는 괄호',
     [TOKEN_TYPE.CLOSING_PARENTHESIS]: '닫는 괄호',
     [TOKEN_TYPE.OPENING_BRACKET]: '여는 대괄호',
