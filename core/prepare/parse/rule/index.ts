@@ -46,11 +46,45 @@ import { ASSIGNERS } from '../../tokenize/rules.ts'
 import type { Rule } from '../type.ts'
 import { RULE_FLAGS } from '../type.ts'
 import { COUNT_LOOP_RULES } from './count-loop.ts'
+import { DICT_RULES } from './dict.ts'
 import { LIST_LOOP_RULES } from './list-loop.ts'
 
 export type { Rule }
 export const BASIC_RULES: Rule[][] = [
     [
+        {
+            pattern: [
+                {
+                    type: EOL,
+                },
+                {
+                    type: EOL,
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const eol = nodes[0] as EOL
+                eol.tokens = tokens
+                return eol
+            },
+        },
+        {
+            pattern: [
+                {
+                    type: Expression,
+                    value: ',',
+                },
+                {
+                    type: EOL,
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const comma = nodes[0] as Expression
+                const eol = nodes[1] as EOL
+
+                comma.tokens = tokens
+                return comma
+            },
+        },
         {
             pattern: [
                 {
@@ -711,4 +745,5 @@ export const ADVANCED_RULES: Rule[] = [
             return new ListLiteral([item], tokens)
         },
     },
+    ...DICT_RULES,
 ]

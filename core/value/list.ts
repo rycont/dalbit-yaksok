@@ -1,3 +1,4 @@
+import { dim } from '../error/common.ts'
 import {
     ListIndexMustBeGreaterOrEqualThan0Error,
     ListIndexTypeError,
@@ -54,12 +55,26 @@ export class ListValue extends IndexedValue {
     }
 
     override toPrint(): string {
-        return `[${[...this.entries.values()]
-            .map((value) => value.toPrint())
+        const keys = this.entries.keys().toArray()
+
+        if (keys.length === 0) {
+            return `[ ${dim('빈 목록')} ]`
+        }
+
+        const maxKey = Math.max(...keys)
+
+        let values: (ValueType | null)[] = []
+
+        for (let i = 0; i <= maxKey; i++) {
+            values[i] = this.entries.get(i) ?? null
+        }
+
+        return `[${values
+            .map((value) => (value ? value.toPrint() : dim('(값 없음)')))
             .join(', ')}]`
     }
 
-    public enumerate(): Iterable<ValueType> {
+    public override enumerate(): Iterable<ValueType> {
         return this.entries.values()
     }
 

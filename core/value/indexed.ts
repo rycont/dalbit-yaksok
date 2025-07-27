@@ -1,6 +1,6 @@
-import { IndexOutOfRangeError, ListIndexTypeError } from '../error/indexed.ts'
-import { NumberValue, StringValue } from './primitive.ts'
+import { IndexKeyNotFoundError, ListIndexTypeError } from '../error/indexed.ts'
 import { ObjectValue, ValueType } from './base.ts'
+import { NumberValue, StringValue } from './primitive.ts'
 
 import type { ListValue } from './list.ts'
 
@@ -15,11 +15,10 @@ export class IndexedValue extends ObjectValue {
 
     getItem(index: string | number): ValueType {
         if (!this.entries.has(index)) {
-            throw new IndexOutOfRangeError({
+            throw new IndexKeyNotFoundError({
                 resource: {
-                    target: (this.constructor as typeof IndexedValue)
-                        .friendlyName,
-                    index: index.toString(),
+                    target: this,
+                    index,
                 },
             })
         }
@@ -56,5 +55,33 @@ export class IndexedValue extends ObjectValue {
         }
 
         return new IndexedValue(entries)
+    }
+
+    override toPrint(): string {
+        return `{\n\t${[...this.entries.entries()]
+            .map(([key, value]) => {
+                let valueString = value.toPrint()
+
+                if (valueString.includes('\n')) {
+                    const lines = valueString.split('\n')
+                    valueString = [
+                        lines[0],
+                        ...lines.slice(1).map((l) => '\t' + l),
+                    ].join('\n')
+                }
+
+                return `${key}: ${valueString}`
+            })
+            .join('\n\t')}
+}`
+    }
+
+    public enumerate(): Iterable<ValueType> {
+        const keys = this.entries.keys().toArray()
+        const keysInStringValue = keys.map((k) =>
+            typeof k === 'string' ? new StringValue(k) : new NumberValue(k),
+        )
+
+        return keysInStringValue
     }
 }

@@ -19,6 +19,9 @@ function mapTokenToNode(token: Token) {
         case TOKEN_TYPE.CLOSING_PARENTHESIS:
         case TOKEN_TYPE.OPENING_BRACKET:
         case TOKEN_TYPE.CLOSING_BRACKET:
+        case TOKEN_TYPE.OPENING_BRACE:
+        case TOKEN_TYPE.CLOSING_BRACE:
+        case TOKEN_TYPE.COLON:
         case TOKEN_TYPE.ASSIGNER:
         case TOKEN_TYPE.UNKNOWN:
             return new Expression(token.value, [token])

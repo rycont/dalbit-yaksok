@@ -1,7 +1,7 @@
 import { assert, assertIsError } from '@std/assert'
 import { YaksokError } from '../../core/error/common.ts'
 import {
-    IndexOutOfRangeError,
+    IndexKeyNotFoundError,
     InvalidTypeForOperatorError,
     ListIndexMustBeGreaterOrEqualThan0Error,
     ListIndexTypeError,
@@ -141,7 +141,7 @@ Deno.test('List out of range', async () => {
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, IndexOutOfRangeError)
+    assertIsError(result.error, IndexKeyNotFoundError)
 })
 
 Deno.test('List index must be number', async () => {
