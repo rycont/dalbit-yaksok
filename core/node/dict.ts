@@ -15,10 +15,6 @@ export class KeyValuePair extends Expression {
     ) {
         super(name, tokens)
     }
-
-    override toString(): string {
-        return `${this.key}: ${this.value}`
-    }
 }
 
 export class KeyValuePairSequence extends Expression {
@@ -29,10 +25,6 @@ export class KeyValuePairSequence extends Expression {
         public override tokens: Token[] = [],
     ) {
         super('키-값 쌍 목록', tokens)
-    }
-
-    override toString(): string {
-        return this.pairs.map((pair) => pair.toString()).join(', ')
     }
 }
 

@@ -5,6 +5,13 @@ import { Token } from '../tokenize/token.ts'
 import type { Rule } from './rule/index.ts'
 import { callParseRecursively } from './srParse.ts'
 
+const ALL_OPENING_BRACKETS = ['[', '{', '(']
+const OPENING_TO_CLOSING_BRACKETS: Record<string, string> = {
+    '[': ']',
+    '{': '}',
+    '(': ')',
+}
+
 export function parseBracket(
     nodes: Node[],
     tokens: Token[],
@@ -23,7 +30,7 @@ export function parseBracket(
 
         const isNotOpeningBracketNode =
             !(openingBracketNode instanceof Expression) ||
-            openingBracketNode.value !== '['
+            !ALL_OPENING_BRACKETS.includes(openingBracketNode.value)
 
         if (isNotOpeningBracketNode) {
             continue
@@ -38,7 +45,8 @@ export function parseBracket(
 
             const isClosingBracket =
                 seekingClosingNode instanceof Expression &&
-                seekingClosingNode.value === ']'
+                seekingClosingNode.value ===
+                    OPENING_TO_CLOSING_BRACKETS[openingBracketNode.value]
 
             if (isClosingBracket) {
                 if (closingIndexCandidate - openingBracketIndex <= 2) {
@@ -56,7 +64,8 @@ export function parseBracket(
 
             const isOpeningBracket =
                 seekingClosingNode instanceof Expression &&
-                seekingClosingNode.value === '['
+                seekingClosingNode.value ===
+                    OPENING_TO_CLOSING_BRACKETS[openingBracketNode.value]
 
             if (isOpeningBracket) {
                 depth++

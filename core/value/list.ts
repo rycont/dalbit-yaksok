@@ -56,16 +56,21 @@ export class ListValue extends IndexedValue {
 
     override toPrint(): string {
         const keys = this.entries.keys().toArray()
+
+        if (keys.length === 0) {
+            return `[ ${dim('빈 목록')} ]`
+        }
+
         const maxKey = Math.max(...keys)
 
         let values: (ValueType | null)[] = []
 
-        for (let i = 0; i < maxKey; i++) {
+        for (let i = 0; i <= maxKey; i++) {
             values[i] = this.entries.get(i) ?? null
         }
 
         return `[${values
-            .map((value) => (value ? value.toPrint() : dim('비어있음')))
+            .map((value) => (value ? value.toPrint() : dim('(값 없음)')))
             .join(', ')}]`
     }
 

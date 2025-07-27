@@ -1,4 +1,5 @@
 import { assert, assertInstanceOf } from 'assert'
+import { InvalidTypeForOperatorError } from '../../core/error/calculation.ts'
 import { IndexKeyNotFoundError, YaksokSession } from '../../core/mod.ts'
 
 Deno.test('Key is not found in dictionary', async () => {
@@ -29,4 +30,26 @@ Deno.test('Key is not found in dictionary', async () => {
 
     assert(result.reason === 'error')
     assertInstanceOf(result.error, IndexKeyNotFoundError)
+})
+
+Deno.test('Dict Compound Assignment Operation Error', async () => {
+    const session = new YaksokSession()
+    session.addModule(
+        'main',
+        `객체 = {
+    이름: '홍길동'
+    나이: 30
+    주소: '서울시 강남구',
+}
+
+객체['나이'] += 1
+객체['나이'] 보여주기
+
+객체['주소'] -= 2`,
+    )
+
+    const result = await session.runModule('main')
+
+    assert(result.reason === 'error')
+    assertInstanceOf(result.error, InvalidTypeForOperatorError)
 })
