@@ -165,4 +165,19 @@ export const DICT_RULES: Rule[] = [
             return new DictLiteral([pair], tokens)
         },
     },
+    {
+        pattern: [
+            {
+                type: Expression,
+                value: '{',
+            },
+            {
+                type: Expression,
+                value: '}',
+            },
+        ],
+        factory: (_, tokens) => {
+            return new DictLiteral([], tokens)
+        },
+    },
 ]
