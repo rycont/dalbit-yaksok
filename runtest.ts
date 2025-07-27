@@ -25,7 +25,7 @@ session.addModule(
     }]
 }
 
-객체 보여주기
+객체['자격증']['자식새끼'][1] 보여주기
 `,
     {
         // executionDelay: 500,

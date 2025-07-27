@@ -1,20 +1,34 @@
 import type { Evaluable } from '../node/base.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { Position } from '../type/position.ts'
-import { ValueType } from '../value/base.ts'
-import { YaksokError, evaluableToText, valueTypeToText } from './common.ts'
+import type { ValueType } from '../value/base.ts'
+import type { IndexedValue } from '../value/indexed.ts'
+import {
+    YaksokError,
+    bold,
+    dim,
+    evaluableToText,
+    valueTypeToText,
+} from './common.ts'
 
 export class IndexOutOfRangeError extends YaksokError {
     constructor(props: {
         position?: Position
         resource: {
             index: string
-            target: string
+            target: IndexedValue
         }
         tokens?: Token[]
     }) {
         super(props)
-        this.message = `${props.resource.target}에는 ${props.resource.index}라는 값이 없어요`
+        this.message = `${valueTypeToText(props.resource.target)}에는 ${
+            bold(props.resource.index) +
+            dim(
+                `(${
+                    typeof props.resource.index === 'number' ? '숫자' : '문자'
+                })`,
+            )
+        }라는 값이 없어요`
     }
 }
 

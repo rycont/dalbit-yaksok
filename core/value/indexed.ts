@@ -17,8 +17,7 @@ export class IndexedValue extends ObjectValue {
         if (!this.entries.has(index)) {
             throw new IndexOutOfRangeError({
                 resource: {
-                    target: (this.constructor as typeof IndexedValue)
-                        .friendlyName,
+                    target: this,
                     index: index.toString(),
                 },
             })
