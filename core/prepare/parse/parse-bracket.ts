@@ -72,7 +72,7 @@ export function parseBracket(
                 continue rangeSeekingLoop
             }
 
-            if (nodes.length - 1 === closingIndexCandidate) {
+            if (closingIndexCandidate >= nodes.length) {
                 if (optimistic) {
                     continue rangeSeekingLoop
                 }

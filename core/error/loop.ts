@@ -27,3 +27,10 @@ export class LoopCountIsNotNumberError extends YaksokError {
         )}는 숫자가 아니에요.`
     }
 }
+
+export class LoopWithoutBodyError extends YaksokError {
+    constructor(props: { tokens: Token[] }) {
+        super(props)
+        this.message = `반복문에 실행할 내용이 없어요.`
+    }
+}

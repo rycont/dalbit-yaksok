@@ -2,7 +2,7 @@ import { BreakSignal } from '../executer/signals.ts'
 import { Executable } from './base.ts'
 
 import { YaksokError } from '../error/common.ts'
-import { NoBreakOrReturnError } from '../error/loop.ts'
+import { LoopWithoutBodyError, NoBreakOrReturnError } from '../error/loop.ts'
 import type { Scope } from '../executer/scope.ts'
 import { TOKEN_TYPE, type Token } from '../prepare/tokenize/token.ts'
 import type { Block } from './block.ts'
@@ -15,6 +15,10 @@ export class Loop extends Executable {
     }
 
     override async execute(scope: Scope) {
+        if (this.body.tokens.length === 0) {
+            return
+        }
+
         try {
             while (true) {
                 await this.onRunChild({
@@ -42,7 +46,16 @@ export class Loop extends Executable {
 
         const childErrors = this.body.validate(scope)
 
-        return [...noBreakOrReturnError, ...childErrors]
+        const hasBodyError =
+            this.body.children.length === 0
+                ? new LoopWithoutBodyError({
+                      tokens: this.tokens,
+                  })
+                : null
+
+        return [...noBreakOrReturnError, ...childErrors, hasBodyError].filter(
+            Boolean,
+        ) as YaksokError[]
     }
 }
 
