@@ -1,36 +1,19 @@
-import { YaksokSession } from '@dalbit-yaksok/core'
+import { CodeFile } from "@dalbit-yaksok/core";
 
-const abortController = new AbortController()
+function run(code: string) {
+    console.log(code);
+    (new CodeFile(code, Symbol('asdf'))).parseOptimistically()
+}
 
-const session = new YaksokSession({
-    signal: abortController.signal,
-})
+const target = `"달빛약속에 오신걸 환영합니다" 보여주기
+약속, 키가 (키)cm이고 몸무게가 (몸무게)일 때 비만도
+    몸무게 / (키 / 100 * 키 / 100) 반환하기
 
-session.addModule(
-    'main',
-    `이력서 = {
-    출신: "미시시피"
-    부모님: "완전 부자",
-    자격증: {
-        컴활: "2급"
-        JLPT: "N1"
-    }
-}\n
-"자기소개 해보겠습니다"
-이력서 의 항목 마다 반복하기
-    항목 + "?" 보여주기
-    이력서[항목] 보여주기
-    "" 보여주기
-`,
-    {
-        // executionDelay: 500,
-    },
-)
+비만도 = 키가 (170)cm이고 몸무게가 (70)일 때 비만도
 
-const startTime = Date.now()
+비만도 보여주기
+`
 
-const result = await session.runModule('main')
-
-const endTime = Date.now()
-const duration = endTime - startTime
-console.log(`Execution finished in ${duration} ms`)
+for(let i = 0; i < target.length; i++) {
+    await run(target.slice(0, i))
+}
