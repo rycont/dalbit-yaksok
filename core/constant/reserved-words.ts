@@ -1,4 +1,7 @@
 export const RESERVED_WORDS = new Set([
+    'if',
+    'elif',
+    'else',
     '아니면',
     '만약',
     '이면',

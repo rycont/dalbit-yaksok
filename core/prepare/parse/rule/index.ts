@@ -48,6 +48,7 @@ import { RULE_FLAGS } from '../type.ts'
 import { COUNT_LOOP_RULES } from './count-loop.ts'
 import { DICT_RULES } from './dict.ts'
 import { LIST_LOOP_RULES } from './list-loop.ts'
+import { PYTHON_COMPAT_RULES } from './python-compat.ts'
 
 export type { Rule }
 export const BASIC_RULES: Rule[][] = [
@@ -359,6 +360,7 @@ export const BASIC_RULES: Rule[][] = [
 ]
 
 export const ADVANCED_RULES: Rule[] = [
+    ...PYTHON_COMPAT_RULES,
     {
         pattern: [
             {
