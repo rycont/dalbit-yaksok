@@ -23,3 +23,9 @@ Deno.test('Unparsable list', async () => {
     assert(result.reason === 'validation')
     assertIsError(result.errors.get('main')![0], UnexpectedEndOfCodeError)
 })
+
+Deno.test('Unparsable function call', async () => {
+    const result = await yaksok(`비만도 = 키가 (`)
+    assert(result.reason === 'validation')
+    assertIsError(result.errors.get('main')![0], UnexpectedEndOfCodeError)
+})
