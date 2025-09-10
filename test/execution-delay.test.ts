@@ -66,6 +66,7 @@ Deno.test('Execution Delay with Imported File', async () => {
     const endTime = Date.now()
     const duration = endTime - startTime
 
+    assertEquals(output, 'abc')
     assertGreaterOrEqual(duration, 300)
     assertLess(duration, 450)
 })

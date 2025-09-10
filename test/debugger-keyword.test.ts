@@ -1,6 +1,6 @@
 import { YaksokSession, Scope, Pause } from '../core/mod.ts'
 import { assertEquals } from 'assert/equals'
-import { assert } from "assert/assert";
+import { assert } from 'assert/assert'
 
 Deno.test('debugger keyword', async () => {
     let output = ''
@@ -17,7 +17,7 @@ Deno.test('debugger keyword', async () => {
 
                 assertEquals(output, 'AB')
                 assertEquals(paused, true)
-                
+
                 session.resume()
             },
             debug(scope, node) {
@@ -45,7 +45,9 @@ Deno.test('debugger keyword', async () => {
     assert(runResult.reason === 'finish')
     assert(debugEventPayload !== null)
     assertEquals(debugEventPayload?.node.tokens[0].position.line, 5)
-    assert(runResult.codeFile.ranScope?.getVariable('내_변수').toPrint() === '20')
+    assert(
+        runResult.codeFile.ranScope?.getVariable('내_변수').toPrint() === '20',
+    )
 
     assertEquals(output, 'ABCD')
 })
