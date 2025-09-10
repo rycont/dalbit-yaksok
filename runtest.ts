@@ -1,19 +1,29 @@
-import { CodeFile } from "@dalbit-yaksok/core";
+import { YaksokSession } from './core/mod.ts'
+import { assertEquals } from 'https://deno.land/std@0.177.0/testing/asserts.ts'
 
-function run(code: string) {
-    console.log(code);
-    (new CodeFile(code, Symbol('asdf'))).parseOptimistically()
-}
+const dir = './test/codes'
 
-const target = `"달빛약속에 오신걸 환영합니다" 보여주기
-약속, 키가 (키)cm이고 몸무게가 (몸무게)일 때 비만도
-    몸무게 / (키 / 100 * 키 / 100) 반환하기
+for await (const file of Deno.readDir(dir)) {
+    if (!file.name.endsWith('.yak')) {
+        continue
+    }
 
-비만도 = 키가 (170)cm이고 몸무게가 (70)일 때 비만도
+    Deno.test(file.name, async () => {
+        const yakPath = `${dir}/${file.name}`
+        const outPath = `${dir}/${file.name}.out`
 
-비만도 보여주기
-`
+        const code = await Deno.readTextFile(yakPath)
+        const expectedOutput = await Deno.readTextFile(outPath)
 
-for(let i = 0; i < target.length; i++) {
-    await run(target.slice(0, i))
+        let output = ''
+        const session = new YaksokSession({
+            stdout: (text: string) => {
+                output += text + '\n'
+            },
+        })
+        session.addModule('main', code)
+        await session.runModule('main')
+
+        assertEquals(output.trim(), expectedOutput.trim())
+    })
 }

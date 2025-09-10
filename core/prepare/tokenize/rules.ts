@@ -224,6 +224,33 @@ export const RULES: {
         },
     },
     {
+        type: TOKEN_TYPE.BOOLEAN,
+        starter: ['T', 'F'],
+        parse: (view, shift) => {
+            const starter = shift()!
+            const next = view()
+
+            if (starter === 'T') {
+                if (next === 'r') {
+                    shift()
+                    shift()
+                    shift()
+                    return 'True'
+                }
+            } else if (starter === 'F') {
+                if (next === 'a') {
+                    shift()
+                    shift()
+                    shift()
+                    shift()
+                    return 'False'
+                }
+            }
+
+            throw new NotAcceptableSignal()
+        },
+    },
+    {
         type: TOKEN_TYPE.IDENTIFIER,
         starter: IDENTIFIER_STARTER_REGEX,
         parse: (view, shift) => {
