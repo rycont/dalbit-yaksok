@@ -1,0 +1,10 @@
+a = True
+b = False
+
+if a:
+    'a는 참' 보여주기
+
+if b:
+    'b는 참' 보여주기
+else:
+    'b는 거짓' 보여주기

@@ -4,6 +4,7 @@ export enum TOKEN_TYPE {
     NUMBER = 'NUMBER',
     ASSIGNER = 'ASSIGNER',
     STRING = 'STRING',
+    BOOLEAN = 'BOOLEAN',
     OPERATOR = 'OPERATOR',
     SPACE = 'SPACE',
     INDENT = 'INDENT',
@@ -32,6 +33,7 @@ export interface Token {
 export const TOKEN_TYPE_TO_TEXT: Record<TOKEN_TYPE, string> = {
     [TOKEN_TYPE.NUMBER]: '숫자',
     [TOKEN_TYPE.STRING]: '문자',
+    [TOKEN_TYPE.BOOLEAN]: '참/거짓',
     [TOKEN_TYPE.ASSIGNER]: '값 넣기',
     [TOKEN_TYPE.OPERATOR]: '연산자',
     [TOKEN_TYPE.SPACE]: '공백',
