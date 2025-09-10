@@ -75,6 +75,7 @@ export class Pause extends Executable {
     }
 
     override async execute(scope: Scope): Promise<void> {
+        scope.codeFile?.session?.pubsub.pub('debug', [scope, this])
         scope.codeFile?.session?.pause()
     }
 

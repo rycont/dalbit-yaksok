@@ -1,5 +1,6 @@
 import type { EnabledFlags } from '../constant/feature-flags.ts'
 import type { Scope } from '../executer/scope.ts'
+import type { Pause } from "../node/misc.ts";
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { Position } from '../type/position.ts'
 
@@ -73,6 +74,7 @@ export type Events = {
 
     pause: () => void
     resume: () => void
+    debug: (scope: Scope, node: Pause) => void
 }
 
 export const DEFAULT_SESSION_CONFIG: SessionConfig = {
@@ -82,6 +84,9 @@ export const DEFAULT_SESSION_CONFIG: SessionConfig = {
     flags: {},
     events: {
         runningCode: () => {},
+        pause: () => {},
+        resume: () => {},
+        debug: () => {},
     },
     signal: null,
 }
