@@ -1,6 +1,5 @@
-import { YaksokSession, Scope, Position, Pause } from '../core/mod.ts'
+import { YaksokSession, Scope, Pause } from '../core/mod.ts'
 import { assertEquals } from 'assert/equals'
-import { PrimitiveValue } from '../core/value/base.ts'
 import { assert } from "assert/assert";
 
 Deno.test('debugger keyword', async () => {
