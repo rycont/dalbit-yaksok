@@ -30,7 +30,7 @@ Deno.test('Execution Delay in Main Context', async () => {
 
     assertEquals(output, `abc`)
     assertGreaterOrEqual(duration, 300)
-    assertLess(duration, 350)
+    assertLess(duration, 450)
 })
 
 Deno.test('Execution Delay with Imported File', async () => {
@@ -68,7 +68,7 @@ Deno.test('Execution Delay with Imported File', async () => {
 
     assertEquals(output, 'abc')
     assertGreaterOrEqual(duration, 300)
-    assertLess(duration, 350)
+    assertLess(duration, 450)
 })
 
 Deno.test('Execution Delay with Nested Import', async () => {

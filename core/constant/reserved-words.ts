@@ -16,4 +16,6 @@ export const RESERVED_WORDS = new Set([
     '이거나',
     '거나',
     '번역',
+    '잠깐',
+    '멈추기',
 ])
