@@ -56,8 +56,10 @@ export class Executable extends Node {
 
         const executionDelay = scope.codeFile?.executionDelay
 
-        if (executionDelay && !skipReport) {
-            await new Promise((r) => setTimeout(r, executionDelay))
+        if (!skipReport) {
+            await new Promise((r) =>
+                setTimeout(r, scope.codeFile?.executionDelay ?? 0),
+            )
         }
 
         if (!skipReport && childTokens.length) {
