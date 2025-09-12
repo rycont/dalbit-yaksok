@@ -287,3 +287,65 @@ Deno.test('Execution Delay in Formula', async () => {
     assertGreaterOrEqual(duration, 2800)
     assertLess(duration, 2900)
 })
+
+Deno.test('Execution Delay with 0ms', async () => {
+    const code = {
+        main: `
+"a" 보여주기
+"b" 보여주기
+"c" 보여주기
+        `,
+    }
+
+    let output = ''
+
+    const session = new YaksokSession({
+        stdout(text) {
+            output += text
+        },
+    })
+
+    const startTime = Date.now()
+
+    session.addModule('main', code.main, {
+        executionDelay: 0,
+    })
+    await session.runModule('main')
+
+    const endTime = Date.now()
+    const duration = endTime - startTime
+
+    assertEquals(output, `abc`)
+    assertGreaterOrEqual(duration, 0)
+    assertLess(duration, 50)
+})
+
+Deno.test('Execution Delay with no delay set', async () => {
+    const code = {
+        main: `
+"a" 보여주기
+"b" 보여주기
+"c" 보여주기
+        `,
+    }
+
+    let output = ''
+
+    const session = new YaksokSession({
+        stdout(text) {
+            output += text
+        },
+    })
+
+    const startTime = Date.now()
+
+    session.addModule('main', code.main) // No executionDelay config
+    await session.runModule('main')
+
+    const endTime = Date.now()
+    const duration = endTime - startTime
+
+    assertEquals(output, `abc`)
+    assertGreaterOrEqual(duration, 0)
+    assertLess(duration, 50)
+})
