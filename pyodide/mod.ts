@@ -20,6 +20,7 @@ export class Pyodide implements Extension {
     }
 
     private pyodide: any | null = null
+    private tempVarCounter: number = 0
 
     constructor(private packages: string[] = []) {}
 
@@ -75,7 +76,7 @@ export class Pyodide implements Extension {
                 for (let i = 0; i < ordered.length; i++) {
                     const a = ordered[i]
                     if (a instanceof ReferenceStore) {
-                        const varName = `__yak_arg_${Date.now()}_${i}`
+                        const varName = `__yak_arg_${Date.now()}_${this.tempVarCounter++}_${i}`
                         this.pyodide!.globals.set(varName, a.ref)
                         argSnippets.push(varName)
                         tempVarNames.push(varName)
@@ -127,13 +128,13 @@ export class Pyodide implements Extension {
                 const tempVarNames: string[] = []
                 try {
                     if (targetArg instanceof ReferenceStore) {
-                        targetVarName = `__yak_target_${Date.now()}`
+                        targetVarName = `__yak_target_${Date.now()}_${this.tempVarCounter++}`
                         this.pyodide!.globals.set(targetVarName, targetArg.ref)
                         tempVarNames.push(targetVarName)
                     } else {
                         // For primitive/list types, convert to Python literal
                         const literal = convertYaksokToPythonLiteral(targetArg)
-                        targetVarName = `__yak_target_${Date.now()}`
+                        targetVarName = `__yak_target_${Date.now()}_${this.tempVarCounter++}`
                         await runner.call(
                             this.pyodide,
                             `${targetVarName} = ${literal}`,
@@ -148,7 +149,7 @@ export class Pyodide implements Extension {
                         if (idx === 0) continue
                         const v = args[k]
                         if (v instanceof ReferenceStore) {
-                            const varName = `__yak_arg_${Date.now()}_${idx}`
+                            const varName = `__yak_arg_${Date.now()}_${this.tempVarCounter++}_${idx}`
                             this.pyodide!.globals.set(varName, v.ref)
                             callArgs.push(varName)
                             tempVarNames.push(varName)
