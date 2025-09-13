@@ -1,4 +1,7 @@
 {
+    "imports": {
+        "pyodide-module": "npm:pyodide@0.24.1/pyodide.js"
+    },
     "tasks": {
         "test": "deno test --quiet --allow-net --allow-read --parallel & deno lint",
         "coverage": "rm -rf ./cov && deno test --quiet --allow-net --allow-read --parallel --coverage=cov && deno coverage --detailed ./cov && rm -rf ./cov",

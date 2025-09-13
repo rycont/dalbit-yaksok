@@ -1,0 +1,10 @@
+{
+  "name": "@dalbit-yaksok/pyodide",
+  "exports": "./mod.ts",
+  "imports": {
+    "pyodide-module": "npm:pyodide@0.24.1/pyodide.js"
+  },
+  "version": "3.2.1"
+}
+
+

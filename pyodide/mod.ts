@@ -21,6 +21,20 @@ export class Pyodide implements Extension {
     private pyodide: any | null = null
 
     async init(): Promise<void> {
+        // Deno/서버 환경: npm 패키지 사용
+        if (typeof (globalThis as any).document === 'undefined') {
+            const mod: any = await import('pyodide-module')
+            const loadPyodide = mod.loadPyodide || mod.default?.loadPyodide
+
+            if (typeof loadPyodide !== 'function') {
+                throw new Error('Cannot load Pyodide: loadPyodide is not available')
+            }
+
+            this.pyodide = await loadPyodide()
+            return
+        }
+
+        // 브라우저 환경: CDN 사용
         const url = 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.mjs'
         const { loadPyodide } = await import(url)
         this.pyodide = await loadPyodide({
@@ -42,10 +56,12 @@ export class Pyodide implements Extension {
 
                 const pyArgs = ordered.map(convertYaksokToPythonLiteral).join(', ')
                 const pyCode = `${name}(${pyArgs})`
-                const result = this.pyodide.runPython(pyCode)
+                const runner = this.pyodide.runPythonAsync || this.pyodide.runPython
+                const result = await runner.call(this.pyodide, pyCode)
                 return convertPythonResultToYaksok(result)
             } else {
-                this.pyodide.runPython(code)
+                const runner = this.pyodide.runPythonAsync || this.pyodide.runPython
+                await runner.call(this.pyodide, code)
                 return new NumberValue(0)
             }
         } catch (e: any) {

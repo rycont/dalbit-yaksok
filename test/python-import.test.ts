@@ -8,10 +8,6 @@ Deno.test({
     sanitizeOps: false,
     sanitizeResources: false,
     fn: async () => {
-        // 브라우저 환경이 아니면 Pyodide 실행을 건너뜀
-        if (typeof (globalThis as any).document === 'undefined') {
-            return
-        }
         let output = ''
 
         const session = new YaksokSession({

@@ -16,7 +16,8 @@
         "docs",
         "core",
         "test",
-        "monaco-language-provider"
+        "monaco-language-provider",
+        "pyodide"
     ],
     "version": "3.2.1",
     "tasks": {
