@@ -21,6 +21,8 @@ export class Pyodide implements Extension {
 
     private pyodide: any | null = null
 
+    constructor(private packages: string[] = []) {}
+
     async init(): Promise<void> {
         // Deno/서버 환경: npm 패키지 사용
         if (typeof (globalThis as any).document === 'undefined') {
@@ -28,22 +30,30 @@ export class Pyodide implements Extension {
             const loadPyodide = mod.loadPyodide || mod.default?.loadPyodide
 
             if (typeof loadPyodide !== 'function') {
-                throw new Error('Cannot load Pyodide: loadPyodide is not available')
+                throw new Error(
+                    'Cannot load Pyodide: loadPyodide is not available',
+                )
             }
 
             this.pyodide = await loadPyodide()
-            return
+        } else {
+            // 브라우저 환경: CDN 사용
+            const url =
+                'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.mjs'
+            const { loadPyodide } = await import(url)
+            this.pyodide = await loadPyodide({
+                indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/',
+            })
         }
 
-        // 브라우저 환경: CDN 사용
-        const url = 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.mjs'
-        const { loadPyodide } = await import(url)
-        this.pyodide = await loadPyodide({
-            indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/',
-        })
+        await this.pyodide.loadPackage(this.packages)
+        console.log(`[Pyodide.init] loaded package ${this.packages.join(', ')}`)
     }
 
-    async executeFFI(code: string, args: FunctionInvokingParams): Promise<ValueType> {
+    async executeFFI(
+        code: string,
+        args: FunctionInvokingParams,
+    ): Promise<ValueType> {
         if (!this.pyodide) {
             throw new Error('Pyodide not initialized')
         }
@@ -76,7 +86,8 @@ export class Pyodide implements Extension {
 
                 const pyArgs = argSnippets.join(', ')
                 const pyCode = `${name}(${pyArgs})`
-                const runner = this.pyodide.runPythonAsync || this.pyodide.runPython
+                const runner =
+                    this.pyodide.runPythonAsync || this.pyodide.runPython
                 console.log('[Pyodide.executeFFI] CALL pyCode', pyCode)
                 let result
                 try {
@@ -84,7 +95,9 @@ export class Pyodide implements Extension {
                 } finally {
                     if (tempVarNames.length) {
                         try {
-                            const cleanup = tempVarNames.map((n) => `del ${n}`).join('; ')
+                            const cleanup = tempVarNames
+                                .map((n) => `del ${n}`)
+                                .join('; ')
                             await runner.call(this.pyodide, cleanup)
                         } catch (_) {
                             // ignore cleanup errors
@@ -98,13 +111,16 @@ export class Pyodide implements Extension {
                 return convertPythonResultToYaksok(result)
             } else if (code.startsWith('CALL_METHOD ')) {
                 const method = code.slice('CALL_METHOD '.length).trim()
-                const orderedKeys = Object.keys(args).sort((a, b) => Number(a) - Number(b))
+                const orderedKeys = Object.keys(args).sort(
+                    (a, b) => Number(a) - Number(b),
+                )
                 const targetArg = args['0']
                 if (!targetArg) {
                     throw new Error('CALL_METHOD requires target in args[0]')
                 }
 
-                const runner = this.pyodide.runPythonAsync || this.pyodide.runPython
+                const runner =
+                    this.pyodide.runPythonAsync || this.pyodide.runPython
 
                 // Prepare target
                 let targetVarName: string | null = null
@@ -118,7 +134,10 @@ export class Pyodide implements Extension {
                         // For primitive/list types, convert to Python literal
                         const literal = convertYaksokToPythonLiteral(targetArg)
                         targetVarName = `__yak_target_${Date.now()}`
-                        await runner.call(this.pyodide, `${targetVarName} = ${literal}`)
+                        await runner.call(
+                            this.pyodide,
+                            `${targetVarName} = ${literal}`,
+                        )
                         tempVarNames.push(targetVarName)
                     }
 
@@ -140,13 +159,18 @@ export class Pyodide implements Extension {
 
                     const pyArgs = callArgs.join(', ')
                     const pyCode = `${targetVarName}.${method}(${pyArgs})`
-                    console.log('[Pyodide.executeFFI] CALL_METHOD pyCode', pyCode)
+                    console.log(
+                        '[Pyodide.executeFFI] CALL_METHOD pyCode',
+                        pyCode,
+                    )
                     const result = await runner.call(this.pyodide, pyCode)
                     return convertPythonResultToYaksok(result)
                 } finally {
                     if (tempVarNames.length) {
                         try {
-                            const cleanup = tempVarNames.map((n) => `del ${n}`).join('; ')
+                            const cleanup = tempVarNames
+                                .map((n) => `del ${n}`)
+                                .join('; ')
                             await runner.call(this.pyodide, cleanup)
                         } catch (_) {
                             // ignore cleanup errors
@@ -154,24 +178,8 @@ export class Pyodide implements Extension {
                     }
                 }
             } else {
-                // Best-effort: load pyodide package if it looks like an import statement
-                const importFrom = /^\s*from\s+([a-zA-Z0-9_\.]+)/.exec(code)
-                const baseModule = importFrom?.[1]?.split('.')?.[0]
-                if (baseModule) {
-                    const loadPackage = (this.pyodide as any).loadPackage
-                    if (typeof loadPackage === 'function') {
-                        try {
-                            console.log('[Pyodide.executeFFI] loadPackage', baseModule)
-                            await loadPackage(baseModule)
-                            console.log('[Pyodide.executeFFI] loadPackage done', baseModule)
-                        } catch (_) {
-                            // ignore if not a pyodide package (e.g., built-in modules)
-                            console.log('[Pyodide.executeFFI] loadPackage skipped', baseModule)
-                        }
-                    }
-                }
-
-                const runner = this.pyodide.runPythonAsync || this.pyodide.runPython
+                const runner =
+                    this.pyodide.runPythonAsync || this.pyodide.runPython
                 console.log('[Pyodide.executeFFI] EVAL code', code.trim())
                 await runner.call(this.pyodide, code)
                 console.log('[Pyodide.executeFFI] EVAL done')
@@ -210,9 +218,13 @@ function convertYaksokToPythonLiteral(v: ValueType): string {
 }
 
 function convertPythonResultToYaksok(result: any): ValueType {
-    if (result && typeof result === 'object' && typeof result.toJs === 'function') {
+    if (
+        result &&
+        typeof result === 'object' &&
+        typeof result.toJs === 'function'
+    ) {
         console.log('[Pyodide.convert] has toJs, returning ReferenceStore')
-      
+
         return new ReferenceStore(result)
     }
 
@@ -226,7 +238,10 @@ function convertPythonResultToYaksok(result: any): ValueType {
         return new BooleanValue(result)
     } else if (Array.isArray(result)) {
         return new ListValue(result.map(convertPythonResultToYaksok))
-    } else if (ArrayBuffer.isView(result) && typeof (result as any).length === 'number') {
+    } else if (
+        ArrayBuffer.isView(result) &&
+        typeof (result as any).length === 'number'
+    ) {
         // TypedArray (e.g., numpy ndarray or 0-dim result converted via toJs)
         const arr: any = result as any
         if (arr.length === 1) {
@@ -240,9 +255,10 @@ function convertPythonResultToYaksok(result: any): ValueType {
     console.log('[Pyodide.convert][fallback ReferenceStore]', {
         type: typeof result,
         ctor: (result as any)?.constructor?.name,
-        keys: result && typeof result === 'object' ? Object.keys(result) : undefined,
+        keys:
+            result && typeof result === 'object'
+                ? Object.keys(result)
+                : undefined,
     })
     return new ReferenceStore(result)
 }
-
-

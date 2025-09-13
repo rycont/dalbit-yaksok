@@ -15,7 +15,7 @@ Deno.test({
             },
         })
 
-        await session.extend(new Pyodide())
+        await session.extend(new Pyodide(['numpy']))
 
         session.addModule(
             'main',
@@ -24,6 +24,12 @@ randint(0, 1) 보여주기`,
         )
 
         const result = await session.runModule('main')
+        
+
+        if (result.reason === 'error') {
+            console.error(result.error)
+        }
+
         assertEquals(result.reason, 'finish')
 
         const v = Number(output.trim())

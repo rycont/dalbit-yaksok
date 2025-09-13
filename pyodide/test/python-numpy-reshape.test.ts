@@ -15,7 +15,7 @@ Deno.test({
             },
         })
 
-        await session.extend(new Pyodide())
+        await session.extend(new Pyodide(['numpy']))
 
         session.addModule(
             'main',

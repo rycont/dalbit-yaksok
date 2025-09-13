@@ -6,6 +6,6 @@
   },
   "version": "3.3.0",
   "tasks": {
-    "test": "deno test --quiet --allow-net --allow-read && deno lint"
+    "test": "deno test --quiet --allow-net --allow-read --allow-write --parallel"
   }
 }
