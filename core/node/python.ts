@@ -63,4 +63,46 @@ export class PythonCall extends Evaluable {
     }
 }
 
+export class PythonMethodCall extends Evaluable {
+    static override friendlyName = '파이썬 메소드 호출'
+
+    constructor(
+        public target: Evaluable,
+        public methodName: string,
+        public args: Evaluable[],
+        public override tokens: Token[],
+    ) {
+        super()
+    }
+
+    override async execute(scope: Scope): Promise<ValueType> {
+        const session = scope.codeFile?.session
+        if (!session) {
+            throw new Error('Session not mounted')
+        }
+
+        const evaluatedTarget = await this.target.execute(scope)
+        const evaluatedArgs = await Promise.all(this.args.map((a) => a.execute(scope)))
+        const argsMap: Record<string, ValueType> = {
+            '0': evaluatedTarget,
+            ...Object.fromEntries(evaluatedArgs.map((v, i) => [String(i + 1), v])),
+        }
+
+        const result = await session.runFFI(
+            'Python',
+            `CALL_METHOD ${this.methodName}`,
+            argsMap,
+        )
+        return result
+    }
+
+    override validate(scope: Scope): YaksokError[] {
+        const errors = [
+            ...this.target.validate(scope),
+            ...this.args.flatMap((a) => a.validate(scope)),
+        ].filter((e): e is YaksokError => !!e)
+        return errors
+    }
+}
+
 

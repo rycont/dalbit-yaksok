@@ -96,6 +96,63 @@ export class Pyodide implements Extension {
                     ctor: (result as any)?.constructor?.name,
                 })
                 return convertPythonResultToYaksok(result)
+            } else if (code.startsWith('CALL_METHOD ')) {
+                const method = code.slice('CALL_METHOD '.length).trim()
+                const orderedKeys = Object.keys(args).sort((a, b) => Number(a) - Number(b))
+                const targetArg = args['0']
+                if (!targetArg) {
+                    throw new Error('CALL_METHOD requires target in args[0]')
+                }
+
+                const runner = this.pyodide.runPythonAsync || this.pyodide.runPython
+
+                // Prepare target
+                let targetVarName: string | null = null
+                const tempVarNames: string[] = []
+                try {
+                    if (targetArg instanceof ReferenceStore) {
+                        targetVarName = `__yak_target_${Date.now()}`
+                        this.pyodide!.globals.set(targetVarName, targetArg.ref)
+                        tempVarNames.push(targetVarName)
+                    } else {
+                        // For primitive/list types, convert to Python literal
+                        const literal = convertYaksokToPythonLiteral(targetArg)
+                        targetVarName = `__yak_target_${Date.now()}`
+                        await runner.call(this.pyodide, `${targetVarName} = ${literal}`)
+                        tempVarNames.push(targetVarName)
+                    }
+
+                    // Prepare args (exclude index 0)
+                    const callArgs: string[] = []
+                    for (const k of orderedKeys) {
+                        const idx = Number(k)
+                        if (idx === 0) continue
+                        const v = args[k]
+                        if (v instanceof ReferenceStore) {
+                            const varName = `__yak_arg_${Date.now()}_${idx}`
+                            this.pyodide!.globals.set(varName, v.ref)
+                            callArgs.push(varName)
+                            tempVarNames.push(varName)
+                        } else {
+                            callArgs.push(convertYaksokToPythonLiteral(v))
+                        }
+                    }
+
+                    const pyArgs = callArgs.join(', ')
+                    const pyCode = `${targetVarName}.${method}(${pyArgs})`
+                    console.log('[Pyodide.executeFFI] CALL_METHOD pyCode', pyCode)
+                    const result = await runner.call(this.pyodide, pyCode)
+                    return convertPythonResultToYaksok(result)
+                } finally {
+                    if (tempVarNames.length) {
+                        try {
+                            const cleanup = tempVarNames.map((n) => `del ${n}`).join('; ')
+                            await runner.call(this.pyodide, cleanup)
+                        } catch (_) {
+                            // ignore cleanup errors
+                        }
+                    }
+                }
             } else {
                 // Best-effort: load pyodide package if it looks like an import statement
                 const importFrom = /^\s*from\s+([a-zA-Z0-9_\.]+)/.exec(code)
