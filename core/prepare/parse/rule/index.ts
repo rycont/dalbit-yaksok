@@ -833,9 +833,6 @@ export const ADVANCED_RULES: Rule[] = [
             {
                 type: Identifier,
             },
-            {
-                type: EOL,
-            },
         ],
         factory: (nodes, tokens) => {
             const module = (nodes[1] as Identifier).value
@@ -880,6 +877,18 @@ export const ADVANCED_RULES: Rule[] = [
             return new PythonCall(name, [v.value], tokens)
         },
     },
+    // Python: func(arg1, arg2, ...)  — parsed as Identifier + ListLiteral by bracket parser
+    {
+        pattern: [
+            { type: Identifier },
+            { type: ListLiteral },
+        ],
+        factory: (nodes, tokens) => {
+            const name = (nodes[0] as Identifier).value
+            const list = nodes[1] as ListLiteral
+            return new PythonCall(name, list.items, tokens)
+        },
+    },
     // Python: func(<a>, <b>, ...)
     {
         pattern: [
@@ -903,5 +912,52 @@ export const ADVANCED_RULES: Rule[] = [
             const seq = nodes[2] as Sequence
             return new PythonCall(name, seq.items, tokens)
         },
+    },
+    // Python: func() 보여주기
+    {
+        pattern: [
+            { type: Identifier },
+            { type: Expression, value: '(' },
+            { type: Expression, value: ')' },
+            { type: Identifier, value: '보여주기' },
+        ],
+        factory: (nodes, tokens) => {
+            const name = (nodes[0] as Identifier).value
+            const call = new PythonCall(name, [], tokens)
+            return new Print(call, tokens)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    },
+    // Python: func(<expr>) 보여주기
+    {
+        pattern: [
+            { type: Identifier },
+            { type: ValueWithParenthesis },
+            { type: Identifier, value: '보여주기' },
+        ],
+        factory: (nodes, tokens) => {
+            const name = (nodes[0] as Identifier).value
+            const v = nodes[1] as ValueWithParenthesis
+            const call = new PythonCall(name, [v.value], tokens)
+            return new Print(call, tokens)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    },
+    // Python: func(<a>, <b>, ...) 보여주기
+    {
+        pattern: [
+            { type: Identifier },
+            { type: Expression, value: '(' },
+            { type: Sequence },
+            { type: Expression, value: ')' },
+            { type: Identifier, value: '보여주기' },
+        ],
+        factory: (nodes, tokens) => {
+            const name = (nodes[0] as Identifier).value
+            const seq = nodes[2] as Sequence
+            const call = new PythonCall(name, seq.items, tokens)
+            return new Print(call, tokens)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
 ]
