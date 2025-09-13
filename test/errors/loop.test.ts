@@ -35,7 +35,7 @@ Deno.test('Error raised in loop', async () => {
 
 Deno.test('Error raised in list loop', async () => {
     const result = await yaksok(`
-반복 [1, 2, 3]의 숫자 마다
+반복 [1, 2, 3] 의 숫자 마다
     "Hello, world!" * "Hello, world!" 보여주기
 `)
     assert(
