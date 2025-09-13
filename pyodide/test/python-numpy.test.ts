@@ -1,6 +1,6 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
+import { Pyodide } from '@dalbit-yaksok/pyodide'
 import { assertEquals } from '@std/assert'
-import { Pyodide } from '../pyodide/mod.ts'
 
 Deno.test({
     name: 'Pyodide: numpy array sum',

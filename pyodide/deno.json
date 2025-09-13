@@ -4,5 +4,8 @@
   "imports": {
     "pyodide-module": "npm:pyodide@0.24.1/pyodide.js"
   },
-  "version": "3.3.0"
+  "version": "3.3.0",
+  "tasks": {
+    "test": "deno test --quiet --allow-net --allow-read && deno lint"
+  }
 }

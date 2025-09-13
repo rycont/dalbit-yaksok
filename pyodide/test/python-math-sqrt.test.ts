@@ -1,9 +1,9 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
+import { Pyodide } from '@dalbit-yaksok/pyodide'
 import { assertEquals } from '@std/assert'
-import { Pyodide } from '../pyodide/mod.ts'
 
 Deno.test({
-    name: 'Pyodide: math.pow deterministic call',
+    name: 'Pyodide: math.sqrt deterministic call',
     sanitizeOps: false,
     sanitizeResources: false,
     fn: async () => {
@@ -19,13 +19,13 @@ Deno.test({
 
         session.addModule(
             'main',
-            `from math import pow
-pow(2, 3) 보여주기`,
+            `from math import sqrt
+sqrt(9) 보여주기`,
         )
 
         const result = await session.runModule('main')
         assertEquals(result.reason, 'finish')
-        assertEquals(output.trim(), '8')
+        assertEquals(output.trim(), '3')
     },
 })
 

@@ -1,6 +1,6 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
+import { Pyodide } from '@dalbit-yaksok/pyodide'
 import { assert } from '@std/assert'
-import { Pyodide } from '../pyodide/mod.ts'
 
 Deno.test({
     name: 'Pyodide: call randint and print without assignment',
