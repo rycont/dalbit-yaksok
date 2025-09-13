@@ -245,10 +245,6 @@ function convertPythonResultToYaksok(result: any): ValueType {
     ) {
         // TypedArray (e.g., numpy ndarray or 0-dim result converted via toJs)
         const arr: any = result as any
-        if (arr.length === 1) {
-            const v = arr[0]
-            return convertPythonResultToYaksok(v)
-        }
         const jsArray = Array.from(arr)
         return new ListValue(jsArray.map(convertPythonResultToYaksok))
     }
