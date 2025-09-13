@@ -27,7 +27,8 @@ export class Pyodide implements Extension {
     async init(): Promise<void> {
         // Deno/서버 환경: npm 패키지 사용
         if (typeof (globalThis as any).document === 'undefined') {
-            const mod: any = await import('pyodide-module')
+            const lib = 'pyodide-module'
+            const mod: any = await import(lib)
             const loadPyodide = mod.loadPyodide || mod.default?.loadPyodide
 
             if (typeof loadPyodide !== 'function') {

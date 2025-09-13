@@ -95,6 +95,8 @@ async function runCode() {
         monaco = await loadMonaco()
     }
 
+    const { Pyodide } = await import('@dalbit-yaksok/pyodide')
+
     stdout.value = []
 
     try {
@@ -134,6 +136,8 @@ async function runCode() {
                 },
             },
         })
+
+        await session.extend(new Pyodide())
 
         session.addModule('main', code.value, {
             executionDelay: 400,
