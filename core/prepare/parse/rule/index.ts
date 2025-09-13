@@ -38,6 +38,8 @@ import {
     SetToIndex,
     SetVariable,
     TypeOf,
+    PythonCall,
+    PythonImport,
 } from '../../../node/index.ts'
 import { NotEqualOperator } from '../../../node/operator.ts'
 import { ReturnStatement } from '../../../node/return.ts'
@@ -763,4 +765,92 @@ export const ADVANCED_RULES: Rule[] = [
         },
     },
     ...DICT_RULES,
+    // Python: from <module> import <name>
+    {
+        pattern: [
+            {
+                type: Identifier,
+                value: 'from',
+            },
+            {
+                type: Identifier,
+            },
+            {
+                type: Identifier,
+                value: 'import',
+            },
+            {
+                type: Identifier,
+            },
+            {
+                type: EOL,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const module = (nodes[1] as Identifier).value
+            const name = (nodes[3] as Identifier).value
+            return new PythonImport(module, name, tokens)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    },
+    // Python: func()
+    {
+        pattern: [
+            {
+                type: Identifier,
+            },
+            {
+                type: Expression,
+                value: '(',
+            },
+            {
+                type: Expression,
+                value: ')',
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const name = (nodes[0] as Identifier).value
+            return new PythonCall(name, [], tokens)
+        },
+    },
+    // Python: func(<expr>)
+    {
+        pattern: [
+            {
+                type: Identifier,
+            },
+            {
+                type: ValueWithParenthesis,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const name = (nodes[0] as Identifier).value
+            const v = nodes[1] as ValueWithParenthesis
+            return new PythonCall(name, [v.value], tokens)
+        },
+    },
+    // Python: func(<a>, <b>, ...)
+    {
+        pattern: [
+            {
+                type: Identifier,
+            },
+            {
+                type: Expression,
+                value: '(',
+            },
+            {
+                type: Sequence,
+            },
+            {
+                type: Expression,
+                value: ')',
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const name = (nodes[0] as Identifier).value
+            const seq = nodes[2] as Sequence
+            return new PythonCall(name, seq.items, tokens)
+        },
+    },
 ]
