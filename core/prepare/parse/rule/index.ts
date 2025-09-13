@@ -378,57 +378,6 @@ export const ADVANCED_RULES: Rule[] = [
         flags: [RULE_FLAGS.IS_STATEMENT],
     },
     ...PYTHON_COMPAT_RULES,
-    // Python assignment sugars: 변수 = func(...)
-    {
-        pattern: [
-            { type: Identifier },
-            { type: Expression, value: '=' },
-            { type: Identifier },
-            { type: Expression, value: '(' },
-            { type: Expression, value: ')' },
-        ],
-        factory: (nodes, tokens) => {
-            const varName = (nodes[0] as Identifier).value
-            const funcName = (nodes[2] as Identifier).value
-            const call = new PythonCall(funcName, [], tokens)
-            return new SetVariable(varName, call, tokens, '=')
-        },
-        flags: [RULE_FLAGS.IS_STATEMENT],
-    },
-    {
-        pattern: [
-            { type: Identifier },
-            { type: Expression, value: '=' },
-            { type: Identifier },
-            { type: ValueWithParenthesis },
-        ],
-        factory: (nodes, tokens) => {
-            const varName = (nodes[0] as Identifier).value
-            const funcName = (nodes[2] as Identifier).value
-            const v = nodes[3] as ValueWithParenthesis
-            const call = new PythonCall(funcName, [v.value], tokens)
-            return new SetVariable(varName, call, tokens, '=')
-        },
-        flags: [RULE_FLAGS.IS_STATEMENT],
-    },
-    {
-        pattern: [
-            { type: Identifier },
-            { type: Expression, value: '=' },
-            { type: Identifier },
-            { type: Expression, value: '(' },
-            { type: Sequence },
-            { type: Expression, value: ')' },
-        ],
-        factory: (nodes, tokens) => {
-            const varName = (nodes[0] as Identifier).value
-            const funcName = (nodes[2] as Identifier).value
-            const seq = nodes[4] as Sequence
-            const call = new PythonCall(funcName, seq.items, tokens)
-            return new SetVariable(varName, call, tokens, '=')
-        },
-        flags: [RULE_FLAGS.IS_STATEMENT],
-    },
     {
         pattern: [
             {
@@ -868,28 +817,24 @@ export const ADVANCED_RULES: Rule[] = [
                 type: Identifier,
             },
             {
-                type: ValueWithParenthesis,
+                type: Expression,
+                value: '(',
             },
+            {
+                type: Evaluable,
+            },
+            {
+                type: Expression,
+                value: ')',
+            }
         ],
         factory: (nodes, tokens) => {
             const name = (nodes[0] as Identifier).value
-            const v = nodes[1] as ValueWithParenthesis
-            return new PythonCall(name, [v.value], tokens)
+            const v = nodes[1] as Evaluable
+            return new PythonCall(name, [v], tokens)
         },
     },
-    // Python: func(arg1, arg2, ...)  — parsed as Identifier + ListLiteral by bracket parser
-    {
-        pattern: [
-            { type: Identifier },
-            { type: ListLiteral },
-        ],
-        factory: (nodes, tokens) => {
-            const name = (nodes[0] as Identifier).value
-            const list = nodes[1] as ListLiteral
-            return new PythonCall(name, list.items, tokens)
-        },
-    },
-    // Python: func(<a>, <b>, ...)
+    // // Python: func(<a>, <b>, ...)
     {
         pattern: [
             {
@@ -913,51 +858,19 @@ export const ADVANCED_RULES: Rule[] = [
             return new PythonCall(name, seq.items, tokens)
         },
     },
-    // Python: func() 보여주기
     {
         pattern: [
-            { type: Identifier },
-            { type: Expression, value: '(' },
-            { type: Expression, value: ')' },
-            { type: Identifier, value: '보여주기' },
+            {
+                type: Identifier,
+            },
+            {
+                type: ValueWithParenthesis,
+            }
         ],
         factory: (nodes, tokens) => {
             const name = (nodes[0] as Identifier).value
-            const call = new PythonCall(name, [], tokens)
-            return new Print(call, tokens)
+            const seq = nodes[1] as ValueWithParenthesis
+            return new PythonCall(name, [seq.value], tokens)
         },
-        flags: [RULE_FLAGS.IS_STATEMENT],
-    },
-    // Python: func(<expr>) 보여주기
-    {
-        pattern: [
-            { type: Identifier },
-            { type: ValueWithParenthesis },
-            { type: Identifier, value: '보여주기' },
-        ],
-        factory: (nodes, tokens) => {
-            const name = (nodes[0] as Identifier).value
-            const v = nodes[1] as ValueWithParenthesis
-            const call = new PythonCall(name, [v.value], tokens)
-            return new Print(call, tokens)
-        },
-        flags: [RULE_FLAGS.IS_STATEMENT],
-    },
-    // Python: func(<a>, <b>, ...) 보여주기
-    {
-        pattern: [
-            { type: Identifier },
-            { type: Expression, value: '(' },
-            { type: Sequence },
-            { type: Expression, value: ')' },
-            { type: Identifier, value: '보여주기' },
-        ],
-        factory: (nodes, tokens) => {
-            const name = (nodes[0] as Identifier).value
-            const seq = nodes[2] as Sequence
-            const call = new PythonCall(name, seq.items, tokens)
-            return new Print(call, tokens)
-        },
-        flags: [RULE_FLAGS.IS_STATEMENT],
     },
 ]

@@ -1,12 +1,15 @@
 import { YaksokSession } from "@dalbit-yaksok/core";
+import { Pyodide } from "@dalbit-yaksok/pyodide";
 
-const session = new YaksokSession();
-await session.addModule("main", `"달빛약속에 오신걸 환영합니다" 보여주기
-약속, 키가 (키)cm이고 몸무게가 (몸무게)일 때 비만도
-    잠깐 멈추기
-    몸무게 / (키 / 100 * 키 / 100) 반환하기
+const session = new YaksokSession()
+await session.extend(new Pyodide())
 
-비만도 = 키가 (170)cm이고 몸무게가 (70)일 때 비만도
+const main = session.addModule(
+    'main',
+    `from numpy import array
+from numpy import sum
+배열 = array([1, 2, 3, 4])
+sum(배열) 보여주기`,
+)
 
-비만도 보여주기`).run()
-
+await main.run()

@@ -102,7 +102,10 @@ export function parseBracket(
         return nodes // No change in nodes, return original
     }
 
-    if (mergedNode.length === 1 && mergedNode[0] instanceof Sequence) {
+    const openingNode = nodes[openingBracketIndex]
+    const isOpeningBracketNode = openingNode instanceof Expression && openingNode.value === '['
+
+    if (mergedNode.length === 1 && mergedNode[0] instanceof Sequence && isOpeningBracketNode) {
         const listLiteral = new ListLiteral(
             mergedNode[0].items,
             nodes[openingBracketIndex].tokens,

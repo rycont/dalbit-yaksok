@@ -6,6 +6,7 @@ import {
     StringValue,
     BooleanValue,
     ValueType,
+    ReferenceStore,
     type Extension,
     type ExtensionManifest,
     type FunctionInvokingParams,
@@ -48,26 +49,85 @@ export class Pyodide implements Extension {
         }
 
         try {
+            console.log('[Pyodide.executeFFI] start', {
+                code,
+                argsKeys: Object.keys(args),
+            })
+
             if (code.startsWith('CALL ')) {
                 const name = code.slice(5).trim()
                 const ordered = Object.keys(args)
                     .sort((a, b) => Number(a) - Number(b))
                     .map((k) => args[k])
 
-                const pyArgs = ordered.map(convertYaksokToPythonLiteral).join(', ')
+                const argSnippets: string[] = []
+                const tempVarNames: string[] = []
+                for (let i = 0; i < ordered.length; i++) {
+                    const a = ordered[i]
+                    if (a instanceof ReferenceStore) {
+                        const varName = `__yak_arg_${Date.now()}_${i}`
+                        this.pyodide!.globals.set(varName, a.ref)
+                        argSnippets.push(varName)
+                        tempVarNames.push(varName)
+                    } else {
+                        argSnippets.push(convertYaksokToPythonLiteral(a))
+                    }
+                }
+
+                const pyArgs = argSnippets.join(', ')
                 const pyCode = `${name}(${pyArgs})`
                 const runner = this.pyodide.runPythonAsync || this.pyodide.runPython
-                const result = await runner.call(this.pyodide, pyCode)
+                console.log('[Pyodide.executeFFI] CALL pyCode', pyCode)
+                let result
+                try {
+                    result = await runner.call(this.pyodide, pyCode)
+                } finally {
+                    if (tempVarNames.length) {
+                        try {
+                            const cleanup = tempVarNames.map((n) => `del ${n}`).join('; ')
+                            await runner.call(this.pyodide, cleanup)
+                        } catch (_) {
+                            // ignore cleanup errors
+                        }
+                    }
+                }
+                console.log('[Pyodide.executeFFI] CALL result', {
+                    type: typeof result,
+                    ctor: (result as any)?.constructor?.name,
+                })
                 return convertPythonResultToYaksok(result)
             } else {
+                // Best-effort: load pyodide package if it looks like an import statement
+                const importFrom = /^\s*from\s+([a-zA-Z0-9_\.]+)/.exec(code)
+                const baseModule = importFrom?.[1]?.split('.')?.[0]
+                if (baseModule) {
+                    const loadPackage = (this.pyodide as any).loadPackage
+                    if (typeof loadPackage === 'function') {
+                        try {
+                            console.log('[Pyodide.executeFFI] loadPackage', baseModule)
+                            await loadPackage(baseModule)
+                            console.log('[Pyodide.executeFFI] loadPackage done', baseModule)
+                        } catch (_) {
+                            // ignore if not a pyodide package (e.g., built-in modules)
+                            console.log('[Pyodide.executeFFI] loadPackage skipped', baseModule)
+                        }
+                    }
+                }
+
                 const runner = this.pyodide.runPythonAsync || this.pyodide.runPython
+                console.log('[Pyodide.executeFFI] EVAL code', code.trim())
                 await runner.call(this.pyodide, code)
+                console.log('[Pyodide.executeFFI] EVAL done')
                 return new NumberValue(0)
             }
         } catch (e: any) {
             if (e instanceof ErrorInFFIExecution) throw e
 
             const message = e?.message ?? String(e)
+            console.error('[Pyodide.executeFFI][error]', {
+                message,
+                stack: e?.stack,
+            })
             throw new ErrorInFFIExecution({
                 message: `Pyodide 실행 중 오류: ${message}`,
             })
@@ -94,7 +154,9 @@ function convertYaksokToPythonLiteral(v: ValueType): string {
 
 function convertPythonResultToYaksok(result: any): ValueType {
     if (result && typeof result === 'object' && typeof result.toJs === 'function') {
-        result = result.toJs({ create_proxies: false })
+        console.log('[Pyodide.convert] has toJs, returning ReferenceStore')
+      
+        return new ReferenceStore(result)
     }
 
     if (result == null) {
@@ -107,11 +169,23 @@ function convertPythonResultToYaksok(result: any): ValueType {
         return new BooleanValue(result)
     } else if (Array.isArray(result)) {
         return new ListValue(result.map(convertPythonResultToYaksok))
+    } else if (ArrayBuffer.isView(result) && typeof (result as any).length === 'number') {
+        // TypedArray (e.g., numpy ndarray or 0-dim result converted via toJs)
+        const arr: any = result as any
+        if (arr.length === 1) {
+            const v = arr[0]
+            return convertPythonResultToYaksok(v)
+        }
+        const jsArray = Array.from(arr)
+        return new ListValue(jsArray.map(convertPythonResultToYaksok))
     }
 
-    throw new ErrorInFFIExecution({
-        message: '지원하지 않는 Python 반환값 타입: ' + typeof result,
+    console.log('[Pyodide.convert][fallback ReferenceStore]', {
+        type: typeof result,
+        ctor: (result as any)?.constructor?.name,
+        keys: result && typeof result === 'object' ? Object.keys(result) : undefined,
     })
+    return new ReferenceStore(result)
 }
 
 
