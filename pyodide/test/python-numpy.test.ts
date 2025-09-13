@@ -19,7 +19,7 @@ Deno.test({
             'main',
             `from numpy import array
 from numpy import sum
-int(sum(array([1, 2, 3, 4]))) 보여주기`,
+sum(array([1, 2, 3, 4])) 보여주기`,
         )
 
         const result = await session.runModule('main')

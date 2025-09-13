@@ -830,7 +830,7 @@ export const ADVANCED_RULES: Rule[] = [
         ],
         factory: (nodes, tokens) => {
             const name = (nodes[0] as Identifier).value
-            const v = nodes[1] as Evaluable
+            const v = nodes[2] as Evaluable
             return new PythonCall(name, [v], tokens)
         },
     },

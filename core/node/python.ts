@@ -45,6 +45,7 @@ export class PythonCall extends Evaluable {
             throw new Error('Session not mounted')
         }
 
+        console.log('[PythonCall.execute] this.args', this.args)
         const evaluatedArgs = await Promise.all(this.args.map((a) => a.execute(scope)))
         const argsMap: Record<string, ValueType> = Object.fromEntries(
             evaluatedArgs.map((v, i) => [String(i), v]),
