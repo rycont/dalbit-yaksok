@@ -765,6 +765,32 @@ export const ADVANCED_RULES: Rule[] = [
         },
     },
     ...DICT_RULES,
+    // Python: from <module> import <a>,<b>,...
+    {
+        pattern: [
+            {
+                type: Identifier,
+                value: 'from',
+            },
+            {
+                type: Identifier,
+            },
+            {
+                type: Identifier,
+                value: 'import',
+            },
+            {
+                type: Sequence,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const module = (nodes[1] as Identifier).value
+            const seq = nodes[3] as Sequence
+            const names = seq.items.map((it) => (it as Identifier).value)
+            return new PythonImport(module, names, tokens)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    },
     // Python: from <module> import <name>
     {
         pattern: [
@@ -786,7 +812,7 @@ export const ADVANCED_RULES: Rule[] = [
         factory: (nodes, tokens) => {
             const module = (nodes[1] as Identifier).value
             const name = (nodes[3] as Identifier).value
-            return new PythonImport(module, name, tokens)
+            return new PythonImport(module, [name], tokens)
         },
         flags: [RULE_FLAGS.IS_STATEMENT],
     },

@@ -6,8 +6,7 @@ await session.extend(new Pyodide())
 
 const main = session.addModule(
     'main',
-    `from numpy import array
-from numpy import sum
+    `from numpy import array, sum
 sum(array([1, 2, 3, 4])) 보여주기`,
 )
 

@@ -10,7 +10,7 @@ export class PythonImport extends Executable {
 
     constructor(
         public module: string,
-        public name: string,
+        public names: string[],
         public override tokens: Token[],
     ) {
         super()
@@ -20,7 +20,8 @@ export class PythonImport extends Executable {
         const session = scope.codeFile?.session
         if (!session) return
 
-        await session.runFFI('Python', `from ${this.module} import ${this.name}`, {})
+        const namesPart = this.names.join(', ')
+        await session.runFFI('Python', `from ${this.module} import ${namesPart}`, {})
     }
 
     override validate(_scope: Scope): YaksokError[] {
