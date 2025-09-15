@@ -1,4 +1,7 @@
-import { UnexpectedNewlineError } from '../../error/prepare.ts'
+import {
+    UnexpectedEndOfCodeError,
+    UnexpectedNewlineError,
+} from '../../error/prepare.ts'
 import { Token, TOKEN_TYPE } from './token.ts'
 
 const OPERATORS = [
@@ -53,7 +56,7 @@ export const RULES: {
             let hasDot = false
             while (i < code.length && code[i].match(NUMBER_CHAR_REGEX)) {
                 if (code[i] === '.') {
-                    if (hasDot) break
+                    if (hasDot) return null
                     hasDot = true
                 }
                 i++
@@ -140,8 +143,11 @@ export const RULES: {
 
             const endIndex = code.indexOf('\n***', index + starter.length)
             if (endIndex === -1) {
-                // Or maybe throw an error for unclosed FFI block
-                return null
+                throw new UnexpectedEndOfCodeError({
+                    resource: {
+                        expected: 'FFI 닫는 구분자 (***)',
+                    },
+                })
             }
 
             const newIndex = endIndex + '\n***'.length
