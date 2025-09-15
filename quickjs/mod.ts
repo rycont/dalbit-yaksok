@@ -3,7 +3,11 @@ import {
     newVariant,
     RELEASE_SYNC,
 } from 'quickjs-emscripten'
-import type { QuickJSContext, QuickJSWASMModule } from 'quickjs-emscripten-core'
+import type {
+    QuickJSContext,
+    QuickJSHandle,
+    QuickJSWASMModule,
+} from 'quickjs-emscripten-core'
 
 import {
     ErrorInFFIExecution,
@@ -28,7 +32,10 @@ export class QuickJS implements Extension {
     private instance: QuickJSWASMModule | null = null
 
     constructor(
-        private functions: Record<string, (...args: any[]) => any> = {},
+        private functions: Record<
+            string,
+            (...args: unknown[]) => unknown
+        > = {},
     ) {}
 
     async init(): Promise<void> {
@@ -76,8 +83,10 @@ export class QuickJS implements Extension {
         const context = this.instance.newContext()
 
         for (const [name, func] of Object.entries(this.functions)) {
-            const handle = context.newFunction(name, (...args: any[]) => {
-                const nativeArgs = args.map(context.dump)
+            const handle = context.newFunction(name, (...args: unknown[]) => {
+                const nativeArgs = args.map((arg) =>
+                    context.dump(arg as QuickJSHandle),
+                )
                 const result = func(nativeArgs)
 
                 return convertJSDataIntoQuickJSData(result, context)
@@ -91,7 +100,7 @@ export class QuickJS implements Extension {
 
 function createWrapperCodeFromFFICall(
     bodyCode: string,
-    args: Record<string, any>,
+    args: Record<string, ValueType>,
 ) {
     const parameters = Object.keys(args)
     const parameterValues = Object.values(args).map(
@@ -134,7 +143,10 @@ function convertYaksokDataIntoQuickJSData(data: ValueType) {
     }
 }
 
-function convertJSDataIntoQuickJSData(data: any, context: QuickJSContext) {
+function convertJSDataIntoQuickJSData(
+    data: unknown,
+    context: QuickJSContext,
+) {
     if (typeof data === 'string') {
         return context.newString(data)
     } else if (typeof data === 'number') {
@@ -152,7 +164,7 @@ function convertJSDataIntoQuickJSData(data: any, context: QuickJSContext) {
         }
 
         return array
-    } else if (typeof data === 'object') {
+    } else if (data && typeof data === 'object') {
         const object = context.newObject()
 
         for (const [key, value] of Object.entries(data)) {

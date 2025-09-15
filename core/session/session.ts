@@ -328,7 +328,7 @@ export class YaksokSession {
     public async runFFI(
         runtime: string,
         code: string,
-        args: Record<string, any>,
+        args: Record<string, ValueType>,
     ): Promise<ValueType> {
         const availableExtensions = this.extensions.filter(
             (ext) => ext.manifest.ffiRunner?.runtimeName === runtime,
