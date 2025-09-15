@@ -3,7 +3,11 @@ import type { Token } from '../prepare/tokenize/token.ts'
 import { YaksokError, blue, bold, dim } from './common.ts'
 
 export class FFIResultTypeIsNotForYaksokError extends YaksokError {
-    constructor(props: { value: any; ffiName: string; tokens: Token[] }) {
+    constructor(props: {
+        value: unknown
+        ffiName: string
+        tokens: Token[]
+    }) {
         super(props)
 
         let stringValue = ''
@@ -13,8 +17,10 @@ export class FFIResultTypeIsNotForYaksokError extends YaksokError {
         } else if (typeof props.value === 'string') {
             stringValue = props.value
         } else if (
-            props.value.constructor &&
-            props.value.constructor.toString
+            props.value &&
+            typeof props.value === 'object' &&
+            'toString' in props.value &&
+            typeof props.value.toString === 'function'
         ) {
             stringValue = props.value.toString()
         } else {

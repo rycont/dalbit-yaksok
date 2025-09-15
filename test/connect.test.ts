@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 import { QuickJS } from '@dalbit-yaksok/quickjs'
 import { assert, assertEquals, assertIsError } from '@std/assert'
 import { FFIResultTypeIsNotForYaksokError } from '../core/error/ffi.ts'

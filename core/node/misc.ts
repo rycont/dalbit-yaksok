@@ -74,9 +74,10 @@ export class Pause extends Executable {
         super()
     }
 
-    override async execute(scope: Scope): Promise<void> {
+    override execute(scope: Scope): Promise<void> {
         scope.codeFile?.session?.pubsub.pub('debug', [scope, this])
         scope.codeFile?.session?.pause()
+        return Promise.resolve()
     }
 
     override validate(_scope: Scope): YaksokError[] {

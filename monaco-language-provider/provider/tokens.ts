@@ -15,7 +15,10 @@ export class TokensProvider implements languages.TokensProvider {
         }
     }
 
-    tokenize(line: string, state: any): languages.ILineTokens {
+    tokenize(
+        line: string,
+        state: languages.IState,
+    ): languages.ILineTokens {
         const lineNumber = this.base.lines.indexOf(line)
 
         const colorParts = this.base.colorPartsByLine.get(lineNumber)

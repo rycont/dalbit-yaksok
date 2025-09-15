@@ -12,6 +12,26 @@ import {
     type FunctionInvokingParams,
 } from '@dalbit-yaksok/core'
 
+interface PyodideInterface {
+    loadPackage(packages: string[]): Promise<void>;
+    globals: {
+        set(name: string, value: unknown): void;
+    };
+    runPythonAsync?(code: string): Promise<unknown>;
+    runPython?(code: string): unknown;
+}
+
+interface PyodideModule {
+    loadPyodide: (config?: object) => Promise<PyodideInterface>;
+    default?: {
+        loadPyodide: (config?: object) => Promise<PyodideInterface>;
+    };
+}
+
+type GlobalThisWithDocument = typeof globalThis & {
+    document?: unknown;
+};
+
 export class Pyodide implements Extension {
     public manifest: ExtensionManifest = {
         ffiRunner: {
@@ -19,16 +39,16 @@ export class Pyodide implements Extension {
         },
     }
 
-    private pyodide: any | null = null
+    private pyodide: PyodideInterface | null = null
     private tempVarCounter: number = 0
 
     constructor(private packages: string[] = []) {}
 
     async init(): Promise<void> {
         // Deno/서버 환경: npm 패키지 사용
-        if (typeof (globalThis as any).document === 'undefined') {
+        if (typeof (globalThis as GlobalThisWithDocument).document === 'undefined') {
             const lib = 'pyodide-module'
-            const mod: any = await import(lib)
+            const mod = await import(lib) as PyodideModule
             const loadPyodide = mod.loadPyodide || mod.default?.loadPyodide
 
             if (typeof loadPyodide !== 'function') {
@@ -48,6 +68,9 @@ export class Pyodide implements Extension {
             })
         }
 
+        if (!this.pyodide) {
+            throw new Error('Pyodide initialization failed')
+        }
         await this.pyodide.loadPackage(this.packages)
         console.log(`[Pyodide.init] loaded package ${this.packages.join(', ')}`)
     }
@@ -90,6 +113,9 @@ export class Pyodide implements Extension {
                 const pyCode = `${name}(${pyArgs})`
                 const runner =
                     this.pyodide.runPythonAsync || this.pyodide.runPython
+                if (!runner) {
+                    throw new Error('No python runner found on pyodide instance')
+                }
                 console.log('[Pyodide.executeFFI] CALL pyCode', pyCode)
                 let result
                 try {
@@ -108,7 +134,10 @@ export class Pyodide implements Extension {
                 }
                 console.log('[Pyodide.executeFFI] CALL result', {
                     type: typeof result,
-                    ctor: (result as any)?.constructor?.name,
+                    ctor:
+                        result && typeof result === 'object'
+                            ? (result as object).constructor.name
+                            : undefined,
                 })
                 return convertPythonResultToYaksok(result)
             } else if (code.startsWith('CALL_METHOD ')) {
@@ -123,6 +152,9 @@ export class Pyodide implements Extension {
 
                 const runner =
                     this.pyodide.runPythonAsync || this.pyodide.runPython
+                if (!runner) {
+                    throw new Error('No python runner found on pyodide instance')
+                }
 
                 // Prepare target
                 let targetVarName: string | null = null
@@ -182,18 +214,23 @@ export class Pyodide implements Extension {
             } else {
                 const runner =
                     this.pyodide.runPythonAsync || this.pyodide.runPython
+                if (!runner) {
+                    throw new Error('No python runner found on pyodide instance')
+                }
                 console.log('[Pyodide.executeFFI] EVAL code', code.trim())
                 await runner.call(this.pyodide, code)
                 console.log('[Pyodide.executeFFI] EVAL done')
                 return new NumberValue(0)
             }
-        } catch (e: any) {
+        } catch (e: unknown) {
             if (e instanceof ErrorInFFIExecution) throw e
 
-            const message = e?.message ?? String(e)
+            const message = e instanceof Error ? e.message : String(e)
+            const stack = e instanceof Error ? e.stack : undefined
+
             console.error('[Pyodide.executeFFI][error]', {
                 message,
-                stack: e?.stack,
+                stack,
             })
             throw new ErrorInFFIExecution({
                 message: `Pyodide 실행 중 오류: ${message}`,
@@ -219,10 +256,11 @@ function convertYaksokToPythonLiteral(v: ValueType): string {
     throw new Error('Unsupported value type: ' + v.constructor.name)
 }
 
-function convertPythonResultToYaksok(result: any): ValueType {
+function convertPythonResultToYaksok(result: unknown): ValueType {
     if (
         result &&
         typeof result === 'object' &&
+        'toJs' in result &&
         typeof result.toJs === 'function'
     ) {
         console.log('[Pyodide.convert] has toJs, returning ReferenceStore')
@@ -242,17 +280,24 @@ function convertPythonResultToYaksok(result: any): ValueType {
         return new ListValue(result.map(convertPythonResultToYaksok))
     } else if (
         ArrayBuffer.isView(result) &&
-        typeof (result as any).length === 'number'
+        'length' in result &&
+        typeof result.length === 'number'
     ) {
         // TypedArray (e.g., numpy ndarray or 0-dim result converted via toJs)
-        const arr: any = result as any
+        const arr = result as unknown as {
+            [index: number]: unknown
+            length: number
+        }
         const jsArray = Array.from(arr)
         return new ListValue(jsArray.map(convertPythonResultToYaksok))
     }
 
     console.log('[Pyodide.convert][fallback ReferenceStore]', {
         type: typeof result,
-        ctor: (result as any)?.constructor?.name,
+        ctor:
+            result && typeof result === 'object'
+                ? (result as object).constructor.name
+                : undefined,
         keys:
             result && typeof result === 'object'
                 ? Object.keys(result)
