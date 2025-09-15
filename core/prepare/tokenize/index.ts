@@ -1,31 +1,24 @@
-import { RULES } from './rules.ts'
-import { NotAcceptableSignal } from './signal.ts'
+import { RULES, RuleParseResult } from './rules.ts'
 
 import { YaksokError } from '../../error/common.ts'
 import { TOKEN_TYPE, type Token } from './token.ts'
 
 class Tokenizer {
     private tokens: Token[] = []
-    private code: string[]
+    private code: string
+    private index = 0
 
     private column = 1
     private line = 1
     private bracketDepth = 0 // Added for multi-line array support
 
     constructor(code: string) {
-        this.code = preprocess(code).split('')
+        this.code = preprocess(code)
     }
 
     tokenize() {
-        while (this.code.length > 0) {
-            // Ensure loop terminates correctly if code becomes empty
-            const char = this.code[0]
-
-            if (!char) {
-                // Should not happen if while condition is this.code.length > 0, but good for safety
-                break
-            }
-
+        while (this.index < this.code.length) {
+            const char = this.code[this.index]
             let accepted = false
 
             for (const rule of RULES) {
@@ -34,42 +27,39 @@ class Tokenizer {
                     continue
                 }
 
-                const initialColumnForToken = this.column // Store position for the potential new token
+                const initialColumnForToken = this.column
                 const initialLineForToken = this.line
-
-                // Create a temporary, consumable copy of the code stream for the current rule parsing attempt.
-                // This allows the rule's shift() to modify this copy without affecting the main state until success.
-                const currentParseAttempt_Code = this.code.slice()
-                let currentParseAttempt_Column = this.column
-                let currentParseAttempt_Line = this.line
+                const initialIndexForToken = this.index
 
                 try {
-                    const view = () => currentParseAttempt_Code[0]
-                    const shift = () => {
-                        const shiftedChar = currentParseAttempt_Code.shift()
-                        if (shiftedChar === '\n') {
-                            currentParseAttempt_Line++
-                            currentParseAttempt_Column = 1
-                        } else if (shiftedChar !== undefined) {
-                            currentParseAttempt_Column += shiftedChar.length // Characters from split('') have length 1
-                        }
-                        return shiftedChar
+                    const result: RuleParseResult | null = rule.parse(
+                        this.code,
+                        this.index,
+                        this.tokens,
+                    )
+
+                    if (result === null) {
+                        // Rule did not match
+                        continue
                     }
 
-                    const value = rule.parse(view, shift, this.tokens)
-
                     // Rule parsing succeeded.
+                    const { value, newIndex } = result
+                    const consumed = this.code.substring(
+                        this.index,
+                        newIndex,
+                    )
+
                     if (
                         rule.type === TOKEN_TYPE.NEW_LINE &&
                         this.bracketDepth > 0
                     ) {
                         // Matched a NEW_LINE rule, and we are inside brackets.
                         // Consume the newline from the main input stream but do not add it to tokens.
-                        this.code = currentParseAttempt_Code
-                        this.column = currentParseAttempt_Column
-                        this.line = currentParseAttempt_Line
+                        this.updatePosition(consumed)
+                        this.index = newIndex
                         accepted = true
-                        break // Exit RULES loop, continue with the next character from the (now updated) main code stream
+                        break
                     } else {
                         // This is a token we want to keep.
                         this.tokens.push({
@@ -93,30 +83,21 @@ class Tokenizer {
                         ) {
                             this.bracketDepth--
                             if (this.bracketDepth < 0) {
-                                // Safety: Unmatched closing bracket. Parser will likely error.
-                                // Resetting to 0 for tokenizer's internal consistency regarding newline skipping.
                                 this.bracketDepth = 0
                             }
                         }
 
                         // Commit consumption of characters by the successful rule to the main state.
-                        this.code = currentParseAttempt_Code
-                        this.column = currentParseAttempt_Column
-                        this.line = currentParseAttempt_Line
+                        this.updatePosition(consumed)
+                        this.index = newIndex
                         accepted = true
                         break // Exit RULES loop
                     }
                 } catch (e) {
-                    if (e instanceof NotAcceptableSignal) {
-                        // This rule was not a fit. State (this.code, this.column, this.line) remains as it was
-                        // before this rule was attempted. currentParseAttempt_* vars are discarded.
-                        continue
-                    }
-
-                    // For other errors, if they don't have token info, add current position (before this rule attempt).
+                    // For other errors, if they don't have token info, add current position.
                     if (e instanceof YaksokError && !e.tokens && !e.position) {
                         e.position = {
-                            column: initialColumnForToken, // Use the column/line at the start of this rule attempt
+                            column: initialColumnForToken,
                             line: initialLineForToken,
                         }
                     }
@@ -138,11 +119,22 @@ class Tokenizer {
                 value: char,
             })
 
-            this.code.shift() // Consume the unknown char from the main code stream.
-            this.column++ // Advance column for the consumed unknown char.
+            this.index++ // Consume the unknown char
+            this.column++ // Advance column
         }
 
         return this.tokens
+    }
+
+    private updatePosition(consumed: string) {
+        for (const char of consumed) {
+            if (char === '\n') {
+                this.line++
+                this.column = 1
+            } else {
+                this.column++
+            }
+        }
     }
 
     private isStarterMatched(rule: (typeof RULES)[number], char: string) {
