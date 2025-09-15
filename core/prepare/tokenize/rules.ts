@@ -53,7 +53,7 @@ export const RULES: {
             let hasDot = false
             while (i < code.length && code[i].match(NUMBER_CHAR_REGEX)) {
                 if (code[i] === '.') {
-                    if (hasDot) return null
+                    if (hasDot) break
                     hasDot = true
                 }
                 i++
