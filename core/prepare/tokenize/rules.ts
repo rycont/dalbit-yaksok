@@ -1,5 +1,7 @@
-import { UnexpectedNewlineError } from '../../error/prepare.ts'
-import { NotAcceptableSignal } from './signal.ts'
+import {
+    UnexpectedEndOfCodeError,
+    UnexpectedNewlineError,
+} from '../../error/prepare.ts'
 import { Token, TOKEN_TYPE } from './token.ts'
 
 const OPERATORS = [
@@ -23,351 +25,307 @@ export const ASSIGNERS = ['=', '+=', '-=', '*=', '/=', '%=']
 
 const IDENTIFIER_STARTER_REGEX = /[a-zA-Z_가-힣ㄱ-ㅎ]/
 const IDENTIFIER_REGEX = /[a-zA-Z_가-힣ㄱ-ㅎ0-9]/
+const NUMBER_CHAR_REGEX = /[0-9\.]/
+
+export interface RuleParseResult {
+    value: string
+    newIndex: number
+}
 
 export const RULES: {
     starter: RegExp | string[]
     parse: (
-        view: () => string | undefined,
-        shift: () => string | undefined,
+        code: string,
+        index: number,
         lastTokens: Token[],
-    ) => string
+    ) => RuleParseResult | null
     type: TOKEN_TYPE
 }[] = [
     {
         type: TOKEN_TYPE.NUMBER,
         starter: /[0-9\-]/,
-        parse: (view, shift, lastTokens) => {
-            let value = shift()!
-
-            if (value === '-' && !isNegativeNumber(lastTokens)) {
-                throw new NotAcceptableSignal()
+        parse: (code, index, lastTokens) => {
+            let i = index
+            if (code[i] === '-') {
+                if (!isNegativeNumber(lastTokens)) {
+                    return null
+                }
+                i++
             }
 
             let hasDot = false
-
-            while (
-                view() &&
-                [
-                    '1',
-                    '2',
-                    '3',
-                    '4',
-                    '5',
-                    '6',
-                    '7',
-                    '8',
-                    '9',
-                    '0',
-                    '.',
-                ].includes(view()!)
-            ) {
-                if (view() === '.') {
-                    if (hasDot) {
-                        throw new NotAcceptableSignal()
-                    }
+            while (i < code.length && code[i].match(NUMBER_CHAR_REGEX)) {
+                if (code[i] === '.') {
+                    if (hasDot) return null
                     hasDot = true
                 }
-
-                value += shift()!
+                i++
             }
 
+            if (i === index || (code[index] === '-' && i === index + 1)) {
+                return null // Just a hyphen, not a number
+            }
+
+            const value = code.substring(index, i)
             const isNumber = !isNaN(parseFloat(value))
 
             if (!isNumber) {
-                throw new NotAcceptableSignal()
+                return null
             }
 
-            return value
+            return { value, newIndex: i }
         },
     },
     {
         type: TOKEN_TYPE.NEW_LINE,
         starter: ['\n'],
-        parse: (_, shift) => {
-            shift()
-            return '\n'
+        parse: (code, index) => {
+            if (code[index] === '\n') {
+                return { value: '\n', newIndex: index + 1 }
+            }
+            return null
         },
     },
     {
         type: TOKEN_TYPE.INDENT,
-        starter: ['\t'],
-        parse: (view, shift) => {
-            shift()
-            let tabs = 1
-
-            while (view() === '\t') {
-                tabs++
-                shift()
+        starter: ['\t', ' '],
+        parse: (code, index) => {
+            if (code[index] === '\t') {
+                let i = index
+                while (i < code.length && code[i] === '\t') {
+                    i++
+                }
+                return { value: code.substring(index, i), newIndex: i }
             }
 
-            return '\t'.repeat(tabs)
-        },
-    },
-    {
-        type: TOKEN_TYPE.INDENT,
-        starter: [' '],
-        parse: (view, shift) => {
-            shift()
-            let spaces = 1
-
-            while (view() === ' ') {
-                spaces++
-                shift()
+            if (code[index] === ' ') {
+                let i = index
+                while (i < code.length && code[i] === ' ') {
+                    i++
+                }
+                const spaces = i - index
+                if (spaces > 0 && spaces % 4 === 0) {
+                    return { value: '\t'.repeat(spaces / 4), newIndex: i }
+                }
             }
 
-            if (spaces % 4 !== 0) {
-                throw new NotAcceptableSignal()
-            }
-
-            return '\t'.repeat(spaces / 4)
+            return null
         },
     },
     {
         type: TOKEN_TYPE.SPACE,
         starter: /\s/,
-        parse: (view, shift) => {
-            shift()
-            let spaces = 1
-
-            while (view() && [' ', '\t'].includes(view()!)) {
-                if (view() === '\t') {
+        parse: (code, index) => {
+            let i = index
+            let spaces = 0;
+            while (i < code.length && (code[i] === ' ' || code[i] === '\t')) {
+                 if (code[i] === '\t') {
                     spaces += 4
                 } else {
                     spaces++
                 }
-
-                shift()
+                i++
             }
-
-            return ' '.repeat(spaces)
+            if (i > index) {
+                return { value: ' '.repeat(spaces), newIndex: i }
+            }
+            return null
         },
     },
     {
         type: TOKEN_TYPE.FFI_BODY,
         starter: ['*'],
-        parse: (_, shift) => {
+        parse: (code, index) => {
             const starter = '***\n'
-
-            for (const char of starter) {
-                if (char !== shift()) {
-                    throw new NotAcceptableSignal()
-                }
+            if (!code.startsWith(starter, index)) {
+                return null
             }
 
-            let code = starter
-
-            while (true) {
-                const shifted = shift()
-
-                if (shifted === undefined) {
-                    break
-                }
-
-                code += shifted
-
-                if (code.endsWith('\n***')) {
-                    break
-                }
+            const endIndex = code.indexOf('\n***', index + starter.length)
+            if (endIndex === -1) {
+                throw new UnexpectedEndOfCodeError({
+                    resource: {
+                        expected: 'FFI 닫는 구분자 (***)',
+                    },
+                })
             }
 
-            return code
+            const newIndex = endIndex + '\n***'.length
+            const value = code.substring(index, newIndex)
+            return { value, newIndex }
         },
     },
     {
         type: TOKEN_TYPE.ASSIGNER,
         starter: ASSIGNERS.map((a) => a[0]),
-        parse: (view, shift) => {
-            const starter = shift()!
-
-            if (starter === '=') {
-                if (view() === '=') {
-                    throw new NotAcceptableSignal()
+        parse: (code, index) => {
+            for (const assigner of ASSIGNERS) {
+                if (code.startsWith(assigner, index)) {
+                    // Check for '==' case
+                    if (assigner === '=' && code.startsWith('==', index)) {
+                        continue
+                    }
+                    return { value: assigner, newIndex: index + assigner.length }
                 }
-
-                return '='
             }
-
-            if (view() !== '=') {
-                throw new NotAcceptableSignal()
-            }
-
-            return starter + shift()!
+            return null
         },
     },
     {
         type: TOKEN_TYPE.OPERATOR,
         starter: OPERATORS.map((o) => o[0]),
-        parse: (view, shift) => {
-            let value = shift()!
-
-            while (true) {
-                const currentlyAppliable = getAppliableOperators(value)
-                if (!currentlyAppliable.length) {
-                    break
+        parse: (code, index) => {
+            let bestMatch = ''
+            for (const op of OPERATORS) {
+                if (code.startsWith(op, index)) {
+                    if (op.length > bestMatch.length) {
+                        bestMatch = op
+                    }
                 }
-
-                const exactlyMatched = currentlyAppliable.includes(value)
-                const appliableWithNext = getAppliableOperators(value + view()!)
-
-                if (exactlyMatched && appliableWithNext.length === 0) {
-                    break
-                }
-
-                if (!appliableWithNext.length) {
-                    throw new NotAcceptableSignal()
-                }
-
-                value += shift()!
             }
 
-            return value
+            if (bestMatch) {
+                return { value: bestMatch, newIndex: index + bestMatch.length }
+            }
+
+            return null
         },
     },
     {
         type: TOKEN_TYPE.IDENTIFIER,
         starter: IDENTIFIER_STARTER_REGEX,
-        parse: (view, shift) => {
-            let value = shift()!
-
-            while (view()?.match(IDENTIFIER_REGEX)) {
-                value += shift()!
+        parse: (code, index) => {
+            let i = index
+            if (code[i]?.match(IDENTIFIER_STARTER_REGEX)) {
+                i++
+                while (i < code.length && code[i].match(IDENTIFIER_REGEX)) {
+                    i++
+                }
+                return { value: code.substring(index, i), newIndex: i }
             }
-
-            return value
+            return null
         },
     },
     {
         type: TOKEN_TYPE.COMMA,
         starter: [','],
-        parse: (_, shift) => {
-            shift()
-            return ','
-        },
+        parse: (code, index) =>
+            code[index] === ','
+                ? { value: ',', newIndex: index + 1 }
+                : null,
     },
     {
         type: TOKEN_TYPE.OPENING_PARENTHESIS,
         starter: ['('],
-        parse: (_, shift) => {
-            shift()
-            return '('
-        },
+        parse: (code, index) =>
+            code[index] === '('
+                ? { value: '(', newIndex: index + 1 }
+                : null,
     },
     {
         type: TOKEN_TYPE.CLOSING_PARENTHESIS,
         starter: [')'],
-        parse: (_, shift) => {
-            shift()
-            return ')'
-        },
+        parse: (code, index) =>
+            code[index] === ')'
+                ? { value: ')', newIndex: index + 1 }
+                : null,
     },
     {
         type: TOKEN_TYPE.OPENING_BRACKET,
         starter: ['['],
-        parse: (_, shift) => {
-            shift()
-            return '['
-        },
+        parse: (code, index) =>
+            code[index] === '['
+                ? { value: '[', newIndex: index + 1 }
+                : null,
     },
     {
         type: TOKEN_TYPE.CLOSING_BRACKET,
         starter: [']'],
-        parse: (_, shift) => {
-            shift()
-            return ']'
-        },
+        parse: (code, index) =>
+            code[index] === ']'
+                ? { value: ']', newIndex: index + 1 }
+                : null,
     },
     {
         type: TOKEN_TYPE.OPENING_BRACE,
         starter: ['{'],
-        parse: (_, shift) => {
-            shift()
-            return '{'
-        },
+        parse: (code, index) =>
+            code[index] === '{'
+                ? { value: '{', newIndex: index + 1 }
+                : null,
     },
     {
         type: TOKEN_TYPE.CLOSING_BRACE,
         starter: ['}'],
-        parse: (_, shift) => {
-            shift()
-            return '}'
-        },
+        parse: (code, index) =>
+            code[index] === '}'
+                ? { value: '}', newIndex: index + 1 }
+                : null,
     },
     {
         type: TOKEN_TYPE.COLON,
         starter: [':'],
-        parse: (_, shift) => {
-            shift()
-            return ':'
-        },
+        parse: (code, index) =>
+            code[index] === ':'
+                ? { value: ':', newIndex: index + 1 }
+                : null,
     },
     {
         type: TOKEN_TYPE.STRING,
         starter: ['"', "'"],
-        parse: (view, shift) => {
-            const quote = shift()!
-            let value = quote
-
-            while (view() !== quote) {
-                if (view() === undefined) {
-                    return value
-                }
-
-                if (view() === '\n') {
+        parse: (code, index) => {
+            const quote = code[index]
+            let i = index + 1
+            while (i < code.length && code[i] !== quote) {
+                if (code[i] === '\n') {
                     throw new UnexpectedNewlineError({
                         parts: '문자열',
                     })
                 }
-
-                value += shift()!
+                i++
             }
 
-            value += shift()
+            if (i < code.length) {
+                const newIndex = i + 1
+                return { value: code.substring(index, newIndex), newIndex }
+            }
 
-            return value
+            return { value: code.substring(index, i), newIndex: i } // Unterminated string
         },
     },
     {
         type: TOKEN_TYPE.LINE_COMMENT,
         starter: ['#'],
-        parse: (view, shift) => {
-            let value = shift()!
-
-            while (
-                view() &&
-                view() !== '\n' &&
-                view() !== '\r' &&
-                view() !== undefined
-            ) {
-                value += shift()!
+        parse: (code, index) => {
+            let i = index
+            while (i < code.length && code[i] !== '\n' && code[i] !== '\r') {
+                i++
             }
-
-            return value
+            return { value: code.substring(index, i), newIndex: i }
         },
     },
     {
         type: TOKEN_TYPE.MENTION,
         starter: ['@'],
-        parse: (view, shift) => {
-            let value = shift()!
-
-            while (view()?.match(IDENTIFIER_REGEX)) {
-                value += shift()!
+        parse: (code, index) => {
+            let i = index + 1
+            while (i < code.length && code[i].match(IDENTIFIER_REGEX)) {
+                i++
             }
-
-            return value
+            if (i > index + 1) {
+                return { value: code.substring(index, i), newIndex: i }
+            }
+            return null
         },
     },
 ]
 
-function getAppliableOperators(prefix: string) {
-    return OPERATORS.filter((operator) => operator.startsWith(prefix))
-}
-
 function isNegativeNumber(tokens: Token[]) {
+    if (tokens.length === 0) return true
+
     const lastToken = tokens[tokens.length - 1]
 
     const isBlank =
-        !lastToken ||
         lastToken.type === TOKEN_TYPE.SPACE ||
         lastToken.type === TOKEN_TYPE.NEW_LINE ||
         lastToken.type === TOKEN_TYPE.INDENT ||

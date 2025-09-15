@@ -2,6 +2,7 @@ yaksok.js
 .vscode
 cov
 docs/api/
+docs/docs/
 node_modules/
 docs/.vitepress/cache/
 docs/.vitepress/dist/
