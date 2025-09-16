@@ -99,7 +99,11 @@ export class CodeFile {
     }
 
     /**
+     * 일부 오류를 무시하고 AST를 최대한 생성하여 반환합니다.
+     * 주로 언어 서버(LSP) 등에서 불완전한 코드를 분석해야 할 때 사용됩니다.
+     * `parse(this, true)`를 호출하는 것과 동일한 효과를 가집니다.
      *
+     * @returns 생성된 AST의 루트 노드인 `Block` 객체를 반환합니다.
      */
     public parseOptimistically(): Block {
         return parse(this, true).ast
@@ -198,6 +202,13 @@ export class CodeFile {
     }
 }
 
+/**
+ * `CodeFile`에 적용할 수 있는 추가 설정 옵션입니다.
+ */
 export interface CodeFileConfig {
+    /**
+     * 코드 실행 시 각 구문(statement) 사이에 추가할 딜레이(ms)입니다.
+     * 디버깅이나 실행 과정 시각화에 유용하게 사용될 수 있습니다.
+     */
     executionDelay?: number
 }

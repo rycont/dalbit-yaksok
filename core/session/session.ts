@@ -107,7 +107,7 @@ export class YaksokSession {
 
     /**
      * 새로운 `달빛 약속` 실행 세션을 생성합니다.
-     * @param config - 세션의 동작을 사용자화하는 설정 객체입니다.
+     * @param config - 세션의 동작(stdout, stderr, 이벤트 핸들러, 기능 플래그 등)을 사용자화하는 설정 객체입니다.
      * @see SessionConfig
      */
     constructor(config: Partial<SessionConfig> = {}) {
@@ -207,9 +207,9 @@ export class YaksokSession {
      * 지정된 모듈을 엔트리포인트로 하여 코드를 실행합니다.
      *
      * 이 메서드는 `달빛 약속` 코드 실행의 전체 과정을 조율합니다.
-     * 1. **상태 잠금**: `runningPromise`를 설정하여 동시 실행을 방지합니다.
+     * 1. **동시 실행 처리**: 만약 다른 코드가 이미 실행 중(`runningPromise`가 존재)이라면, 해당 실행이 끝날 때까지 기다립니다. 이를 통해 동일 세션 내에서의 실행 순서를 보장합니다.
      * 2. **유효성 검사**: 실행 전 `validate()`를 호출하여 코드의 정적 오류를 미리 확인합니다.
-     * 3. **실행**: `CodeFile.run()`을 호출하여 실제 코드 실행을 시작합니다.
+     * 3. **실행**: `CodeFile.run()`을 호출하여 실제 코드 실행을 시작하고 `runningPromise`에 할당합니다.
      * 4. **오류 처리**: 실행 중 발생하는 모든 종류의 오류를 `catch`하여 적절한 `RunModuleResult`로 변환합니다.
      * 5. **상태 해제**: `finally` 블록에서 `runningPromise`를 `null`로 설정하여 세션이 다시 실행 가능한 상태임을 보장합니다.
      *
