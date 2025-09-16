@@ -16,7 +16,6 @@ import { Block } from './block.ts'
 /**
  * `약속` 키워드를 통해 함수(약속)를 선언하는 AST 노드입니다.
  *
- * @description
  * 이 노드는 실행될 때 실제로 함수 코드를 실행하는 것이 아니라,
  * 실행 가능한 `FunctionObject`를 생성하여 현재 스코프에 등록하는 역할을 합니다.
  * 이때 `FunctionObject`는 함수가 선언된 시점의 스코프를 기억하며, 이는 클로저(Closure)를 구현하는 핵심입니다.
@@ -121,7 +120,6 @@ export class FunctionInvoke extends Evaluable {
     /**
      * 스코프에서 함수를 찾아 실행하고, 그 결과값을 반환합니다.
      *
-     * @description
      * 1. `scope.getFunctionObject`를 통해 현재 또는 상위 스코프에서 호출할 함수 객체를 찾습니다.
      * 2. `functionObject.run`을 호출하여 함수를 실행합니다. 이 때 `FunctionObject`는 자신이 기억하고 있던
      *    선언 시점의 스코프를 부모로 하는 새로운 실행 스코프를 생성하여 함수 본문을 실행합니다.

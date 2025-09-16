@@ -16,7 +16,6 @@ import type { YaksokSession } from '../session/session.ts'
  * `달빛 약속` 소스코드 파일 하나를 나타내는 클래스입니다.
  * 파일 단위의 처리 과정(토크나이징, 파싱, 실행)을 담당합니다.
  *
- * @description
  * 이 클래스의 인스턴스는 `YaksokSession`에 의해 관리됩니다.
  */
 export class CodeFile {
@@ -52,7 +51,6 @@ export class CodeFile {
     /**
      * 소스코드를 토큰화한 결과를 반환합니다.
      *
-     * @description
      * **지연 평가 및 캐싱**: 이 getter에 처음 접근할 때만 토크나이징을 수행하고,
      * 그 결과를 내부 속성에 캐싱합니다.
      * 이후의 접근에서는 캐시된 값을 즉시 반환합니다.
@@ -87,7 +85,6 @@ export class CodeFile {
     /**
      * 토큰화된 코드를 파싱하여 생성된 추상 구문 트리(AST)를 반환합니다.
      *
-     * @description
      * **지연 평가 및 캐싱**: 이 getter에 처음 접근할 때만 파싱을 수행하고,
      * 그 결과를 내부 속성에 캐싱합니다.
      *
@@ -183,7 +180,6 @@ export class CodeFile {
     /**
      * 파싱된 AST를 실행합니다.
      *
-     * @description
      * **실행 결과 캐싱**: 이 메서드는 실행이 완료된 후 최종 스코프를 `ranScope`에 캐싱합니다.
      * 만약 이미 실행된 파일에 대해 `run`이 다시 호출되면, 실제 코드를 재실행하지 않고
      * 캐시된 스코프를 즉시 반환합니다. 이는 모듈이 여러 번 참조되어도 단 한 번만 실행되도록 보장합니다.
