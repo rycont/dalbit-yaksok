@@ -146,6 +146,29 @@ class Tokenizer {
     }
 }
 
+/**
+ * 주어진 `달빛 약속` 소스 코드를 토큰(Token)의 배열로 변환합니다.
+ * 토크나이징은 코드를 문법적으로 의미있는 가장 작은 단위로 분해하는 과정입니다.
+ *
+ * @param text - 토크나이징할 소스 코드 문자열입니다.
+ * @returns 코드에서 추출된 `Token` 객체의 배열을 반환합니다.
+ * @see Token
+ *
+ * @example
+ * ```ts
+ * import { tokenize, TOKEN_TYPE } from '@dalbit-yaksok/core';
+ *
+ * const code = '"안녕하세요!" 보여주기';
+ * const tokens = tokenize(code);
+ *
+ * // [
+ * //   { type: TOKEN_TYPE.STRING, value: '안녕하세요!', position: { line: 1, column: 1 } },
+ * //   { type: TOKEN_TYPE.WHITESPACE, value: ' ', position: { line: 1, column: 9 } },
+ * //   { type: TOKEN_TYPE.KEYWORD, value: '보여주기', position: { line: 1, column: 10 } }
+ * // ]
+ * console.log(tokens);
+ * ```
+ */
 export function tokenize(text: string): Token[] {
     const tokens = new Tokenizer(text).tokenize()
     return tokens
