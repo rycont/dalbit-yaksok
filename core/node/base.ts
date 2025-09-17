@@ -66,7 +66,10 @@ export class Executable extends Node {
             this.reportRunningCode(childTokens, scope)
         }
 
-        if (scope.codeFile?.session?.paused) {
+        if (
+            scope.codeFile?.session?.paused ||
+            scope.codeFile?.session?.stepByStep
+        ) {
             await new Promise((resolve) => {
                 const unsubscribe = scope.codeFile?.session?.pubsub.sub(
                     'resume',
