@@ -95,6 +95,7 @@ export class YaksokSession {
      * `pause()`와 `resume()` 메서드로 제어됩니다.
      */
     public paused: boolean = false
+    public stepByStep: boolean = false
 
     /**
      * 세션 내부의 이벤트를 발행하고 구독하는 Pub/Sub 시스템입니다.

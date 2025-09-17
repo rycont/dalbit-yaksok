@@ -62,11 +62,11 @@ export class Executable extends Node {
             )
         }
 
-        if (!skipReport && childTokens.length) {
-            this.reportRunningCode(childTokens, scope)
-        }
-
-        if (scope.codeFile?.session?.paused) {
+        // runningCode 이벤트를 resume 대기 후에 발생하도록 순서 변경
+        if (
+            scope.codeFile?.session?.paused ||
+            scope.codeFile?.session?.stepByStep
+        ) {
             await new Promise((resolve) => {
                 const unsubscribe = scope.codeFile?.session?.pubsub.sub(
                     'resume',
@@ -76,6 +76,10 @@ export class Executable extends Node {
                     },
                 )
             })
+        }
+
+        if (!skipReport && childTokens.length) {
+            this.reportRunningCode(childTokens, scope)
         }
     }
 
