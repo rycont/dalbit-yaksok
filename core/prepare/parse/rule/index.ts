@@ -84,7 +84,7 @@ export const BASIC_RULES: Rule[][] = [
             ],
             factory: (nodes, tokens) => {
                 const comma = nodes[0] as Expression
-                const eol = nodes[1] as EOL
+                const _eol = nodes[1] as EOL
 
                 comma.tokens = tokens
                 return comma

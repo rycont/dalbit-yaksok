@@ -63,7 +63,7 @@ export class ListValue extends IndexedValue {
 
         const maxKey = Math.max(...keys)
 
-        let values: (ValueType | null)[] = []
+        const values: (ValueType | null)[] = []
 
         for (let i = 0; i <= maxKey; i++) {
             values[i] = this.entries.get(i) ?? null
