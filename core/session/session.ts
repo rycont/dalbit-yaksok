@@ -5,7 +5,10 @@ import {
     FileForRunNotExistError,
     MultipleFFIRuntimeError,
 } from '../error/prepare.ts'
-import { renderErrorString } from '../error/render-error-string.ts'
+import {
+    renderErrorString,
+    errorToMachineReadable,
+} from '../error/render-error-string.ts'
 import { CodeFile, CodeFileConfig } from '../type/code-file.ts'
 import { PubSub } from '../util/pubsub.ts'
 import {
@@ -259,7 +262,10 @@ export class YaksokSession {
 
                     for (const error of mergedErrorList) {
                         error.codeFile = codeFile
-                        this.stderr(renderErrorString(error))
+                        this.stderr(
+                            renderErrorString(error),
+                            errorToMachineReadable(error),
+                        )
                     }
                 }
 
@@ -283,7 +289,7 @@ export class YaksokSession {
                     e.codeFile = codeFile
                 }
 
-                this.stderr(renderErrorString(e))
+                this.stderr(renderErrorString(e), errorToMachineReadable(e))
 
                 return {
                     codeFile,

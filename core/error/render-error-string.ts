@@ -3,6 +3,90 @@ import { Position } from '../type/position.ts'
 
 import { bold, dim, underline, type YaksokError } from './common.ts'
 
+export interface MachineReadableError {
+    type: 'error'
+    message: string
+    position?: {
+        line: number
+        column: number
+    }
+    fileName?: string
+    context?: {
+        startLine: number
+        endLine: number
+        lines: Array<{
+            lineNumber: number
+            content: string
+            isErrorLine: boolean
+        }>
+    }
+    child?: MachineReadableError
+}
+
+/**
+ * ANSI 이스케이프 시퀀스를 제거하는 함수
+ * 예: ESC[1m텍스트ESC[0m -> '텍스트'
+ */
+function removeAnsiCodes(text: string): string {
+    // ANSI escape sequences: ESC[...m pattern
+    return text.replace(
+        new RegExp(String.fromCharCode(27) + '\\[[0-9;]*m', 'g'),
+        '',
+    )
+}
+
+export function errorToMachineReadable(
+    error: YaksokError,
+): MachineReadableError {
+    const machineError: MachineReadableError = {
+        type: 'error',
+        message: removeAnsiCodes(error.message),
+    }
+
+    if (error.position) {
+        machineError.position = {
+            line: error.position.line,
+            column: error.position.column,
+        }
+    }
+
+    if (error.codeFile?.fileName) {
+        machineError.fileName = error.codeFile.fileName.toString()
+    }
+
+    // 코드 컨텍스트 생성
+    if (error.codeFile?.text) {
+        const code = error.codeFile.text
+        const position = error.position || error.tokens?.[0].position
+
+        if (position) {
+            const lines = code.split('\n')
+            const contextStartLine = Math.max(0, position.line - 4)
+            const contextEndLine = Math.min(lines.length - 1, position.line + 2)
+
+            machineError.context = {
+                startLine: contextStartLine + 1,
+                endLine: contextEndLine + 1,
+                lines: [],
+            }
+
+            for (let i = contextStartLine; i <= contextEndLine; i++) {
+                machineError.context.lines.push({
+                    lineNumber: i + 1,
+                    content: lines[i],
+                    isErrorLine: i === position.line - 1,
+                })
+            }
+        }
+    }
+
+    if (error.child) {
+        machineError.child = errorToMachineReadable(error.child)
+    }
+
+    return machineError
+}
+
 export function renderErrorString(error: YaksokError) {
     const code = error.codeFile?.text
     const fileName = error.codeFile?.fileName

@@ -1,8 +1,9 @@
 import type { EnabledFlags } from '../constant/feature-flags.ts'
 import type { Scope } from '../executer/scope.ts'
-import type { Pause } from "../node/misc.ts";
+import type { Pause } from '../node/misc.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { Position } from '../type/position.ts'
+import type { MachineReadableError } from '../error/render-error-string.ts'
 
 /**
  * SessionConfig 객체를 사용하여 약속 런타임을 설정합니다.
@@ -36,9 +37,14 @@ export interface SessionConfig {
     stdout: (message: string) => void
     /**
      * 오류로 인해 발생한 메시지를 처리하는 메소드
+     * @param message - 사람이 읽기 쉬운 형식의 에러 메시지
+     * @param machineReadableError - 구조화된 형식(JSON)의 에러 정보 오브젝트
      * @default console.error
      */
-    stderr: (message: string) => void
+    stderr: (
+        message: string,
+        machineReadableError: MachineReadableError,
+    ) => void
     /**
      * 여러 약속 파일이 주어졌을 때 처음으로 실행할 파일 이름입니다.
      * @default 'main'
