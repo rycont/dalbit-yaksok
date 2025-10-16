@@ -26,6 +26,7 @@ import {
 import { AbortedSessionSignal } from '../executer/signals.ts'
 import type { Extension } from '../extension/extension.ts'
 import type { ValueType } from '../value/base.ts'
+import { postprocessErrors } from '../error/postprocess.ts'
 
 /**
  * `달빛 약속` 코드의 실행 생명주기를 총괄하는 핵심 클래스입니다.
@@ -245,11 +246,18 @@ export class YaksokSession {
             if (allErrors.length > 0) {
                 for (const [
                     fileName,
-                    errorList,
+                    validationErrorList,
                 ] of validationErrors.entries()) {
                     const codeFile = this.getCodeFile(String(fileName))
+                    const tokenResult = codeFile.getTokensOptimistically()
 
-                    for (const error of errorList) {
+                    const errorList = validationErrorList
+
+                    const mergedErrorList = tokenResult.tokens
+                        ? postprocessErrors(errorList, tokenResult.tokens)
+                        : errorList
+
+                    for (const error of mergedErrorList) {
                         error.codeFile = codeFile
                         this.stderr(renderErrorString(error))
                     }

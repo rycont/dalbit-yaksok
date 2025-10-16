@@ -83,6 +83,57 @@ export class CodeFile {
     }
 
     /**
+     * 코드를 토큰화하고 인덴트 유효성 결과를 반환합니다. 유효하지 않은 토큰은 오류를 던지는 대신 errors 배열에 반환합니다.
+     */
+
+    public getTokensOptimistically(): {
+        tokens?: Token[]
+        errors?: YaksokError[]
+    } {
+        try {
+            const tokens = tokenize(this.text)
+
+            const functionDeclareRangesByType = getFunctionDeclareRanges(tokens)
+
+            const functionDeclareRanges = [
+                ...functionDeclareRangesByType.yaksok,
+                ...functionDeclareRangesByType.ffi,
+            ]
+
+            const merged = mergeArgumentBranchingTokens(
+                tokens,
+                functionDeclareRanges,
+            )
+
+            try {
+                assertIndentValidity(merged)
+                return {
+                    tokens: merged,
+                    errors: [],
+                }
+            } catch (error) {
+                if (error instanceof YaksokError) {
+                    return {
+                        tokens: error.tokens,
+                        errors: [error],
+                    }
+                }
+
+                throw error
+            }
+        } catch (error) {
+            if (error instanceof YaksokError) {
+                return {
+                    tokens: error.tokens,
+                    errors: [error],
+                }
+            }
+
+            throw error
+        }
+    }
+
+    /**
      * 토큰화된 코드를 파싱하여 생성된 추상 구문 트리(AST)를 반환합니다.
      *
      * **지연 평가 및 캐싱**: 이 getter에 처음 접근할 때만 파싱을 수행하고,
