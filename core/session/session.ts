@@ -16,6 +16,7 @@ import {
 
 import { ErrorGroups, ErrorInFFIExecution } from '@dalbit-yaksok/core'
 import type { EnabledFlags } from '../constant/feature-flags.ts'
+import { FEATURE_FLAG } from '../constant/feature-flags.ts'
 import {
     AbortedRunModuleResult,
     ErrorRunModuleResult,
@@ -259,7 +260,7 @@ export class YaksokSession {
 
                     for (const error of mergedErrorList) {
                         error.codeFile = codeFile
-                        this.stderr(renderErrorString(error))
+                        this.stderr(renderErrorString(error, this.flags[FEATURE_FLAG.MACHINE_READABLE_ERROR]))
                     }
                 }
 
@@ -283,7 +284,7 @@ export class YaksokSession {
                     e.codeFile = codeFile
                 }
 
-                this.stderr(renderErrorString(e))
+                this.stderr(renderErrorString(e, this.flags[FEATURE_FLAG.MACHINE_READABLE_ERROR]))
 
                 return {
                     codeFile,
