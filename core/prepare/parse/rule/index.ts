@@ -22,6 +22,7 @@ import {
     IntegerDivideOperator,
     LessThanOperator,
     LessThanOrEqualOperator,
+    BooleanLiteral,
     ListLiteral,
     Loop,
     MinusOperator,
@@ -54,6 +55,34 @@ import { PYTHON_COMPAT_RULES } from './python-compat.ts'
 export type { Rule }
 export const BASIC_RULES: Rule[][] = [
     [
+        ...['참', '맞음', 'True', 'true'].map(
+            (keyword) =>
+                ({
+                    pattern: [
+                        {
+                            type: Identifier,
+                            value: keyword,
+                        },
+                    ],
+                    factory: (_nodes, tokens) => {
+                        return new BooleanLiteral(true, tokens)
+                    },
+                } as Rule),
+        ),
+        ...['거짓', '아님', 'False', 'false'].map(
+            (keyword) =>
+                ({
+                    pattern: [
+                        {
+                            type: Identifier,
+                            value: keyword,
+                        },
+                    ],
+                    factory: (_nodes, tokens) => {
+                        return new BooleanLiteral(false, tokens)
+                    },
+                } as Rule),
+        ),
         {
             pattern: [
                 {
@@ -354,6 +383,21 @@ export const BASIC_RULES: Rule[][] = [
             ],
             factory: (nodes, tokens) => {
                 const evaluable = nodes[1] as Evaluable
+                return new NotExpression(evaluable, tokens)
+            },
+        },
+        {
+            pattern: [
+                {
+                    type: Evaluable,
+                },
+                {
+                    type: Identifier,
+                    value: '아니다',
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const evaluable = nodes[0] as Evaluable
                 return new NotExpression(evaluable, tokens)
             },
         },
