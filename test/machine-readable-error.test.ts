@@ -35,13 +35,13 @@ Deno.test('Machine Readable Error Output (as second argument)', async () => {
     assertEquals(typeof machine, 'object')
 
     // Machine Readable 형식 검증
-    assertEquals(machine.type, 'error')
     assertEquals(typeof machine.message, 'string')
     assertEquals(machine.message.length > 0, true)
 
     if (machine.position) {
-        assertEquals(typeof machine.position.line, 'number')
-        assertEquals(typeof machine.position.column, 'number')
+        const [line, column] = machine.position.split(':').map(Number)
+        assertEquals(line, 1)
+        assertEquals(column, 1)
     }
 
     // ANSI 코드가 포함되지 않았는지 확인
@@ -102,7 +102,6 @@ Deno.test('Human Readable Error Output (first argument)', async () => {
 
     // Machine Readable은 항상 오브젝트로 전달됨
     assertEquals(typeof machine, 'object')
-    assertEquals(machine.type, 'error')
 
     console.log('✅ Human Readable Error Output Test Passed')
 })

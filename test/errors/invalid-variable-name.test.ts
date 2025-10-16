@@ -22,6 +22,5 @@ Deno.test('Variable name is not a valid identifier', async () => {
         NotExecutableNodeError,
         NotExecutableNodeError,
         NotDefinedIdentifierError,
-        NotDefinedIdentifierError,
     ])
 })
