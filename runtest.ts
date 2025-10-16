@@ -1,8 +1,11 @@
-import { FEATURE_FLAG, YaksokSession } from '@dalbit-yaksok/core'
+import { YaksokSession } from '@dalbit-yaksok/core'
 
 const session = new YaksokSession({
-    flags: {
-        [FEATURE_FLAG.MACHINE_READABLE_ERROR]: true,
+    stderr: (human, machine) => {
+        console.error('[Human Readable]')
+        console.error(human)
+        console.error('\n[Machine Readable (as Object)]')
+        console.error(JSON.stringify(machine, null, 2))
     },
 })
 

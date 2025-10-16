@@ -1,17 +1,19 @@
 import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts'
 import { YaksokSession } from '../core/session/session.ts'
-import { FEATURE_FLAG } from '../core/constant/feature-flags.ts'
 import type { MachineReadableError } from '../core/error/index.ts'
 
-Deno.test('Machine Readable Error Output', async () => {
-    const errorOutputs: string[] = []
+Deno.test('Machine Readable Error Output (as second argument)', async () => {
+    const errorOutputs: Array<{
+        human: string
+        machine: MachineReadableError
+    }> = []
 
     const session = new YaksokSession({
-        stderr: (message: string) => {
-            errorOutputs.push(message)
-        },
-        flags: {
-            [FEATURE_FLAG.MACHINE_READABLE_ERROR]: true,
+        stderr: (message: string, machineReadable: MachineReadableError) => {
+            errorOutputs.push({
+                human: message,
+                machine: machineReadable,
+            })
         },
     })
 
@@ -23,41 +25,54 @@ Deno.test('Machine Readable Error Output', async () => {
     // 에러가 출력되었는지 확인
     assertEquals(errorOutputs.length, 1)
 
-    const errorOutput = errorOutputs[0]
+    const { human, machine } = errorOutputs[0]
 
-    // JSON으로 파싱 가능한지 확인
-    const machineError: MachineReadableError = JSON.parse(errorOutput)
+    // Human Readable 형식 검증
+    assertEquals(human.includes('🚨'), true)
+    assertEquals(human.includes('문제가 발생했어요'), true)
+
+    // Machine Readable이 오브젝트임을 확인
+    assertEquals(typeof machine, 'object')
 
     // Machine Readable 형식 검증
-    assertEquals(machineError.type, 'error')
-    assertEquals(typeof machineError.message, 'string')
-    assertEquals(machineError.message.length > 0, true)
+    assertEquals(machine.type, 'error')
+    assertEquals(typeof machine.message, 'string')
+    assertEquals(machine.message.length > 0, true)
 
-    if (machineError.position) {
-        assertEquals(typeof machineError.position.line, 'number')
-        assertEquals(typeof machineError.position.column, 'number')
+    if (machine.position) {
+        assertEquals(typeof machine.position.line, 'number')
+        assertEquals(typeof machine.position.column, 'number')
     }
 
     // ANSI 코드가 포함되지 않았는지 확인
     const ansiPattern = new RegExp(String.fromCharCode(27) + '\\[[0-9;]*m')
     assertEquals(
-        ansiPattern.test(machineError.message),
+        ansiPattern.test(machine.message),
         false,
         'Message should not contain ANSI codes',
     )
 
     console.log('✅ Machine Readable Error Output Test Passed')
-    console.log('  - Message:', machineError.message)
+    console.log('  - Human:', human.split('\n')[0])
+    console.log(
+        '  - Machine:',
+        JSON.stringify(machine).substring(0, 100) + '...',
+    )
 })
 
-Deno.test('Human Readable Error Output (Default)', async () => {
-    const errorOutputs: string[] = []
+Deno.test('Human Readable Error Output (first argument)', async () => {
+    const errorOutputs: Array<{
+        human: string
+        machine: MachineReadableError
+    }> = []
 
     const session = new YaksokSession({
-        stderr: (message: string) => {
-            errorOutputs.push(message)
+        stderr: (message: string, machineReadable: MachineReadableError) => {
+            errorOutputs.push({
+                human: message,
+                machine: machineReadable,
+            })
         },
-        // Machine Readable 플래그를 설정하지 않음 (기본값: false)
     })
 
     // 정의되지 않은 변수 사용으로 에러 발생시키기
@@ -68,12 +83,16 @@ Deno.test('Human Readable Error Output (Default)', async () => {
     // 에러가 출력되었는지 확인
     assertEquals(errorOutputs.length, 1)
 
-    const errorOutput = errorOutputs[0]
+    const { human, machine } = errorOutputs[0]
 
-    // JSON이 아니고 사람이 읽을 수 있는 형식이어야 함
+    // Human Readable 형식의 특징 확인
+    assertEquals(human.includes('🚨'), true)
+    assertEquals(human.includes('문제가 발생했어요'), true)
+
+    // Human Readable 형식은 JSON이 아님
     let isJson = false
     try {
-        JSON.parse(errorOutput)
+        JSON.parse(human)
         isJson = true
     } catch {
         isJson = false
@@ -81,9 +100,9 @@ Deno.test('Human Readable Error Output (Default)', async () => {
 
     assertEquals(isJson, false)
 
-    // Human Readable 형식의 특징 확인
-    assertEquals(errorOutput.includes('🚨'), true)
-    assertEquals(errorOutput.includes('문제가 발생했어요'), true)
+    // Machine Readable은 항상 오브젝트로 전달됨
+    assertEquals(typeof machine, 'object')
+    assertEquals(machine.type, 'error')
 
     console.log('✅ Human Readable Error Output Test Passed')
 })

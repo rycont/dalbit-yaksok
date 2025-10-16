@@ -35,7 +35,9 @@ function removeAnsiCodes(text: string): string {
     )
 }
 
-function errorToMachineReadable(error: YaksokError): MachineReadableError {
+export function errorToMachineReadable(
+    error: YaksokError,
+): MachineReadableError {
     const machineError: MachineReadableError = {
         type: 'error',
         message: removeAnsiCodes(error.message),
@@ -85,11 +87,7 @@ function errorToMachineReadable(error: YaksokError): MachineReadableError {
     return machineError
 }
 
-export function renderErrorString(error: YaksokError, machineReadable = false) {
-    if (machineReadable) {
-        return JSON.stringify(errorToMachineReadable(error))
-    }
-
+export function renderErrorString(error: YaksokError) {
     const code = error.codeFile?.text
     const fileName = error.codeFile?.fileName
 
@@ -128,7 +126,7 @@ export function renderErrorString(error: YaksokError, machineReadable = false) {
 
     if (error.child) {
         output += '\n'
-        output = renderErrorString(error.child, machineReadable) + '\n' + output
+        output = renderErrorString(error.child) + '\n' + output
     }
 
     return output

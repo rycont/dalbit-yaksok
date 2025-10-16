@@ -13,11 +13,6 @@ export enum FEATURE_FLAG {
      * 수식 연산에 Execution Delay를 적용하지 않습니다. 활성화할 시 수식에서는 runningCode 이벤트도 발생하지 않습니다.
      */
     DISABLE_OPERAND_EXECUTION_DELAY = 'disable-operand-execution-delay',
-
-    /**
-     * 에러를 Machine Readable 형식(JSON)으로 출력합니다. 기본값은 Human Readable 형식입니다.
-     */
-    MACHINE_READABLE_ERROR = 'machine-readable-error',
 }
 
 export type EnabledFlags = Partial<Record<FEATURE_FLAG, boolean>>
