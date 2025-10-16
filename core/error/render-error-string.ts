@@ -14,11 +14,6 @@ export interface MachineReadableError {
     context?: {
         startLine: number
         endLine: number
-        lines: Array<{
-            lineNumber: number
-            content: string
-            isErrorLine: boolean
-        }>
     }
     child?: MachineReadableError
 }
@@ -54,7 +49,7 @@ export function errorToMachineReadable(
         machineError.fileName = error.codeFile.fileName.toString()
     }
 
-    // 코드 컨텍스트 생성
+    // 코드 컨텍스트 생성 (라인 범위만 포함)
     if (error.codeFile?.text) {
         const code = error.codeFile.text
         const position = error.position || error.tokens?.[0].position
@@ -67,15 +62,6 @@ export function errorToMachineReadable(
             machineError.context = {
                 startLine: contextStartLine + 1,
                 endLine: contextEndLine + 1,
-                lines: [],
-            }
-
-            for (let i = contextStartLine; i <= contextEndLine; i++) {
-                machineError.context.lines.push({
-                    lineNumber: i + 1,
-                    content: lines[i],
-                    isErrorLine: i === position.line - 1,
-                })
             }
         }
     }
