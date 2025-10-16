@@ -22,6 +22,7 @@ import {
     IntegerDivideOperator,
     LessThanOperator,
     LessThanOrEqualOperator,
+    BooleanLiteral,
     ListLiteral,
     Loop,
     MinusOperator,
@@ -54,12 +55,7 @@ import { PYTHON_COMPAT_RULES } from './python-compat.ts'
 export type { Rule }
 export const BASIC_RULES: Rule[][] = [
     [
-        ...[
-            '참',
-            '맞음',
-            'True',
-            'true',
-        ].map(
+        ...['참', '맞음', 'True', 'true'].map(
             (keyword) =>
                 ({
                     pattern: [
@@ -73,12 +69,7 @@ export const BASIC_RULES: Rule[][] = [
                     },
                 } as Rule),
         ),
-        ...[
-            '거짓',
-            '아님',
-            'False',
-            'false',
-        ].map(
+        ...['거짓', '아님', 'False', 'false'].map(
             (keyword) =>
                 ({
                     pattern: [
