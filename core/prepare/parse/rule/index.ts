@@ -399,6 +399,21 @@ export const BASIC_RULES: Rule[][] = [
                 return new NotExpression(evaluable, tokens)
             },
         },
+        {
+            pattern: [
+                {
+                    type: Evaluable,
+                },
+                {
+                    type: Identifier,
+                    value: '아니다',
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const evaluable = nodes[0] as Evaluable
+                return new NotExpression(evaluable, tokens)
+            },
+        },
     ],
 ]
 
