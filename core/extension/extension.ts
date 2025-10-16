@@ -1,4 +1,5 @@
 import { FunctionInvokingParams, ValueType } from '@dalbit-yaksok/core'
+import type { Rule } from '../prepare/parse/type.ts'
 
 /**
  * `달빛 약속` 확장이 제공하는 기능과 메타데이터를 정의하는 매니페스트입니다.
@@ -17,7 +18,11 @@ export interface ExtensionManifest {
          */
         runtimeName: string
     }
-    // 향후 다른 기능(예: 커스텀 키워드, 연산자)이 추가될 수 있습니다.
+
+    /**
+     * 확장이 파싱 규칙을 제공하는 경우, 해당 규칙을 명시합니다.
+     */
+    parsingRules?: Rule[]
 }
 
 /**
