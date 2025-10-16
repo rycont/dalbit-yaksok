@@ -1,10 +1,5 @@
-import { YaksokSession } from '@dalbit-yaksok/core'
+import { yaksok } from '@dalbit-yaksok/core'
 
-const session = new YaksokSession({
-    stdout: (text) => console.log(text),
-    stderr: (text) => console.error(text),
-})
+const result = await yaksok(`약속, (A)와 (B)를`)
 
-session.addModule('main', `없는 변수 출력 보여주기`)
-
-await session.runModule('main')
+console.log(result)

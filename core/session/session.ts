@@ -246,13 +246,16 @@ export class YaksokSession {
             if (allErrors.length > 0) {
                 for (const [
                     fileName,
-                    errorList,
+                    validationErrorList,
                 ] of validationErrors.entries()) {
                     const codeFile = this.getCodeFile(String(fileName))
-                    const mergedErrorList = postprocessErrors(
-                        errorList,
-                        codeFile.tokens,
-                    )
+                    const tokenResult = codeFile.getTokensOptimistically()
+
+                    const errorList = validationErrorList
+
+                    const mergedErrorList = tokenResult.tokens
+                        ? postprocessErrors(errorList, tokenResult.tokens)
+                        : errorList
 
                     for (const error of mergedErrorList) {
                         error.codeFile = codeFile
