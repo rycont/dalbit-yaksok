@@ -41,6 +41,7 @@ import {
     PythonCall,
     PythonMethodCall,
     PythonImport,
+    BooleanLiteral,
 } from '../../../node/index.ts'
 import { NotEqualOperator } from '../../../node/operator.ts'
 import { ReturnStatement } from '../../../node/return.ts'
@@ -57,6 +58,44 @@ import { PYTHON_COMPAT_RULES } from './python-compat.ts'
 export type { Rule }
 export const BASIC_RULES: Rule[][] = [
     [
+        ...[
+            '참',
+            '맞음',
+            'True',
+            'true',
+        ].map(
+            (keyword) =>
+                ({
+                    pattern: [
+                        {
+                            type: Identifier,
+                            value: keyword,
+                        },
+                    ],
+                    factory: (_nodes, tokens) => {
+                        return new BooleanLiteral(true, tokens)
+                    },
+                } as Rule),
+        ),
+        ...[
+            '거짓',
+            '아님',
+            'False',
+            'false',
+        ].map(
+            (keyword) =>
+                ({
+                    pattern: [
+                        {
+                            type: Identifier,
+                            value: keyword,
+                        },
+                    ],
+                    factory: (_nodes, tokens) => {
+                        return new BooleanLiteral(false, tokens)
+                    },
+                } as Rule),
+        ),
         {
             pattern: [
                 {
