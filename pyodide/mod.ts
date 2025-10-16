@@ -11,9 +11,11 @@ import {
     type ExtensionManifest,
     type FunctionInvokingParams,
 } from '@dalbit-yaksok/core'
+import { PARSING_RULES } from './parsing-rules.ts'
 
 export class Pyodide implements Extension {
     public manifest: ExtensionManifest = {
+        parsingRules: PARSING_RULES,
         ffiRunner: {
             runtimeName: 'Python',
         },
@@ -49,7 +51,9 @@ export class Pyodide implements Extension {
         }
 
         await this.pyodide.loadPackage(this.packages)
-        console.log(`[Pyodide.init] loaded package ${this.packages.join(', ')}`)
+        console.debug(
+            `[Pyodide.init] loaded package ${this.packages.join(', ')}`,
+        )
     }
 
     async executeFFI(
@@ -61,7 +65,7 @@ export class Pyodide implements Extension {
         }
 
         try {
-            console.log('[Pyodide.executeFFI] start', {
+            console.debug('[Pyodide.executeFFI] start', {
                 code,
                 argsKeys: Object.keys(args),
             })
@@ -77,7 +81,8 @@ export class Pyodide implements Extension {
                 for (let i = 0; i < ordered.length; i++) {
                     const a = ordered[i]
                     if (a instanceof ReferenceStore) {
-                        const varName = `__yak_arg_${Date.now()}_${this.tempVarCounter++}_${i}`
+                        const varName = `__yak_arg_${Date.now()}_${this
+                            .tempVarCounter++}_${i}`
                         this.pyodide!.globals.set(varName, a.ref)
                         argSnippets.push(varName)
                         tempVarNames.push(varName)
@@ -90,7 +95,7 @@ export class Pyodide implements Extension {
                 const pyCode = `${name}(${pyArgs})`
                 const runner =
                     this.pyodide.runPythonAsync || this.pyodide.runPython
-                console.log('[Pyodide.executeFFI] CALL pyCode', pyCode)
+                console.debug('[Pyodide.executeFFI] CALL pyCode', pyCode)
                 let result
                 try {
                     result = await runner.call(this.pyodide, pyCode)
@@ -106,7 +111,7 @@ export class Pyodide implements Extension {
                         }
                     }
                 }
-                console.log('[Pyodide.executeFFI] CALL result', {
+                console.debug('[Pyodide.executeFFI] CALL result', {
                     type: typeof result,
                     ctor: (result as any)?.constructor?.name,
                 })
@@ -129,13 +134,15 @@ export class Pyodide implements Extension {
                 const tempVarNames: string[] = []
                 try {
                     if (targetArg instanceof ReferenceStore) {
-                        targetVarName = `__yak_target_${Date.now()}_${this.tempVarCounter++}`
+                        targetVarName = `__yak_target_${Date.now()}_${this
+                            .tempVarCounter++}`
                         this.pyodide!.globals.set(targetVarName, targetArg.ref)
                         tempVarNames.push(targetVarName)
                     } else {
                         // For primitive/list types, convert to Python literal
                         const literal = convertYaksokToPythonLiteral(targetArg)
-                        targetVarName = `__yak_target_${Date.now()}_${this.tempVarCounter++}`
+                        targetVarName = `__yak_target_${Date.now()}_${this
+                            .tempVarCounter++}`
                         await runner.call(
                             this.pyodide,
                             `${targetVarName} = ${literal}`,
@@ -150,7 +157,8 @@ export class Pyodide implements Extension {
                         if (idx === 0) continue
                         const v = args[k]
                         if (v instanceof ReferenceStore) {
-                            const varName = `__yak_arg_${Date.now()}_${this.tempVarCounter++}_${idx}`
+                            const varName = `__yak_arg_${Date.now()}_${this
+                                .tempVarCounter++}_${idx}`
                             this.pyodide!.globals.set(varName, v.ref)
                             callArgs.push(varName)
                             tempVarNames.push(varName)
@@ -161,7 +169,7 @@ export class Pyodide implements Extension {
 
                     const pyArgs = callArgs.join(', ')
                     const pyCode = `${targetVarName}.${method}(${pyArgs})`
-                    console.log(
+                    console.debug(
                         '[Pyodide.executeFFI] CALL_METHOD pyCode',
                         pyCode,
                     )
@@ -182,9 +190,9 @@ export class Pyodide implements Extension {
             } else {
                 const runner =
                     this.pyodide.runPythonAsync || this.pyodide.runPython
-                console.log('[Pyodide.executeFFI] EVAL code', code.trim())
+                console.debug('[Pyodide.executeFFI] EVAL code', code.trim())
                 await runner.call(this.pyodide, code)
-                console.log('[Pyodide.executeFFI] EVAL done')
+                console.debug('[Pyodide.executeFFI] EVAL done')
                 return new NumberValue(0)
             }
         } catch (e: any) {
@@ -225,7 +233,7 @@ function convertPythonResultToYaksok(result: any): ValueType {
         typeof result === 'object' &&
         typeof result.toJs === 'function'
     ) {
-        console.log('[Pyodide.convert] has toJs, returning ReferenceStore')
+        console.debug('[Pyodide.convert] has toJs, returning ReferenceStore')
 
         return new ReferenceStore(result)
     }
@@ -250,7 +258,7 @@ function convertPythonResultToYaksok(result: any): ValueType {
         return new ListValue(jsArray.map(convertPythonResultToYaksok))
     }
 
-    console.log('[Pyodide.convert][fallback ReferenceStore]', {
+    console.debug('[Pyodide.convert][fallback ReferenceStore]', {
         type: typeof result,
         ctor: (result as any)?.constructor?.name,
         keys:

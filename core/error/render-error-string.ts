@@ -3,6 +3,51 @@ import { Position } from '../type/position.ts'
 
 import { bold, dim, underline, type YaksokError } from './common.ts'
 
+export interface MachineReadableError {
+    message: string
+    position?: `${number}:${number}`
+    fileName?: string
+    child?: MachineReadableError
+}
+
+/**
+ * ANSI 이스케이프 시퀀스를 제거하는 함수
+ * 예: ESC[1m텍스트ESC[0m -> '텍스트'
+ */
+function removeAnsiCodes(text: string): string {
+    // ANSI escape sequences: ESC[...m pattern
+    return text.replace(
+        new RegExp(String.fromCharCode(27) + '\\[[0-9;]*m', 'g'),
+        '',
+    )
+}
+
+export function errorToMachineReadable(
+    error: YaksokError,
+): MachineReadableError {
+    const machineError: MachineReadableError = {
+        message: removeAnsiCodes(error.message),
+    }
+
+    const position =
+        error.position ||
+        error.tokens?.find((token) => token.position)?.position
+
+    if (position) {
+        machineError.position = `${position.line}:${position.column}`
+    }
+
+    if (error.codeFile?.fileName) {
+        machineError.fileName = error.codeFile.fileName.toString()
+    }
+
+    if (error.child) {
+        machineError.child = errorToMachineReadable(error.child)
+    }
+
+    return machineError
+}
+
 export function renderErrorString(error: YaksokError) {
     const code = error.codeFile?.text
     const fileName = error.codeFile?.fileName
