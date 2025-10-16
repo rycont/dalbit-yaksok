@@ -11,6 +11,7 @@ import type { Block } from '../node/block.ts'
 import type { Rule } from '../prepare/parse/type.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { YaksokSession } from '../session/session.ts'
+import { postprocessErrors } from '../error/postprocess.ts'
 
 /**
  * `달빛 약속` 소스코드 파일 하나를 나타내는 클래스입니다.
@@ -215,9 +216,10 @@ export class CodeFile {
 
         try {
             const errors = this.ast.validate(validatingScope)
+            const mergedErrors = postprocessErrors(errors, this.tokens)
 
             return {
-                errors,
+                errors: mergedErrors,
                 validatingScope,
             }
         } catch (error) {

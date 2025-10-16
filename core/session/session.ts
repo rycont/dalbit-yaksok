@@ -6,8 +6,8 @@ import {
     MultipleFFIRuntimeError,
 } from '../error/prepare.ts'
 import {
-    renderErrorString,
     errorToMachineReadable,
+    renderErrorString,
 } from '../error/render-error-string.ts'
 import { CodeFile, CodeFileConfig } from '../type/code-file.ts'
 import { PubSub } from '../util/pubsub.ts'
@@ -251,16 +251,9 @@ export class YaksokSession {
                     fileName,
                     validationErrorList,
                 ] of validationErrors.entries()) {
-                    const codeFile = this.getCodeFile(String(fileName))
-                    const tokenResult = codeFile.getTokensOptimistically()
+                    const codeFile = this.getCodeFile(fileName)
 
-                    const errorList = validationErrorList
-
-                    const mergedErrorList = tokenResult.tokens
-                        ? postprocessErrors(errorList, tokenResult.tokens)
-                        : errorList
-
-                    for (const error of mergedErrorList) {
+                    for (const error of validationErrorList) {
                         error.codeFile = codeFile
                         this.stderr(
                             renderErrorString(error),

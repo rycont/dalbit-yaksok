@@ -4,17 +4,9 @@ import { Position } from '../type/position.ts'
 import { bold, dim, underline, type YaksokError } from './common.ts'
 
 export interface MachineReadableError {
-    type: 'error'
     message: string
-    position?: {
-        line: number
-        column: number
-    }
+    position?: `${number}:${number}`
     fileName?: string
-    context?: {
-        startLine: number
-        endLine: number
-    }
     child?: MachineReadableError
 }
 
@@ -34,36 +26,19 @@ export function errorToMachineReadable(
     error: YaksokError,
 ): MachineReadableError {
     const machineError: MachineReadableError = {
-        type: 'error',
         message: removeAnsiCodes(error.message),
     }
 
-    if (error.position) {
-        machineError.position = {
-            line: error.position.line,
-            column: error.position.column,
-        }
+    const position =
+        error.position ||
+        error.tokens?.find((token) => token.position)?.position
+
+    if (position) {
+        machineError.position = `${position.line}:${position.column}`
     }
 
     if (error.codeFile?.fileName) {
         machineError.fileName = error.codeFile.fileName.toString()
-    }
-
-    // 코드 컨텍스트 생성 (라인 범위만 포함)
-    if (error.codeFile?.text) {
-        const code = error.codeFile.text
-        const position = error.position || error.tokens?.[0].position
-
-        if (position) {
-            const lines = code.split('\n')
-            const contextStartLine = Math.max(0, position.line - 4)
-            const contextEndLine = Math.min(lines.length - 1, position.line + 2)
-
-            machineError.context = {
-                startLine: contextStartLine + 1,
-                endLine: contextEndLine + 1,
-            }
-        }
     }
 
     if (error.child) {
