@@ -1,9 +1,11 @@
-import { YaksokError } from '../error/common.ts'
-import { Evaluable, Executable } from './base.ts'
-
-import type { Scope } from '../executer/scope.ts'
-import type { Token } from '../prepare/tokenize/token.ts'
-import type { ValueType } from '../value/base.ts'
+import {
+    Executable,
+    Evaluable,
+    YaksokError,
+    Token,
+    Scope,
+    ValueType,
+} from '@dalbit-yaksok/core'
 
 export class PythonImport extends Executable {
     static override friendlyName = '파이썬 불러오기'
@@ -21,7 +23,11 @@ export class PythonImport extends Executable {
         if (!session) return
 
         const namesPart = this.names.join(', ')
-        await session.runFFI('Python', `from ${this.module} import ${namesPart}`, {})
+        await session.runFFI(
+            'Python',
+            `from ${this.module} import ${namesPart}`,
+            {},
+        )
     }
 
     override validate(_scope: Scope): YaksokError[] {
@@ -46,13 +52,19 @@ export class PythonCall extends Evaluable {
             throw new Error('Session not mounted')
         }
 
-        console.log('[PythonCall.execute] this.args', this.args)
-        const evaluatedArgs = await Promise.all(this.args.map((a) => a.execute(scope)))
+        console.debug('[PythonCall.execute] this.args', this.args)
+        const evaluatedArgs = await Promise.all(
+            this.args.map((a) => a.execute(scope)),
+        )
         const argsMap: Record<string, ValueType> = Object.fromEntries(
             evaluatedArgs.map((v, i) => [String(i), v]),
         )
 
-        const result = await session.runFFI('Python', `CALL ${this.funcName}`, argsMap)
+        const result = await session.runFFI(
+            'Python',
+            `CALL ${this.funcName}`,
+            argsMap,
+        )
         return result
     }
 
@@ -82,10 +94,14 @@ export class PythonMethodCall extends Evaluable {
         }
 
         const evaluatedTarget = await this.target.execute(scope)
-        const evaluatedArgs = await Promise.all(this.args.map((a) => a.execute(scope)))
+        const evaluatedArgs = await Promise.all(
+            this.args.map((a) => a.execute(scope)),
+        )
         const argsMap: Record<string, ValueType> = {
             '0': evaluatedTarget,
-            ...Object.fromEntries(evaluatedArgs.map((v, i) => [String(i + 1), v])),
+            ...Object.fromEntries(
+                evaluatedArgs.map((v, i) => [String(i + 1), v]),
+            ),
         }
 
         const result = await session.runFFI(
@@ -104,5 +120,3 @@ export class PythonMethodCall extends Evaluable {
         return errors
     }
 }
-
-
