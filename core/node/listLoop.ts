@@ -10,6 +10,10 @@ import type { ValueType } from '../value/base.ts'
 import { IndexedValue } from '../value/indexed.ts'
 import { NumberValue } from '../value/primitive.ts'
 import type { Block } from './block.ts'
+import {
+    LOOP_WARNING_THRESHOLD,
+    emitLoopIterationWarning,
+} from '../util/loop-warning.ts'
 
 export class ListLoop extends Executable {
     static override friendlyName = '목록 반복'
@@ -32,8 +36,22 @@ export class ListLoop extends Executable {
 
         this.assertRepeatTargetIsList(list)
 
+        let iterationCount = 0
+        let warned = false
+
         try {
             for (const value of list.enumerate()) {
+                iterationCount += 1
+
+                if (!warned && iterationCount > LOOP_WARNING_THRESHOLD) {
+                    emitLoopIterationWarning({
+                        scope,
+                        tokens: this.tokens,
+                        iterations: iterationCount,
+                    })
+                    warned = true
+                }
+
                 await this.onRunChild({
                     scope,
                     childTokens: this.body.tokens,
