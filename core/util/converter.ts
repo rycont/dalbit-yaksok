@@ -3,6 +3,7 @@ import {
     IndexedValue,
     ListValue,
     NumberValue,
+    ReferenceStore,
     StringValue,
     ValueType,
 } from '../mod.ts'
@@ -40,6 +41,10 @@ export const dalbitToJS = (value: ValueType): unknown => {
             jsObject[key] = dalbitToJS(val)
         }
         return jsObject
+    }
+
+    if (value instanceof ReferenceStore) {
+        return value.ref
     }
 
     return value

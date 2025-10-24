@@ -4,6 +4,7 @@ import {
     IndexedValue,
     ListValue,
     NumberValue,
+    ReferenceStore,
     StringValue,
     ValueType,
 } from '../mod.ts'
@@ -67,5 +68,26 @@ Deno.test('dalbitToJS', async (t) => {
         )
         const jsValue = dalbitToJS(dalbitValue)
         assertEquals(jsValue, { a: ['b', { c: 1 }] })
+    })
+
+    await t.step('ReferenceStore', () => {
+        const originalObject = { key: 'value', number: 42 }
+        const dalbitValue = new ReferenceStore(originalObject)
+        const jsValue = dalbitToJS(dalbitValue)
+        assertEquals(jsValue, originalObject)
+    })
+
+    await t.step('ReferenceStore with primitive', () => {
+        const originalString = 'test string'
+        const dalbitValue = new ReferenceStore(originalString)
+        const jsValue = dalbitToJS(dalbitValue)
+        assertEquals(jsValue, originalString)
+    })
+
+    await t.step('ReferenceStore with number', () => {
+        const originalNumber = 123
+        const dalbitValue = new ReferenceStore(originalNumber)
+        const jsValue = dalbitToJS(dalbitValue)
+        assertEquals(jsValue, originalNumber)
     })
 })
