@@ -1,12 +1,8 @@
-import {
-    BooleanValue,
-    IndexedValue,
-    ListValue,
-    NumberValue,
-    ReferenceStore,
-    StringValue,
-    ValueType,
-} from '../mod.ts'
+import { ValueType } from '../value/base.ts'
+import { IndexedValue } from '../value/indexed.ts'
+import { ListValue } from '../value/list.ts'
+import { BooleanValue, NumberValue, StringValue } from '../value/primitive.ts'
+import { ReferenceStore } from '../value/python.ts'
 
 /**
  * Dalbit `ValueType`을 JavaScript 의 `unknown` 형으로 변환합니다.
