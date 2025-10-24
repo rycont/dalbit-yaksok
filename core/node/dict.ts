@@ -9,11 +9,11 @@ export class KeyValuePair extends Expression {
     static override friendlyName = '키-값 쌍'
 
     constructor(
-        public name: string,
+        public key: string | number,
         public entry: Evaluable,
         public override tokens: Token[] = [],
     ) {
-        super(name, tokens)
+        super(String(key), tokens)
     }
 }
 
@@ -49,7 +49,7 @@ export class DictLiteral extends Evaluable {
             await Promise.all(
                 this.pairs.map(
                     async (pair) =>
-                        [pair.name, await pair.entry.execute(scope)] as const,
+                        [pair.key, await pair.entry.execute(scope)] as const,
                 ),
             ),
         )
