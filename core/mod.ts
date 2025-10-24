@@ -17,7 +17,7 @@ export { parse } from './prepare/parse/index.ts'
 
 export { FEATURE_FLAG } from './constant/feature-flags.ts'
 export type * from './constant/type.ts'
-export type { Events, SessionConfig } from './session/session-config.ts'
+export type { Events, SessionConfig, WarningEvent } from './session/session-config.ts'
 
 export * from './error/index.ts'
 export type { Extension, ExtensionManifest } from './extension/extension.ts'
