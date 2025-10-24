@@ -92,8 +92,38 @@ export class MultiplyOperator extends Operator {
         return '*'
     }
 
-    override call(...operands: ValueType[]): NumberValue | StringValue {
+    override call(
+        ...operands: ValueType[]
+    ): NumberValue | StringValue | ListValue {
         const [left, right] = operands
+
+        const ensureValidListMultiplier = (value: number): number => {
+            if (!Number.isSafeInteger(value) || value < 0) {
+                throw new InvalidTypeForOperatorError({
+                    position: this.tokens?.[0].position,
+                    resource: {
+                        operator: this,
+                        operands,
+                    },
+                })
+            }
+
+            return value
+        }
+
+        const repeatList = (list: ListValue, multiplier: number): ListValue => {
+            const sourceElements = Array.from(list.enumerate())
+            const repeatedElements: ValueType[] = []
+
+            for (let i = 0; i < multiplier; i++) {
+                for (const element of sourceElements) {
+                    repeatedElements.push(element)
+                }
+            }
+
+            return new ListValue(repeatedElements)
+        }
+
         if (left instanceof NumberValue && right instanceof NumberValue) {
             return new NumberValue(left.value * right.value)
         }
@@ -104,6 +134,16 @@ export class MultiplyOperator extends Operator {
 
         if (left instanceof NumberValue && right instanceof StringValue) {
             return new StringValue(right.value.repeat(left.value))
+        }
+
+        if (left instanceof ListValue && right instanceof NumberValue) {
+            const multiplier = ensureValidListMultiplier(right.value)
+            return repeatList(left, multiplier)
+        }
+
+        if (left instanceof NumberValue && right instanceof ListValue) {
+            const multiplier = ensureValidListMultiplier(left.value)
+            return repeatList(right, multiplier)
         }
 
         throw new InvalidTypeForOperatorError({
