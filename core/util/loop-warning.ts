@@ -14,7 +14,21 @@ export function emitLoopIterationWarning({
     iterations: number
 }) {
     const session = scope.codeFile?.session
-    if (!session) return
+    if (!session) {
+        const fileName = scope.codeFile?.fileName
+        const fileLabel =
+            typeof fileName === 'string'
+                ? fileName
+                : typeof fileName === 'symbol'
+                  ? fileName.description ?? fileName.toString()
+                  : '알 수 없는 파일'
+
+        console.warn(
+            `loop-iteration-limit-exceeded 경고를 발행하지 못했습니다. ` +
+                `${fileLabel} 스코프가 세션에 마운트되어 있는지 확인해주세요.`,
+        )
+        return
+    }
 
     const warning: WarningEvent = {
         type: 'loop-iteration-limit-exceeded',
