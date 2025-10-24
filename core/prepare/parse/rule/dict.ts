@@ -5,6 +5,7 @@ import {
     KeyValuePairSequence,
 } from '../../../node/dict.ts'
 import { EOL } from '../../../node/misc.ts'
+import { NumberLiteral } from '../../../node/primitive-literal.ts'
 import { Rule } from '../type.ts'
 
 export const DICT_RULES: Rule[] = [
@@ -26,6 +27,26 @@ export const DICT_RULES: Rule[] = [
             const entry = nodes[2] as Evaluable
 
             return new KeyValuePair(name, entry, tokens)
+        },
+    },
+    {
+        pattern: [
+            {
+                type: NumberLiteral,
+            },
+            {
+                type: Expression,
+                value: ':',
+            },
+            {
+                type: Evaluable,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const keyLiteral = nodes[0] as NumberLiteral
+            const entry = nodes[2] as Evaluable
+
+            return new KeyValuePair(keyLiteral.toNumber(), entry, tokens)
         },
     },
     {

@@ -20,6 +20,10 @@ export class NumberLiteral extends Evaluable {
         return this.content.toString()
     }
 
+    toNumber(): number {
+        return this.content
+    }
+
     override validate(): YaksokError[] {
         return []
     }
