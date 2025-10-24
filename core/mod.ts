@@ -24,3 +24,4 @@ export * from './error/index.ts'
 export type { Extension, ExtensionManifest } from './extension/extension.ts'
 
 export { type Rule, RULE_FLAGS } from './prepare/parse/type.ts'
+export { dalbitToJS } from './util/converter.ts'

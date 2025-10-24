@@ -1,14 +1,14 @@
-import { dalbitToJS } from './converter.ts'
-import {
-    BooleanValue,
-    IndexedValue,
-    ListValue,
-    NumberValue,
-    ReferenceStore,
-    StringValue,
-    ValueType,
-} from '../mod.ts'
 import { assertEquals } from '@std/assert'
+import {
+    StringValue,
+    NumberValue,
+    BooleanValue,
+    ListValue,
+    IndexedValue,
+    ValueType,
+    ReferenceStore,
+    dalbitToJS,
+} from '@dalbit-yaksok/core'
 
 Deno.test('dalbitToJS', async (t) => {
     await t.step('StringValue', () => {
