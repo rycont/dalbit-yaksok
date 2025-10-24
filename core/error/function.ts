@@ -28,14 +28,12 @@ export class AlreadyDefinedFunctionError extends YaksokError {
 export class CallStackDepthExceededError extends YaksokError<
     { limit: number; depth: number } | undefined
 > {
-    constructor(
-        props: {
-            tokens?: Token[]
-            resource: { limit: number; depth: number }
-        },
-    ) {
+    constructor(props: {
+        tokens?: Token[]
+        resource: { limit: number; depth: number }
+    }) {
         super(props)
         const { limit } = props.resource
-        this.message = `약속 호출이 너무 깊어요. 약속 호출은 최대 ${limit}단계까지만 허용돼요.`
+        this.message = `약속을 너무 깊이 호출했어요. 약속 호출은 최대 ${limit}단계까지만 허용돼요.`
     }
 }
