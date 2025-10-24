@@ -46,7 +46,7 @@ export const DICT_RULES: Rule[] = [
             const keyLiteral = nodes[0] as NumberLiteral
             const entry = nodes[2] as Evaluable
 
-            return new KeyValuePair(parseFloat(keyLiteral.toPrint()), entry, tokens)
+            return new KeyValuePair(keyLiteral.toNumber(), entry, tokens)
         },
     },
     {
