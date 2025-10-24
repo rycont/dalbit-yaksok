@@ -6,6 +6,10 @@ import { LoopWithoutBodyError, NoBreakOrReturnError } from '../error/loop.ts'
 import type { Scope } from '../executer/scope.ts'
 import { TOKEN_TYPE, type Token } from '../prepare/tokenize/token.ts'
 import type { Block } from './block.ts'
+import {
+    LOOP_WARNING_THRESHOLD,
+    emitLoopIterationWarning,
+} from '../util/loop-warning.ts'
 
 export class Loop extends Executable {
     static override friendlyName = '반복'
@@ -19,8 +23,22 @@ export class Loop extends Executable {
             return
         }
 
+        let iterationCount = 0
+        let warned = false
+
         try {
             while (true) {
+                iterationCount += 1
+
+                if (!warned && iterationCount > LOOP_WARNING_THRESHOLD) {
+                    emitLoopIterationWarning({
+                        scope,
+                        tokens: this.tokens,
+                        iterations: iterationCount,
+                    })
+                    warned = true
+                }
+
                 await this.onRunChild({
                     scope,
                     childTokens: this.body.tokens,

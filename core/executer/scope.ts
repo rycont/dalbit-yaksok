@@ -18,18 +18,28 @@ export class Scope {
     parent: Scope | undefined
     codeFile?: CodeFile
     private functions: Map<string, RunnableObject> = new Map()
+    public callStackDepth: number
 
     constructor(
         config: {
             parent?: Scope
             codeFile?: CodeFile
             initialVariable?: Record<string, ValueType> | null
+            callStackDepth?: number
         } = {},
     ) {
         this.variables = config.initialVariable || {}
 
         if (config.parent) {
             this.parent = config.parent
+        }
+
+        if (config.callStackDepth !== undefined) {
+            this.callStackDepth = config.callStackDepth
+        } else if (config.parent) {
+            this.callStackDepth = config.parent.callStackDepth
+        } else {
+            this.callStackDepth = 0
         }
 
         if (config.codeFile) {

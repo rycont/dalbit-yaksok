@@ -139,7 +139,7 @@ export class FunctionInvoke extends Evaluable {
         const functionObject = scope.getFunctionObject(this.name)
 
         try {
-            const returnValue = await functionObject.run(args)
+            const returnValue = await functionObject.run(args, scope)
             assertValidReturnValue(this, returnValue)
 
             return returnValue
@@ -155,6 +155,16 @@ export class FunctionInvoke extends Evaluable {
 
                 errorInstance.codeFile = scope.codeFile
                 throw errorInstance
+            }
+
+            if (error instanceof YaksokError) {
+                if (!error.tokens) {
+                    error.tokens = this.tokens
+                }
+
+                if (!error.codeFile) {
+                    error.codeFile = scope.codeFile
+                }
             }
 
             throw error

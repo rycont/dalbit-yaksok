@@ -30,6 +30,10 @@ export class IndexedValue extends ObjectValue {
         this.entries.set(index, value)
     }
 
+    getEntries(): IterableIterator<[string | number, ValueType]> {
+        return this.entries.entries()
+    }
+
     getItemsFromKeys(keysListValue: ListValue): IndexedValue {
         const keys = [...keysListValue.entries.values()]
         const entries = new Map<IndexKeyType, ValueType>()

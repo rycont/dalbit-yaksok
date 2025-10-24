@@ -222,6 +222,10 @@ function convertYaksokToPythonLiteral(v: ValueType): string {
         return `[${items.join(', ')}]`
     } else if (v instanceof PrimitiveValue) {
         return JSON.stringify(v.toPrint())
+    } else if (v instanceof ReferenceStore) {
+        throw new Error(
+            'ReferenceStore should not be converted directly. Use executeFFI instead.',
+        )
     }
 
     throw new Error('Unsupported value type: ' + v.constructor.name)
