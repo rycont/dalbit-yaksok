@@ -25,5 +25,9 @@
         "apply-version": "deno run --allow-read --allow-write apply-version.ts",
         "publish": "deno task apply-version && deno task --recursive test && deno publish --allow-dirty",
         "nested-test": "deno task --recursive test && deno publish --dry-run --allow-dirty"
+    },
+    "deploy": {
+      "org": "rycont",
+      "app": "dalbit-yaksok"
     }
 }

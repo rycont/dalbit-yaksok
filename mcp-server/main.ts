@@ -1,10 +1,8 @@
-#!/usr/bin/env -S deno run --allow-read --allow-write --allow-net --allow-env
-
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StreamableHTTPTransport } from '@hono/mcp'
 import { Hono } from '@hono/hono'
 
-import { YaksokSession } from '@dalbit-yaksok/core'
+import { type MachineReadableError, YaksokSession } from '@dalbit-yaksok/core'
 import { z } from 'zod'
 
 // MCP 서버 구현
