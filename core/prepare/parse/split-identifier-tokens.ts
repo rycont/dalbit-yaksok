@@ -25,6 +25,12 @@ export function splitIdentifierTokens(
     const token = tokens[index];
 
     if (token.type === TOKEN_TYPE.IDENTIFIER) {
+      if (isAssignmentTarget(tokens, index)) {
+        declaredIdentifiers.add(token.value);
+        result.push(token);
+        continue;
+      }
+
       const splitted = splitIdentifierToken(
         token,
         sortedSuffixes,
@@ -35,10 +41,6 @@ export function splitIdentifierTokens(
         result.push(...splitted);
       } else {
         result.push(token);
-      }
-
-      if (isAssignmentTarget(tokens, index)) {
-        declaredIdentifiers.add(token.value);
       }
     } else {
       result.push(token);
