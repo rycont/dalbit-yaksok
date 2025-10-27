@@ -134,7 +134,7 @@ export const BASIC_RULES: Rule[][] = [
                 },
             ],
             factory: (nodes, tokens) => {
-                const target = nodes[0] as Evaluable<IndexedValue>
+                const target = nodes[0] as Evaluable<IndexedValue | StringValue>
                 const index = nodes[2] as Evaluable<StringValue | NumberValue>
 
                 return new IndexFetch(target, index, tokens)
