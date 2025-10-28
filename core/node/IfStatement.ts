@@ -56,6 +56,10 @@ export class ElseStatement extends Executable {
     constructor(public body: Block, public override tokens: Token[]) {
         super()
     }
+
+    override validate(scope: Scope): YaksokError[] {
+        return this.body.validate(scope)
+    }
 }
 
 export class ElseIfStatement extends Executable {
@@ -63,5 +67,12 @@ export class ElseIfStatement extends Executable {
 
     constructor(public elseIfCase: Case, public override tokens: Token[]) {
         super()
+    }
+
+    override validate(scope: Scope): YaksokError[] {
+        return [
+            ...(this.elseIfCase.condition?.validate(scope) || []),
+            ...this.elseIfCase.body.validate(scope),
+        ]
     }
 }

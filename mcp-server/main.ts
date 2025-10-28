@@ -12,6 +12,56 @@ const mcpServer = new McpServer({
     description: '한국어 프로그래밍 언어 달빛약속을 실행할 수 있는 MCP 서버',
 })
 
+// Codebook 파일 캐시
+interface CodebookItem {
+    title: string
+    content: string
+}
+
+let codebookCache: Map<string, CodebookItem> = new Map()
+let codebookFiles: string[] = []
+
+// 서버 시작 시 Codebook 파일 로드
+async function loadCodebook() {
+    try {
+        const codebookDir = new URL('./codebook/', import.meta.url).pathname
+
+        // Windows 경로 처리
+        const dirPath =
+            codebookDir.startsWith('/') && codebookDir[2] === ':'
+                ? codebookDir.slice(1)
+                : codebookDir
+
+        const files: string[] = []
+
+        // 디렉토리 읽기
+        for await (const entry of Deno.readDir(dirPath)) {
+            if (entry.isFile && entry.name.endsWith('.md')) {
+                files.push(entry.name)
+            }
+        }
+
+        files.sort()
+
+        // 파일 로드
+        for (const file of files) {
+            const filePath = `${dirPath}/${file}`
+            const content = await Deno.readTextFile(filePath)
+            const title = file.replace('.md', '')
+
+            codebookCache.set(title, { title, content })
+            codebookFiles.push(title)
+        }
+
+        console.log(
+            `✅ ${codebookFiles.length}개의 Codebook 파일 로드 완료:`,
+            codebookFiles,
+        )
+    } catch (error) {
+        console.error('❌ Codebook 파일 로드 실패:', error)
+    }
+}
+
 // 도구 호출 핸들러
 mcpServer.registerTool(
     'execute',
@@ -34,39 +84,61 @@ mcpServer.registerTool(
             },
         })
 
-        try {
-            session.addModule('main', input.code)
-            const result = await session.runModule('main')
+        session.addModule('main', input.code)
+        const result = await session.runModule('main')
 
-            const payload = {
-                status: result.reason,
-                output: output,
-                errors: errors,
-            }
+        const payload = {
+            status: result.reason,
+            output: output,
+            errors: errors,
+        }
 
-            return {
-                content: [
-                    {
-                        type: 'text',
-                        text: JSON.stringify(payload),
-                    },
-                ],
-            }
-        } catch (error) {
-            const payload = {
-                status: 'error',
-                errors: [error],
-            }
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: JSON.stringify(payload),
+                },
+            ],
+        }
+    },
+)
 
-            return {
-                structuredContent: payload,
-                content: [
-                    {
-                        type: 'text',
-                        text: JSON.stringify(payload),
-                    },
-                ],
-            }
+const codebookFileNames = codebookFiles.map((f) =>
+    f.replace('.md', '').replace('-', ' '),
+)
+
+// Codebook 탐색 도구
+mcpServer.registerTool(
+    'searchDocument',
+    {
+        description: `달빛약속 문법책의 내용을 검색합니다. 당신은 달빛약속의 문법을 전혀 모르기 때문에, 모든 프로그래밍 언어를 구현하기 전에 문법을 검색해야 합니다.\n\n 검색 예시:\n${codebookFileNames.join(
+            ', ',
+        )}`,
+        inputSchema: {
+            query: z.string().describe('검색 키워드'),
+        },
+    },
+    async (input) => {
+        const queries = input.query.toLowerCase().split(' ')
+
+        const result = [...codebookCache.entries()]
+            .filter(([_, value]) =>
+                queries.some(
+                    (query) =>
+                        value.title.toLowerCase().includes(query) ||
+                        value.content.toLowerCase().includes(query),
+                ),
+            )
+            .map(([key, value]) => value.content)
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: result.join('\n\n---\n\n'),
+                },
+            ],
         }
     },
 )
@@ -74,6 +146,11 @@ mcpServer.registerTool(
 const app = new Hono()
 
 app.all('/mcp', async (c) => {
+    // 초기화 시 codebook 로드 (첫 요청 시)
+    if (codebookCache.size === 0) {
+        await loadCodebook()
+    }
+
     const transport = new StreamableHTTPTransport()
     await mcpServer.connect(transport)
     return transport.handleRequest(c)
