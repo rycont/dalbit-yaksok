@@ -25,7 +25,9 @@ export class PlusOperator extends Operator {
         return '+'
     }
 
-    override call(...operands: ValueType[]): NumberValue | StringValue {
+    override call(
+        ...operands: ValueType[]
+    ): NumberValue | StringValue | ListValue {
         const [left, right] = operands
 
         if (left instanceof NumberValue && right instanceof NumberValue) {
@@ -42,6 +44,13 @@ export class PlusOperator extends Operator {
 
         if (left instanceof NumberValue && right instanceof StringValue) {
             return new StringValue(left.value.toString() + right.value)
+        }
+
+        if (left instanceof ListValue && right instanceof ListValue) {
+            return new ListValue([
+                ...Array.from(left.enumerate()),
+                ...Array.from(right.enumerate()),
+            ])
         }
 
         throw new InvalidTypeForOperatorError({
