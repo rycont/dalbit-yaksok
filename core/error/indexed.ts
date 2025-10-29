@@ -2,7 +2,7 @@ import type { Evaluable } from '../node/base.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { Position } from '../type/position.ts'
 import type { ValueType } from '../value/base.ts'
-import type { IndexedValue } from '../value/indexed.ts'
+import { StringValue } from '../value/primitive.ts'
 import {
     YaksokError,
     bold,
@@ -16,7 +16,7 @@ export class IndexKeyNotFoundError extends YaksokError {
         position?: Position
         resource: {
             index: string | number
-            target: IndexedValue
+            target: ValueType
         }
         tokens?: Token[]
     }) {
@@ -29,6 +29,22 @@ export class IndexKeyNotFoundError extends YaksokError {
                 })`,
             )
         }라는 값이 없어요. `
+    }
+}
+
+export class StringIndexOutOfRangeError extends YaksokError {
+    constructor(props: {
+        tokens?: Token[]
+        resource: {
+            index: number
+            length: number
+            target: StringValue
+        }
+    }) {
+        super(props)
+
+        const targetText = props.resource.target.toPrint()
+        this.message = `${targetText}에서 ${props.resource.index}번째 글자를 가져올 수 없어요. ${targetText}의 길이는 ${props.resource.length}이에요.`
     }
 }
 

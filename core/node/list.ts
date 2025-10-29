@@ -1,5 +1,7 @@
 import {
+    IndexKeyNotFoundError,
     ListIndexTypeError,
+    StringIndexOutOfRangeError,
     TargetIsNotIndexedValueError,
 } from '../error/indexed.ts'
 
@@ -63,7 +65,7 @@ export class IndexFetch extends Evaluable {
     static override friendlyName = '사전에서 값 가져오기'
 
     constructor(
-        public list: Evaluable<IndexedValue>,
+        public list: Evaluable<IndexedValue | StringValue>,
         public index: Evaluable<StringValue | NumberValue | ListValue>,
         public override tokens: Token[],
     ) {
@@ -74,11 +76,45 @@ export class IndexFetch extends Evaluable {
         const list = await this.list.execute(scope)
         const index = await this.index.execute(scope)
 
+        if (list instanceof StringValue) {
+            if (!(index instanceof NumberValue)) {
+                throw new ListIndexTypeError({
+                    tokens: this.index.tokens,
+                    resource: {
+                        index: index.toPrint(),
+                    },
+                })
+            }
+
+            try {
+                ListValue.assertProperIndex(index.value)
+            } catch (error) {
+                if (error instanceof YaksokError && !error.tokens) {
+                    error.tokens = this.index.tokens
+                }
+
+                throw error
+            }
+
+            if (index.value >= list.value.length) {
+                throw new StringIndexOutOfRangeError({
+                    tokens: this.tokens,
+                    resource: {
+                        target: list,
+                        index: index.value,
+                        length: list.value.length,
+                    },
+                })
+            }
+
+            return new StringValue(list.value[index.value])
+        }
+
         if (!(list instanceof IndexedValue)) {
             throw new TargetIsNotIndexedValueError({
                 tokens: this.tokens,
                 resource: {
-                    target: list,
+                    target: this.list,
                 },
             })
         }
@@ -116,7 +152,7 @@ export class IndexFetch extends Evaluable {
             throw new TargetIsNotIndexedValueError({
                 tokens: this.tokens.slice(0, -1),
                 resource: {
-                    target: list,
+                    target: this.list,
                 },
             })
         }
