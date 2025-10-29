@@ -11,6 +11,7 @@ import { SetVariable } from '../../node/variable.ts'
 import type { CodeFile } from '../../type/code-file.ts'
 import { parseBracket } from './parse-bracket.ts'
 import type { Rule } from './type.ts'
+import { splitIdentifierTokens } from './split-identifier-tokens.ts'
 
 /**
  * 파싱 결과를 담는 객체입니다.
@@ -66,7 +67,11 @@ interface ParseResult {
 export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
     try {
         const dynamicRules = createDynamicRule(codeFile)
-        const nodes = convertTokensToNodes(codeFile.tokens)
+        const splittedTokens = splitIdentifierTokens(
+            codeFile.tokens,
+            dynamicRules,
+        )
+        const nodes = convertTokensToNodes(splittedTokens)
         const indentedNodes = parseIndent(nodes)
 
         const indexFetchParsedNodes = codeFile.session?.flags[
@@ -75,7 +80,7 @@ export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
             ? indentedNodes
             : parseBracket(
                   indentedNodes,
-                  codeFile.tokens,
+                  splittedTokens,
                   dynamicRules,
                   optimistic,
               )
