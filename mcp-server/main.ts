@@ -1,8 +1,8 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { StreamableHTTPTransport } from '@hono/mcp'
 import { Hono } from '@hono/hono'
+import { StreamableHTTPTransport } from '@hono/mcp'
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 
-import { type MachineReadableError, YaksokSession } from '@dalbit-yaksok/core'
+import { YaksokSession, type MachineReadableError } from '@dalbit-yaksok/core'
 import { z } from 'zod'
 
 // MCP 서버 구현
@@ -72,6 +72,7 @@ mcpServer.registerTool(
         },
     },
     async (input) => {
+        console.log('Execution called')
         let output = ''
 
         const errors: MachineReadableError[] = []
@@ -85,21 +86,39 @@ mcpServer.registerTool(
         })
 
         session.addModule('main', input.code)
-        const result = await session.runModule('main')
+        try {
+            const result = await session.runModule('main')
 
-        const payload = {
-            status: result.reason,
-            output: output,
-            errors: errors,
-        }
+            const payload = {
+                status: result.reason,
+                output: output,
+                errors: errors,
+            }
 
-        return {
-            content: [
-                {
-                    type: 'text',
-                    text: JSON.stringify(payload),
-                },
-            ],
+            console.log('Execution finished')
+
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: JSON.stringify(payload),
+                    },
+                ],
+            }
+        } catch (e) {
+            console.error('Execution error:', e)
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: JSON.stringify({
+                            status: 'Unexpected Error. This might not be your fault.',
+                            output: output,
+                            errors: errors,
+                        }),
+                    },
+                ],
+            }
         }
     },
 )
@@ -120,6 +139,7 @@ mcpServer.registerTool(
         },
     },
     async (input) => {
+        console.log('Search called', input.query)
         const queries = input.query.toLowerCase().split(' ')
 
         const result = [...codebookCache.entries()]
@@ -131,6 +151,8 @@ mcpServer.registerTool(
                 ),
             )
             .map(([key, value]) => value.content)
+
+        console.log('Search finished:', result.length, 'results found')
 
         return {
             content: [
