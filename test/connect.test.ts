@@ -1,6 +1,5 @@
 import { QuickJS } from '@dalbit-yaksok/quickjs'
 import { assert, assertEquals, assertIsError } from '@std/assert'
-import { FFIResultTypeIsNotForYaksokError } from '../core/error/ffi.ts'
 import {
     ErrorOccurredWhileRunningFFIExecution,
     YaksokSession,
@@ -133,8 +132,14 @@ RRR
     assertEquals(output, '[황선형, 도지석]\n')
 })
 
-Deno.test('올바르지 않은 연결 반환값: JS String', async () => {
-    const session = new YaksokSession()
+Deno.test('JS 문자열 반환값 자동 변환', async () => {
+    let output = ''
+
+    const session = new YaksokSession({
+        stdout(value) {
+            output += value + '\n'
+        },
+    })
 
     await session.extend({
         manifest: {
@@ -160,13 +165,18 @@ SOMETHING
     )
 
     const result = await session.runModule('main')
-    console.log(result)
-    assert(result.reason === 'error')
-    assertIsError(result.error, FFIResultTypeIsNotForYaksokError)
+    assert(result.reason === 'finish')
+    assertEquals(output, 'invalid value\n')
 })
 
-Deno.test('올바르지 않은 연결 반환값: JS Object', async () => {
-    const session = new YaksokSession()
+Deno.test('JS 객체 반환값 자동 변환', async () => {
+    let output = ''
+
+    const session = new YaksokSession({
+        stdout(value) {
+            output += value + '\n'
+        },
+    })
 
     await session.extend({
         manifest: {
@@ -192,12 +202,18 @@ CODES
     )
 
     const result = await session.runModule('main')
-    assert(result.reason === 'error')
-    assertIsError(result.error, FFIResultTypeIsNotForYaksokError)
+    assert(result.reason === 'finish')
+    assertEquals(output, '{\n\t\n}\n')
 })
 
-Deno.test('연결 반환값이 없음', async () => {
-    const session = new YaksokSession()
+Deno.test('undefined 반환값 자동 변환', async () => {
+    let output = ''
+
+    const session = new YaksokSession({
+        stdout(value) {
+            output += value + '\n'
+        },
+    })
 
     await session.extend({
         manifest: {
@@ -223,8 +239,8 @@ CODES
     )
 
     const result = await session.runModule('main')
-    assert(result.reason === 'error')
-    assertIsError(result.error, FFIResultTypeIsNotForYaksokError)
+    assert(result.reason === 'finish')
+    assertEquals(output, 'undefined\n')
 })
 
 Deno.test('구현되지 않은 FFI', async () => {

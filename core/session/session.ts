@@ -30,6 +30,7 @@ import { AbortedSessionSignal } from '../executer/signals.ts'
 import type { Extension } from '../extension/extension.ts'
 import type { ValueType } from '../value/base.ts'
 import { postprocessErrors } from '../error/postprocess.ts'
+import { jsToDalbit } from '../util/converter.ts'
 
 /**
  * `달빛 약속` 코드의 실행 생명주기를 총괄하는 핵심 클래스입니다.
@@ -431,7 +432,7 @@ export class YaksokSession {
         try {
             const result = await extension.executeFFI(code, args)
 
-            return result
+            return jsToDalbit(result)
         } catch (error) {
             if (error instanceof ErrorInFFIExecution) {
                 throw error
