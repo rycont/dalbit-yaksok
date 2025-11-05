@@ -7,12 +7,14 @@ export function splitVariableName(
     nodes: Node[],
     codeFile?: CodeFile,
     inheritedIdentifiers: string[] = [],
-    functionHeaders: string[] = [],
+    inheritedFunctionHeaders: string[] = [],
     depth = 0,
 ): Node[] {
     let cursor = 0
 
-    const detectedFunctionHeaderAfterParameter: string[] = [...functionHeaders]
+    const detectedFunctionHeaderAfterParameter: string[] = [
+        ...inheritedFunctionHeaders,
+    ]
     const detectedIdentifierNames: string[] = [...inheritedIdentifiers]
 
     while (cursor < nodes.length) {
@@ -138,6 +140,14 @@ export function splitVariableName(
             if (prevNode instanceof Identifier) {
                 detectedIdentifierNames.push(prevNode.value)
             }
+        } else if (currentNode instanceof Block) {
+            currentNode.children = splitVariableName(
+                currentNode.children,
+                codeFile,
+                detectedIdentifierNames,
+                detectedFunctionHeaderAfterParameter,
+                depth + 1,
+            )
         }
 
         cursor++
