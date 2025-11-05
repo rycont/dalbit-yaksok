@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { YaksokSession } from '@dalbit-yaksok/core'
+import {
+    YaksokSession,
+    CodeFile,
+    parse,
+    FEATURE_FLAG,
+} from '@dalbit-yaksok/core'
 import AnsiCode from 'ansi-to-html'
 import type { editor } from 'monaco-editor'
 import { onMounted, ref, useTemplateRef, watch } from 'vue'
@@ -95,12 +100,13 @@ async function runCode() {
         monaco = await loadMonaco()
     }
 
-    const { Pyodide } = await import('@dalbit-yaksok/pyodide')
-
     stdout.value = []
 
     try {
         const session = new YaksokSession({
+            flags: {
+                [FEATURE_FLAG.DISABLE_OPERAND_EXECUTION_DELAY]: true,
+            },
             stdout: (output) => {
                 stdout.value = [...stdout.value, output]
             },
@@ -137,7 +143,8 @@ async function runCode() {
             },
         })
 
-        await session.extend(new Pyodide())
+        const c = new CodeFile(code.value)
+        console.log(code.value, c.ast.children, parse(c))
 
         session.addModule('main', code.value, {
             executionDelay: 400,

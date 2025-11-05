@@ -34,13 +34,16 @@ features:
 
 <script setup>
 
-const DEFAULT_CODE = `"달빛약속에 오신걸 환영합니다" 보여주기
-약속, 키가 (키)cm이고 몸무게가 (몸무게)일 때 비만도
-    몸무게 / (키 / 100 * 키 / 100) 반환하기
+const DEFAULT_CODE = `약속, (음식)을/를 (사람)와/과 먹기
+    "맛있는 " + 음식 + ", " + 사람 + "의 입으로 모두 들어갑니다." 보여주기
 
-비만도 = 키가 (170)cm이고 몸무게가 (70)일 때 비만도
+먹을_음식 = "유부초밥"
+먹일_사람 = "현수"
 
-비만도 보여주기
+먹을_음식을 먹일_사람과 먹기
+
+5번 반복
+    먹을_음식을 먹일_사람과 먹기
 `
 
 const codeFromUrl = (globalThis.location && new URL(globalThis.location.href).searchParams.get('code')) || DEFAULT_CODE

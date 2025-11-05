@@ -11,6 +11,7 @@ import { SetVariable } from '../../node/variable.ts'
 import type { CodeFile } from '../../type/code-file.ts'
 import { parseBracket } from './parse-bracket.ts'
 import type { Rule } from './type.ts'
+import { splitVariableName } from './split-variable-name.ts'
 
 /**
  * 파싱 결과를 담는 객체입니다.
@@ -69,7 +70,7 @@ export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
         const nodes = convertTokensToNodes(codeFile.tokens)
         const indentedNodes = parseIndent(nodes)
 
-        const indexFetchParsedNodes = codeFile.session?.flags[
+        const priorityParsedNodes = codeFile.session?.flags[
             'disable-bracket-first-parsing'
         ]
             ? indentedNodes
@@ -80,10 +81,13 @@ export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
                   optimistic,
               )
 
+        const variableNameSpliitedNodes = splitVariableName(priorityParsedNodes)
+
         const childNodes = callParseRecursively(
-            indexFetchParsedNodes,
+            variableNameSpliitedNodes,
             dynamicRules,
         )
+
         const childTokens = getTokensFromNodes(childNodes)
 
         const ast = new Block(childNodes, childTokens)
@@ -126,6 +130,6 @@ function extractExportedVariables(nodes: Node[]): Rule[] {
                     config: {
                         exported: true,
                     },
-                } satisfies Rule),
+                }) satisfies Rule,
         )
 }

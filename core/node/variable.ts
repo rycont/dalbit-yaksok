@@ -1,13 +1,12 @@
 import { YaksokError } from '../error/common.ts'
 import { Evaluable } from './base.ts'
 
-import { RESERVED_WORDS } from '../constant/reserved-words.ts'
-import { CannotUseReservedWordForIdentifierNameError } from '../error/index.ts'
 import type { Scope } from '../executer/scope.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { ValueType } from '../value/base.ts'
 import { NumberValue } from '../value/primitive.ts'
 import { assignerToOperatorMap } from './operator.ts'
+import { assertValidIdentifierName } from '../util/assert-valid-identifier-name.ts'
 
 export class SetVariable extends Evaluable {
     static override friendlyName = '변수 정하기'
@@ -19,7 +18,7 @@ export class SetVariable extends Evaluable {
         public operator: string,
     ) {
         super()
-        this.assertValidName()
+        assertValidIdentifierName(name, tokens[0])
     }
 
     override async execute(scope: Scope): Promise<ValueType> {
@@ -56,14 +55,6 @@ export class SetVariable extends Evaluable {
 
         scope.setVariable(name, newValue)
         return newValue
-    }
-
-    assertValidName() {
-        if (!RESERVED_WORDS.has(this.name)) return
-
-        throw new CannotUseReservedWordForIdentifierNameError({
-            tokens: this.tokens,
-        })
     }
 
     override validate(scope: Scope): YaksokError[] {
