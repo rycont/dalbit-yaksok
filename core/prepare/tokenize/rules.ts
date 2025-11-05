@@ -117,9 +117,9 @@ export const RULES: {
         starter: /\s/,
         parse: (code, index) => {
             let i = index
-            let spaces = 0;
+            let spaces = 0
             while (i < code.length && (code[i] === ' ' || code[i] === '\t')) {
-                 if (code[i] === '\t') {
+                if (code[i] === '\t') {
                     spaces += 4
                 } else {
                     spaces++
@@ -165,7 +165,10 @@ export const RULES: {
                     if (assigner === '=' && code.startsWith('==', index)) {
                         continue
                     }
-                    return { value: assigner, newIndex: index + assigner.length }
+                    return {
+                        value: assigner,
+                        newIndex: index + assigner.length,
+                    }
                 }
             }
             return null
@@ -210,65 +213,49 @@ export const RULES: {
         type: TOKEN_TYPE.COMMA,
         starter: [','],
         parse: (code, index) =>
-            code[index] === ','
-                ? { value: ',', newIndex: index + 1 }
-                : null,
+            code[index] === ',' ? { value: ',', newIndex: index + 1 } : null,
     },
     {
         type: TOKEN_TYPE.OPENING_PARENTHESIS,
         starter: ['('],
         parse: (code, index) =>
-            code[index] === '('
-                ? { value: '(', newIndex: index + 1 }
-                : null,
+            code[index] === '(' ? { value: '(', newIndex: index + 1 } : null,
     },
     {
         type: TOKEN_TYPE.CLOSING_PARENTHESIS,
         starter: [')'],
         parse: (code, index) =>
-            code[index] === ')'
-                ? { value: ')', newIndex: index + 1 }
-                : null,
+            code[index] === ')' ? { value: ')', newIndex: index + 1 } : null,
     },
     {
         type: TOKEN_TYPE.OPENING_BRACKET,
         starter: ['['],
         parse: (code, index) =>
-            code[index] === '['
-                ? { value: '[', newIndex: index + 1 }
-                : null,
+            code[index] === '[' ? { value: '[', newIndex: index + 1 } : null,
     },
     {
         type: TOKEN_TYPE.CLOSING_BRACKET,
         starter: [']'],
         parse: (code, index) =>
-            code[index] === ']'
-                ? { value: ']', newIndex: index + 1 }
-                : null,
+            code[index] === ']' ? { value: ']', newIndex: index + 1 } : null,
     },
     {
         type: TOKEN_TYPE.OPENING_BRACE,
         starter: ['{'],
         parse: (code, index) =>
-            code[index] === '{'
-                ? { value: '{', newIndex: index + 1 }
-                : null,
+            code[index] === '{' ? { value: '{', newIndex: index + 1 } : null,
     },
     {
         type: TOKEN_TYPE.CLOSING_BRACE,
         starter: ['}'],
         parse: (code, index) =>
-            code[index] === '}'
-                ? { value: '}', newIndex: index + 1 }
-                : null,
+            code[index] === '}' ? { value: '}', newIndex: index + 1 } : null,
     },
     {
         type: TOKEN_TYPE.COLON,
         starter: [':'],
         parse: (code, index) =>
-            code[index] === ':'
-                ? { value: ':', newIndex: index + 1 }
-                : null,
+            code[index] === ':' ? { value: ':', newIndex: index + 1 } : null,
     },
     {
         type: TOKEN_TYPE.STRING,

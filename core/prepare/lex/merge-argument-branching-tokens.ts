@@ -1,3 +1,4 @@
+import { assertValidIdentifierName } from '../../util/assert-valid-identifier-name.ts'
 import { Token, TOKEN_TYPE } from '../tokenize/token.ts'
 
 export function mergeArgumentBranchingTokens(
@@ -15,7 +16,12 @@ export function mergeArgumentBranchingTokens(
             if (!isCurrentSlash) continue
 
             const mergingEndIndex = getMergingEndIndex(tokens, cursor, end)
-            const mergingTokens = tokens.slice(cursor - 1, mergingEndIndex)
+            const mergingTokens = tokens
+                .slice(cursor - 1, mergingEndIndex)
+                .filter(Boolean) as Token[]
+            mergingTokens.map((token) =>
+                assertValidIdentifierName(token.value, token),
+            )
             const mergedString = getMergedSlashedNames(mergingTokens)
 
             const prevToken = tokens[cursor - 1]!
