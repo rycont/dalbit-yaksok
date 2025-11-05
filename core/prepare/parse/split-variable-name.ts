@@ -83,7 +83,7 @@ export function splitVariableName(
                     }
                     return null
                 })
-                .filter((candidate) => candidate !== null)
+                .filter((candidate): candidate is string[] => candidate !== null)
 
             if (candidates.length === 0) {
                 cursor++
