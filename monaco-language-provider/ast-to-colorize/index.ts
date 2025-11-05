@@ -20,6 +20,7 @@ import {
     StringLiteral,
     TOKEN_TYPE,
     ValueWithParenthesis,
+    CountLoop,
 } from '@dalbit-yaksok/core'
 import { ColorPart } from '../type.ts'
 import { parseFunctionDeclareHeader } from './declare-function.ts'
@@ -116,6 +117,10 @@ function node(node: Node): ColorPart[] {
 
     if (node instanceof NotExpression) {
         return visitNotExpression(node)
+    }
+
+    if (node instanceof CountLoop) {
+        return visitCountLoop(node)
     }
 
     console.log('Unknown node:', node)
@@ -418,6 +423,15 @@ function visitNotExpression(current: NotExpression): ColorPart[] {
             scopes: SCOPE.OPERATOR,
         } as ColorPart,
     ].concat(node(current.value))
+}
+
+function visitCountLoop(current: CountLoop): ColorPart[] {
+    let colorParts: ColorPart[] = []
+
+    colorParts = colorParts.concat(node(current.count))
+    colorParts = colorParts.concat(node(current.body))
+
+    return colorParts
 }
 
 export { node as nodeToColorTokens }
