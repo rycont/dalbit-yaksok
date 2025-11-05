@@ -1,8 +1,7 @@
-import { CodeFile } from '../../mod.ts'
-import { Node } from '../../node/base.ts'
+import type { CodeFile } from '../../type/code-file.ts'
+import type { Node } from '../../node/base.ts'
 import { Block, Expression, Identifier } from '../../node/index.ts'
-import { EOL } from '../../node/misc.ts'
-import { Token, TOKEN_TYPE } from '../tokenize/token.ts'
+import { type Token, TOKEN_TYPE } from '../tokenize/token.ts'
 
 export function splitVariableName(
     nodes: Node[],
