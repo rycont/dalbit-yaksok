@@ -48,12 +48,10 @@ export class Executable extends Node {
         scope,
         childTokens,
         skipReport = false,
-        yieldThread = true,
     }: {
         scope: Scope
         childTokens: Token[]
         skipReport?: boolean
-        yieldThread?: boolean
     }) {
         if (scope.codeFile?.session?.signal?.aborted) {
             throw new AbortedSessionSignal(childTokens)
