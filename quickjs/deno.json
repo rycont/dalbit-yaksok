@@ -9,5 +9,5 @@
     "check-deploy": "deno publish --dry-run --allow-dirty",
     "test": "deno test --quiet --allow-net --allow-read --parallel & deno lint & deno task check-deploy"
   },
-  "version": "3.5.6"
+  "version": "3.5.7"
 }
