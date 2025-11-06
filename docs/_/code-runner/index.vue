@@ -147,7 +147,7 @@ async function runCode() {
         console.log(code.value, c.ast.children, parse(c))
 
         session.addModule('main', code.value, {
-            executionDelay: 400,
+            // executionDelay: 400,
         })
 
         console.log(await session.runModule('main'))

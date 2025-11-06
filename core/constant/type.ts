@@ -42,7 +42,7 @@ export interface SuccessRunModuleResult extends RunModuleResultBase {
  *
  * session.addModule('main', /* Some codes that take a long time *\/);
  *
- * setTimeout(() => {
+ * (setTimeout)(() => {
  *   controller.abort(); // 3초 후 실행 중단
  * }, 3000);
  *

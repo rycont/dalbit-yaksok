@@ -30,6 +30,9 @@ export class Node {
     }
 }
 
+let tick = 0
+const YIELD_TO_UI_THREAD_INTERVAL = 300
+
 export class Executable extends Node {
     static override friendlyName = '실행 가능한 노드'
 
@@ -45,21 +48,23 @@ export class Executable extends Node {
         scope,
         childTokens,
         skipReport = false,
+        yieldThread = true,
     }: {
         scope: Scope
         childTokens: Token[]
         skipReport?: boolean
+        yieldThread?: boolean
     }) {
         if (scope.codeFile?.session?.signal?.aborted) {
             throw new AbortedSessionSignal(childTokens)
         }
 
-        const executionDelay = scope.codeFile?.executionDelay
+        const executionDelay = scope.codeFile?.executionDelay ?? 0
 
-        if (!skipReport) {
-            await new Promise((r) =>
-                setTimeout(r, scope.codeFile?.executionDelay ?? 0),
-            )
+        if (executionDelay) {
+            await new Promise((r) => setTimeout(r, executionDelay))
+        } else if (tick++ % YIELD_TO_UI_THREAD_INTERVAL === 0) {
+            await new Promise((r) => setTimeout(r, 0))
         }
 
         // runningCode 이벤트를 resume 대기 후에 발생하도록 순서 변경
@@ -77,7 +82,6 @@ export class Executable extends Node {
                 )
             })
         }
-
         if (!skipReport && childTokens.length) {
             this.reportRunningCode(childTokens, scope)
         }
@@ -114,7 +118,10 @@ export class Evaluable<T extends ValueType = ValueType> extends Executable {
 export class Identifier extends Evaluable {
     static override friendlyName = '식별자'
 
-    constructor(public value: string, public override tokens: Token[]) {
+    constructor(
+        public value: string,
+        public override tokens: Token[],
+    ) {
         super()
     }
 
@@ -179,7 +186,10 @@ export class Identifier extends Evaluable {
 export class Operator extends Node implements OperatorNode {
     static override friendlyName = '연산자'
 
-    constructor(public value: string | null, public override tokens: Token[]) {
+    constructor(
+        public value: string | null,
+        public override tokens: Token[],
+    ) {
         super()
     }
 
@@ -207,7 +217,10 @@ export type OperatorClass = {
 export class Expression extends Node {
     static override friendlyName = '표현식'
 
-    constructor(public value: string, public override tokens: Token[]) {
+    constructor(
+        public value: string,
+        public override tokens: Token[],
+    ) {
         super()
     }
 
