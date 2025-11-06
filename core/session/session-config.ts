@@ -63,6 +63,7 @@ export interface SessionConfig {
      * 코드 실행을 중단시키는 시그널
      */
     signal: AbortSignal | null
+    threadYieldInterval: number
 }
 
 export type Events = {
@@ -98,6 +99,7 @@ export const DEFAULT_SESSION_CONFIG: SessionConfig = {
         warning: () => {},
     },
     signal: null,
+    threadYieldInterval: 300,
 }
 
 export type { WarningEvent } from '../type/events.ts'

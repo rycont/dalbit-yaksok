@@ -110,6 +110,9 @@ export class YaksokSession {
     /** 세션에 등록된 모든 코드 모듈을 저장하는 객체입니다. 키는 모듈 이름, 값은 `CodeFile` 인스턴스입니다. */
     public files: Record<string | symbol, CodeFile> = {}
 
+    private tick = 0
+    private threadYieldInterval: number
+
     /**
      * 새로운 `달빛 약속` 실행 세션을 생성합니다.
      * @param config - 세션의 동작(stdout, stderr, 이벤트 핸들러, 기능 플래그 등)을 사용자화하는 설정 객체입니다.
@@ -132,6 +135,8 @@ export class YaksokSession {
 
         this.flags = resolvedConfig.flags
         this.signal = resolvedConfig.signal ?? null
+
+        this.threadYieldInterval = resolvedConfig.threadYieldInterval
     }
 
     /**
@@ -472,6 +477,12 @@ export class YaksokSession {
         }
 
         return Promise.resolve()
+    }
+
+    public async increaseTick(): Promise<void> {
+        if (this.tick++ % this.threadYieldInterval === 0) {
+            await new Promise((ok) => setTimeout(ok, 0))
+        }
     }
 }
 

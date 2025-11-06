@@ -30,9 +30,6 @@ export class Node {
     }
 }
 
-let tick = 0
-const YIELD_TO_UI_THREAD_INTERVAL = 300
-
 export class Executable extends Node {
     static override friendlyName = '실행 가능한 노드'
 
@@ -53,6 +50,7 @@ export class Executable extends Node {
         childTokens: Token[]
         skipReport?: boolean
     }) {
+        scope.codeFile?.session
         if (scope.codeFile?.session?.signal?.aborted) {
             throw new AbortedSessionSignal(childTokens)
         }
@@ -61,8 +59,8 @@ export class Executable extends Node {
 
         if (executionDelay) {
             await new Promise((r) => setTimeout(r, executionDelay))
-        } else if (tick++ % YIELD_TO_UI_THREAD_INTERVAL === 0) {
-            await new Promise((r) => setTimeout(r, 0))
+        } else {
+            await scope.codeFile?.session?.increaseTick()
         }
 
         // runningCode 이벤트를 resume 대기 후에 발생하도록 순서 변경
