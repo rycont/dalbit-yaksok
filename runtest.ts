@@ -1,4 +1,6 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
+import { DataAnalyze } from '@dalbit-yaksok/dala-analyze'
+import { 편의점 } from "./data-analyze/virtual-data/편의점.ts";
 
 // const result = await yaksok(`정의 되지 않은 약속`)
 const session = new YaksokSession({
@@ -7,19 +9,11 @@ const session = new YaksokSession({
     },
 })
 
-session.addModule(
-    'main',
-    `
-약속, (음식)을/를 (사람)와/과 먹기
-    "맛있는 " + 음식 + ", " + 사람 + "의 입으로 모두 들어갑니다." 보여주기
+await session.extend(new DataAnalyze())
 
-먹을_음식 = "유부초밥"
-먹일_사람 = "현수"
-
-먹을_음식을 먹일_사람과 먹기
-
-5번 반복
-    먹을_음식을 먹일_사람과 먹기
-`,
-)
+session.addModule("main", `
+편의점_상품들 = @데이터_불러오기 편의점 데이터
+@분석 편의점_상품들 중 '상품ID'가 'CVS003'인 값 보여주기
+@분석 (@분석 편의점_상품들 중 '가격'이 2000 이상인 것들) '재고' 순서로 정렬 보여주기
+`)
 await session.runModule('main')

@@ -19,7 +19,8 @@
         "monaco-language-provider",
         "pyodide",
         "mcp-server",
-        "react-demo"
+        "react-demo",
+        "data-analyze"
     ],
     "version": "3.5.7",
     "tasks": {
