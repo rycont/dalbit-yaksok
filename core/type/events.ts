@@ -16,7 +16,7 @@ export interface VariableSetEvent {
     name: string
     value: ValueType
     scope: Scope
-    tokens?: Token[]
+    tokens: Token[]
 }
 
 export interface VariableReadEvent {
@@ -24,5 +24,5 @@ export interface VariableReadEvent {
     name: string
     value: ValueType
     scope: Scope
-    tokens?: Token[]
+    tokens: Token[]
 }

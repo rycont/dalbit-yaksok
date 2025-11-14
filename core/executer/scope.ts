@@ -2,6 +2,8 @@ import { AlreadyDefinedFunctionError } from '../error/function.ts'
 import { NotDefinedIdentifierError } from '../error/index.ts'
 import { ValueType } from '../value/base.ts'
 
+import { FEATURE_FLAG } from '../constant/feature-flags.ts'
+
 import type { Token } from '../prepare/tokenize/token.ts'
 
 import type { CodeFile } from '../type/code-file.ts'
@@ -60,6 +62,7 @@ export class Scope {
      * 그렇지 않으면 현재 스코프에 새로운 변수를 생성합니다.
      * @param name - 설정할 변수의 이름입니다.
      * @param value - 변수에 할당할 값입니다.
+     * @param tokens - 변수 설정과 관련된 토큰 배열입니다. 이벤트 발생 시 사용됩니다.
      */
     setVariable(name: string, value: ValueType, tokens?: Token[]) {
         if (this.parent?.askSetVariable(name, value, tokens)) return
@@ -72,6 +75,7 @@ export class Scope {
      * `setVariable` 내부에서 호출되는 헬퍼 메서드입니다.
      * @param name - 설정할 변수의 이름입니다.
      * @param value - 변수에 할당할 값입니다.
+     * @param tokens - 변수 설정과 관련된 토큰 배열입니다. 이벤트 발생 시 사용됩니다.
      * @returns 변수를 성공적으로 설정했는지 여부를 반환합니다.
      */
     askSetVariable(name: string, value: ValueType, tokens?: Token[]): boolean {
@@ -94,6 +98,7 @@ export class Scope {
      * `NotDefinedIdentifierError`를 발생시킵니다.
      *
      * @param name - 찾을 변수의 이름입니다.
+     * @param tokens - 변수 읽기와 관련된 토큰 배열입니다. 이벤트 발생 시 사용됩니다.
      * @returns 변수의 값을 담은 `ValueType` 객체를 반환합니다.
      */
     getVariable(name: string, tokens?: Token[]): ValueType {
@@ -168,6 +173,13 @@ export class Scope {
         if (!this.codeFile?.session) return
         if (!tokens || tokens.length === 0) return
 
+        // 플래그 확인: DISABLE_VARIABLE_EVENTS가 활성화되면 이벤트를 발생시키지 않음
+        const isDisabled =
+            this.codeFile.session.flags[FEATURE_FLAG.DISABLE_VARIABLE_EVENTS] ===
+            true
+
+        if (isDisabled) return
+
         this.codeFile.session.pubsub.pub('variableSet', [
             {
                 type: 'variable-set',
@@ -186,6 +198,13 @@ export class Scope {
     ) {
         if (!this.codeFile?.session) return
         if (!tokens || tokens.length === 0) return
+
+        // 플래그 확인: DISABLE_VARIABLE_EVENTS가 활성화되면 이벤트를 발생시키지 않음
+        const isDisabled =
+            this.codeFile.session.flags[FEATURE_FLAG.DISABLE_VARIABLE_EVENTS] ===
+            true
+
+        if (isDisabled) return
 
         this.codeFile.session.pubsub.pub('variableRead', [
             {
