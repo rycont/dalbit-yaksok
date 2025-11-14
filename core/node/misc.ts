@@ -38,7 +38,7 @@ export class Print extends Executable {
     }
 
     override async execute(scope: Scope): Promise<void> {
-        const printFunction = scope.codeFile?.session?.stdout || console.log
+        const printFunction = scope.codeFile?.session?.stdout ?? console.log
         const evaluated = await this.value.execute(scope)
 
         printFunction(evaluated.toPrint())
@@ -46,6 +46,50 @@ export class Print extends Executable {
 
     override validate(scope: Scope): YaksokError[] {
         return this.value.validate(scope)
+    }
+}
+
+export class Input extends Evaluable<StringValue> {
+    static override friendlyName = '입력받기'
+
+    constructor(
+        public question: Evaluable | null,
+        public override tokens: Token[],
+    ) {
+        super()
+    }
+
+    override async execute(scope: Scope): Promise<StringValue> {
+        const inputFunction =
+            scope.codeFile?.session?.stdin ?? (async () => '')
+
+        let questionText: string | undefined
+
+        if (this.question) {
+            const evaluatedQuestion = await this.question.execute(scope)
+            questionText = evaluatedQuestion.toPrint()
+        }
+
+        try {
+            const result = await Promise.resolve(inputFunction(questionText))
+            
+            if (result == null) {
+                return new StringValue('')
+            }
+
+            return new StringValue(String(result))
+        } catch (error) {
+            // stdin 함수에서 발생한 에러를 그대로 전파
+            throw error
+        }
+    }
+
+    override validate(scope: Scope): YaksokError[] {
+        if (!this.question) {
+            return []
+        }
+
+        return this.question.validate(scope)
     }
 }
 
