@@ -66,7 +66,8 @@ interface ParseResult {
  */
 export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
     try {
-        const dynamicRules = createDynamicRule(codeFile)
+        const { rules: dynamicRules, functionHeaderSuffixes } =
+            createDynamicRule(codeFile)
         const nodes = convertTokensToNodes(codeFile.tokens)
         const indentedNodes = parseIndent(nodes)
 
@@ -81,10 +82,15 @@ export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
                   optimistic,
               )
 
-        const variableNameSpliitedNodes = splitVariableName(priorityParsedNodes)
+        const variableNameSplitNodes = splitVariableName(
+            priorityParsedNodes,
+            codeFile,
+            [],
+            functionHeaderSuffixes,
+        )
 
         const childNodes = callParseRecursively(
-            variableNameSpliitedNodes,
+            variableNameSplitNodes,
             dynamicRules,
         )
 
@@ -133,3 +139,4 @@ function extractExportedVariables(nodes: Node[]): Rule[] {
                 }) satisfies Rule,
         )
 }
+

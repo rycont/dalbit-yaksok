@@ -21,6 +21,7 @@ export function createMentioningRule(
     return {
         pattern: mergedPattern,
         config: originalRule.config,
+        flags: originalRule.flags,
         factory: createFactory(fileName, originalRule),
     }
 }
