@@ -5,7 +5,7 @@ import { assertEquals } from 'assert/equals'
 Deno.test('입력받기 without question', async () => {
     const answers = ['Alice']
     const session = new YaksokSession({
-        stdin: async (question) => {
+        stdin: (question) => {
             assertEquals(question, undefined)
             return answers.shift() ?? ''
         },
@@ -29,7 +29,7 @@ Deno.test('입력받기 without question', async () => {
 Deno.test('질문과 함께 입력받기', async () => {
     let receivedQuestion: string | undefined
     const session = new YaksokSession({
-        stdin: async (question) => {
+        stdin: (question) => {
             receivedQuestion = question
             return '30'
         },
@@ -76,7 +76,7 @@ Deno.test('동기 stdin 함수 지원', async () => {
 
 Deno.test('null 반환 시 빈 문자열로 처리', async () => {
     const session = new YaksokSession({
-        stdin: async () => null as unknown as string,
+        stdin: () => null as unknown as string,
     })
 
     session.addModule(
@@ -96,7 +96,7 @@ Deno.test('null 반환 시 빈 문자열로 처리', async () => {
 
 Deno.test('undefined 반환 시 빈 문자열로 처리', async () => {
     const session = new YaksokSession({
-        stdin: async () => undefined as unknown as string,
+        stdin: () => undefined as unknown as string,
     })
 
     session.addModule(
@@ -116,7 +116,7 @@ Deno.test('undefined 반환 시 빈 문자열로 처리', async () => {
 
 Deno.test('stdin 함수에서 에러 발생 시 전파', async () => {
     const session = new YaksokSession({
-        stdin: async () => {
+        stdin: () => {
             throw new Error('입력 에러')
         },
     })
