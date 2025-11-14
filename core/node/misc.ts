@@ -38,7 +38,7 @@ export class Print extends Executable {
     }
 
     override async execute(scope: Scope): Promise<void> {
-        const printFunction = scope.codeFile?.session?.stdout || console.log
+        const printFunction = scope.codeFile?.session?.stdout ?? console.log
         const evaluated = await this.value.execute(scope)
 
         printFunction(evaluated.toPrint())
@@ -70,9 +70,18 @@ export class Input extends Evaluable<StringValue> {
             questionText = evaluatedQuestion.toPrint()
         }
 
-        const result = await inputFunction(questionText)
+        try {
+            const result = await Promise.resolve(inputFunction(questionText))
+            
+            if (result == null) {
+                return new StringValue('')
+            }
 
-        return new StringValue(String(result))
+            return new StringValue(String(result))
+        } catch (error) {
+            // stdin 함수에서 발생한 에러를 그대로 전파
+            throw error
+        }
     }
 
     override validate(scope: Scope): YaksokError[] {
