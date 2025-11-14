@@ -1,0 +1,70 @@
+import { assertEquals } from 'assert'
+
+import { convertTokensToFunctionTemplate } from './get-function-templates.ts'
+
+import { tokenize } from '../../../tokenize/index.ts'
+import { getFunctionDeclareRanges } from '../../../../util/get-function-declare-ranges.ts'
+
+function getHeaderTemplate(code: string) {
+    const tokens = tokenize(code)
+    const range = getFunctionDeclareRanges(tokens).yaksok[0]
+    const headerTokens = tokens.slice(range[0], range[1])
+
+    return convertTokensToFunctionTemplate(headerTokens)
+}
+
+Deno.test('adds verb-form variant only to the last static word', () => {
+    const template = getHeaderTemplate(`약속, (A)와/과 (B) 더하기\n    A + B 반환하기\n`)
+
+    const lastPiece = template.pieces.at(-1)
+    if (!lastPiece) {
+        throw new Error('template must have at least one piece')
+    }
+
+    assertEquals(lastPiece.type, 'static')
+    assertEquals(lastPiece.value, ['더하기', '더하고'])
+
+    assertEquals(
+        template.pieces
+            .filter((piece) => piece.type === 'static')
+            .slice(0, -1)
+            .map((piece) => piece.value),
+        [['와'], ['과']],
+    )
+})
+
+Deno.test('skips verb-form variant when function header does not end with a static word', () => {
+    const template = getHeaderTemplate(`약속, (A)와/과 (B) 더하기 (C)\n    A + B + C 반환하기\n`)
+
+    const lastStaticPiece = template.pieces.filter(
+        (piece) => piece.type === 'static',
+    ).at(-1)
+
+    if (!lastStaticPiece) {
+        throw new Error('template must have at least one static piece')
+    }
+
+    assertEquals(lastStaticPiece.value, ['더하기'])
+})
+
+Deno.test('adds verb-form variants for each slash-separated option in the final word', () => {
+    const template = getHeaderTemplate(`약속, 지금/현재/지금의 밀리초 가져오기/말하기\n    "" 반환하기\n`)
+
+    const lastPiece = template.pieces.at(-1)
+    if (!lastPiece) {
+        throw new Error('template must have at least one piece')
+    }
+
+    assertEquals(lastPiece.type, 'static')
+    assertEquals(
+        new Set(lastPiece.value),
+        new Set([
+            '가져오기',
+            '가져오고',
+            '말하기',
+            '말하고',
+            '가져오기/말하기',
+            '가져오고/말하고',
+        ]),
+    )
+})

@@ -13,7 +13,7 @@ export function convertTokensToFunctionTemplate(
 ): FunctionTemplate {
     const tokens = _tokens.map((token) => ({ ...token }))
 
-    const pieces = tokens
+    const rawPieces = tokens
         .map((token, index) => {
             if (token.type !== TOKEN_TYPE.IDENTIFIER) {
                 return null
@@ -30,24 +30,39 @@ export function convertTokensToFunctionTemplate(
                 token.type === TOKEN_TYPE.IDENTIFIER
             ) {
                 return {
-                    type: 'value',
+                    type: 'value' as const,
                     value: [token.value],
                 }
             }
 
-            if (token.value.includes('/')) {
-                return {
-                    type: 'static',
-                    value: [...token.value.split('/'), token.value],
-                }
-            }
-
             return {
-                type: 'static',
-                value: [token.value],
+                type: 'static' as const,
+                value: token.value,
             }
         })
-        .filter(Boolean) as FunctionTemplatePiece[]
+        .filter(Boolean) as Array<
+        | { type: 'value'; value: string[] }
+        | { type: 'static'; value: string }
+    >
+
+    const lastPiece = rawPieces[rawPieces.length - 1]
+    const pieces: FunctionTemplatePiece[] = rawPieces.map((piece, index) => {
+        if (piece.type === 'value') {
+            return piece
+        }
+
+        const isLastPiece = index === rawPieces.length - 1
+        const shouldAddVerbFormVariant =
+            isLastPiece && lastPiece?.type === 'static'
+
+        return {
+            type: 'static',
+            value: createStaticPieceCandidates(
+                piece.value,
+                shouldAddVerbFormVariant,
+            ),
+        }
+    })
 
     assertValidFunctionHeader(pieces, tokens)
 
@@ -60,6 +75,65 @@ export function convertTokensToFunctionTemplate(
         name: functionName,
         pieces,
     }
+}
+
+function createStaticPieceCandidates(
+    content: string,
+    allowVerbFormVariant: boolean,
+): string[] {
+    const candidates = new Set<string>()
+
+    if (content.includes('/')) {
+        const parts = content.split('/')
+
+        for (const part of parts) {
+            addVerbFormsToCandidates(part, candidates, allowVerbFormVariant)
+        }
+
+        candidates.add(content)
+
+        if (allowVerbFormVariant) {
+            const joinedVariant = parts
+                .map((part) => convertToVerbForm(part))
+                .join('/')
+
+            if (joinedVariant !== content) {
+                candidates.add(joinedVariant)
+            }
+        }
+
+        return [...candidates]
+    }
+
+    addVerbFormsToCandidates(content, candidates, allowVerbFormVariant)
+
+    return [...candidates]
+}
+
+function addVerbFormsToCandidates(
+    word: string,
+    candidates: Set<string>,
+    allowVerbFormVariant: boolean,
+) {
+    candidates.add(word)
+
+    if (!allowVerbFormVariant) {
+        return
+    }
+
+    const verbForm = convertToVerbForm(word)
+
+    if (verbForm !== word) {
+        candidates.add(verbForm)
+    }
+}
+
+function convertToVerbForm(word: string): string {
+    if (word.endsWith('기') && word.length > 1) {
+        return word.slice(0, -1) + '고'
+    }
+
+    return word
 }
 
 function assertValidFunctionHeader(
