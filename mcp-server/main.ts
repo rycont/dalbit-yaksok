@@ -66,9 +66,16 @@ async function loadCodebook() {
 mcpServer.registerTool(
     'execute',
     {
-        description: '달빛약속 코드를 실행합니다',
+        description:
+            '달빛약속 코드를 실행합니다. `입력받기` 명령어를 사용하는 경우 `stdinInputs` 파라미터로 입력값을 제공할 수 있습니다.',
         inputSchema: {
             code: z.string().describe('실행할 달빛약속 코드'),
+            stdinInputs: z
+                .array(z.string())
+                .optional()
+                .describe(
+                    '`입력받기` 명령어에서 사용할 입력값 배열입니다. 코드에서 `입력받기`가 호출되는 순서대로 값이 사용됩니다. 예: `["홍길동", "30"]`',
+                ),
         },
     },
     async (input) => {
@@ -76,12 +83,31 @@ mcpServer.registerTool(
         let output = ''
 
         const errors: MachineReadableError[] = []
+        const stdinInputs = input.stdinInputs ?? []
+        let stdinIndex = 0
+
         const session = new YaksokSession({
             stdout: (message) => {
                 output += message + '\n'
             },
             stderr: (_, machineReadableError) => {
                 errors.push(machineReadableError)
+            },
+            stdin: (question) => {
+                // 질문이 있으면 출력에 포함
+                if (question) {
+                    output += question + '\n'
+                }
+
+                // 입력값 배열에서 순서대로 반환
+                if (stdinIndex < stdinInputs.length) {
+                    const value = stdinInputs[stdinIndex]
+                    stdinIndex++
+                    return Promise.resolve(value)
+                }
+
+                // 입력값이 없으면 빈 문자열 반환
+                return Promise.resolve('')
             },
         })
 
