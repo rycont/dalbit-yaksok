@@ -82,7 +82,7 @@ export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
                   optimistic,
               )
 
-        const variableNameSpliitedNodes = splitVariableName(
+        const variableNameSplitNodes = splitVariableName(
             priorityParsedNodes,
             codeFile,
             [],
@@ -90,7 +90,7 @@ export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
         )
 
         const childNodes = callParseRecursively(
-            variableNameSpliitedNodes,
+            variableNameSplitNodes,
             dynamicRules,
         )
 
