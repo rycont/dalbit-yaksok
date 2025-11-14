@@ -34,7 +34,7 @@ export class SetVariable extends Evaluable {
         let newValue = operand
 
         if (operatorNode) {
-            const oldValue = scope.getVariable(name)
+            const oldValue = scope.getVariable(name, this.tokens)
             const tempOperator = new operatorNode(this.tokens)
             try {
                 newValue = tempOperator.call(oldValue, operand)
@@ -53,7 +53,7 @@ export class SetVariable extends Evaluable {
             }
         }
 
-        scope.setVariable(name, newValue)
+        scope.setVariable(name, newValue, this.tokens)
         return newValue
     }
 

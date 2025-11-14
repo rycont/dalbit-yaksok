@@ -18,6 +18,11 @@ export enum FEATURE_FLAG {
      * 약속 호출 스택 깊이 제한을 비활성화합니다. 활성화할 시 CallStackDepthExceededError가 발생하지 않습니다.
      */
     DISABLE_CALL_STACK_DEPTH_LIMIT = 'disable-call-stack-depth-limit',
+
+    /**
+     * 변수 설정/읽기 이벤트를 비활성화합니다. 활성화할 시 variableSet, variableRead 이벤트가 발생하지 않습니다.
+     */
+    DISABLE_VARIABLE_EVENTS = 'disable-variable-events',
 }
 
 export type EnabledFlags = Partial<Record<FEATURE_FLAG, boolean>>

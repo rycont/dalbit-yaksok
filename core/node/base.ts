@@ -127,7 +127,7 @@ export class Identifier extends Evaluable {
 
     override async execute(scope: Scope): Promise<ValueType> {
         try {
-            return scope.getVariable(this.value)
+            return scope.getVariable(this.value, this.tokens)
         } catch (e) {
             if (e instanceof NotDefinedIdentifierError) {
                 try {
