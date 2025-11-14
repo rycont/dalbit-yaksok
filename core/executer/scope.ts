@@ -2,6 +2,8 @@ import { AlreadyDefinedFunctionError } from '../error/function.ts'
 import { NotDefinedIdentifierError } from '../error/index.ts'
 import { ValueType } from '../value/base.ts'
 
+import type { Token } from '../prepare/tokenize/token.ts'
+
 import type { CodeFile } from '../type/code-file.ts'
 import type { RunnableObject } from '../value/function.ts'
 
@@ -59,9 +61,10 @@ export class Scope {
      * @param name - 설정할 변수의 이름입니다.
      * @param value - 변수에 할당할 값입니다.
      */
-    setVariable(name: string, value: ValueType) {
-        if (this.parent?.askSetVariable(name, value)) return
+    setVariable(name: string, value: ValueType, tokens?: Token[]) {
+        if (this.parent?.askSetVariable(name, value, tokens)) return
         this.variables[name] = value
+        this.emitVariableSetEvent(name, value, tokens)
     }
 
     /**
@@ -71,13 +74,14 @@ export class Scope {
      * @param value - 변수에 할당할 값입니다.
      * @returns 변수를 성공적으로 설정했는지 여부를 반환합니다.
      */
-    askSetVariable(name: string, value: ValueType): boolean {
+    askSetVariable(name: string, value: ValueType, tokens?: Token[]): boolean {
         if (name in this.variables) {
             this.variables[name] = value
+            this.emitVariableSetEvent(name, value, tokens)
             return true
         }
 
-        if (this.parent) return this.parent.askSetVariable(name, value)
+        if (this.parent) return this.parent.askSetVariable(name, value, tokens)
         return false
     }
 
@@ -92,13 +96,15 @@ export class Scope {
      * @param name - 찾을 변수의 이름입니다.
      * @returns 변수의 값을 담은 `ValueType` 객체를 반환합니다.
      */
-    getVariable(name: string): ValueType {
+    getVariable(name: string, tokens?: Token[]): ValueType {
         if (name in this.variables) {
-            return this.variables[name]
+            const value = this.variables[name]
+            this.emitVariableReadEvent(name, value, tokens)
+            return value
         }
 
         if (this.parent) {
-            return this.parent.getVariable(name)
+            return this.parent.getVariable(name, tokens)
         }
 
         const errorInstance = new NotDefinedIdentifierError({
@@ -152,5 +158,43 @@ export class Scope {
 
         errorInstance.codeFile = this.codeFile
         throw errorInstance
+    }
+
+    private emitVariableSetEvent(
+        name: string,
+        value: ValueType,
+        tokens?: Token[],
+    ) {
+        if (!this.codeFile?.session) return
+        if (!tokens || tokens.length === 0) return
+
+        this.codeFile.session.pubsub.pub('variableSet', [
+            {
+                type: 'variable-set',
+                name,
+                value,
+                scope: this,
+                tokens,
+            },
+        ])
+    }
+
+    private emitVariableReadEvent(
+        name: string,
+        value: ValueType,
+        tokens?: Token[],
+    ) {
+        if (!this.codeFile?.session) return
+        if (!tokens || tokens.length === 0) return
+
+        this.codeFile.session.pubsub.pub('variableRead', [
+            {
+                type: 'variable-read',
+                name,
+                value,
+                scope: this,
+                tokens,
+            },
+        ])
     }
 }

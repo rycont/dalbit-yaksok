@@ -4,7 +4,11 @@ import type { Pause } from '../node/misc.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { Position } from '../type/position.ts'
 import type { MachineReadableError } from '../error/render-error-string.ts'
-import type { WarningEvent } from '../type/events.ts'
+import type {
+    VariableReadEvent,
+    VariableSetEvent,
+    WarningEvent,
+} from '../type/events.ts'
 
 /**
  * SessionConfig 객체를 사용하여 약속 런타임을 설정합니다.
@@ -84,6 +88,8 @@ export type Events = {
     resume: () => void
     debug: (scope: Scope, node: Pause) => void
     warning: (warning: WarningEvent) => void
+    variableSet: (event: VariableSetEvent) => void
+    variableRead: (event: VariableReadEvent) => void
 }
 
 export const DEFAULT_SESSION_CONFIG: SessionConfig = {
@@ -97,6 +103,8 @@ export const DEFAULT_SESSION_CONFIG: SessionConfig = {
         resume: () => {},
         debug: () => {},
         warning: () => {},
+        variableSet: () => {},
+        variableRead: () => {},
     },
     signal: null,
     threadYieldInterval: 300,
