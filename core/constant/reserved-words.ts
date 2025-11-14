@@ -6,6 +6,7 @@ export const RESERVED_WORDS = new Set([
     '만약',
     '이면',
     '보여주기',
+    '입력받기',
     '반복',
     '그만',
     '약속',

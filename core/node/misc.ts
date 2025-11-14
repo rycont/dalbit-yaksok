@@ -49,6 +49,41 @@ export class Print extends Executable {
     }
 }
 
+export class Input extends Evaluable<StringValue> {
+    static override friendlyName = '입력받기'
+
+    constructor(
+        public question: Evaluable | null,
+        public override tokens: Token[],
+    ) {
+        super()
+    }
+
+    override async execute(scope: Scope): Promise<StringValue> {
+        const inputFunction =
+            scope.codeFile?.session?.stdin ?? (async () => '')
+
+        let questionText: string | undefined
+
+        if (this.question) {
+            const evaluatedQuestion = await this.question.execute(scope)
+            questionText = evaluatedQuestion.toPrint()
+        }
+
+        const result = await inputFunction(questionText)
+
+        return new StringValue(String(result))
+    }
+
+    override validate(scope: Scope): YaksokError[] {
+        if (!this.question) {
+            return []
+        }
+
+        return this.question.validate(scope)
+    }
+}
+
 export class TypeOf extends Evaluable {
     static override friendlyName = '값 종류'
 
