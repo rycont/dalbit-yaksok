@@ -9,6 +9,7 @@ import type {
     VariableSetEvent,
     WarningEvent,
 } from '../type/events.ts'
+import type { Node } from '../node/base.ts'
 
 /**
  * SessionConfig 객체를 사용하여 약속 런타임을 설정합니다.
@@ -74,7 +75,14 @@ export interface SessionConfig {
      * 코드 실행을 중단시키는 시그널
      */
     signal: AbortSignal | null
+    /**
+     * 명령어 실행을 잠깐 멈추고 브라우저에게 제어권을 넘기는 주기
+     */
     threadYieldInterval: number
+    /**
+     * 디버거 / Step by step 실행 모드 설정
+     */
+    stepUnit: (new (...args: any[]) => Node) | null
 }
 
 export type Events = {
@@ -116,6 +124,7 @@ export const DEFAULT_SESSION_CONFIG: SessionConfig = {
     },
     signal: null,
     threadYieldInterval: 300,
+    stepUnit: null,
 }
 
 export type { WarningEvent } from '../type/events.ts'

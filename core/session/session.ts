@@ -29,7 +29,7 @@ import {
 import { AbortedSessionSignal } from '../executer/signals.ts'
 import type { Extension } from '../extension/extension.ts'
 import type { ValueType } from '../value/base.ts'
-import { postprocessErrors } from '../error/postprocess.ts'
+import type { Node } from '../node/base.ts'
 
 /**
  * `달빛 약속` 코드의 실행 생명주기를 총괄하는 핵심 클래스입니다.
@@ -102,7 +102,7 @@ export class YaksokSession {
      */
     public paused: boolean = false
     public stepByStep: boolean = false
-
+    public stepUnit: (new (...args: any[]) => Node) | null = null
     /**
      * 세션 내부의 이벤트를 발행하고 구독하는 Pub/Sub 시스템입니다.
      * (예: `runningCode`, `pause`, `resume`)

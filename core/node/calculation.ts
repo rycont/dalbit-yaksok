@@ -120,8 +120,6 @@ export class Formula extends Evaluable {
         scope: Scope,
     ) {
         const currentOperators = OPERATOR_PRECEDENCES[precedence]
-        const disableOperandExecutionDelay =
-            scope.codeFile?.session?.flags['disable-operand-execution-delay']
 
         for (let i = 0; i < termsWithToken.length; i++) {
             const term = termsWithToken[i].value
@@ -144,7 +142,6 @@ export class Formula extends Evaluable {
                 await this.onRunChild({
                     childTokens: leftTerm.tokens,
                     scope,
-                    skipReport: disableOperandExecutionDelay,
                 })
             }
 
@@ -157,7 +154,6 @@ export class Formula extends Evaluable {
                 await this.onRunChild({
                     childTokens: rightTerm.tokens,
                     scope,
-                    skipReport: disableOperandExecutionDelay,
                 })
             }
 
@@ -176,7 +172,6 @@ export class Formula extends Evaluable {
                 await this.onRunChild({
                     childTokens: mergedTokens,
                     scope,
-                    skipReport: disableOperandExecutionDelay,
                 })
 
                 const result = term.call(left, right)

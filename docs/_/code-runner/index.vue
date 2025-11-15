@@ -104,9 +104,6 @@ async function runCode() {
 
     try {
         const session = new YaksokSession({
-            flags: {
-                [FEATURE_FLAG.DISABLE_OPERAND_EXECUTION_DELAY]: true,
-            },
             stdout: (output) => {
                 stdout.value = [...stdout.value, output]
             },
