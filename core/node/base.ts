@@ -54,12 +54,6 @@ export class Executable extends Node {
             if (!(this instanceof scope.codeFile?.session?.stepUnit)) {
                 return
             }
-            const firstToken = childTokens[0]
-            const lastToken = childTokens[childTokens.length - 1]
-
-            if (firstToken.position.line !== lastToken.position.line) {
-                return
-            }
         }
 
         if (scope.codeFile?.session?.signal?.aborted) {
