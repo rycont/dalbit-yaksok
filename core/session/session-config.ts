@@ -41,13 +41,13 @@ export interface SessionConfig {
      * @default console.log
      */
     stdout: (message: string) => void
-    /**
-     * `입력받기` 명령어가 호출되었을 때 실행되는 함수입니다.
-     * @param question - 사용자에게 보여줄 질문 (선택 사항)
-     * @returns 입력받은 문자열을 반환합니다.
-     * @default async () => ''
-     */
-    stdin: (question?: string) => Promise<string> | string
+    // /**
+    //  * `입력받기` 명령어가 호출되었을 때 실행되는 함수입니다.
+    //  * @param question - 사용자에게 보여줄 질문 (선택 사항)
+    //  * @returns 입력받은 문자열을 반환합니다.
+    //  * @default async () => ''
+    //  */
+    // stdin: (question?: string) => Promise<string> | string
     /**
      * 오류로 인해 발생한 메시지를 처리하는 메소드
      * @param message - 사람이 읽기 쉬운 형식의 에러 메시지
@@ -109,7 +109,7 @@ export type Events = {
 
 export const DEFAULT_SESSION_CONFIG: SessionConfig = {
     stdout: console.log,
-    stdin: async () => '',
+    // stdin: async () => '',
     stderr: console.error,
     entryPoint: 'main',
     flags: {},

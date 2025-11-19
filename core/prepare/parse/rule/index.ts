@@ -33,7 +33,7 @@ import {
     Pause,
     PlusOperator,
     PowerOperator,
-    Input,
+    // Input,
     Print,
     RangeOperator,
     Sequence,
@@ -474,30 +474,30 @@ export const ADVANCED_RULES: Rule[] = [
         ],
         factory: (_nodes, tokens) => new ListLiteral([], tokens),
     },
-    {
-        pattern: [
-            {
-                type: Evaluable,
-            },
-            {
-                type: Identifier,
-                value: '입력받기',
-            },
-        ],
-        factory: (nodes, tokens) => {
-            const question = nodes[0] as Evaluable
-            return new Input(question, tokens)
-        },
-    },
-    {
-        pattern: [
-            {
-                type: Identifier,
-                value: '입력받기',
-            },
-        ],
-        factory: (_nodes, tokens) => new Input(null, tokens),
-    },
+    // {
+    //     pattern: [
+    //         {
+    //             type: Evaluable,
+    //         },
+    //         {
+    //             type: Identifier,
+    //             value: '입력받기',
+    //         },
+    //     ],
+    //     factory: (nodes, tokens) => {
+    //         const question = nodes[0] as Evaluable
+    //         return new Input(question, tokens)
+    //     },
+    // },
+    // {
+    //     pattern: [
+    //         {
+    //             type: Identifier,
+    //             value: '입력받기',
+    //         },
+    //     ],
+    //     factory: (_nodes, tokens) => new Input(null, tokens),
+    // },
 
     ...ASSIGNERS.map<Rule>((assigner) => ({
         pattern: [

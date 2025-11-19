@@ -72,8 +72,8 @@ export class YaksokSession {
 
     /** `보여주기` 명령어로 출력된 결과를 처리하는 함수입니다. */
     public stdout: SessionConfig['stdout']
-    /** `입력받기` 명령어로 사용자 입력을 받는 함수입니다. */
-    public stdin: SessionConfig['stdin']
+    // /** `입력받기` 명령어로 사용자 입력을 받는 함수입니다. */
+    // public stdin: SessionConfig['stdin']
     /** 오류 발생 시 호출되는 함수입니다. */
     public stderr: SessionConfig['stderr']
     /**
@@ -133,7 +133,7 @@ export class YaksokSession {
         }
 
         this.stdout = resolvedConfig.stdout
-        this.stdin = resolvedConfig.stdin
+        // this.stdin = resolvedConfig.stdin
         this.stderr = resolvedConfig.stderr
 
         this.flags = resolvedConfig.flags

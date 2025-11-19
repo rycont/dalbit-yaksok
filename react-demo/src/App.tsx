@@ -2,7 +2,8 @@ import { useCallback, useEffectEvent, useState } from 'react'
 import { YaksokSession, type Position } from '@dalbit-yaksok/core'
 
 export default function App() {
-    const [code, setCode] = useState('')
+    const [code, setCode] = useState(`약속, (메시지) 입력받기
+    이것저것`)
     const [stdout, setStdout] = useState<string[]>([])
 
     const [startedAt, setStartedAt] = useState<number | null>(null)
