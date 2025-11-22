@@ -17,7 +17,7 @@ import {
     type SessionConfig,
 } from './session-config.ts'
 
-import { ErrorGroups, ErrorInFFIExecution } from '@dalbit-yaksok/core'
+import { ErrorGroups, ErrorInFFIExecution } from 'jsr:@dalbit-yaksok/core@^3.7.1-RC.1'
 import type { EnabledFlags } from '../constant/feature-flags.ts'
 import {
     AbortedRunModuleResult,
@@ -30,6 +30,7 @@ import { AbortedSessionSignal } from '../executer/signals.ts'
 import type { Extension } from '../extension/extension.ts'
 import type { ValueType } from '../value/base.ts'
 import type { Node } from '../node/base.ts'
+import type { Scope } from '../executer/scope.ts'
 
 /**
  * `달빛 약속` 코드의 실행 생명주기를 총괄하는 핵심 클래스입니다.
@@ -72,8 +73,8 @@ export class YaksokSession {
 
     /** `보여주기` 명령어로 출력된 결과를 처리하는 함수입니다. */
     public stdout: SessionConfig['stdout']
-    // /** `입력받기` 명령어로 사용자 입력을 받는 함수입니다. */
-    // public stdin: SessionConfig['stdin']
+    /** `입력받기` 명령어로 사용자 입력을 받는 함수입니다. */
+    public stdin: SessionConfig['stdin']
     /** 오류 발생 시 호출되는 함수입니다. */
     public stderr: SessionConfig['stderr']
     /**
@@ -103,6 +104,9 @@ export class YaksokSession {
     public paused: boolean = false
     public stepByStep: boolean = false
     public stepUnit: (new (...args: any[]) => Node) | null = null
+    public canRunNode:
+        | ((scope: Scope, node: Node) => Promise<boolean> | boolean)
+        | null = null
     /**
      * 세션 내부의 이벤트를 발행하고 구독하는 Pub/Sub 시스템입니다.
      * (예: `runningCode`, `pause`, `resume`)
@@ -133,13 +137,15 @@ export class YaksokSession {
         }
 
         this.stdout = resolvedConfig.stdout
-        // this.stdin = resolvedConfig.stdin
+        this.stdin = resolvedConfig.stdin
         this.stderr = resolvedConfig.stderr
 
         this.flags = resolvedConfig.flags
         this.signal = resolvedConfig.signal ?? null
 
         this.threadYieldInterval = resolvedConfig.threadYieldInterval
+        this.stepUnit = resolvedConfig.stepUnit ?? null
+        this.canRunNode = resolvedConfig.canRunNode ?? null
     }
 
     /**

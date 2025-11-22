@@ -41,6 +41,17 @@ export class ListLoop extends Executable {
 
         try {
             for (const value of list.enumerate()) {
+                if (scope.codeFile?.session?.canRunNode) {
+                    if (
+                        !(await scope.codeFile?.session?.canRunNode(
+                            scope,
+                            this.body,
+                        ))
+                    ) {
+                        return
+                    }
+                }
+
                 iterationCount += 1
 
                 if (!warned && iterationCount > LOOP_WARNING_THRESHOLD) {

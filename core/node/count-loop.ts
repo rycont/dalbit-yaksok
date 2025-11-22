@@ -42,6 +42,17 @@ export class CountLoop extends Executable {
 
         try {
             for (let i = 0; i < countNumber; i++) {
+                if (scope.codeFile?.session?.canRunNode) {
+                    if (
+                        !(await scope.codeFile?.session?.canRunNode(
+                            scope,
+                            this.body,
+                        ))
+                    ) {
+                        return
+                    }
+                }
+
                 const iterationCount = i + 1
 
                 if (!warned && iterationCount > LOOP_WARNING_THRESHOLD) {

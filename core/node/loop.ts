@@ -14,10 +14,7 @@ import {
 export class Loop extends Executable {
     static override friendlyName = '반복'
 
-    constructor(
-        public body: Block,
-        public override tokens: Token[],
-    ) {
+    constructor(public body: Block, public override tokens: Token[]) {
         super()
     }
 
@@ -31,6 +28,17 @@ export class Loop extends Executable {
 
         try {
             while (true) {
+                if (scope.codeFile?.session?.canRunNode) {
+                    if (
+                        !(await scope.codeFile?.session?.canRunNode(
+                            scope,
+                            this.body,
+                        ))
+                    ) {
+                        return
+                    }
+                }
+
                 iterationCount += 1
 
                 if (!warned && iterationCount > LOOP_WARNING_THRESHOLD) {
