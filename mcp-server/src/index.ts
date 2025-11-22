@@ -1,4 +1,5 @@
-import { Hono } from '@hono/hono'
+import { Hono } from 'hono'
+import type { Context } from 'hono'
 import { StreamableHTTPTransport } from '@hono/mcp'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 
@@ -19,47 +20,37 @@ interface CodebookItem {
 }
 
 let codebookCache: Map<string, CodebookItem> = new Map()
-let codebookFiles: string[] = []
+let codebookFiles: string[] = [
+    '논리연산자',
+    '반복-종료',
+    '반복문',
+    '범위연산자',
+    '보여주기',
+    '알아두기',
+    '연산자',
+    '인덱싱',
+    '입력받기',
+    '조건문',
+    '주석',
+    '참거짓',
+    '타입',
+    '함수',
+]
 
-// 서버 시작 시 Codebook 파일 로드
-async function loadCodebook() {
-    try {
-        const codebookDir = new URL('./codebook/', import.meta.url).pathname
-
-        // Windows 경로 처리
-        const dirPath =
-            codebookDir.startsWith('/') && codebookDir[2] === ':'
-                ? codebookDir.slice(1)
-                : codebookDir
-
-        const files: string[] = []
-
-        // 디렉토리 읽기
-        for await (const entry of Deno.readDir(dirPath)) {
-            if (entry.isFile && entry.name.endsWith('.md')) {
-                files.push(entry.name)
-            }
-        }
-
-        files.sort()
-
-        // 파일 로드
-        for (const file of files) {
-            const filePath = `${dirPath}/${file}`
-            const content = await Deno.readTextFile(filePath)
-            const title = file.replace('.md', '')
-
-            codebookCache.set(title, { title, content })
-            codebookFiles.push(title)
-        }
-
-        console.log(
-            `✅ ${codebookFiles.length}개의 Codebook 파일 로드 완료:`,
-            codebookFiles,
+async function loadCodebook(ctx: Context) {
+    for (const file of codebookFiles) {
+        const content = await ctx.env.CODEBOOK.fetch(
+            new Request(new URL(`${file}.md`, ctx.req.url)),
         )
-    } catch (error) {
-        console.error('❌ Codebook 파일 로드 실패:', error)
+        const title = file.replace('.md', '')
+        codebookCache.set(title, { title, content: await content.text() })
+        // codebookFiles.push(title)
     }
+
+    console.log(
+        `✅ ${codebookFiles.length}개의 Codebook 파일 로드 완료:`,
+        codebookFiles,
+    )
 }
 
 // 도구 호출 핸들러
@@ -164,7 +155,7 @@ mcpServer.registerTool(
             query: z.string().describe('검색 키워드'),
         },
     },
-    async (input) => {
+    async (input, env: CloudflareBindings) => {
         console.log('Search called', input.query)
         const queries = input.query.toLowerCase().split(' ')
 
@@ -195,9 +186,7 @@ const app = new Hono()
 
 app.all('/mcp', async (c) => {
     // 초기화 시 codebook 로드 (첫 요청 시)
-    if (codebookCache.size === 0) {
-        await loadCodebook()
-    }
+    await loadCodebook(c)
 
     const transport = new StreamableHTTPTransport()
     await mcpServer.connect(transport)
