@@ -1,4 +1,5 @@
 import { Operator } from '../node/base.ts'
+import type { Formula } from '../node/calculation.ts'
 import { operatorToText, valueTypeToText, YaksokError } from './common.ts'
 
 import type { Position } from '../type/position.ts'
@@ -83,5 +84,45 @@ export class RangeEndMustBeIntegerError extends YaksokError {
 
         const endText = valueTypeToText(props.resource.end)
         this.message = `범위의 끝은 정수여야 해요. ${endText}는 정수가 아니에요.`
+    }
+}
+
+export class NotBooleanTypeError extends YaksokError {
+    constructor(props: {
+        tokens?: Token[]
+        resource: {
+            value: ValueType
+        }
+    }) {
+        super(props)
+
+        const valueText = valueTypeToText(props.resource.value)
+        this.message = `참/거짓(Boolean) 타입이어야 해요. 하지만 ${valueText}가 왔어요.`
+    }
+}
+
+export class FormulaStackUnderflowError extends YaksokError {
+    constructor(props: {
+        tokens?: Token[]
+        resource: {
+            formula: Formula
+        }
+    }) {
+        super(props)
+
+        this.message = `계산식을 계산하는 중에 문제가 발생했어요. 연산할 값이 부족해요.`
+    }
+}
+
+export class InvalidFormulaError extends YaksokError {
+    constructor(props: {
+        tokens?: Token[]
+        resource: {
+            formula: Formula
+        }
+    }) {
+        super(props)
+
+        this.message = `계산식이 올바르지 않아요. 계산이 끝났는데 값이 남았거나 부족해요.`
     }
 }

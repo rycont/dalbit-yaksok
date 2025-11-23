@@ -1,21 +1,9 @@
-import {
-    InvalidTypeForOperatorError,
-    RangeEndMustBeIntegerError,
-    RangeStartMustBeIntegerError,
-    UnknownOperatorError,
-} from '../error/calculation.ts'
 import { YaksokError } from '../error/common.ts'
-import {
-    RangeEndMustBeNumberError,
-    RangeStartMustBeNumberError,
-} from '../error/index.ts'
-import { RangeStartMustBeLessThanEndError } from '../error/indexed.ts'
-import { isTruthy } from '../executer/internal/isTruthy.ts'
-import type { Scope } from '../executer/scope.ts'
-import type { Token } from '../prepare/tokenize/token.ts'
+import { Scope } from '../executer/scope.ts'
+import { Token } from '../prepare/tokenize/token.ts'
 import { ValueType } from '../value/base.ts'
 import { BooleanValue } from '../value/primitive.ts'
-import { Evaluable, Node, Operator, OperatorClass } from './base.ts'
+import { Evaluable, Operator } from './base.ts'
 import {
     AndOperator,
     DivideOperator,
@@ -34,22 +22,11 @@ import {
     PowerOperator,
     RangeOperator,
 } from './operator.ts'
-
-const OPERATOR_PRECEDENCES: OperatorClass[][] = [
-    [AndOperator, OrOperator],
-    [
-        EqualOperator,
-        NotEqualOperator,
-        LessThanOperator,
-        GreaterThanOperator,
-        LessThanOrEqualOperator,
-        GreaterThanOrEqualOperator,
-        RangeOperator,
-    ],
-    [MinusOperator, PlusOperator],
-    [MultiplyOperator, DivideOperator, ModularOperator, IntegerDivideOperator],
-    [PowerOperator],
-]
+import {
+    FormulaStackUnderflowError,
+    InvalidFormulaError,
+    NotBooleanTypeError,
+} from '../error/calculation.ts'
 
 export class ValueWithParenthesis extends Evaluable {
     static override friendlyName = '괄호로 묶인 값'
@@ -58,12 +35,35 @@ export class ValueWithParenthesis extends Evaluable {
         super()
     }
 
-    override execute(scope: Scope): Promise<ValueType> {
-        return this.value.execute(scope)
+    override async execute(scope: Scope): Promise<ValueType> {
+        return await this.value.execute(scope)
     }
 
-    override toPrint(): string {
-        return '(' + this.value.toPrint() + ')'
+    override validate(scope: Scope): YaksokError[] {
+        return this.value.validate(scope)
+    }
+}
+
+export class NotExpression extends Evaluable {
+    static override friendlyName = '부정'
+
+    constructor(public value: Evaluable, public override tokens: Token[]) {
+        super()
+    }
+
+    override async execute(scope: Scope): Promise<BooleanValue> {
+        const value = await this.value.execute(scope)
+
+        if (!(value instanceof BooleanValue)) {
+            throw new NotBooleanTypeError({
+                resource: {
+                    value,
+                },
+                tokens: this.tokens,
+            })
+        }
+
+        return new BooleanValue(!value.value)
     }
 
     override validate(scope: Scope): YaksokError[] {
@@ -82,165 +82,127 @@ export class Formula extends Evaluable {
     }
 
     override async execute(scope: Scope): Promise<ValueType> {
-        const termsWithToken = this.terms.map((term) => ({
-            value: term,
-            tokens: term.tokens,
-        }))
+        const rpn = this.toRPN()
+        const stack: { value: ValueType; tokens: Token[] }[] = []
 
-        for (
-            let currentPrecedence = OPERATOR_PRECEDENCES.length - 1;
-            currentPrecedence >= 0;
-            currentPrecedence--
-        ) {
-            await this.calculateOperatorWithPrecedence(
-                termsWithToken,
-                currentPrecedence,
-                scope,
-            )
+        for (const item of rpn) {
+            if (item instanceof Operator) {
+                const right = stack.pop()
+                const left = stack.pop()
+
+                if (!left || !right) {
+                    throw new FormulaStackUnderflowError({
+                        resource: {
+                            formula: this,
+                        },
+                        tokens: this.tokens,
+                    })
+                }
+
+                const combinedTokens = [
+                    ...left.tokens,
+                    ...item.tokens,
+                    ...right.tokens,
+                ]
+
+                await this.onRunChild({
+                    scope,
+                    childTokens: combinedTokens,
+                })
+
+                const result = item.call(left.value, right.value)
+                stack.push({ value: result, tokens: combinedTokens })
+            } else {
+                await this.onRunChild({
+                    scope,
+                    childTokens: item.tokens,
+                })
+
+                const result = await item.execute(scope)
+                stack.push({ value: result, tokens: item.tokens })
+            }
         }
 
-        if (termsWithToken.length !== 1) {
-            throw new UnknownOperatorError({
-                tokens: this.tokens,
+        if (stack.length !== 1) {
+            throw new InvalidFormulaError({
                 resource: {
-                    operator: termsWithToken[1].value as Operator,
+                    formula: this,
                 },
+                tokens: this.tokens,
             })
         }
 
-        return termsWithToken[0].value as ValueType
+        return stack[0].value
     }
 
-    async calculateOperatorWithPrecedence(
-        termsWithToken: {
-            value: Evaluable | Operator | ValueType
-            tokens: Token[]
-        }[],
-        precedence: number,
-        scope: Scope,
-    ) {
-        const currentOperators = OPERATOR_PRECEDENCES[precedence]
+    override validate(scope: Scope): YaksokError[] {
+        return this.terms
+            .filter((term) => term instanceof Evaluable)
+            .flatMap((term) => (term as Evaluable).validate(scope))
+    }
 
-        for (let i = 0; i < termsWithToken.length; i++) {
-            const term = termsWithToken[i].value
+    private toRPN(): (Evaluable | Operator)[] {
+        const outputQueue: (Evaluable | Operator)[] = []
+        const operatorStack: Operator[] = []
 
-            const isOperator = term instanceof Operator
-            const isCurrentPrecedence = currentOperators.includes(
-                term.constructor as OperatorClass,
-            )
-
-            if (!isOperator || !isCurrentPrecedence) continue
-
-            const leftTerm = termsWithToken[i - 1].value as
-                | Evaluable
-                | ValueType
-            const rightTerm = termsWithToken[i + 1].value as
-                | Evaluable
-                | ValueType
-
-            if (leftTerm instanceof Node) {
-                await this.onRunChild({
-                    childTokens: leftTerm.tokens,
-                    scope,
-                })
-            }
-
-            const left =
-                leftTerm instanceof ValueType
-                    ? leftTerm
-                    : await leftTerm.execute(scope)
-
-            if (rightTerm instanceof Node) {
-                await this.onRunChild({
-                    childTokens: rightTerm.tokens,
-                    scope,
-                })
-            }
-
-            const right =
-                rightTerm instanceof ValueType
-                    ? rightTerm
-                    : await rightTerm.execute(scope)
-
-            const mergedTokens = [
-                ...termsWithToken[i - 1].tokens,
-                ...term.tokens,
-                ...termsWithToken[i + 1].tokens,
-            ]
-
-            try {
-                await this.onRunChild({
-                    childTokens: mergedTokens,
-                    scope,
-                })
-
-                const result = term.call(left, right)
-
-                termsWithToken.splice(i - 1, 3, {
-                    value: result,
-                    tokens: mergedTokens,
-                })
-
-                i--
-            } catch (e) {
-                if (e instanceof YaksokError && !e.tokens) {
-                    if (e instanceof InvalidTypeForOperatorError) {
-                        e.tokens = mergedTokens
-                    } else if (
-                        e instanceof RangeStartMustBeNumberError ||
-                        e instanceof RangeStartMustBeIntegerError
-                    ) {
-                        e.tokens = termsWithToken[i - 1].tokens
-                    } else if (
-                        e instanceof RangeEndMustBeNumberError ||
-                        e instanceof RangeEndMustBeIntegerError
-                    ) {
-                        e.tokens = termsWithToken[i + 1].tokens
-                    } else if (e instanceof RangeStartMustBeLessThanEndError) {
-                        e.tokens = mergedTokens
-                    }
+        for (const term of this.terms) {
+            if (term instanceof Operator) {
+                while (
+                    operatorStack.length > 0 &&
+                    this.shouldPopOperator(term, operatorStack[operatorStack.length - 1])
+                ) {
+                    outputQueue.push(operatorStack.pop()!)
                 }
-
-                throw e
+                operatorStack.push(term)
+            } else {
+                outputQueue.push(term)
             }
         }
+
+        while (operatorStack.length > 0) {
+            outputQueue.push(operatorStack.pop()!)
+        }
+
+        return outputQueue
     }
 
-    override toPrint(): string {
-        return this.terms.map((term) => term.toPrint()).join(' ')
+    private shouldPopOperator(current: Operator, top: Operator): boolean {
+        const currentPrecedence = this.getPrecedence(current)
+        const topPrecedence = this.getPrecedence(top)
+
+        if (current instanceof PowerOperator) {
+            // Right associative: pop only if top has GREATER precedence
+            return topPrecedence > currentPrecedence
+        }
+
+        // Left associative: pop if top has GREATER OR EQUAL precedence
+        return topPrecedence >= currentPrecedence
     }
 
-    override validate(scope: Scope): YaksokError[] {
-        const errors = this.terms
-            .filter((term) => term instanceof Node)
-            .map((term) => term.validate(scope))
-            .flat()
-            .filter((error) => error !== undefined) as YaksokError[]
+    private getPrecedence(operator: Operator): number {
+        if (operator instanceof PowerOperator) return 5
+        if (
+            operator instanceof MultiplyOperator ||
+            operator instanceof DivideOperator ||
+            operator instanceof IntegerDivideOperator ||
+            operator instanceof ModularOperator
+        )
+            return 4
+        if (operator instanceof PlusOperator || operator instanceof MinusOperator)
+            return 3
+        if (
+            operator instanceof GreaterThanOperator ||
+            operator instanceof LessThanOperator ||
+            operator instanceof GreaterThanOrEqualOperator ||
+            operator instanceof LessThanOrEqualOperator ||
+            operator instanceof EqualOperator ||
+            operator instanceof NotEqualOperator ||
+            operator instanceof RangeOperator
+        )
+            return 2
+        if (operator instanceof AndOperator) return 1
+        if (operator instanceof OrOperator) return 0
 
-        return errors
-    }
-}
-
-export class NotExpression extends Evaluable {
-    static override friendlyName = '아니다'
-
-    constructor(public value: Evaluable, public override tokens: Token[]) {
-        super()
-    }
-
-    override async execute(scope: Scope): Promise<ValueType> {
-        const result = await this.value.execute(scope)
-        const resultValue = isTruthy(result)
-
-        return new BooleanValue(!resultValue)
-    }
-
-    override toPrint(): string {
-        return '!' + this.value.toPrint()
-    }
-
-    override validate(scope: Scope): YaksokError[] {
-        const errors = this.value.validate(scope)
-        return errors
+        return -1
     }
 }
