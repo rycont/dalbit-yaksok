@@ -1,13 +1,19 @@
 import { Token, TOKEN_TYPE } from '../prepare/tokenize/token.ts'
 import { blue, bold, YaksokError } from './common.ts'
 import { NotExecutableNodeError } from './unknown-node.ts'
-import { NotDefinedIdentifierError } from './variable.ts'
+import {
+    NotDefinedIdentifierError,
+    NotProperIdentifierNameToDefineError,
+} from './variable.ts'
 
 interface ErrorProcessor {
-    (line: YaksokError[]): YaksokError[]
+    (line: YaksokError[], tokens: Token[]): [YaksokError[], Token[]]
 }
 
-const PROCESSORS: ErrorProcessor[] = [parseVariableAssigningValueParsingError]
+const PROCESSORS: ErrorProcessor[] = [
+    parseInvalidVariableName,
+    parseVariableAssigningValueParsingError,
+]
 
 export function postprocessErrors(
     _errors: YaksokError[],
@@ -15,8 +21,12 @@ export function postprocessErrors(
 ): YaksokError[] {
     const lines = splitErrorsByLine(_errors)
 
-    const processedLines = lines.map((line) =>
-        PROCESSORS.reduce((line, processor) => processor(line), line),
+    const processedLines = lines.map(
+        (line) =>
+            PROCESSORS.reduce(
+                ([line, tokens], processor) => processor(line, tokens),
+                [line, tokens] as [YaksokError[], Token[]],
+            )[0],
     )
 
     const errors = processedLines.flat()
@@ -64,7 +74,10 @@ export function postprocessErrors(
     return errors
 }
 
-function parseVariableAssigningValueParsingError(line: YaksokError[]) {
+function parseInvalidVariableName(
+    line: YaksokError[],
+    tokens: Token[],
+): [YaksokError[], Token[]] {
     const notExecutableEqualSignIndex = line.findIndex(
         (error) =>
             error instanceof NotExecutableNodeError &&
@@ -73,7 +86,52 @@ function parseVariableAssigningValueParsingError(line: YaksokError[]) {
     )
 
     if (notExecutableEqualSignIndex === -1) {
-        return line
+        return [line, tokens]
+    }
+
+    const errorTokens = line[notExecutableEqualSignIndex].tokens
+    if (!errorTokens) {
+        return [line, tokens]
+    }
+
+    const lastErrorTokenIndex = tokens.indexOf(
+        errorTokens[errorTokens.length - 1],
+    )
+
+    const startPosition = tokens[0].position
+    const tokensBeforeEqualSign = tokens.slice(0, lastErrorTokenIndex)
+
+    const newToken: Token = {
+        type: TOKEN_TYPE.IDENTIFIER,
+        value: tokensBeforeEqualSign
+            .map((token) => token.value)
+            .join('')
+            .trim(),
+        position: startPosition,
+    }
+
+    tokens.splice(0, lastErrorTokenIndex + 1, newToken)
+
+    const newError = new NotProperIdentifierNameToDefineError({
+        tokens: [newToken],
+    })
+
+    return [[newError], tokens]
+}
+
+function parseVariableAssigningValueParsingError(
+    line: YaksokError[],
+    tokens: Token[],
+): [YaksokError[], Token[]] {
+    const notExecutableEqualSignIndex = line.findIndex(
+        (error) =>
+            error instanceof NotExecutableNodeError &&
+            error.tokens?.length === 1 &&
+            error.tokens[0].value === '=',
+    )
+
+    if (notExecutableEqualSignIndex === -1) {
+        return [line, tokens]
     }
 
     const conditionalExpressionIndex = line.findIndex(
@@ -92,10 +150,10 @@ function parseVariableAssigningValueParsingError(line: YaksokError[]) {
             bold('"=="'),
         )}(등호 두개)를 사용해야 해요.`
 
-        return [error]
+        return [[error], tokens]
     }
 
-    return line
+    return [line, tokens]
 }
 
 function splitErrorsByLine(errors: YaksokError[]) {

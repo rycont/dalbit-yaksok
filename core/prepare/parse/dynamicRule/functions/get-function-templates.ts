@@ -1,7 +1,7 @@
 import { RESERVED_WORDS } from '../../../../constant/reserved-words.ts'
 import { FunctionMustHaveOneOrMoreStringPartError } from '../../../../error/function.ts'
 import { UnexpectedTokenError } from '../../../../error/prepare.ts'
-import { CannotUseReservedWordForIdentifierNameError } from '../../../../error/variable.ts'
+import { NotProperIdentifierNameToDefineError } from '../../../../error/variable.ts'
 import {
     FunctionTemplate,
     FunctionTemplatePiece,
@@ -41,8 +41,7 @@ export function convertTokensToFunctionTemplate(
             }
         })
         .filter(Boolean) as Array<
-        | { type: 'value'; value: string[] }
-        | { type: 'static'; value: string }
+        { type: 'value'; value: string[] } | { type: 'static'; value: string }
     >
 
     const lastPiece = rawPieces[rawPieces.length - 1]
@@ -150,7 +149,7 @@ function assertValidFunctionHeader(
     for (const [index, token] of tokens.entries()) {
         if (token.type === TOKEN_TYPE.IDENTIFIER) {
             if (RESERVED_WORDS.has(token.value)) {
-                throw new CannotUseReservedWordForIdentifierNameError({
+                throw new NotProperIdentifierNameToDefineError({
                     tokens: [token],
                 })
             }
