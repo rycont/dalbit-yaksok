@@ -6,11 +6,8 @@ await session.extend(new QuickJS())
 
 session.addModule(
     'main',
-    `번역(JavaScript), (코드) 입력받기
-***
-    return eval(코드)
-***
-`,
+    `만약 N = 10
+    N 보여주기`,
 )
 
 session.stepUnit = Block

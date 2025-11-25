@@ -11,7 +11,10 @@ export class UnknownNodeError extends YaksokError {
     }
 }
 
-export class NotExecutableNodeError extends YaksokError {
+export class NotExecutableNodeError extends YaksokError<{
+    node: Node
+    message?: string
+}> {
     constructor(props: {
         tokens: Token[]
         resource: { node: Node; message?: string }

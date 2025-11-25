@@ -1,12 +1,25 @@
 import { Token, TOKEN_TYPE } from '../prepare/tokenize/token.ts'
-import { YaksokError } from './common.ts'
+import { blue, bold, YaksokError } from './common.ts'
+import { NotExecutableNodeError } from './unknown-node.ts'
 import { NotDefinedIdentifierError } from './variable.ts'
+
+interface ErrorProcessor {
+    (line: YaksokError[]): YaksokError[]
+}
+
+const PROCESSORS: ErrorProcessor[] = [parseVariableAssigningValueParsingError]
 
 export function postprocessErrors(
     _errors: YaksokError[],
     tokens: Token[],
 ): YaksokError[] {
-    const errors = [..._errors]
+    const lines = splitErrorsByLine(_errors)
+
+    const processedLines = lines.map((line) =>
+        PROCESSORS.reduce((line, processor) => processor(line), line),
+    )
+
+    const errors = processedLines.flat()
 
     for (let i = errors.length - 1; i >= 0; i--) {
         const current = errors[i]
@@ -49,4 +62,64 @@ export function postprocessErrors(
     }
 
     return errors
+}
+
+function parseVariableAssigningValueParsingError(line: YaksokError[]) {
+    const notExecutableEqualSignIndex = line.findIndex(
+        (error) =>
+            error instanceof NotExecutableNodeError &&
+            error.tokens?.length === 1 &&
+            error.tokens[0].value === '=',
+    )
+
+    if (notExecutableEqualSignIndex === -1) {
+        return line
+    }
+
+    const conditionalExpressionIndex = line.findIndex(
+        (error) =>
+            error instanceof NotDefinedIdentifierError &&
+            error.tokens?.length === 1 &&
+            error.tokens[0].value === '만약',
+    )
+
+    if (conditionalExpressionIndex !== -1) {
+        const error = line[
+            notExecutableEqualSignIndex
+        ] as NotExecutableNodeError
+
+        error.message = `만약에서는 ${blue(
+            bold('"=="'),
+        )}(등호 두개)를 사용해야 해요.`
+
+        return [error]
+    }
+
+    return line
+}
+
+function splitErrorsByLine(errors: YaksokError[]) {
+    const lines: YaksokError[][] = []
+
+    let currentLine = 0
+
+    for (const error of errors) {
+        const position = error.tokens?.[0].position
+
+        if (!position) {
+            lines.push([error])
+            continue
+        }
+
+        const line = position.line
+        if (line === currentLine) {
+            lines[currentLine - 1].push(error)
+            continue
+        }
+
+        currentLine = line
+        lines.push([error])
+    }
+
+    return lines
 }
