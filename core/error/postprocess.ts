@@ -113,6 +113,10 @@ function splitErrorsByLine(errors: YaksokError[]) {
 
         const line = position.line
         if (line === currentLine) {
+            if (!lines[currentLine - 1]) {
+                lines[currentLine - 1] = []
+            }
+
             lines[currentLine - 1].push(error)
             continue
         }
