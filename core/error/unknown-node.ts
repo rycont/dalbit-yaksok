@@ -24,7 +24,10 @@ export class NotExecutableNodeError extends YaksokError<{
         if (props.resource.message) {
             this.message = props.resource.message
         } else {
-            const tokenText = props.tokens.map((t) => t.value).join('')
+            const tokenText = props.tokens
+                .map((t) => t.value)
+                .join('')
+                .replace('\n', '\\n')
             const nodeName = (props.resource.node.constructor as typeof Node)
                 .friendlyName
 

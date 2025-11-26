@@ -11,6 +11,7 @@ interface ErrorProcessor {
 }
 
 const PROCESSORS: ErrorProcessor[] = [
+    parseNotParsablePrintError,
     parseInvalidVariableName,
     parseVariableAssigningValueParsingError,
 ]
@@ -76,7 +77,7 @@ export function postprocessErrors(
 
 function parseInvalidVariableName(
     line: YaksokError[],
-    tokens: Token[],
+    allTokens: Token[],
 ): [YaksokError[], Token[]] {
     const notExecutableEqualSignIndex = line.findIndex(
         (error) =>
@@ -86,20 +87,37 @@ function parseInvalidVariableName(
     )
 
     if (notExecutableEqualSignIndex === -1) {
-        return [line, tokens]
+        return [line, allTokens]
     }
 
-    const errorTokens = line[notExecutableEqualSignIndex].tokens
-    if (!errorTokens) {
-        return [line, tokens]
+    const equalSignTokens = line[notExecutableEqualSignIndex].tokens
+    if (!equalSignTokens) {
+        return [line, allTokens]
     }
 
-    const lastErrorTokenIndex = tokens.indexOf(
-        errorTokens[errorTokens.length - 1],
+    const errorLine = equalSignTokens[0].position.line
+
+    const tokenThisLineStartIndex = allTokens.findLastIndex(
+        (token) => token.position.line < errorLine,
+    )
+    const tokenThisLineEndIndex = allTokens.findIndex(
+        (token) => token.position.line > errorLine,
     )
 
-    const startPosition = tokens[0].position
-    const tokensBeforeEqualSign = tokens.slice(0, lastErrorTokenIndex)
+    const thisLineTokens = allTokens.slice(
+        tokenThisLineStartIndex + 1,
+        tokenThisLineEndIndex,
+    )
+
+    const equalSignTokenIndex = allTokens.indexOf(
+        equalSignTokens[equalSignTokens.length - 1],
+    )
+
+    const startPosition = thisLineTokens[0].position
+    const tokensBeforeEqualSign = thisLineTokens.slice(
+        0,
+        equalSignTokenIndex - 1,
+    )
 
     const newToken: Token = {
         type: TOKEN_TYPE.IDENTIFIER,
@@ -110,13 +128,13 @@ function parseInvalidVariableName(
         position: startPosition,
     }
 
-    tokens.splice(0, lastErrorTokenIndex + 1, newToken)
+    allTokens.splice(tokenThisLineStartIndex, tokenThisLineEndIndex, newToken)
 
     const newError = new NotProperIdentifierNameToDefineError({
         tokens: [newToken],
     })
 
-    return [[newError], tokens]
+    return [[newError], allTokens]
 }
 
 function parseVariableAssigningValueParsingError(
@@ -131,6 +149,12 @@ function parseVariableAssigningValueParsingError(
     )
 
     if (notExecutableEqualSignIndex === -1) {
+        return [line, tokens]
+    }
+
+    const errorTokens = line[notExecutableEqualSignIndex].tokens
+
+    if (!errorTokens) {
         return [line, tokens]
     }
 
@@ -156,32 +180,39 @@ function parseVariableAssigningValueParsingError(
     return [line, tokens]
 }
 
-function splitErrorsByLine(errors: YaksokError[]) {
-    const lines: YaksokError[][] = []
+function parseNotParsablePrintError(
+    line: YaksokError[],
+    tokens: Token[],
+): [YaksokError[], Token[]] {
+    const lastError = line[line.length - 1]
 
-    let currentLine = 0
-
-    for (const error of errors) {
-        const position = error.tokens?.[0].position
-
-        if (!position) {
-            lines.push([error])
-            continue
-        }
-
-        const line = position.line
-        if (line === currentLine) {
-            if (!lines[currentLine - 1]) {
-                lines[currentLine - 1] = []
-            }
-
-            lines[currentLine - 1].push(error)
-            continue
-        }
-
-        currentLine = line
-        lines.push([error])
+    if (!lastError) {
+        return [line, tokens]
     }
 
-    return lines
+    const endsWith보여주기 =
+        lastError instanceof NotDefinedIdentifierError &&
+        lastError.resource?.name === '보여주기'
+
+    if (!endsWith보여주기) {
+        return [line, tokens]
+    }
+
+    return [line.slice(0, -1), tokens]
+}
+
+function splitErrorsByLine(errors: YaksokError[]) {
+    const lines = new Map<number, YaksokError[]>()
+    let lastLine = 0
+
+    for (const error of errors) {
+        const position = error.tokens?.[error.tokens.length - 1].position
+
+        lastLine = position?.line || lastLine
+        lines.set(lastLine, [...(lines.get(lastLine) || []), error])
+    }
+
+    return [...lines.entries()]
+        .toSorted((a, b) => a[0] - b[0])
+        .map((entry) => entry[1])
 }
