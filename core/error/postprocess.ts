@@ -124,6 +124,10 @@ function parseInvalidVariableName(
         equalSignTokenIndex - 1,
     )
 
+    if (tokensBeforeEqualSign.length === 1) {
+        return [line, allTokens]
+    }
+
     const newToken: Token = {
         type: TOKEN_TYPE.IDENTIFIER,
         value: tokensBeforeEqualSign
@@ -184,7 +188,7 @@ function parseVariableAssigningValueParsingError(
         return [[error], tokens]
     }
 
-    return [line, tokens]
+    return [line.slice(2), tokens]
 }
 
 function parseNotParsablePrintError(
