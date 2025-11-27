@@ -91,8 +91,12 @@ function parseInvalidVariableName(
             error.tokens[0].value === '=',
     )
 
-    if (notExecutableEqualSignIndex === -1) {
-        return [line, allTokens]
+    const firstError = line[0]
+    const isFirstErrorCannotFindIdentifier =
+        firstError instanceof NotDefinedIdentifierError
+
+    if (notExecutableEqualSignIndex === 1 && isFirstErrorCannotFindIdentifier) {
+        return [line.slice(2), allTokens]
     }
 
     const equalSignTokens = line[notExecutableEqualSignIndex].tokens
