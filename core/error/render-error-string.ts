@@ -69,12 +69,11 @@ export function renderErrorString(error: YaksokError) {
     output += '> ' + error.message + '\n\n'
 
     if (code) {
-        const isRegionalError =
-            error.tokens && getTokensLength(error.tokens) > 1
+        const errorTokens = error.tokens
 
-        if (isRegionalError) {
+        if (errorTokens) {
             output += '┌─────\n'
-            output += getHintCodeFromErrorTokens(error.tokens!, code)
+            output += getHintCodeFromErrorTokens(errorTokens, code)
             output += '└─────\n'
         } else if (error.position || error.tokens) {
             const position = error.position || error.tokens![0].position

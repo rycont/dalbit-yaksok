@@ -21,7 +21,7 @@ export class Scope {
     variables: Record<string, ValueType>
     parent: Scope | undefined
     codeFile?: CodeFile
-    private functions: Map<string, RunnableObject> = new Map()
+    public functions: Map<string, RunnableObject> = new Map()
     public callStackDepth: number
 
     constructor(

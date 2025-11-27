@@ -72,7 +72,7 @@ export class Print extends Executable {
 
 //         try {
 //             const result = await Promise.resolve(inputFunction(questionText))
-            
+
 //             if (result == null) {
 //                 return new StringValue('')
 //             }
@@ -103,7 +103,9 @@ export class TypeOf extends Evaluable {
     override async execute(scope: Scope): Promise<StringValue> {
         const evaluated = await this.value.execute(scope)
 
-        return new StringValue((evaluated.constructor as typeof ValueType).friendlyName)
+        return new StringValue(
+            (evaluated.constructor as typeof ValueType).friendlyName,
+        )
     }
 
     override validate(scope: Scope): YaksokError[] {
@@ -118,9 +120,11 @@ export class Pause extends Executable {
         super()
     }
 
-    override async execute(scope: Scope): Promise<void> {
+    override execute(scope: Scope): Promise<void> {
         scope.codeFile?.session?.pubsub.pub('debug', [scope, this])
         scope.codeFile?.session?.pause()
+
+        return Promise.resolve()
     }
 
     override validate(_scope: Scope): YaksokError[] {

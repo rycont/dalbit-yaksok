@@ -16,6 +16,6 @@ Deno.test('Merge identifier name errors', async () => {
     assertEquals(machineReadables.length, 1)
     assertEquals(
         machineReadables[0].message,
-        '"정의 되지 않은 약속"라는 변수나 약속을 찾을 수 없어요',
+        '"정의 되지 않은 약속"라는 변수나 약속을 찾을 수 없어요.',
     )
 })
