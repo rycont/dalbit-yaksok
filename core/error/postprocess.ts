@@ -1,4 +1,6 @@
+import { Scope } from '../executer/scope.ts'
 import { Token, TOKEN_TYPE } from '../prepare/tokenize/token.ts'
+import { levenshtein } from '../util/levelshtein.ts'
 import { blue, bold, YaksokError } from './common.ts'
 import { NotExecutableNodeError } from './unknown-node.ts'
 import {
@@ -19,6 +21,7 @@ const PROCESSORS: ErrorProcessor[] = [
 export function postprocessErrors(
     _errors: YaksokError[],
     tokens: Token[],
+    scope: Scope,
 ): YaksokError[] {
     const lines = splitErrorsByLine(_errors)
 
@@ -71,6 +74,8 @@ export function postprocessErrors(
 
         errors.splice(i, 1)
     }
+
+    const functionNameSuggestedErrors = suggestFunctionName(errors, scope)
 
     return errors
 }
@@ -215,4 +220,71 @@ function splitErrorsByLine(errors: YaksokError[]) {
     return [...lines.entries()]
         .toSorted((a, b) => a[0] - b[0])
         .map((entry) => entry[1])
+}
+
+function suggestFunctionName(
+    errors: YaksokError[],
+    scope: Scope,
+): YaksokError[] {
+    const functionSignatures = Array.from(scope.functions.keys()).map(
+        (signature) =>
+            signature
+                .split(/\(.*?\)/g)
+                .map((part) => part.trim())
+                .filter((part) => part !== ''),
+    )
+
+    for (let i = 0; i < errors.length; i++) {
+        if (!isLongError(errors[i])) {
+            continue
+        }
+
+        let tokens = errors[i].tokens
+        if (!tokens) {
+            continue
+        }
+
+        tokens = tokens.filter((token) => token.value !== '보여주기')
+
+        const tokenString = tokens.map((token) => token.value).join('')
+        const closestFunctionSignature = functionSignatures
+            .map((staticParts) =>
+                staticParts.map(
+                    (signature) =>
+                        [
+                            signature,
+                            levenshtein(tokenString, signature),
+                        ] as const,
+                ),
+            )
+            .flat()
+            .sort((a, b) => a[1] - b[1])[0]
+
+        if (closestFunctionSignature[1] < 4) {
+            errors[i].resource = {
+                suggestedFix: closestFunctionSignature[0],
+            }
+        }
+    }
+
+    return errors
+}
+
+function isLongError(error: YaksokError): boolean {
+    const firstToken = error.tokens?.[0]
+    const lastToken = error.tokens?.[error.tokens.length - 1]
+
+    if (!firstToken || !lastToken) {
+        return false
+    }
+    if (firstToken.position.line !== lastToken.position.line) {
+        return true
+    }
+
+    const length =
+        lastToken.position.column -
+        firstToken.position.column +
+        lastToken.value.length
+
+    return length > 5
 }
