@@ -6,6 +6,6 @@ export function assertValidIdentifierName(value: string, token: Token) {
     if (!RESERVED_WORDS.has(value)) return
 
     throw new NotProperIdentifierNameToDefineError({
-        tokens: [token],
+        texts: [token.value],
     })
 }

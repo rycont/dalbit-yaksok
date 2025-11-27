@@ -33,7 +33,8 @@ export function postprocessErrors(
             )[0],
     )
 
-    const errors = processedLines.flat()
+    let errors = processedLines.flat()
+    errors = suggestFunctionName(errors, scope)
 
     for (let i = errors.length - 1; i >= 0; i--) {
         const current = errors[i]
@@ -118,8 +119,8 @@ function parseInvalidVariableName(
     )
 
     const startPosition = thisLineTokens[0].position
-    const tokensBeforeEqualSign = thisLineTokens.slice(
-        0,
+    const tokensBeforeEqualSign = allTokens.slice(
+        tokenThisLineStartIndex + 1,
         equalSignTokenIndex - 1,
     )
 
@@ -135,8 +136,10 @@ function parseInvalidVariableName(
     allTokens.splice(tokenThisLineStartIndex, tokenThisLineEndIndex, newToken)
 
     const newError = new NotProperIdentifierNameToDefineError({
-        tokens: [newToken],
+        texts: [newToken.value],
     })
+    newError.position = startPosition
+    newError.tokens = [newToken]
 
     return [[newError], allTokens]
 }
@@ -225,12 +228,17 @@ function suggestFunctionName(
     errors: YaksokError[],
     scope: Scope,
 ): YaksokError[] {
-    const functionSignatures = Array.from(scope.functions.keys()).map(
-        (signature) =>
-            signature
-                .split(/\(.*?\)/g)
-                .map((part) => part.trim())
-                .filter((part) => part !== ''),
+    const functionNames = Array.from(scope.functions.keys())
+
+    if (functionNames.length === 0) {
+        return errors
+    }
+
+    const functionSignatures = functionNames.map((signature) =>
+        signature
+            .split(/\(.*?\)/g)
+            .map((part) => part.trim())
+            .filter((part) => part !== ''),
     )
 
     for (let i = 0; i < errors.length; i++) {

@@ -150,7 +150,7 @@ function assertValidFunctionHeader(
         if (token.type === TOKEN_TYPE.IDENTIFIER) {
             if (RESERVED_WORDS.has(token.value)) {
                 throw new NotProperIdentifierNameToDefineError({
-                    tokens: [token],
+                    texts: tokens.map((t) => t.value),
                 })
             }
         }
