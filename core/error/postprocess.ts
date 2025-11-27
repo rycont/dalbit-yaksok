@@ -91,14 +91,6 @@ function parseInvalidVariableName(
             error.tokens[0].value === '=',
     )
 
-    const firstError = line[0]
-    const isFirstErrorCannotFindIdentifier =
-        firstError instanceof NotDefinedIdentifierError
-
-    if (notExecutableEqualSignIndex === 1 && isFirstErrorCannotFindIdentifier) {
-        return [line.slice(2), allTokens]
-    }
-
     const equalSignTokens = line[notExecutableEqualSignIndex].tokens
     if (!equalSignTokens) {
         return [line, allTokens]
@@ -127,6 +119,10 @@ function parseInvalidVariableName(
         tokenThisLineStartIndex + 1,
         equalSignTokenIndex - 1,
     )
+
+    if (tokensBeforeEqualSign.length === 1) {
+        return [line, allTokens]
+    }
 
     const newToken: Token = {
         type: TOKEN_TYPE.IDENTIFIER,
@@ -188,7 +184,7 @@ function parseVariableAssigningValueParsingError(
         return [[error], tokens]
     }
 
-    return [line, tokens]
+    return [line.slice(2), tokens]
 }
 
 function parseNotParsablePrintError(
