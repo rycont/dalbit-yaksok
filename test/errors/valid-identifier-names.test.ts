@@ -1,5 +1,5 @@
 import { assert, assertIsError } from 'assert'
-import { CannotUseReservedWordForIdentifierNameError } from '../../core/error/index.ts'
+import { NotProperIdentifierNameToDefineError } from '../../core/error/index.ts'
 import { NotDefinedIdentifierError, yaksok } from '../../core/mod.ts'
 
 Deno.test('Valid identifier names', async () => {
@@ -47,7 +47,7 @@ Deno.test('Cannot use reserved words as an identifier', async () => {
     )
     assertIsError(
         result.errors.get('main')![0],
-        CannotUseReservedWordForIdentifierNameError,
+        NotProperIdentifierNameToDefineError,
     )
 })
 
@@ -62,7 +62,7 @@ Deno.test('Cannot use reserved words as a part of a yaksok name', async () => {
     )
     assertIsError(
         result.errors.get('main')![0],
-        CannotUseReservedWordForIdentifierNameError,
+        NotProperIdentifierNameToDefineError,
     )
 })
 
@@ -79,6 +79,6 @@ Deno.test('Cannot use reserved words as a part of a connect name', async () => {
     )
     assertIsError(
         result.errors.get('main')![0],
-        CannotUseReservedWordForIdentifierNameError,
+        NotProperIdentifierNameToDefineError,
     )
 })

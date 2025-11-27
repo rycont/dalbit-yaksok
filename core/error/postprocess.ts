@@ -76,8 +76,7 @@ export function postprocessErrors(
     }
 
     const functionNameSuggestedErrors = suggestFunctionName(errors, scope)
-
-    return errors
+    return functionNameSuggestedErrors
 }
 
 function parseInvalidVariableName(
