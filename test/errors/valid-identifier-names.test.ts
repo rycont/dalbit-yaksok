@@ -1,6 +1,6 @@
 import { assert, assertIsError } from 'assert'
 import { NotProperIdentifierNameToDefineError } from '../../core/error/index.ts'
-import { NotDefinedIdentifierError, yaksok } from '../../core/mod.ts'
+import { yaksok } from '../../core/mod.ts'
 
 Deno.test('Valid identifier names', async () => {
     const result1 = await yaksok(`멍멍이 = 10`)
@@ -36,7 +36,10 @@ Deno.test('Invalid identifier name', async () => {
         result.reason === 'validation',
         `Expected validation, but got ${result.reason}`,
     )
-    assertIsError(result.errors.get('main')![0], NotDefinedIdentifierError)
+    assertIsError(
+        result.errors.get('main')![0],
+        NotProperIdentifierNameToDefineError,
+    )
 })
 
 Deno.test('Cannot use reserved words as an identifier', async () => {
