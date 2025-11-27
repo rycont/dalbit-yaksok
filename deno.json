@@ -19,7 +19,7 @@
         "monaco-language-provider",
         "pyodide"
     ],
-    "version": "3.9.0",
+    "version": "3.9.1",
     "tasks": {
         "apply-version": "deno run --allow-read --allow-write apply-version.ts",
         "publish": "deno task apply-version && deno task --recursive test && deno publish --allow-dirty",
