@@ -91,6 +91,10 @@ function parseInvalidVariableName(
             error.tokens[0].value === '=',
     )
 
+    if (notExecutableEqualSignIndex === -1) {
+        return [line, allTokens]
+    }
+
     const equalSignTokens = line[notExecutableEqualSignIndex].tokens
     if (!equalSignTokens) {
         return [line, allTokens]
