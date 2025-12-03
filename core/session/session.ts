@@ -120,12 +120,12 @@ export class YaksokSession {
     private tick = 0
     private threadYieldInterval: number
 
-    public eventPubsub = new PubSub<{
+    public eventPubsub: PubSub<{
         [key: string]: () => void
-    }>()
-    public eventEndPubsub = new PubSub<{
+    }> = new PubSub()
+    public eventEndPubsub: PubSub<{
         [key: string]: () => void
-    }>()
+    }> = new PubSub()
 
     public aliveListeners: Promise<void>[] = []
 

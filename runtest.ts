@@ -8,7 +8,8 @@ session.addModule('time', '이벤트(TICK), 매 초 실행하기')
 
 session.addModule(
     'main',
-    `@time 매 초 실행하기
+    `
+@time 매 초 실행하기
     '어서오세요' 보여주기`,
 )
 

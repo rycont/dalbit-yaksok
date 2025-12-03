@@ -1,8 +1,9 @@
-import { Evaluable, Expression, Identifier, Token } from '@dalbit-yaksok/core'
 import { PatternUnit } from '../../../type.ts'
 import { Rule } from '../../../rule/index.ts'
 import { functionHeaderToPattern } from './common.ts'
 import { DeclareEvent } from '../../../../../node/event.ts'
+import { Evaluable, Expression, Identifier } from '../../../../../node/base.ts'
+import { Token } from '../../../../tokenize/token.ts'
 
 const PREFIX: PatternUnit[] = [
     {
