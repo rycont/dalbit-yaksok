@@ -21,6 +21,7 @@ import type { EnabledFlags } from '../constant/feature-flags.ts'
 import {
     AbortedRunModuleResult,
     ErrorRunModuleResult,
+    FunctionInvokingParams,
     RunModuleResult,
     SuccessRunModuleResult,
     ValidationRunModuleResult,
@@ -120,11 +121,12 @@ export class YaksokSession {
     private tick = 0
     private threadYieldInterval: number
 
-    public eventPubsub: PubSub<{
-        [key: string]: () => void
-    }> = new PubSub()
-    public eventEndPubsub: PubSub<{
-        [key: string]: () => void
+    public eventCreation: PubSub<{
+        [key: string]: (
+            args: FunctionInvokingParams,
+            callback: () => void,
+            terminate: () => void,
+        ) => void
     }> = new PubSub()
 
     public aliveListeners: Promise<void>[] = []

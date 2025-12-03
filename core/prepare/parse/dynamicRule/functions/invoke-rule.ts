@@ -123,7 +123,7 @@ function createPatternFromTemplatePieces(
     })
 }
 
-function parseParameterFromTemplate(
+export function parseParameterFromTemplate(
     template: FunctionTemplate,
     matchedNodes: Node[],
 ): Record<string, Evaluable> {

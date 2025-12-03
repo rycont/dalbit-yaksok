@@ -4,7 +4,10 @@ import { EOL } from '../../../../node/misc.ts'
 import { Token } from '../../../tokenize/token.ts'
 import { Rule } from '../../rule/index.ts'
 import { convertTokensToFunctionTemplate } from './get-function-templates.ts'
-import { createFunctionInvokeRule } from './invoke-rule.ts'
+import {
+    createFunctionInvokeRule,
+    parseParameterFromTemplate,
+} from './invoke-rule.ts'
 
 export function tokensToEventSubscribeRule(templateTokens: Token[]): Rule[] {
     const templates = createFunctionInvokeRule(
@@ -22,11 +25,18 @@ export function tokensToEventSubscribeRule(templateTokens: Token[]): Rule[] {
                         type: Block,
                     },
                 ],
-                factory(nodes, tokens) {
-                    const eventId = templateTokens[2].value as string
-                    const body = nodes[nodes.length - 1] as Block
+                factory(matchedNodes, tokens) {
+                    const params = parseParameterFromTemplate(
+                        convertTokensToFunctionTemplate(
+                            templateTokens.slice(6),
+                        ),
+                        matchedNodes,
+                    )
 
-                    return new SubscribeEvent({ eventId, body }, tokens)
+                    const eventId = templateTokens[2].value as string
+                    const body = matchedNodes[matchedNodes.length - 1] as Block
+
+                    return new SubscribeEvent({ eventId, body, params }, tokens)
                 },
             } as Rule),
     )

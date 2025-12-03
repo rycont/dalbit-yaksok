@@ -1,7 +1,8 @@
 import { Scope, YaksokError } from '@dalbit-yaksok/core'
 import { Token } from '../prepare/tokenize/token.ts'
-import { Executable } from './base.ts'
+import { Evaluable, Executable } from './base.ts'
 import { Block } from './block.ts'
+import { evaluateParams } from './index.ts'
 
 export class DeclareEvent extends Executable {
     static override friendlyName = '새 이벤트 만들기'
@@ -19,7 +20,7 @@ export class DeclareEvent extends Executable {
         this.name = props.name
     }
 
-    override execute(scope: Scope): Promise<void> {
+    override execute(_scope: Scope): Promise<void> {
         return Promise.resolve()
     }
 
@@ -33,33 +34,40 @@ export class SubscribeEvent extends Executable {
 
     private eventId: string
     private body: Block
+    private params: Record<string, Evaluable>
 
     constructor(
-        props: { eventId: string; body: Block },
+        props: {
+            eventId: string
+            body: Block
+            params: Record<string, Evaluable>
+        },
         public override tokens: Token[],
     ) {
         super()
 
         this.eventId = props.eventId
         this.body = props.body
+        this.params = props.params
     }
 
-    override execute(scope: Scope): Promise<void> {
+    override async execute(scope: Scope): Promise<void> {
+        const param = await evaluateParams(this.params, scope)
+
         scope.codeFile?.session?.aliveListeners.push(
             new Promise((resolve) => {
-                scope.codeFile?.session?.eventEndPubsub.sub(
-                    this.eventId,
+                scope.codeFile?.session?.eventCreation.pub(this.eventId, [
+                    param,
+                    () => {
+                        const subScope = new Scope({ parent: scope })
+                        this.body.execute(subScope)
+                    },
                     () => {
                         resolve()
                     },
-                )
+                ])
             }),
         )
-
-        scope.codeFile?.session?.eventPubsub.sub(this.eventId, () => {
-            const subScope = new Scope({ parent: scope })
-            this.body.execute(subScope)
-        })
 
         return Promise.resolve()
     }
