@@ -1,10 +1,10 @@
-import { YaksokSession, Block, type Node } from '@dalbit-yaksok/core'
+import { YaksokSession } from '@dalbit-yaksok/core'
 import { QuickJS } from '@dalbit-yaksok/quickjs'
 
 const session = new YaksokSession()
 await session.extend(new QuickJS())
 
-session.setBaseContext('이벤트(REPEAT_EVERY_T), (t)초에 한번 실행하기')
+await session.setBaseContext('이벤트(REPEAT_EVERY_T), (t)초에 한번 실행하기')
 
 session.addModule(
     'main',

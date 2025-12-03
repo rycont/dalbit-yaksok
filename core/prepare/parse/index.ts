@@ -106,8 +106,6 @@ export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
             ...exportedVariables,
         ]
 
-        console.log('exportedRules', exportedRules)
-
         return { ast, exportedRules }
     } catch (error) {
         if (error instanceof YaksokError) {
