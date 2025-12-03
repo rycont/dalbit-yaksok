@@ -155,7 +155,7 @@ mcpServer.registerTool(
             query: z.string().describe('검색 키워드'),
         },
     },
-    async (input, env: CloudflareBindings) => {
+    async (input) => {
         console.log('Search called', input.query)
         const queries = input.query.toLowerCase().split(' ')
 
@@ -167,7 +167,7 @@ mcpServer.registerTool(
                         value.content.toLowerCase().includes(query),
                 ),
             )
-            .map(([key, value]) => value.content)
+            .map(([_key, value]) => value.content)
 
         console.log('Search finished:', result.length, 'results found')
 

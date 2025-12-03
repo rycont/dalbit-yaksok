@@ -1,8 +1,6 @@
-import { dalbitToJS, YaksokSession } from '@dalbit-yaksok/core'
-import { QuickJS } from '@dalbit-yaksok/quickjs'
+import { YaksokSession } from '@dalbit-yaksok/core'
 
 const session = new YaksokSession()
-await session.extend(new QuickJS())
 
 session.addModule(
     'main',
@@ -17,7 +15,7 @@ session.addModule(
 // Run the module. It should register the event listener.
 const result = session.runModule('main')
 
-session.eventCreation.sub('TEST_EVENT', (args, callback, terminate) => {
+session.eventCreation.sub('TEST_EVENT', (_, callback, terminate) => {
     callback()
     callback()
     callback()

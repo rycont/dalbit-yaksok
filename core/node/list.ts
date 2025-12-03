@@ -1,5 +1,4 @@
 import {
-    IndexKeyNotFoundError,
     ListIndexTypeError,
     StringIndexOutOfRangeError,
     TargetIsNotIndexedValueError,

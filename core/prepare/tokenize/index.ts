@@ -29,7 +29,6 @@ class Tokenizer {
 
                 const initialColumnForToken = this.column
                 const initialLineForToken = this.line
-                const initialIndexForToken = this.index
 
                 try {
                     const result: RuleParseResult | null = rule.parse(
@@ -45,10 +44,7 @@ class Tokenizer {
 
                     // Rule parsing succeeded.
                     const { value, newIndex } = result
-                    const consumed = this.code.substring(
-                        this.index,
-                        newIndex,
-                    )
+                    const consumed = this.code.substring(this.index, newIndex)
 
                     if (
                         rule.type === TOKEN_TYPE.NEW_LINE &&

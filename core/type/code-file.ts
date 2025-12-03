@@ -216,7 +216,7 @@ export class CodeFile {
 
         try {
             const errors = this.ast.validate(validatingScope)
-            const mergedErrors = postprocessErrors(errors, this.tokens)
+            const mergedErrors = postprocessErrors(errors, this.tokens, validatingScope)
 
             return {
                 errors: mergedErrors,

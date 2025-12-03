@@ -11,7 +11,10 @@ export class UnknownNodeError extends YaksokError {
     }
 }
 
-export class NotExecutableNodeError extends YaksokError {
+export class NotExecutableNodeError extends YaksokError<{
+    node: Node
+    message?: string
+}> {
     constructor(props: {
         tokens: Token[]
         resource: { node: Node; message?: string }
@@ -21,7 +24,10 @@ export class NotExecutableNodeError extends YaksokError {
         if (props.resource.message) {
             this.message = props.resource.message
         } else {
-            const tokenText = props.tokens.map((t) => t.value).join('')
+            const tokenText = props.tokens
+                .map((t) => t.value)
+                .join('')
+                .replace('\n', '\\n')
             const nodeName = (props.resource.node.constructor as typeof Node)
                 .friendlyName
 
