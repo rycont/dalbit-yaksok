@@ -10,9 +10,10 @@ import {
 } from './invoke-rule.ts'
 
 export function tokensToEventSubscribeRule(templateTokens: Token[]): Rule[] {
-    const templates = createFunctionInvokeRule(
-        convertTokensToFunctionTemplate(templateTokens.slice(6)),
-    ).map(
+    const functionSignatureTokens = convertTokensToFunctionTemplate(
+        templateTokens.slice(6),
+    )
+    const templates = createFunctionInvokeRule(functionSignatureTokens).map(
         (template) =>
             ({
                 ...template,
@@ -27,9 +28,7 @@ export function tokensToEventSubscribeRule(templateTokens: Token[]): Rule[] {
                 ],
                 factory(matchedNodes, tokens) {
                     const params = parseParameterFromTemplate(
-                        convertTokensToFunctionTemplate(
-                            templateTokens.slice(6),
-                        ),
+                        functionSignatureTokens,
                         matchedNodes,
                     )
 
