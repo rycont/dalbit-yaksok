@@ -1,4 +1,4 @@
-import { YaksokSession } from '../core/mod.ts'
+import { dalbitToJS, YaksokSession } from '../core/mod.ts'
 import { assertEquals } from '@std/assert'
 
 Deno.test('이벤트 구독 및 실행', async () => {
@@ -21,7 +21,7 @@ Deno.test('이벤트 구독 및 실행', async () => {
 
     // Run the module. It should register the event listener.
 
-    session.eventCreation.sub('TEST_EVENT', (args, callback, terminate) => {
+    session.eventCreation.sub('TEST_EVENT', (_, callback, terminate) => {
         callback()
         callback()
         callback()
@@ -58,8 +58,17 @@ Deno.test('여러 이벤트 구독 및 실행', async () => {
     // Run the module. It should register the event listener.
 
     session.eventCreation.sub('TEST_EVENT', (args, callback, terminate) => {
-        callback()
-        terminate()
+        if (dalbitToJS(args.A) === '1') {
+            callback()
+            terminate()
+        }
+
+        if (dalbitToJS(args.A) === '2') {
+            setTimeout(() => {
+                callback()
+                terminate()
+            }, 100)
+        }
     })
 
     await session.runModule('main')
