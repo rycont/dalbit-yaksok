@@ -17,11 +17,11 @@ import {
     type SessionConfig,
 } from './session-config.ts'
 
-import { ErrorGroups, ErrorInFFIExecution } from 'jsr:@dalbit-yaksok/core@^3.7.1-RC.1'
 import type { EnabledFlags } from '../constant/feature-flags.ts'
 import {
     AbortedRunModuleResult,
     ErrorRunModuleResult,
+    FunctionInvokingParams,
     RunModuleResult,
     SuccessRunModuleResult,
     ValidationRunModuleResult,
@@ -31,6 +31,8 @@ import type { Extension } from '../extension/extension.ts'
 import type { ValueType } from '../value/base.ts'
 import type { Node } from '../node/base.ts'
 import type { Scope } from '../executer/scope.ts'
+import { ErrorGroups } from '../error/validation.ts'
+import { ErrorInFFIExecution } from '../error/ffi.ts'
 
 /**
  * `달빛 약속` 코드의 실행 생명주기를 총괄하는 핵심 클래스입니다.
@@ -118,6 +120,16 @@ export class YaksokSession {
 
     private tick = 0
     private threadYieldInterval: number
+
+    public eventCreation: PubSub<{
+        [key: string]: (
+            args: FunctionInvokingParams,
+            callback: () => void,
+            terminate: () => void,
+        ) => void
+    }> = new PubSub()
+
+    public aliveListeners: Promise<void>[] = []
 
     /**
      * 새로운 `달빛 약속` 실행 세션을 생성합니다.
@@ -285,6 +297,7 @@ export class YaksokSession {
 
             this.runningPromise = codeFile.run()
             await this.runningPromise
+            await Promise.all(this.aliveListeners)
 
             return {
                 codeFile,

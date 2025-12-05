@@ -1,5 +1,6 @@
-import { FunctionInvokingParams, ValueType } from '@dalbit-yaksok/core'
+import { FunctionInvokingParams } from '../constant/type.ts'
 import type { Rule } from '../prepare/parse/type.ts'
+import { ValueType } from '../value/base.ts'
 
 /**
  * `달빛 약속` 확장이 제공하는 기능과 메타데이터를 정의하는 매니페스트입니다.

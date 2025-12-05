@@ -136,7 +136,6 @@ function extractExportedVariables(nodes: Node[]): Rule[] {
                     config: {
                         exported: true,
                     },
-                }) satisfies Rule,
+                } satisfies Rule),
         )
 }
-
