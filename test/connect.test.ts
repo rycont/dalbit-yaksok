@@ -159,7 +159,8 @@ SOMETHING
 (("이름이 뭐에요?") 물어보기) 보여주기`,
     )
 
-    const result = await session.runModule('main')
+    const results = await session.runModule('main')
+    const result = results.get('main')!
     console.log(result)
     assert(result.reason === 'error')
     assertIsError(result.error, FFIResultTypeIsNotForYaksokError)
@@ -191,7 +192,9 @@ CODES
 (("이름이 뭐에요?") 물어보기) 보여주기`,
     )
 
-    const result = await session.runModule('main')
+    const results = await session.runModule('main')
+    const result = results.get('main')!
+
     assert(result.reason === 'error')
     assertIsError(result.error, FFIResultTypeIsNotForYaksokError)
 })
@@ -222,7 +225,8 @@ CODES
 (("이름이 뭐에요?") 물어보기) 보여주기`,
     )
 
-    const result = await session.runModule('main')
+    const results = await session.runModule('main')
+    const result = results.get('main')!
     assert(result.reason === 'error')
     assertIsError(result.error, FFIResultTypeIsNotForYaksokError)
 })
@@ -253,7 +257,8 @@ CODES
 (("이름이 뭐에요?") 물어보기) 보여주기`,
     )
 
-    const result = await session.runModule('main')
+    const results = await session.runModule('main')
+    const result = results.get('main')!
     assert(result.reason === 'error')
     assertIsError(result.error, ErrorOccurredWhileRunningFFIExecution)
 })

@@ -17,10 +17,11 @@ Deno.test('Dictionary literal accepts numeric keys', async () => {
 소인수 보여주기`,
     )
 
-    const result = await session.runModule('main')
+    const results = await session.runModule('main')
+    const result = results.get('main')!
     assertEquals(result.reason, 'finish')
 
-    const scope = session.entrypoint?.ranScope
+    const scope = session.getCodeFile('main').ranScope
     const value = scope?.getVariable('소인수')
     assert(value instanceof IndexedValue)
 

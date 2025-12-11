@@ -51,7 +51,8 @@ Deno.test('동일한 이름으로 약속 재정의 오류', async () => {
 `,
     )
 
-    const result = await session.runModule('main')
+    const results = await session.runModule('main')
+    const result = results.get('main')!
     assert(result.reason === 'validation')
     assertIsError(result.errors.get('main')![0], AlreadyDefinedFunctionError)
 
@@ -103,7 +104,8 @@ Deno.test('다른 범위에서 동일한 이름으로 약속 정의 (오류 없�
 `,
     )
 
-    const result = await session.runModule('main')
+    const results = await session.runModule('main')
+    const result = results.get('main')!
 
     assert(
         result.reason === 'finish',

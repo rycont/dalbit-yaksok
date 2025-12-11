@@ -15,7 +15,7 @@ for (const literal of TRUE_LITERALS) {
 `,
         )
         await session.runModule('main')
-        const result = session.entrypoint?.ranScope?.getVariable('결과') as BooleanValue
+        const result = session.getCodeFile('main').ranScope?.getVariable('결과') as BooleanValue
         assertEquals(result.value, true)
     })
 }
@@ -30,7 +30,7 @@ for (const literal of FALSE_LITERALS) {
 `,
         )
         await session.runModule('main')
-        const result = session.entrypoint?.ranScope?.getVariable('결과') as BooleanValue
+        const result = session.getCodeFile('main').ranScope?.getVariable('결과') as BooleanValue
         assertEquals(result.value, false)
     })
 }
@@ -45,7 +45,7 @@ Deno.test('Store boolean in variable', async () => {
 `,
     )
     await session.runModule('main')
-    const result = session.entrypoint?.ranScope?.getVariable('결과') as BooleanValue
+    const result = session.getCodeFile('main').ranScope?.getVariable('결과') as BooleanValue
     assertEquals(result.value, true)
 })
 
@@ -61,7 +61,7 @@ Deno.test('Compare booleans', async () => {
 `,
     )
     await session.runModule('main')
-    const scope = session.entrypoint?.ranScope
+    const scope = session.getCodeFile('main').ranScope
     assertEquals((scope?.getVariable('결과1') as BooleanValue).value, true)
     assertEquals((scope?.getVariable('결과2') as BooleanValue).value, true)
     assertEquals((scope?.getVariable('결과3') as BooleanValue).value, false)
@@ -81,7 +81,7 @@ Deno.test('Negation operator', async () => {
 `,
     )
     await session.runModule('main')
-    const scope = session.entrypoint?.ranScope
+    const scope = session.getCodeFile('main').ranScope
     assertEquals((scope?.getVariable('결과1') as BooleanValue).value, false)
     assertEquals((scope?.getVariable('결과2') as BooleanValue).value, true)
     assertEquals((scope?.getVariable('결과3') as BooleanValue).value, false)
