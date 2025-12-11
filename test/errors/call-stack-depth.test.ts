@@ -45,7 +45,8 @@ Deno.test(
         })
 
         session.addModule('main', recursiveProgram(33))
-        const result = await session.runModule('main')
+        const results = await session.runModule('main')
+        const result = results.get('main')!
 
         assertEquals(
             result.reason,
@@ -63,7 +64,8 @@ Deno.test(
         })
 
         session.addModule('main', recursiveProgram(33))
-        const result = await session.runModule('main')
+        const results = await session.runModule('main')
+        const result = results.get('main')!
 
         assert(
             result.reason === 'error',

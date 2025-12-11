@@ -201,7 +201,8 @@ Deno.test('Skip validating break or return in loop', async () => {
     })
 
     session.addModule('main', code)
-    const result = await session.runModule('main')
+    const results = await session.runModule('main')
+    const result = results.get('main')!
 
     assert(
         result.reason === 'error',
