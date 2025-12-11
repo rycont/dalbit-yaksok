@@ -18,11 +18,9 @@
         "test",
         "monaco-language-provider",
         "pyodide",
-        "mcp-server",
-        "react-demo",
         "data-analyze"
     ],
-    "version": "3.5.7",
+    "version": "3.10.0",
     "tasks": {
         "apply-version": "deno run --allow-read --allow-write apply-version.ts",
         "publish": "deno task apply-version && deno task --recursive test && deno publish --allow-dirty",

@@ -8,10 +8,12 @@ import {
     UnexpectedEndOfCodeError,
     UnexpectedTokenError,
 } from '../error/prepare.ts'
+import { getEventDeclareRanges } from './get-event-declare-ranges.ts'
 
 interface FunctionDeclareRangesByType {
     yaksok: [number, number][]
     ffi: [number, number][]
+    event: [number, number][]
 }
 
 export function getFunctionDeclareRanges(
@@ -25,10 +27,12 @@ export function getFunctionDeclareRanges(
         tokens,
         'ffi',
     )
+    const eventFunctionDeclareRanges = getEventDeclareRanges(tokens)
 
     return {
         yaksok: yaksokFunctionDeclareRanges,
         ffi: ffiFunctionDeclareRanges,
+        event: eventFunctionDeclareRanges,
     }
 }
 

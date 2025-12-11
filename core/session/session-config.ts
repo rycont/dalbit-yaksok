@@ -4,7 +4,12 @@ import type { Pause } from '../node/misc.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { Position } from '../type/position.ts'
 import type { MachineReadableError } from '../error/render-error-string.ts'
-import type { WarningEvent } from '../type/events.ts'
+import type {
+    VariableReadEvent,
+    VariableSetEvent,
+    WarningEvent,
+} from '../type/events.ts'
+import type { Node } from '../node/base.ts'
 
 /**
  * SessionConfig 객체를 사용하여 약속 런타임을 설정합니다.
@@ -37,6 +42,13 @@ export interface SessionConfig {
      */
     stdout: (message: string) => void
     /**
+     * `입력받기` 명령어가 호출되었을 때 실행되는 함수입니다.
+     * @param question - 사용자에게 보여줄 질문 (선택 사항)
+     * @returns 입력받은 문자열을 반환합니다.
+     * @default async () => ''
+     */
+    stdin: (question?: string) => Promise<string> | string
+    /**
      * 오류로 인해 발생한 메시지를 처리하는 메소드
      * @param message - 사람이 읽기 쉬운 형식의 에러 메시지
      * @param machineReadableError - 구조화된 형식(JSON)의 에러 정보 오브젝트
@@ -63,7 +75,20 @@ export interface SessionConfig {
      * 코드 실행을 중단시키는 시그널
      */
     signal: AbortSignal | null
+    /**
+     * 명령어 실행을 잠깐 멈추고 브라우저에게 제어권을 넘기는 주기
+     */
     threadYieldInterval: number
+    /**
+     * 디버거 / Step by step 실행 모드 설정
+     */
+    stepUnit: (new (...args: any[]) => Node) | null
+    /**
+     * 다음 노드를 실행해도 될지 사용자에게 확인을 요구하는 메소드
+     */
+    canRunNode:
+        | ((scope: Scope, node: Node) => Promise<boolean> | boolean)
+        | null
 }
 
 export type Events = {
@@ -84,10 +109,13 @@ export type Events = {
     resume: () => void
     debug: (scope: Scope, node: Pause) => void
     warning: (warning: WarningEvent) => void
+    variableSet: (event: VariableSetEvent) => void
+    variableRead: (event: VariableReadEvent) => void
 }
 
 export const DEFAULT_SESSION_CONFIG: SessionConfig = {
     stdout: console.log,
+    stdin: async () => '',
     stderr: console.error,
     entryPoint: 'main',
     flags: {},
@@ -97,9 +125,13 @@ export const DEFAULT_SESSION_CONFIG: SessionConfig = {
         resume: () => {},
         debug: () => {},
         warning: () => {},
+        variableSet: () => {},
+        variableRead: () => {},
     },
     signal: null,
     threadYieldInterval: 300,
+    stepUnit: null,
+    canRunNode: null,
 }
 
 export type { WarningEvent } from '../type/events.ts'

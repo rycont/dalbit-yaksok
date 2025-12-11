@@ -19,4 +19,5 @@ export type Rule = {
 export enum RULE_FLAGS {
     IS_STATEMENT,
     DEBUG,
+    IS_FUNCTION_INVOKE,
 }

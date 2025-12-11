@@ -31,10 +31,7 @@ export class CodeFile {
     public session: YaksokSession | null = null
     public executionDelay: number | null = null
 
-    constructor(
-        public text: string,
-        public fileName: string | symbol,
-    ) {}
+    constructor(public text: string, public fileName: string | symbol) {}
 
     /**
      * `CodeFile`을 `YaksokSession`에 마운트합니다.
@@ -219,7 +216,7 @@ export class CodeFile {
 
         try {
             const errors = this.ast.validate(validatingScope)
-            const mergedErrors = postprocessErrors(errors, this.tokens)
+            const mergedErrors = postprocessErrors(errors, this.tokens, validatingScope)
 
             return {
                 errors: mergedErrors,

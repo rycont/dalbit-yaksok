@@ -40,6 +40,12 @@ const COMPLETION_SNIPPETS = [
         insertText: '보여주기',
         detail: '값을 화면에 보여줘요',
     },
+    // {
+    //     label: '입력받기',
+    //     kind: CompletionItemKind.Keyword,
+    //     insertText: '입력받기',
+    //     detail: '사용자에게 값을 입력받아요',
+    // },
     {
         label: '약속',
         kind: CompletionItemKind.Snippet,

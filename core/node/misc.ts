@@ -38,7 +38,7 @@ export class Print extends Executable {
     }
 
     override async execute(scope: Scope): Promise<void> {
-        const printFunction = scope.codeFile?.session?.stdout || console.log
+        const printFunction = scope.codeFile?.session?.stdout ?? console.log
         const evaluated = await this.value.execute(scope)
 
         printFunction(evaluated.toPrint())
@@ -48,6 +48,50 @@ export class Print extends Executable {
         return this.value.validate(scope)
     }
 }
+
+// export class Input extends Evaluable<StringValue> {
+//     static override friendlyName = '입력받기'
+
+//     constructor(
+//         public question: Evaluable | null,
+//         public override tokens: Token[],
+//     ) {
+//         super()
+//     }
+
+//     override async execute(scope: Scope): Promise<StringValue> {
+//         const inputFunction =
+//             scope.codeFile?.session?.stdin ?? (async () => '')
+
+//         let questionText: string | undefined
+
+//         if (this.question) {
+//             const evaluatedQuestion = await this.question.execute(scope)
+//             questionText = evaluatedQuestion.toPrint()
+//         }
+
+//         try {
+//             const result = await Promise.resolve(inputFunction(questionText))
+
+//             if (result == null) {
+//                 return new StringValue('')
+//             }
+
+//             return new StringValue(String(result))
+//         } catch (error) {
+//             // stdin 함수에서 발생한 에러를 그대로 전파
+//             throw error
+//         }
+//     }
+
+//     override validate(scope: Scope): YaksokError[] {
+//         if (!this.question) {
+//             return []
+//         }
+
+//         return this.question.validate(scope)
+//     }
+// }
 
 export class TypeOf extends Evaluable {
     static override friendlyName = '값 종류'
@@ -59,7 +103,9 @@ export class TypeOf extends Evaluable {
     override async execute(scope: Scope): Promise<StringValue> {
         const evaluated = await this.value.execute(scope)
 
-        return new StringValue((evaluated.constructor as typeof ValueType).friendlyName)
+        return new StringValue(
+            (evaluated.constructor as typeof ValueType).friendlyName,
+        )
     }
 
     override validate(scope: Scope): YaksokError[] {
@@ -74,9 +120,11 @@ export class Pause extends Executable {
         super()
     }
 
-    override async execute(scope: Scope): Promise<void> {
+    override execute(scope: Scope): Promise<void> {
         scope.codeFile?.session?.pubsub.pub('debug', [scope, this])
         scope.codeFile?.session?.pause()
+
+        return Promise.resolve()
     }
 
     override validate(_scope: Scope): YaksokError[] {

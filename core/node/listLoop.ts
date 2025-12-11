@@ -1,7 +1,7 @@
 import { YaksokError } from '../error/common.ts'
 import { NotEnumerableValueForListLoopError } from '../error/index.ts'
 import { BreakSignal } from '../executer/signals.ts'
-import { Executable, type Evaluable } from './base.ts'
+import { type Evaluable, Executable } from './base.ts'
 
 import { Scope } from '../executer/scope.ts'
 
@@ -11,8 +11,8 @@ import { IndexedValue } from '../value/indexed.ts'
 import { NumberValue } from '../value/primitive.ts'
 import type { Block } from './block.ts'
 import {
-    LOOP_WARNING_THRESHOLD,
     emitLoopIterationWarning,
+    LOOP_WARNING_THRESHOLD,
 } from '../util/loop-warning.ts'
 
 export class ListLoop extends Executable {
@@ -41,6 +41,17 @@ export class ListLoop extends Executable {
 
         try {
             for (const value of list.enumerate()) {
+                if (scope.codeFile?.session?.canRunNode) {
+                    if (
+                        !(await scope.codeFile?.session?.canRunNode(
+                            scope,
+                            this.body,
+                        ))
+                    ) {
+                        return
+                    }
+                }
+
                 iterationCount += 1
 
                 if (!warned && iterationCount > LOOP_WARNING_THRESHOLD) {
@@ -57,7 +68,7 @@ export class ListLoop extends Executable {
                     childTokens: this.body.tokens,
                     skipReport: true,
                 })
-                scope.setVariable(this.variableName, value)
+                scope.setVariable(this.variableName, value, this.tokens)
                 await this.body.execute(scope)
             }
         } catch (e) {

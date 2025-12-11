@@ -50,7 +50,12 @@ export class Executable extends Node {
         childTokens: Token[]
         skipReport?: boolean
     }) {
-        scope.codeFile?.session
+        if (scope.codeFile?.session?.stepUnit) {
+            if (!(this instanceof scope.codeFile?.session?.stepUnit)) {
+                return
+            }
+        }
+
         if (scope.codeFile?.session?.signal?.aborted) {
             throw new AbortedSessionSignal(childTokens)
         }
@@ -114,10 +119,7 @@ export class Evaluable<T extends ValueType = ValueType> extends Executable {
 export class Identifier extends Evaluable {
     static override friendlyName = '식별자'
 
-    constructor(
-        public value: string,
-        public override tokens: Token[],
-    ) {
+    constructor(public value: string, public override tokens: Token[]) {
         super()
     }
 
@@ -127,7 +129,7 @@ export class Identifier extends Evaluable {
 
     override async execute(scope: Scope): Promise<ValueType> {
         try {
-            return scope.getVariable(this.value)
+            return scope.getVariable(this.value, this.tokens)
         } catch (e) {
             if (e instanceof NotDefinedIdentifierError) {
                 try {
@@ -182,10 +184,7 @@ export class Identifier extends Evaluable {
 export class Operator extends Node implements OperatorNode {
     static override friendlyName = '연산자'
 
-    constructor(
-        public value: string | null,
-        public override tokens: Token[],
-    ) {
+    constructor(public value: string | null, public override tokens: Token[]) {
         super()
     }
 
@@ -213,10 +212,7 @@ export type OperatorClass = {
 export class Expression extends Node {
     static override friendlyName = '표현식'
 
-    constructor(
-        public value: string,
-        public override tokens: Token[],
-    ) {
+    constructor(public value: string, public override tokens: Token[]) {
         super()
     }
 

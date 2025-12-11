@@ -2,12 +2,7 @@ import { YaksokSession } from '@dalbit-yaksok/core'
 import { DataAnalyze } from '@dalbit-yaksok/dala-analyze'
 import { 편의점 } from "./data-analyze/virtual-data/편의점.ts";
 
-// const result = await yaksok(`정의 되지 않은 약속`)
-const session = new YaksokSession({
-    stdout: (text) => {
-        console.log(text)
-    },
-})
+const session = new YaksokSession()
 
 await session.extend(new DataAnalyze())
 

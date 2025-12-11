@@ -21,6 +21,12 @@ export class IfStatement extends Executable {
 
     override async execute(scope: Scope) {
         for (const { condition, body } of this.cases) {
+            if (scope.codeFile?.session?.canRunNode) {
+                if (!(await scope.codeFile?.session?.canRunNode(scope, this))) {
+                    return
+                }
+            }
+
             const shouldStop = await this.shouldStop(condition, scope)
             if (!shouldStop) continue
 

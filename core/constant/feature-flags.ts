@@ -10,14 +10,14 @@ export enum FEATURE_FLAG {
     DISABLE_BRACKET_FIRST_PARSING = 'disable-bracket-first-parsing',
 
     /**
-     * 수식 연산에 Execution Delay를 적용하지 않습니다. 활성화할 시 수식에서는 runningCode 이벤트도 발생하지 않습니다.
-     */
-    DISABLE_OPERAND_EXECUTION_DELAY = 'disable-operand-execution-delay',
-
-    /**
      * 약속 호출 스택 깊이 제한을 비활성화합니다. 활성화할 시 CallStackDepthExceededError가 발생하지 않습니다.
      */
     DISABLE_CALL_STACK_DEPTH_LIMIT = 'disable-call-stack-depth-limit',
+
+    /**
+     * 변수 설정/읽기 이벤트를 비활성화합니다. 활성화할 시 variableSet, variableRead 이벤트가 발생하지 않습니다.
+     */
+    DISABLE_VARIABLE_EVENTS = 'disable-variable-events',
 }
 
 export type EnabledFlags = Partial<Record<FEATURE_FLAG, boolean>>

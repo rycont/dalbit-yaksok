@@ -7,6 +7,7 @@ import type {
     FunctionTemplatePiece,
 } from '../../../../type/function-template.ts'
 import type { Rule, PatternUnit } from '../../type.ts'
+import { RULE_FLAGS } from '../../type.ts'
 
 interface VariantedPart {
     index: number
@@ -101,6 +102,7 @@ function createRuleFromFunctionTemplate(
         config: {
             exported: true,
         },
+        flags: [RULE_FLAGS.IS_FUNCTION_INVOKE],
     }
 }
 
@@ -121,7 +123,7 @@ function createPatternFromTemplatePieces(
     })
 }
 
-function parseParameterFromTemplate(
+export function parseParameterFromTemplate(
     template: FunctionTemplate,
     matchedNodes: Node[],
 ): Record<string, Evaluable> {
