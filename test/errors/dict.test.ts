@@ -1,4 +1,4 @@
-import { assert, assertInstanceOf } from 'assert'
+import { assert, assertInstanceOf } from '@std/assert'
 import { InvalidTypeForOperatorError } from '../../core/error/calculation.ts'
 import { IndexKeyNotFoundError, YaksokSession } from '../../core/mod.ts'
 

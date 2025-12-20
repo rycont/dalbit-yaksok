@@ -1,4 +1,4 @@
-import { assert, assertEquals, assertGreaterOrEqual, assertLess } from 'assert'
+import { assert, assertEquals, assertGreaterOrEqual, assertLess } from '@std/assert'
 import { YaksokSession } from '../core/mod.ts'
 
 Deno.test('Execution Delay in Main Context', async () => {

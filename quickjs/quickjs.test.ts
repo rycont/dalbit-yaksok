@@ -1,4 +1,4 @@
-import { assert, assertEquals, assertInstanceOf, assertIsError } from 'assert'
+import { assert, assertEquals, assertInstanceOf, assertIsError } from '@std/assert'
 import {
     ErrorOccurredWhileRunningFFIExecution,
     ListValue,

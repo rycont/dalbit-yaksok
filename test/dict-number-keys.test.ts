@@ -1,4 +1,4 @@
-import { assert, assertEquals } from 'assert'
+import { assert, assertEquals } from '@std/assert'
 import { YaksokSession } from '../core/mod.ts'
 import { IndexedValue } from '../core/value/indexed.ts'
 import { NumberValue } from '../core/value/primitive.ts'

@@ -1,4 +1,4 @@
-import { assert, assertEquals, assertIsError } from 'assert'
+import { assert, assertEquals, assertIsError } from '@std/assert'
 
 import { CallStackDepthExceededError } from '../../core/error/index.ts'
 import { yaksok } from '../../core/mod.ts'
