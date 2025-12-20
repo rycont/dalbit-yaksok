@@ -69,9 +69,7 @@ export class YaksokSession {
     }
 
     /** 현재 실행 중인 코드의 Promise입니다. 코드가 실행 중이 아닐 때는 `null`입니다. */
-    public runningPromise: ReturnType<CodeFile['run']> | null = null
-    /** 현재 실행의 시작점(entrypoint)이 된 `CodeFile` 인스턴스입니다. */
-    public entrypoint: CodeFile | null = null
+    public runningPromise: Promise<RunModuleResult[]> | null = null
 
     /** `보여주기` 명령어로 출력된 결과를 처리하는 함수입니다. */
     public stdout: SessionConfig['stdout']
@@ -90,10 +88,13 @@ export class YaksokSession {
      */
     public extensions: Extension[] = []
     /**
-     * 모든 모듈이 공유하는 기본 컨텍스트를 나타내는 `CodeFile`입니다.
-     * `setBaseContext`를 통해 설정됩니다.
+     * 모든 모듈이 공유하는 기본 컨텍스트를 나타내는 `CodeFile`들의 목록입니다.
+     * `setBaseContext`를 통해 순차적으로 추가됩니다.
      */
-    public baseContext?: CodeFile
+    public baseContexts: CodeFile[] = []
+    public get baseContext(): CodeFile | undefined {
+        return this.baseContexts[this.baseContexts.length - 1]
+    }
     /**
      * 외부에서 코드 실행을 중단시키기 위한 AbortSignal입니다.
      * @see https://developer.mozilla.org/ko/docs/Web/API/AbortSignal
@@ -193,7 +194,6 @@ export class YaksokSession {
         codeFile.mount(this)
 
         this.files[moduleName] = codeFile
-        // addModule은 entryPoint를 변경하지 않음
         return codeFile
     }
 
@@ -234,25 +234,9 @@ export class YaksokSession {
         await extension.init?.()
     }
 
-    /**
-     * 지정된 모듈을 엔트리포인트로 하여 코드를 실행합니다.
-     *
-     * 이 메서드는 `달빛 약속` 코드 실행의 전체 과정을 조율합니다.
-     * 1. **동시 실행 처리**: 만약 다른 코드가 이미 실행 중(`runningPromise`가 존재)이라면, 해당 실행이 끝날 때까지 기다립니다. 이를 통해 동일 세션 내에서의 실행 순서를 보장합니다.
-     * 2. **유효성 검사**: 실행 전 `validate()`를 호출하여 코드의 정적 오류를 미리 확인합니다.
-     * 3. **실행**: `CodeFile.run()`을 호출하여 실제 코드 실행을 시작하고 `runningPromise`에 할당합니다.
-     * 4. **오류 처리**: 실행 중 발생하는 모든 종류의 오류를 `catch`하여 적절한 `RunModuleResult`로 변환합니다.
-     * 5. **상태 해제**: `finally` 블록에서 `runningPromise`를 `null`로 설정하여 세션이 다시 실행 가능한 상태임을 보장합니다.
-     *
-     * @param moduleName - 실행을 시작할 모듈(엔트리포인트)의 이름입니다.
-     * @returns 코드 실행 결과를 담은 `RunModuleResult` 객체의 Promise를 반환합니다.
-     * @see RunModuleResult
-     */
-    async runModule(moduleName: string | symbol): Promise<RunModuleResult> {
-        if (this.runningPromise) {
-            await this.runningPromise
-        }
-
+    private async runOneModule(
+        moduleName: string | symbol,
+    ): Promise<RunModuleResult> {
         const codeFile = this.files[moduleName]
         if (!codeFile) {
             return {
@@ -265,8 +249,6 @@ export class YaksokSession {
                 }),
             }
         }
-
-        this.entrypoint = codeFile
 
         try {
             const validationErrors = this.validate(moduleName)
@@ -295,8 +277,8 @@ export class YaksokSession {
                 } as ValidationRunModuleResult
             }
 
-            this.runningPromise = codeFile.run()
-            await this.runningPromise
+            const result = codeFile.run()
+            await result
             await Promise.all(this.aliveListeners)
 
             return {
@@ -332,6 +314,41 @@ export class YaksokSession {
     }
 
     /**
+     * 지정된 모듈을 엔트리포인트로 하여 코드를 실행합니다.
+     *
+     * 이 메서드는 `달빛 약속` 코드 실행의 전체 과정을 조율합니다.
+     * 1. **동시 실행 처리**: 만약 다른 코드가 이미 실행 중(`runningPromise`가 존재)이라면, 해당 실행이 끝날 때까지 기다립니다. 이를 통해 동일 세션 내에서의 실행 순서를 보장합니다.
+     * 2. **유효성 검사**: 실행 전 `validate()`를 호출하여 코드의 정적 오류를 미리 확인합니다.
+     * 3. **실행**: `CodeFile.run()`을 호출하여 실제 코드 실행을 시작하고 `runningPromise`에 할당합니다.
+     * 4. **오류 처리**: 실행 중 발생하는 모든 종류의 오류를 `catch`하여 적절한 `RunModuleResult`로 변환합니다.
+     * 5. **상태 해제**: `finally` 블록에서 `runningPromise`를 `null`로 설정하여 세션이 다시 실행 가능한 상태임을 보장합니다.
+     *
+     * @param moduleName - 실행을 시작할 모듈(엔트리포인트)의 이름입니다.
+     * @returns 코드 실행 결과를 담은 `RunModuleResult` 객체의 Promise를 반환합니다.
+     * @see RunModuleResult
+     */
+    async runModule(
+        moduleName: string | symbol | (string | symbol)[],
+    ): Promise<Map<string | symbol, RunModuleResult>> {
+        if (this.runningPromise) {
+            await this.runningPromise
+        }
+
+        const runModuleNames = Array.isArray(moduleName)
+            ? moduleName
+            : [moduleName]
+
+        this.runningPromise = Promise.all(runModuleNames.map(n => this.runOneModule(n)))
+
+        const entries = (await this.runningPromise).map((result, index) => [
+            runModuleNames[index],
+            result,
+        ] as const)
+
+        return new Map(entries)
+    }
+
+    /**
      * 모든 모듈이 공유하는 기본 컨텍스트(Base Context)를 설정합니다.
      * 여기에 정의된 변수나 함수는 모든 모듈의 최상위 스코프에서 접근 가능합니다.
      * 내장 함수 라이브러리 등을 구현할 때 유용합니다.
@@ -356,12 +373,14 @@ export class YaksokSession {
      * ```
      */
     async setBaseContext(code: string): Promise<RunModuleResult> {
-        this.addModule(this.BASE_CONTEXT_SYMBOL, code)
+        const moduleName = Symbol(`baseContext-${this.baseContexts.length}`)
+        this.addModule(moduleName, code)
 
-        const result = await this.runModule(this.BASE_CONTEXT_SYMBOL)
-
+        const results = await this.runModule(moduleName)
+        const result = results.get(moduleName)!
+        
         if (result.reason === 'finish') {
-            this.baseContext = result.codeFile
+            this.baseContexts.push(result.codeFile)
         }
 
         return result
@@ -371,20 +390,20 @@ export class YaksokSession {
      * 지정된 엔트리포인트부터 시작하여 모든 참조된 코드의 유효성을 검사합니다.
      * 토크나이징과 파싱 과정에서 발생하는 정적 오류를 미리 확인할 수 있습니다.
      *
-     * @param entrypoint - 유효성 검사를 시작할 모듈의 이름입니다. 지정하지 않으면 모든 모듈을 검사합니다.
+     * @param fileName - 유효성 검사를 시작할 모듈의 이름입니다. 지정하지 않으면 모든 모듈을 검사합니다.
      * @returns 모듈별 오류 목록을 담은 `Map` 객체를 반환합니다.
      * @see ErrorGroups
      */
-    validate(entrypoint?: string | symbol): ErrorGroups {
+    validate(fileName?: string | symbol): ErrorGroups {
         const filesToValidate: Record<string | symbol, CodeFile> = {}
-        if (entrypoint) {
-            if (this.files[entrypoint]) {
-                filesToValidate[entrypoint] = this.files[entrypoint]
+        if (fileName) {
+            if (this.files[fileName]) {
+                filesToValidate[fileName] = this.files[fileName]
             } else {
                 throw new FileForRunNotExistError({
                     // 또는 다른 적절한 오류 타입
                     resource: {
-                        fileName: entrypoint.toString(),
+                        fileName: fileName.toString(),
                         files: Object.keys(this.files),
                     },
                 })
@@ -542,5 +561,6 @@ export async function yaksok(
         }
     }
 
-    return await session.runModule('main')
+    const results = await session.runModule('main')
+    return results.get('main')!
 }

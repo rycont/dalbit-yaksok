@@ -1,5 +1,5 @@
 import { yaksok } from '@dalbit-yaksok/core'
-import { assert } from 'assert'
+import { assert } from '@std/assert'
 import { assertEquals } from 'assert/equals'
 import { NotExecutableNodeError } from '../../core/error/unknown-node.ts'
 import {

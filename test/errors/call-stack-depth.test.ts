@@ -1,4 +1,4 @@
-import { assert, assertEquals, assertIsError } from 'assert'
+import { assert, assertEquals, assertIsError } from '@std/assert'
 
 import { CallStackDepthExceededError } from '../../core/error/index.ts'
 import { yaksok } from '../../core/mod.ts'
@@ -45,7 +45,8 @@ Deno.test(
         })
 
         session.addModule('main', recursiveProgram(33))
-        const result = await session.runModule('main')
+        const results = await session.runModule('main')
+        const result = results.get('main')!
 
         assertEquals(
             result.reason,
@@ -63,7 +64,8 @@ Deno.test(
         })
 
         session.addModule('main', recursiveProgram(33))
-        const result = await session.runModule('main')
+        const results = await session.runModule('main')
+        const result = results.get('main')!
 
         assert(
             result.reason === 'error',
