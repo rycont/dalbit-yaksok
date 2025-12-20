@@ -90,10 +90,13 @@ export class YaksokSession {
      */
     public extensions: Extension[] = []
     /**
-     * 모든 모듈이 공유하는 기본 컨텍스트를 나타내는 `CodeFile`입니다.
-     * `setBaseContext`를 통해 설정됩니다.
+     * 모든 모듈이 공유하는 기본 컨텍스트를 나타내는 `CodeFile`들의 목록입니다.
+     * `setBaseContext`를 통해 순차적으로 추가됩니다.
      */
-    public baseContext?: CodeFile
+    public baseContexts: CodeFile[] = []
+    public get baseContext(): CodeFile | undefined {
+        return this.baseContexts[this.baseContexts.length - 1]
+    }
     /**
      * 외부에서 코드 실행을 중단시키기 위한 AbortSignal입니다.
      * @see https://developer.mozilla.org/ko/docs/Web/API/AbortSignal
@@ -356,12 +359,13 @@ export class YaksokSession {
      * ```
      */
     async setBaseContext(code: string): Promise<RunModuleResult> {
-        this.addModule(this.BASE_CONTEXT_SYMBOL, code)
+        const moduleName = Symbol(`baseContext-${this.baseContexts.length}`)
+        this.addModule(moduleName, code)
 
-        const result = await this.runModule(this.BASE_CONTEXT_SYMBOL)
+        const result = await this.runModule(moduleName)
 
         if (result.reason === 'finish') {
-            this.baseContext = result.codeFile
+            this.baseContexts.push(result.codeFile)
         }
 
         return result
