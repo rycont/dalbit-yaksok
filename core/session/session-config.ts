@@ -20,7 +20,6 @@ import type { Node } from '../node/base.ts'
  * const session = new YaksokSession({
  *    stdout: console.log,
  *    stderr: console.error,
- *    entryPoint: 'main',
  *    flags: {},
  *    events: {
  *        runningCode: (start, end) => {
@@ -58,11 +57,6 @@ export interface SessionConfig {
         message: string,
         machineReadableError: MachineReadableError,
     ) => void
-    /**
-     * 여러 약속 파일이 주어졌을 때 처음으로 실행할 파일 이름입니다.
-     * @default 'main'
-     */
-    entryPoint: string
     /**
      * 활성화할 기능 플래그
      */
@@ -117,7 +111,6 @@ export const DEFAULT_SESSION_CONFIG: SessionConfig = {
     stdout: console.log,
     stdin: async () => '',
     stderr: console.error,
-    entryPoint: 'main',
     flags: {},
     events: {
         runningCode: () => {},

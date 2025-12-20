@@ -1,6 +1,6 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
 import { Pyodide } from '@dalbit-yaksok/pyodide'
-import { assert } from '@std/assert'
+import { assertEquals } from '@std/assert'
 
 Deno.test({
     name: 'Pyodide: only import statement runs',
@@ -12,8 +12,9 @@ Deno.test({
 
         session.addModule('main', `from random import randint\n`)
 
-        const result = await session.runModule('main')
-        assert(result.reason === 'finish')
+        const results = await session.runModule('main')
+        const result = results.get('main')!
+        assertEquals(result.reason, 'finish')
     },
 })
 

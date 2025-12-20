@@ -23,7 +23,8 @@ Deno.test('Error in QuickJS', async () => {
 `,
     )
 
-    const result = await session.runModule('main')
+    const results = await session.runModule('main')
+    const result = results.get('main')!
     assert(
         result.reason === 'error',
         `Test should have failed, but it finished with reason: ${result.reason}`,
@@ -47,7 +48,8 @@ Deno.test('QuickJS passed number', async () => {
 숫자 = 랜덤 수`,
     )
 
-    const result = await session.runModule('main')
+    const results = await session.runModule('main')
+    const result = results.get('main')!
 
     assert(result.reason === 'finish')
     const 숫자 = result.codeFile!.ranScope!.getVariable('숫자')
@@ -72,7 +74,8 @@ Deno.test('QuickJS passed Array<number>', async () => {
 `,
     )
 
-    const result = await session.runModule('main')
+    const results = await session.runModule('main')
+    const result = results.get('main')!
 
     assert(result.reason === 'finish')
     const 숫자 = result.codeFile!.ranScope!.getVariable('숫자')
@@ -132,7 +135,8 @@ Deno.test('JavaScript bridge function passed object', async () => {
 `,
     )
 
-    const result = await session.runModule('main')
+    const results = await session.runModule('main')
+    const result = results.get('main')!
 
     assert(result.reason === 'finish')
     const ranScope = result.codeFile!.ranScope
@@ -191,7 +195,8 @@ Deno.test('Yaksok Passed List<string>', async () => {
 `,
     )
 
-    const result = await session.runModule('main')
+    const results = await session.runModule('main')
+    const result = results.get('main')!
 
     assert(result.reason === 'finish')
     const 내_점수 = result.codeFile.ranScope!.getVariable('내_점수')

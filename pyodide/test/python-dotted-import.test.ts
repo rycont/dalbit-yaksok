@@ -23,8 +23,8 @@ Deno.test({
 randint(0, 1) 보여주기`,
         )
 
-        const result = await session.runModule('main')
-        
+        const results = await session.runModule('main')
+        const result = results.get('main')!
 
         if (result.reason === 'error') {
             console.error(result.error)
@@ -37,5 +37,3 @@ randint(0, 1) 보여주기`,
         assertEquals(v === 0 || v === 1, true)
     },
 })
-
-

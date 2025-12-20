@@ -105,8 +105,8 @@ Deno.test('Execution Delay with Nested Import', async () => {
     session.addModule('imported', code.imported)
     session.addModule('nested', code.nested)
 
-    const result = await session.runModule('main')
-
+    const results = await session.runModule('main')
+    const result = results.get('main')!
     const endTime = Date.now()
 
     assert(
@@ -148,7 +148,8 @@ Deno.test('Execution Delay with Function Call', async () => {
         },
     )
 
-    const result = await session.runModule('main')
+    const results = await session.runModule('main')
+    const result = results.get('main')!
     assert(
         result.reason === 'finish',
         `Expected finish, but got ${result.reason}`,
@@ -274,7 +275,8 @@ Deno.test('Execution Delay in Formula', async () => {
     )
 
     const startTime = Date.now()
-    const result = await session.runModule('main')
+    const results = await session.runModule('main')
+    const result = results.get('main')!
     const endTime = Date.now()
 
     assert(
