@@ -35,9 +35,9 @@ export function SRParse(_nodes: Node[], rules: Rule[]) {
 
             const reduced = reduce(stackSlice, rule)
 
-            // if(stackSlice.length === 1 && reduced.constructor === stackSlice[0].constructor) {
-            //     continue
-            // }
+            if(stackSlice.length === 1 && reduced.constructor === stackSlice[0].constructor) {
+                continue
+            }
         
             buffer.splice(-rule.pattern.length, rule.pattern.length, reduced)
 

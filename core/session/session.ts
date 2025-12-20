@@ -379,7 +379,6 @@ export class YaksokSession {
         const results = await this.runModule(moduleName)
         const result = results.get(moduleName)!
         
-
         if (result.reason === 'finish') {
             this.baseContexts.push(result.codeFile)
         }
