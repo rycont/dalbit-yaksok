@@ -1,26 +1,22 @@
-import { YaksokSession } from '@dalbit-yaksok/core'
+import { YaksokSession, getAutocomplete } from '@dalbit-yaksok/core'
 
 const session = new YaksokSession()
 
 session.addModule(
     'main',
     `
-이벤트(TEST_EVENT), 테스트 이벤트
+약속, 언제나 밝게 웃기
+    '우하하' 보여주기
+    기름 = 10
+    거름 = 1
 
-테스트 이벤트
-    "이벤트 실행됨" 보여주기
+이름 = 5
+이름 보여주기
 `,
 )
 
-// Run the module. It should register the event listener.
-const result = session.runModule('main')
+session.validate()
 
-session.eventCreation.sub('TEST_EVENT', (_, callback, terminate) => {
-    callback()
-    callback()
-    callback()
-
-    terminate()
-})
-
-await result
+console.log(
+    getAutocomplete(session.getCodeFile('main'), { line: 3, column: 1 }),
+)

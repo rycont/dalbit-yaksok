@@ -53,6 +53,7 @@ export class FunctionObject extends ObjectValue implements RunnableObject {
             parent: lexicalScope,
             initialVariable: args,
             callStackDepth: nextDepth,
+            callerNode: this.body,
         })
 
         try {
