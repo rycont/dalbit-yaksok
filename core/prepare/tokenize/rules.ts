@@ -269,6 +269,11 @@ export const RULES: {
                         parts: '문자열',
                     })
                 }
+                // 백슬래시 이스케이프 처리: \를 만나면 다음 문자를 스킵
+                if (code[i] === '\\' && i + 1 < code.length) {
+                    i += 2
+                    continue
+                }
                 i++
             }
 

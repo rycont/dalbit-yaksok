@@ -5,6 +5,51 @@ import { EOL, Indent } from '../../node/misc.ts'
 import { NumberLiteral, StringLiteral } from '../../node/primitive-literal.ts'
 import { Token, TOKEN_TYPE } from '../tokenize/token.ts'
 
+/**
+ * 이스케이프 시퀀스를 실제 문자로 변환합니다.
+ * @param str - 이스케이프 시퀀스가 포함된 문자열
+ * @returns 이스케이프 시퀀스가 변환된 문자열
+ */
+function unescapeString(str: string): string {
+    let result = ''
+    let i = 0
+
+    while (i < str.length) {
+        if (str[i] === '\\' && i + 1 < str.length) {
+            const nextChar = str[i + 1]
+            switch (nextChar) {
+                case 'n':
+                    result += '\n'
+                    break
+                case 't':
+                    result += '\t'
+                    break
+                case 'r':
+                    result += '\r'
+                    break
+                case '\\':
+                    result += '\\'
+                    break
+                case '"':
+                    result += '"'
+                    break
+                case "'":
+                    result += "'"
+                    break
+                default:
+                    // 알 수 없는 이스케이프는 그대로 유지
+                    result += '\\' + nextChar
+            }
+            i += 2
+        } else {
+            result += str[i]
+            i++
+        }
+    }
+
+    return result
+}
+
 export function convertTokensToNodes(tokens: Token[]): Node[] {
     return tokens.map(mapTokenToNode).filter(Boolean) as Node[]
 }
@@ -28,7 +73,10 @@ function mapTokenToNode(token: Token) {
         case TOKEN_TYPE.NUMBER:
             return new NumberLiteral(parseFloat(token.value), [token])
         case TOKEN_TYPE.STRING:
-            return new StringLiteral(token.value.slice(1, -1), [token])
+            return new StringLiteral(
+                unescapeString(token.value.slice(1, -1)),
+                [token],
+            )
         case TOKEN_TYPE.OPERATOR:
             return new Operator(token.value, [token])
         case TOKEN_TYPE.INDENT:
