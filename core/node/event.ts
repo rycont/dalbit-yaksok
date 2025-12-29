@@ -59,7 +59,10 @@ export class SubscribeEvent extends Executable {
                 scope.codeFile?.session?.eventCreation.pub(this.eventId, [
                     param,
                     () => {
-                        const subScope = new Scope({ parent: scope })
+                        const subScope = new Scope({
+                            parent: scope,
+                            callerNode: this,
+                        })
                         this.body.execute(subScope)
                     },
                     () => {

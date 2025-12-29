@@ -19,6 +19,7 @@
     "npm:typedoc@0.27.4": "0.27.4_typescript@5.7.3",
     "npm:vitepress-plugin-mermaid@^2.0.17": "2.0.17_mermaid@11.12.1__cytoscape@3.33.1_vitepress@1.6.4__vite@5.4.21__vue@3.5.24__focus-trap@7.6.6",
     "npm:vitepress-sidebar@^1.29.0": "1.33.0",
+    "npm:vitepress@*": "1.6.4_vite@5.4.21_vue@3.5.24_focus-trap@7.6.6",
     "npm:vitepress@^1.6.3": "1.6.4_vite@5.4.21_vue@3.5.24_focus-trap@7.6.6",
     "npm:vue@^3.5.12": "3.5.24"
   },

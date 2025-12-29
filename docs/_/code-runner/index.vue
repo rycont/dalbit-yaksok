@@ -63,11 +63,59 @@ async function initializeMonaco() {
         },
         renderLineHighlight: 'none',
         lineNumbers: 'off',
+        // quickSuggestions: {
+        //     other: true,
+        //     comments: true,
+        //     strings: true,
+        // },
+        // 단어 기반 제안을 강제로 활성화하고, 현재 문서 전체를 참조하도록 합니다.
+        // wordBasedSuggestions: 'allDocuments',
+        // // 중요: 한글 등 다양한 문자가 오토컴플릿 트리거가 되도록 단어 구분자에서 일부를 제거하거나 조정합니다.
+        // unicodeHighlight: {
+        //     ambiguousCharacters: false,
+        // },
+        // quickSuggestionsDelay: 0,
+        // 'suggest.snippetsPreventQuickSuggestions': false,
+        // 'suggest.filterGraceful': true,
     })
 
-    editorInstance.onDidChangeModelContent(() => {
-        const updatedCode = editorInstance!.getValue()
-        code.value = updatedCode
+    editorInstance.addAction({
+        id: 'trigger-suggest-custom',
+        label: '제안 창 띄우기',
+        keybindings: [monaco.KeyMod.Alt | monaco.KeyCode.Slash],
+        run: (ed) => {
+            // trigger('source', 'actionId', payload) 대신
+            // 직접 제안 컨트롤러를 호출하는 것이 가장 확실합니다.
+            const suggestContrib = ed.getContribution(
+                'editor.contrib.suggestController',
+            )
+            if (suggestContrib) {
+                suggestContrib.triggerSuggest()
+            }
+        },
+    })
+
+    editorInstance.onDidChangeModelContent((e) => {
+        const suggestController = editorInstance.getContribution(
+            'editor.contrib.suggestController',
+        )
+
+        if (!suggestController) return
+
+        // 1. 변화가 여러 개거나 내용이 없는 경우(삭제 등) 제외
+        if (e.changes.length === 0) return
+
+        // 마지막에 추가된 텍스트 확인
+        const lastChange = e.changes[e.changes.length - 1]
+        const text = lastChange.text
+
+        // 2. 실제 글자가 입력되었는지 정규표현식으로 검사
+        // \S는 공백이 아닌 문자, [^\n\r]은 개행이 아님을 의미합니다.
+        const isRealCharacter = /\S/.test(text)
+
+        if (isRealCharacter) {
+            suggestController.triggerSuggest()
+        }
     })
 
     languageProvider.configEditor(editorInstance)
@@ -140,10 +188,10 @@ async function runCode() {
             },
         })
 
-        const c = new CodeFile(code.value)
-        console.log(code.value, c.ast.children, parse(c))
+        // const c = new CodeFile(code.value)
+        // console.log(code.value, c.ast.children, parse(c))
 
-        session.addModule('main', code.value, {
+        session.addModule('main', editorInstance.getValue(), {
             // executionDelay: 400,
         })
 

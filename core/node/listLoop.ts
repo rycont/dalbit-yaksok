@@ -30,6 +30,7 @@ export class ListLoop extends Executable {
     override async execute(_scope: Scope): Promise<void> {
         const scope = new Scope({
             parent: _scope,
+            callerNode: this,
         })
 
         const list = await this.list.execute(scope)
@@ -92,6 +93,7 @@ export class ListLoop extends Executable {
     override validate(scope: Scope): YaksokError[] {
         const listScope = new Scope({
             parent: scope,
+            callerNode: this,
             initialVariable: {
                 [this.variableName]: new NumberValue(0),
             },

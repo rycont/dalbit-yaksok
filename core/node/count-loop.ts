@@ -25,6 +25,7 @@ export class CountLoop extends Executable {
     override async execute(_scope: Scope): Promise<void> {
         const scope = new Scope({
             parent: _scope,
+            callerNode: this,
         })
 
         const countValue = await this.count.execute(scope)
