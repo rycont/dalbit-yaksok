@@ -18,7 +18,10 @@ export function createDynamicRule(codeFile: CodeFile): DynamicRuleSet {
     )
 
     const mentioningRules = getRulesFromMentioningFile(codeFile)
-    const baseContextRules = codeFile.session?.baseContext?.exportedRules || []
+    const baseContextRules =
+        codeFile.session?.baseContexts.flatMap(
+            (context) => context.exportedRules,
+        ) || []
 
     const extensionRules =
         codeFile.session?.extensions.flatMap(

@@ -1,4 +1,4 @@
-import { assert, assertIsError } from 'assert'
+import { assert, assertIsError } from '@std/assert'
 
 import { yaksok } from '../../core/mod.ts'
 import { BreakNotInLoopError } from '../../core/error/index.ts'

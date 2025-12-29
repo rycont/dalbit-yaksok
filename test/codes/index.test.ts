@@ -1,4 +1,4 @@
-import { assertEquals } from 'assert'
+import { assertEquals } from '@std/assert'
 import { YaksokSession } from '../../core/mod.ts'
 
 for (const file of Deno.readDirSync(import.meta.dirname!)) {

@@ -23,7 +23,8 @@ Deno.test({
 pow(2, 3) 보여주기`,
         )
 
-        const result = await session.runModule('main')
+        const results = await session.runModule('main')
+        const result = results.get('main')!
         assertEquals(result.reason, 'finish')
         assertEquals(output.trim(), '8')
     },
