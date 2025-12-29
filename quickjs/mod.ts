@@ -105,7 +105,7 @@ function createWrapperCodeFromFFICall(
 
 function convertYaksokDataIntoQuickJSData(data: ValueType) {
     if (data instanceof StringValue) {
-        return `"${data.value}"`
+        return JSON.stringify(data.value)
     } else if (data instanceof ListValue) {
         if (data.entries.size === 0) {
             return '[]'
