@@ -213,7 +213,7 @@ export class CodeFile {
      */
     public validate(): { errors: YaksokError[]; validatingScope: Scope } {
         if (this.validationScopes) {
-            this.validationScopes = new Map()
+            this.validationScopes.clear()
         }
 
         const validatingScope = new Scope({
