@@ -3,7 +3,7 @@ import { Node } from '../node/base.ts'
 import { CodeFile } from '../type/code-file.ts'
 import { Position } from '../type/position.ts'
 
-export function getAutocomplete(codeFile: CodeFile, position: Position) {
+export function getAutocomplete(codeFile: CodeFile, position: Position): string[] {
     const scopes = codeFile.validationScopes
 
     let narrowestScope: Scope | null = null
