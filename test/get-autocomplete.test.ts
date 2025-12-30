@@ -187,3 +187,100 @@ Deno.test('getAutocomplete ignores modules with validation errors', () => {
     // 잘못된 모듈의 함수도 포함 (validate가 에러를 던지지 않고 에러 배열을 반환하므로)
     assertEquals(result.includes('@잘못된모듈 잘못된함수'), true)
 })
+
+Deno.test('getAutocomplete expands function name branches', () => {
+    const session = new YaksokSession()
+
+    const codeFile = session.addModule(
+        'main',
+        `약속, (대상)이여/여 지금 내게 나타나거라
+    대상 + " 등장" 보여주기
+
+나타나거라`,
+    )
+
+    codeFile.validate()
+
+    const result = getAutocomplete(codeFile, { line: 4, column: 1 })
+
+    // 분기된 함수 이름이 모두 포함되어야 함
+    assertEquals(result.includes('(대상)이여 지금 내게 나타나거라'), true)
+    assertEquals(result.includes('(대상)여 지금 내게 나타나거라'), true)
+    
+    // 원본 이름(분기 포함)은 포함되지 않아야 함
+    assertEquals(result.includes('(대상)이여/여 지금 내게 나타나거라'), false)
+})
+
+Deno.test('getAutocomplete expands multiple branches in function name', () => {
+    const session = new YaksokSession()
+
+    const codeFile = session.addModule(
+        'main',
+        `약속, (수)을/를 (곱)으로/로 곱하기/곱해주기
+    수 * 곱 반환하기
+
+곱하기`,
+    )
+
+    codeFile.validate()
+
+    const result = getAutocomplete(codeFile, { line: 4, column: 1 })
+
+    // 모든 분기 조합이 포함되어야 함
+    assertEquals(result.includes('(수)을 (곱)으로 곱하기'), true)
+    assertEquals(result.includes('(수)을 (곱)으로 곱해주기'), true)
+    assertEquals(result.includes('(수)을 (곱)로 곱하기'), true)
+    assertEquals(result.includes('(수)을 (곱)로 곱해주기'), true)
+    assertEquals(result.includes('(수)를 (곱)으로 곱하기'), true)
+    assertEquals(result.includes('(수)를 (곱)으로 곱해주기'), true)
+    assertEquals(result.includes('(수)를 (곱)로 곱하기'), true)
+    assertEquals(result.includes('(수)를 (곱)로 곱해주기'), true)
+})
+
+Deno.test('getAutocomplete handles function without branches normally', () => {
+    const session = new YaksokSession()
+
+    const codeFile = session.addModule(
+        'main',
+        `약속, (숫자) 제곱하기
+    숫자 * 숫자 반환하기
+
+제곱하기`,
+    )
+
+    codeFile.validate()
+
+    const result = getAutocomplete(codeFile, { line: 4, column: 1 })
+
+    // 분기 없는 함수는 그대로 반환
+    assertEquals(result.includes('(숫자) 제곱하기'), true)
+})
+
+Deno.test('getAutocomplete expands branches in mentioned module functions', () => {
+    const session = new YaksokSession()
+
+    session.addModule(
+        '도우미',
+        `약속, (대상)이/가 나타나기
+    대상 + " 등장" 보여주기
+`,
+    )
+
+    const mainCodeFile = session.addModule(
+        'main',
+        `
+메인 = 0
+`,
+    )
+
+    mainCodeFile.validate()
+
+    const result = getAutocomplete(mainCodeFile, { line: 2, column: 1 })
+
+    // 멘션된 모듈의 함수도 분기가 확장되어야 함
+    assertEquals(result.includes('@도우미 (대상)이 나타나기'), true)
+    assertEquals(result.includes('@도우미 (대상)가 나타나기'), true)
+    
+    // 원본 이름은 포함되지 않아야 함
+    assertEquals(result.includes('@도우미 (대상)이/가 나타나기'), false)
+})
