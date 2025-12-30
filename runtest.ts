@@ -6,7 +6,6 @@ import {
     StringValue,
     ValueType,
     YaksokSession,
-    getAutocomplete,
 } from '@dalbit-yaksok/core'
 
 const session = new YaksokSession()

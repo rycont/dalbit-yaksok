@@ -1,6 +1,7 @@
 import { FunctionInvokingParams } from '../constant/type.ts'
 import type { Rule } from '../prepare/parse/type.ts'
 import { ValueType } from '../value/base.ts'
+import type { Scope } from '../executer/scope.ts'
 
 /**
  * `달빛 약속` 확장이 제공하는 기능과 메타데이터를 정의하는 매니페스트입니다.
@@ -74,6 +75,7 @@ export interface Extension {
     executeFFI(
         code: string,
         args: FunctionInvokingParams,
+        callerScope: Scope,
     ): ValueType | Promise<ValueType>
     /**
      * 확장의 기능과 메타데이터를 담고 있는 매니페스트 객체입니다.
