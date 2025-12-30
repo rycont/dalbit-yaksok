@@ -1,7 +1,11 @@
-import { RULES, RuleParseResult } from './rules.ts'
+import { RULES, RuleParseResult, MultiTokenParseResult } from './rules.ts'
 
 import { YaksokError } from '../../error/common.ts'
 import { TOKEN_TYPE, type Token } from './token.ts'
+
+function isMultiTokenResult(result: RuleParseResult | MultiTokenParseResult): result is MultiTokenParseResult {
+    return 'tokens' in result
+}
 
 class Tokenizer {
     private tokens: Token[] = []
@@ -31,7 +35,7 @@ class Tokenizer {
                 const initialLineForToken = this.line
 
                 try {
-                    const result: RuleParseResult | null = rule.parse(
+                    const result = rule.parse(
                         this.code,
                         this.index,
                         this.tokens,
@@ -42,7 +46,42 @@ class Tokenizer {
                         continue
                     }
 
-                    // Rule parsing succeeded.
+                    // Handle multi-token results (template strings)
+                    if (isMultiTokenResult(result)) {
+                        const { tokens: multiTokens, newIndex } = result
+                        const consumed = this.code.substring(this.index, newIndex)
+
+                        let currentColumn = initialColumnForToken
+                        let currentLine = initialLineForToken
+
+                        for (const token of multiTokens) {
+                            this.tokens.push({
+                                type: token.type,
+                                value: token.value,
+                                position: {
+                                    line: currentLine,
+                                    column: currentColumn,
+                                },
+                            })
+
+                            // Update position for next token
+                            for (const ch of token.value) {
+                                if (ch === '\n') {
+                                    currentLine++
+                                    currentColumn = 1
+                                } else {
+                                    currentColumn++
+                                }
+                            }
+                        }
+
+                        this.updatePosition(consumed)
+                        this.index = newIndex
+                        accepted = true
+                        break
+                    }
+
+                    // Rule parsing succeeded (single token).
                     const { value, newIndex } = result
                     const consumed = this.code.substring(this.index, newIndex)
 
