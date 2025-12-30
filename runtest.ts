@@ -1,22 +1,46 @@
-import { YaksokSession, getAutocomplete } from '@dalbit-yaksok/core'
+import {
+    Extension,
+    ExtensionManifest,
+    FunctionInvokingParams,
+    Scope,
+    StringValue,
+    ValueType,
+    YaksokSession,
+    getAutocomplete,
+} from '@dalbit-yaksok/core'
 
 const session = new YaksokSession()
+
+class TestExtension implements Extension {
+    manifest: ExtensionManifest = {
+        ffiRunner: {
+            runtimeName: 'Test',
+        },
+    }
+
+    executeFFI(
+        code: string,
+        args: FunctionInvokingParams,
+        callerScope: Scope,
+    ): ValueType {
+        console.log(callerScope.codeFile?.fileName)
+        return new StringValue('Hello, world!')
+    }
+}
+
+session.extend(new TestExtension())
 
 session.addModule(
     'main',
     `
-약속, 언제나 밝게 웃기
-    '우하하' 보여주기
-    기름 = 10
-    거름 = 1
+번역(Test), 안녕
+***
+뭐시기
+***
 
-이름 = 5
-이름 보여주기
+안녕
 `,
 )
 
 session.validate()
-
-console.log(
-    getAutocomplete(session.getCodeFile('main'), { line: 3, column: 1 }),
-)
+const result = await session.runModule('main')

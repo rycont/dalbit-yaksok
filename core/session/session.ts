@@ -446,6 +446,7 @@ export class YaksokSession {
      * @param runtime - 사용할 FFI 런타임의 이름입니다 (예: 'QuickJS').
      * @param code - FFI 런타임에서 실행할 코드입니다.
      * @param args - 코드를 실행할 때 전달할 인자(값)들입니다.
+     * @param callerScope - 코드를 실행할 때 사용할 스코프입니다.
      * @returns 실행 결과를 `달빛 약속`의 `ValueType`으로 변환하여 반환합니다.
      * @throws `FFIRuntimeNotFound` - 해당 `runtime`을 처리할 확장이 없을 때 발생합니다.
      * @throws `MultipleFFIRuntimeError` - 해당 `runtime`을 처리할 확장이 여러 개일 때 발생합니다.
@@ -455,6 +456,7 @@ export class YaksokSession {
         runtime: string,
         code: string,
         args: Record<string, any>,
+        callerScope: Scope,
     ): Promise<ValueType> {
         const availableExtensions = this.extensions.filter(
             (ext) => ext.manifest.ffiRunner?.runtimeName === runtime,
@@ -475,7 +477,7 @@ export class YaksokSession {
         const extension = availableExtensions[0]
 
         try {
-            const result = await extension.executeFFI(code, args)
+            const result = await extension.executeFFI(code, args, callerScope)
 
             return result
         } catch (error) {

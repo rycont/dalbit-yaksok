@@ -27,6 +27,7 @@ export class PythonImport extends Executable {
             'Python',
             `from ${this.module} import ${namesPart}`,
             {},
+            scope,
         )
     }
 
@@ -64,6 +65,7 @@ export class PythonCall extends Evaluable {
             'Python',
             `CALL ${this.funcName}`,
             argsMap,
+            scope,
         )
         return result
     }
@@ -108,6 +110,7 @@ export class PythonMethodCall extends Evaluable {
             'Python',
             `CALL_METHOD ${this.methodName}`,
             argsMap,
+            scope,
         )
         return result
     }

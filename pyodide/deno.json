@@ -4,7 +4,7 @@
   "imports": {
     "pyodide-module": "npm:pyodide@0.24.1/pyodide.js"
   },
-  "version": "4.2.0",
+  "version": "4.3.0",
   "tasks": {
     "test": "deno test --allow-net --allow-read --allow-write --parallel"
   }
