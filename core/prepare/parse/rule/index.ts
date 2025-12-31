@@ -33,14 +33,15 @@ import {
     Pause,
     PlusOperator,
     PowerOperator,
-    // Input,
     Print,
     RangeOperator,
     Sequence,
     SetToIndex,
     SetVariable,
     TypeOf,
+    TypeCast,
 } from '../../../node/index.ts'
+import type { TypeCastTarget } from '../../../node/typecast.ts'
 import { NotEqualOperator } from '../../../node/operator.ts'
 import { TemplateLiteral, TemplateStringPart } from '../../../node/primitive-literal.ts'
 import { ReturnStatement } from '../../../node/return.ts'
@@ -735,6 +736,7 @@ export const ADVANCED_RULES: Rule[] = [
             return new TypeOf(value, tokens)
         },
     },
+    ...createTypeCastRules(),
     {
         pattern: [
             {
@@ -864,3 +866,35 @@ export const ADVANCED_RULES: Rule[] = [
     },
     ...DICT_RULES,
 ]
+
+function createTypeCastRules(): Rule[] {
+    const particles = ['을', '를']
+    const targetTypes: { keywords: string[]; target: TypeCastTarget }[] = [
+        { keywords: ['숫자로'], target: '숫자' },
+        { keywords: ['문자열로', '문자로'], target: '문자열' },
+        { keywords: ['참거짓으로', '불리언으로'], target: '참거짓' },
+    ]
+
+    const rules: Rule[] = []
+
+    for (const particle of particles) {
+        for (const { keywords, target } of targetTypes) {
+            for (const keyword of keywords) {
+                rules.push({
+                    pattern: [
+                        { type: Evaluable },
+                        { type: Identifier, value: particle },
+                        { type: Identifier, value: keyword },
+                        { type: Identifier, value: '바꾸기' },
+                    ],
+                    factory: (nodes, tokens) => {
+                        const value = nodes[0] as Evaluable
+                        return new TypeCast(value, target, tokens)
+                    },
+                })
+            }
+        }
+    }
+
+    return rules
+}
