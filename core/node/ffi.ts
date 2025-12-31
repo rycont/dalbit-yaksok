@@ -12,6 +12,10 @@ export class FFIBody extends Node {
     constructor(public code: string, public override tokens: Token[]) {
         super()
     }
+
+    override validate(): YaksokError[] {
+        return []
+    }
 }
 
 export class DeclareFFI extends Executable {
