@@ -9,8 +9,8 @@ import {
     NumberValue,
     StringValue,
     ValueType,
+    FunctionInvokingParams
 } from '@dalbit-yaksok/core'
-import { FunctionInvokingParams } from '../core/constant/type.ts'
 import { 편의점 } from './virtual-data/편의점.ts'
 
 export class DataAnalyze implements Extension {
