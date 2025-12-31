@@ -1,5 +1,5 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
-import { assertGreaterOrEqual } from 'assert'
+import { assertGreaterOrEqual } from '@std/assert'
 import { assertEquals } from 'assert/equals'
 import { assertLess } from 'assert/less'
 

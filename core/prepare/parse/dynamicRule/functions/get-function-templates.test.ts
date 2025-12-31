@@ -1,4 +1,4 @@
-import { assertEquals } from 'assert'
+import { assertEquals } from '@std/assert'
 
 import { convertTokensToFunctionTemplate } from './get-function-templates.ts'
 

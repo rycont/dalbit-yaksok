@@ -40,14 +40,11 @@ Deno.test('debugger keyword', async () => {
 `,
     )
 
-    const runResult = await session.runModule('main')
-
-    assert(runResult.reason === 'finish')
+    const results = await session.runModule('main')
+    const result = results.get('main')!
+    assert(result.reason === 'finish')
     assert(debugEventPayload !== null)
     assertEquals(debugEventPayload?.node.tokens[0].position.line, 5)
-    assert(
-        runResult.codeFile.ranScope?.getVariable('내_변수').toPrint() === '20',
-    )
-
+    assertEquals(result.codeFile.ranScope?.getVariable('내_변수').toPrint(), '20')
     assertEquals(output, 'ABCD')
 })

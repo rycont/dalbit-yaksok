@@ -1,4 +1,4 @@
-import { assert, assertIsError } from 'assert'
+import { assert, assertIsError } from '@std/assert'
 
 import { NotExecutableNodeError } from '../../core/error/unknown-node.ts'
 import { yaksok } from '../../core/mod.ts'

@@ -16,6 +16,7 @@ export async function executer<NodeType extends Executable>(
         codeFile?.ranScope ||
         new Scope({
             codeFile,
+            callerNode: node,
         })
 
     try {

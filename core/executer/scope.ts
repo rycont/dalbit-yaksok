@@ -5,6 +5,7 @@ import { ValueType } from '../value/base.ts'
 import { FEATURE_FLAG } from '../constant/feature-flags.ts'
 
 import type { Token } from '../prepare/tokenize/token.ts'
+import type { Node } from '../node/base.ts'
 
 import type { CodeFile } from '../type/code-file.ts'
 import type { RunnableObject } from '../value/function.ts'
@@ -30,6 +31,7 @@ export class Scope {
             codeFile?: CodeFile
             initialVariable?: Record<string, ValueType> | null
             callStackDepth?: number
+            callerNode?: Node
         } = {},
     ) {
         this.variables = config.initialVariable || {}
@@ -54,6 +56,11 @@ export class Scope {
 
         if (!config.parent && config.codeFile?.session?.baseContext?.ranScope) {
             this.parent = config.codeFile.session.baseContext.ranScope
+        }
+
+        
+        if (this.codeFile && config.callerNode) {
+            this.codeFile.registerScope(this, config.callerNode)
         }
     }
 
@@ -175,8 +182,9 @@ export class Scope {
 
         // 플래그 확인: DISABLE_VARIABLE_EVENTS가 활성화되면 이벤트를 발생시키지 않음
         const isDisabled =
-            this.codeFile.session.flags[FEATURE_FLAG.DISABLE_VARIABLE_EVENTS] ===
-            true
+            this.codeFile.session.flags[
+                FEATURE_FLAG.DISABLE_VARIABLE_EVENTS
+            ] === true
 
         if (isDisabled) return
 
@@ -201,8 +209,9 @@ export class Scope {
 
         // 플래그 확인: DISABLE_VARIABLE_EVENTS가 활성화되면 이벤트를 발생시키지 않음
         const isDisabled =
-            this.codeFile.session.flags[FEATURE_FLAG.DISABLE_VARIABLE_EVENTS] ===
-            true
+            this.codeFile.session.flags[
+                FEATURE_FLAG.DISABLE_VARIABLE_EVENTS
+            ] === true
 
         if (isDisabled) return
 

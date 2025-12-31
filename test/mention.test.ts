@@ -1,5 +1,5 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
-import { assertEquals } from 'assert'
+import { assertEquals } from '@std/assert'
 
 Deno.test('Mentioning', async () => {
     let output = ''

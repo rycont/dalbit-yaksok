@@ -12,6 +12,7 @@ import type { Rule } from '../prepare/parse/type.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { YaksokSession } from '../session/session.ts'
 import { postprocessErrors } from '../error/postprocess.ts'
+import { Node } from '../node/base.ts'
 
 /**
  * `달빛 약속` 소스코드 파일 하나를 나타내는 클래스입니다.
@@ -27,6 +28,7 @@ export class CodeFile {
     > | null = null
     private exportedRulesCache: Rule[] | null = null
 
+    public validationScopes: Map<Node, Scope> = new Map()
     public ranScope: Scope | null = null
     public session: YaksokSession | null = null
     public executionDelay: number | null = null
@@ -210,13 +212,23 @@ export class CodeFile {
      * @returns 검사 과정에서 발견된 오류(`YaksokError`) 배열과, 검사에 사용된 스코프를 반환합니다.
      */
     public validate(): { errors: YaksokError[]; validatingScope: Scope } {
+        if (this.validationScopes) {
+            this.validationScopes.clear()
+        }
+
         const validatingScope = new Scope({
             codeFile: this,
         })
 
         try {
+            this.registerScope(validatingScope, this.ast)
+
             const errors = this.ast.validate(validatingScope)
-            const mergedErrors = postprocessErrors(errors, this.tokens, validatingScope)
+            const mergedErrors = postprocessErrors(
+                errors,
+                this.tokens,
+                validatingScope,
+            )
 
             return {
                 errors: mergedErrors,
@@ -252,6 +264,10 @@ export class CodeFile {
         this.ranScope = result
 
         return result
+    }
+
+    public registerScope(scope: Scope, node: Node) {
+        this.validationScopes.set(node, scope)
     }
 }
 

@@ -1,4 +1,4 @@
-import { assert } from 'assert'
+import { assert } from '@std/assert'
 import { assertEquals } from 'assert/equals'
 import { assertInstanceOf } from 'assert/instance-of'
 import { assertIsError } from 'assert/is-error'

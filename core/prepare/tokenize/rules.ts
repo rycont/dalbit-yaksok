@@ -32,13 +32,18 @@ export interface RuleParseResult {
     newIndex: number
 }
 
+export interface MultiTokenParseResult {
+    tokens: { type: TOKEN_TYPE; value: string }[]
+    newIndex: number
+}
+
 export const RULES: {
     starter: RegExp | string[]
     parse: (
         code: string,
         index: number,
         lastTokens: Token[],
-    ) => RuleParseResult | null
+    ) => RuleParseResult | MultiTokenParseResult | null
     type: TOKEN_TYPE
 }[] = [
     {
@@ -263,21 +268,129 @@ export const RULES: {
         parse: (code, index) => {
             const quote = code[index]
             let i = index + 1
+            let hasInterpolation = false
+
+            // First pass: check if this string has interpolation
             while (i < code.length && code[i] !== quote) {
                 if (code[i] === '\n') {
                     throw new UnexpectedNewlineError({
                         parts: '문자열',
                     })
                 }
+                if (code[i] === '\\' && i + 1 < code.length) {
+                    i += 2
+                    continue
+                }
+                if (code[i] === '{') {
+                    hasInterpolation = true
+                    break
+                }
                 i++
             }
 
-            if (i < code.length) {
-                const newIndex = i + 1
-                return { value: code.substring(index, newIndex), newIndex }
+            // If no interpolation, parse as simple string
+            if (!hasInterpolation) {
+                i = index + 1
+                while (i < code.length && code[i] !== quote) {
+                    if (code[i] === '\n') {
+                        throw new UnexpectedNewlineError({
+                            parts: '문자열',
+                        })
+                    }
+                    if (code[i] === '\\' && i + 1 < code.length) {
+                        i += 2
+                        continue
+                    }
+                    i++
+                }
+
+                if (i < code.length) {
+                    const newIndex = i + 1
+                    return { value: code.substring(index, newIndex), newIndex }
+                }
+
+                return { value: code.substring(index, i), newIndex: i } // Unterminated string
             }
 
-            return { value: code.substring(index, i), newIndex: i } // Unterminated string
+            // Has interpolation - parse as template string
+            const tokens: { type: TOKEN_TYPE; value: string }[] = []
+            i = index + 1
+            let partStart = i
+            let braceDepth = 0
+
+            while (i < code.length) {
+                const char = code[i]
+
+                if (char === '\n') {
+                    throw new UnexpectedNewlineError({
+                        parts: '템플릿 문자열',
+                    })
+                }
+
+                if (braceDepth === 0 && char === '\\' && i + 1 < code.length) {
+                    i += 2
+                    continue
+                }
+
+                if (braceDepth === 0 && char === quote) {
+                    // End of template string
+                    const lastPart = code.substring(partStart, i)
+                    if (tokens.length === 0) {
+                        // No interpolation was actually found (shouldn't happen given our check)
+                        return { value: code.substring(index, i + 1), newIndex: i + 1 }
+                    }
+                    tokens.push({ type: TOKEN_TYPE.TEMPLATE_STRING_END, value: lastPart + quote })
+                    return { tokens, newIndex: i + 1 }
+                }
+
+                if (braceDepth === 0 && char === '{') {
+                    // Start of interpolation
+                    const part = code.substring(partStart, i)
+                    if (tokens.length === 0) {
+                        tokens.push({ type: TOKEN_TYPE.TEMPLATE_STRING_START, value: quote + part })
+                    } else {
+                        tokens.push({ type: TOKEN_TYPE.TEMPLATE_STRING_PART, value: part })
+                    }
+                    tokens.push({ type: TOKEN_TYPE.OPENING_BRACE, value: '{' })
+                    braceDepth++
+                    i++
+                    partStart = i
+                    continue
+                }
+
+                if (braceDepth > 0 && char === '{') {
+                    braceDepth++
+                    i++
+                    continue
+                }
+
+                if (braceDepth > 0 && char === '}') {
+                    braceDepth--
+                    if (braceDepth === 0) {
+                        // End of interpolation - tokenize the expression content
+                        const exprContent = code.substring(partStart, i).trim()
+                        if (exprContent) {
+                            const exprTokens = tokenizeExpression(exprContent)
+                            for (const token of exprTokens) {
+                                tokens.push(token)
+                            }
+                        }
+                        tokens.push({ type: TOKEN_TYPE.CLOSING_BRACE, value: '}' })
+                        i++
+                        partStart = i
+                        continue
+                    }
+                }
+
+                i++
+            }
+
+            // Unterminated template string
+            throw new UnexpectedEndOfCodeError({
+                resource: {
+                    expected: '템플릿 문자열 닫는 따옴표',
+                },
+            })
         },
     },
     {
@@ -333,4 +446,73 @@ function isNegativeNumber(tokens: Token[]) {
     }
 
     return true
+}
+
+/**
+ * Tokenize an expression string (used inside template literal interpolation).
+ * This is a simplified tokenizer that handles the subset of tokens valid in expressions.
+ */
+function tokenizeExpression(expr: string): { type: TOKEN_TYPE; value: string }[] {
+    const tokens: { type: TOKEN_TYPE; value: string }[] = []
+    let i = 0
+
+    while (i < expr.length) {
+        const char = expr[i]
+
+        // Skip whitespace
+        if (char === ' ' || char === '\t') {
+            i++
+            continue
+        }
+
+        let matched = false
+
+        // Try each rule (except STRING, NEW_LINE, INDENT, FFI_BODY, LINE_COMMENT, MENTION)
+        for (const rule of RULES) {
+            // Skip rules not applicable in expressions
+            if (
+                rule.type === TOKEN_TYPE.STRING ||
+                rule.type === TOKEN_TYPE.NEW_LINE ||
+                rule.type === TOKEN_TYPE.INDENT ||
+                rule.type === TOKEN_TYPE.FFI_BODY ||
+                rule.type === TOKEN_TYPE.LINE_COMMENT ||
+                rule.type === TOKEN_TYPE.MENTION ||
+                rule.type === TOKEN_TYPE.SPACE
+            ) {
+                continue
+            }
+
+            const isStarterMatched = Array.isArray(rule.starter)
+                ? rule.starter.includes(char)
+                : char.match(rule.starter)
+
+            if (!isStarterMatched) {
+                continue
+            }
+
+            const result = rule.parse(expr, i, tokens as Token[])
+
+            if (result === null) {
+                continue
+            }
+
+            // Expression tokenization should only produce single-token results
+            if ('tokens' in result) {
+                continue
+            }
+
+            const { value, newIndex } = result
+            tokens.push({ type: rule.type, value })
+            i = newIndex
+            matched = true
+            break
+        }
+
+        if (!matched) {
+            // Unknown character, skip
+            i++
+        }
+    }
+
+    return tokens
 }

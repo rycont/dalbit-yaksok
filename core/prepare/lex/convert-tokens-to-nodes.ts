@@ -2,8 +2,26 @@ import { Expression, Identifier, Node, Operator } from '../../node/base.ts'
 import { FFIBody } from '../../node/ffi.ts'
 import { Mention } from '../../node/mention.ts'
 import { EOL, Indent } from '../../node/misc.ts'
-import { NumberLiteral, StringLiteral } from '../../node/primitive-literal.ts'
+import { NumberLiteral, StringLiteral, TemplateStringPart } from '../../node/primitive-literal.ts'
 import { Token, TOKEN_TYPE } from '../tokenize/token.ts'
+
+const escapeMap: Record<string, string> = {
+    n: '\n',
+    t: '\t',
+    r: '\r',
+    '\\': '\\',
+    '"': '"',
+    "'": "'",
+}
+
+/**
+ * 이스케이프 시퀀스를 실제 문자로 변환합니다.
+ * @param str - 이스케이프 시퀀스가 포함된 문자열
+ * @returns 이스케이프 시퀀스가 변환된 문자열
+ */
+function unescapeString(str: string): string {
+    return str.replace(/\\(.)/g, (_, char) => escapeMap[char] ?? `\\${char}`)
+}
 
 export function convertTokensToNodes(tokens: Token[]): Node[] {
     return tokens.map(mapTokenToNode).filter(Boolean) as Node[]
@@ -28,7 +46,27 @@ function mapTokenToNode(token: Token) {
         case TOKEN_TYPE.NUMBER:
             return new NumberLiteral(parseFloat(token.value), [token])
         case TOKEN_TYPE.STRING:
-            return new StringLiteral(token.value.slice(1, -1), [token])
+            return new StringLiteral(
+                unescapeString(token.value.slice(1, -1)),
+                [token],
+            )
+        case TOKEN_TYPE.TEMPLATE_STRING_START:
+            // Remove leading quote, unescape content
+            return new TemplateStringPart(
+                unescapeString(token.value.slice(1)),
+                [token],
+            )
+        case TOKEN_TYPE.TEMPLATE_STRING_PART:
+            return new TemplateStringPart(
+                unescapeString(token.value),
+                [token],
+            )
+        case TOKEN_TYPE.TEMPLATE_STRING_END:
+            // Remove trailing quote, unescape content
+            return new TemplateStringPart(
+                unescapeString(token.value.slice(0, -1)),
+                [token],
+            )
         case TOKEN_TYPE.OPERATOR:
             return new Operator(token.value, [token])
         case TOKEN_TYPE.INDENT:

@@ -1,5 +1,6 @@
 import type { editor, languages, Position } from 'monaco-editor'
 import { BaseProvider } from './base.ts'
+import { hangulToPhoneme } from '../hangul-to-phoneme.ts'
 
 // From editor.api.d.ts
 export enum CompletionItemKind {
@@ -40,12 +41,6 @@ const COMPLETION_SNIPPETS = [
         insertText: '보여주기',
         detail: '값을 화면에 보여줘요',
     },
-    // {
-    //     label: '입력받기',
-    //     kind: CompletionItemKind.Keyword,
-    //     insertText: '입력받기',
-    //     detail: '사용자에게 값을 입력받아요',
-    // },
     {
         label: '약속',
         kind: CompletionItemKind.Snippet,
@@ -59,6 +54,10 @@ const COMPLETION_SNIPPETS = [
         detail: '약속의 결과를 설정해요',
     },
 ]
+
+const LABEL_SYLLABLE_MAP = new Map(
+    COMPLETION_SNIPPETS.map((c) => [c.label, hangulToPhoneme(c.label)]),
+)
 
 export function setupCompletion(editorInstance: editor.IStandaloneCodeEditor) {
     editorInstance.onDidChangeModelContent(() => {
@@ -113,10 +112,14 @@ export class CompletionItemProvider
             }
         }
 
+        const dissembledWord = hangulToPhoneme(word)
+
         const matchedItems = COMPLETION_SNIPPETS.map((item) => ({
-            score: item.label.startsWith(word)
+            score: LABEL_SYLLABLE_MAP.get(item.label)?.startsWith(
+                dissembledWord,
+            )
                 ? 2
-                : item.label.includes(word)
+                : LABEL_SYLLABLE_MAP.get(item.label)?.includes(dissembledWord)
                 ? 1
                 : 0,
             item,
@@ -134,6 +137,7 @@ export class CompletionItemProvider
                     startColumn: position.column - word.length,
                     endColumn: position.column,
                 },
+                filterText: LABEL_SYLLABLE_MAP.get(item.label) || item.label,
             })),
         }
     }

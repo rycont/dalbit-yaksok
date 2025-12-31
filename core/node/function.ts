@@ -67,6 +67,7 @@ export class DeclareFunction extends Executable {
         const functionScope = new Scope({
             parent: scope,
             initialVariable: params,
+            callerNode: this,
         })
 
         const declarationErrors = []

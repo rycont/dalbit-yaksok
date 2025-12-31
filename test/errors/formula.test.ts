@@ -1,4 +1,4 @@
-import { assert, assertEquals, assertInstanceOf } from 'assert'
+import { assert, assertEquals, assertInstanceOf } from '@std/assert'
 import { NumberValue, yaksok } from '../../core/mod.ts'
 
 function createRandomValue(depth = 0): number | (string | number)[] {

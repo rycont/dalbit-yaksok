@@ -1,4 +1,4 @@
-import { assert, assertIsError } from 'assert'
+import { assert, assertIsError } from '@std/assert'
 import { NotProperIdentifierNameToDefineError } from '../../core/error/index.ts'
 import { yaksok } from '../../core/mod.ts'
 
