@@ -18,13 +18,18 @@ export interface ExtensionManifest {
          * FFI 런타임을 식별하는 고유한 이름입니다. (예: "QuickJS", "Pyodide")
          * `번역` 구문에서 이 이름을 사용하여 특정 런타임을 지정합니다.
          */
-        runtimeName: string
+        runtimeName?: string
     }
 
     /**
      * 확장이 파싱 규칙을 제공하는 경우, 해당 규칙을 명시합니다.
      */
     parsingRules?: Rule[]
+
+    /**
+     * 확장을 기본 컨텍스트로 제공하는 경우, 해당 컨텍스트의 정보를 명시합니다.
+     */
+    module?: Record<string, string>
 }
 
 /**

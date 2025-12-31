@@ -17,7 +17,8 @@
         "core",
         "test",
         "monaco-language-provider",
-        "pyodide"
+        "pyodide",
+        "data-analyze"
     ],
     "version": "4.4.0",
     "tasks": {

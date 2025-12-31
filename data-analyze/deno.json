@@ -1,0 +1,5 @@
+{
+    "version": "3.5.7",
+    "name": "@dalbit-yaksok/dala-analyze",
+    "exports": "./mod.ts"
+}

@@ -231,6 +231,13 @@ export class YaksokSession {
      */
     async extend(extension: Extension): Promise<void> {
         this.extensions.push(extension)
+        if(extension.manifest.module) {
+          const { module } = extension.manifest;
+          for(const [name, code] of Object.entries(module)) {
+            this.addModule(name, code);
+          }
+        }
+
         await extension.init?.()
     }
 
