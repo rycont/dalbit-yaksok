@@ -11,7 +11,7 @@ import {
     ValueType,
     FunctionInvokingParams
 } from '@dalbit-yaksok/core'
-import { 편의점 } from './virtual-data/편의점.ts'
+import { 편의점 } from './virtual-data/cvs.ts'
 
 export class DataAnalyze implements Extension {
     public manifest: ExtensionManifest = {
