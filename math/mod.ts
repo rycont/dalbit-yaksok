@@ -291,12 +291,18 @@ AVERAGE
                 const { 목록 } = args
                 this.assertListValue(목록)
                 const numbers = this.extractNumbers(목록)
+                if (numbers.length === 0) {
+                    throw new Error('빈 목록에서 최댓값을 구할 수 없습니다')
+                }
                 return new NumberValue(Math.max(...numbers))
             }
             case 'MIN': {
                 const { 목록 } = args
                 this.assertListValue(목록)
                 const numbers = this.extractNumbers(목록)
+                if (numbers.length === 0) {
+                    throw new Error('빈 목록에서 최솟값을 구할 수 없습니다')
+                }
                 return new NumberValue(Math.min(...numbers))
             }
             case 'MAX_TWO': {
@@ -350,6 +356,9 @@ AVERAGE
                 const { 목록 } = args
                 this.assertListValue(목록)
                 const numbers = this.extractNumbers(목록)
+                if (numbers.length === 0) {
+                    throw new Error('빈 목록의 평균을 구할 수 없습니다')
+                }
                 return new NumberValue(
                     numbers.reduce((a, b) => a + b, 0) / numbers.length,
                 )
