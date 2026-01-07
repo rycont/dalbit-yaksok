@@ -236,6 +236,7 @@ function getMentionedModuleIdentifiers(codeFile: CodeFile): string[] {
     }
 
     const results: string[] = []
+    const baseContextScope = session.baseContext?.ranScope ?? null
     
     for (const [moduleName, moduleCodeFile] of Object.entries(session.files)) {
         // 현재 파일은 제외
@@ -250,7 +251,10 @@ function getMentionedModuleIdentifiers(codeFile: CodeFile): string[] {
 
         try {
             const { validatingScope } = moduleCodeFile.validate()
-            const moduleIdentifiers = getIdentifiersFromScope(validatingScope)
+            const moduleIdentifiers = getIdentifiersFromScope(
+                validatingScope,
+                baseContextScope ?? undefined,
+            )
             
             for (const identifier of moduleIdentifiers) {
                 results.push(`@${moduleName} ${identifier}`)
@@ -263,16 +267,27 @@ function getMentionedModuleIdentifiers(codeFile: CodeFile): string[] {
     return results
 }
 
-function getIdentifiersFromScope(scope: Scope | undefined): string[] {
+function getIdentifiersFromScope(
+    scope: Scope | undefined,
+    stopAtScope?: Scope,
+): string[] {
     if (!scope) {
+        return []
+    }
+    if (stopAtScope && scope === stopAtScope) {
         return []
     }
 
     const functionNames = [...scope.functions.keys()].flatMap(expandFunctionNameBranches)
 
+    const parentIdentifiers =
+        scope.parent && scope.parent !== stopAtScope
+            ? getIdentifiersFromScope(scope.parent, stopAtScope)
+            : []
+
     return [
         ...Object.keys(scope.variables),
         ...functionNames,
-        ...getIdentifiersFromScope(scope.parent),
+        ...parentIdentifiers,
     ]
 }

@@ -74,6 +74,36 @@ Deno.test('getAutocomplete returns mentioned module identifiers', () => {
     assertEquals(result.includes('@수학 (숫자) 제곱하기'), true)
 })
 
+Deno.test('getAutocomplete excludes base context identifiers from mentioned modules', async () => {
+    const session = new YaksokSession()
+
+    await session.setBaseContext(
+        `약속, 공통 (A)
+    A 반환하기`,
+    )
+
+    session.addModule(
+        'utils',
+        `약속, 유틸 (B)
+    B 반환하기`,
+    )
+
+    const mainCodeFile = session.addModule(
+        'main',
+        `
+값 = 0
+`,
+    )
+
+    mainCodeFile.validate()
+
+    const result = getAutocomplete(mainCodeFile, { line: 2, column: 1 })
+
+    assertEquals(result.includes('공통 (A)'), true)
+    assertEquals(result.includes('@utils 공통 (A)'), false)
+    assertEquals(result.includes('@utils 유틸 (B)'), true)
+})
+
 Deno.test('getAutocomplete excludes current file from mentions', () => {
     const session = new YaksokSession()
 
