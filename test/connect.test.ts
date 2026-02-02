@@ -93,7 +93,7 @@ Deno.test('다른 파일에 있는 연결 호출', async () => {
     assertEquals(output, '황선형\n')
 })
 
-Deno.test('배열을 반환하는 연결', async () => {
+Deno.test('리스트을 반환하는 연결', async () => {
     let output = ''
 
     const session = new YaksokSession({

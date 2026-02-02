@@ -214,7 +214,7 @@ Deno.test('getAutocomplete ignores modules with validation errors', () => {
     // 정상 모듈의 식별자는 포함
     assertEquals(result.includes('@정상모듈 정상변수'), true)
     
-    // 잘못된 모듈의 함수도 포함 (validate가 에러를 던지지 않고 에러 배열을 반환하므로)
+    // 잘못된 모듈의 함수도 포함 (validate가 에러를 던지지 않고 에러 리스트을 반환하므로)
     assertEquals(result.includes('@잘못된모듈 잘못된함수'), true)
 })
 
