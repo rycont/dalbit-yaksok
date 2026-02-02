@@ -186,7 +186,7 @@ class Tokenizer {
  * 토크나이징은 코드를 문법적으로 의미있는 가장 작은 단위로 분해하는 과정입니다.
  *
  * @param text - 토크나이징할 소스 코드 문자열입니다.
- * @returns 코드에서 추출된 `Token` 객체의 리스트을 반환합니다.
+ * @returns 코드에서 추출된 `Token` 객체의 리스트를 반환합니다.
  * @see Token
  *
  * @example

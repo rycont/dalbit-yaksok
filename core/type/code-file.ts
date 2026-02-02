@@ -58,7 +58,7 @@ export class CodeFile {
      * 그 결과를 내부 속성에 캐싱합니다.
      * 이후의 접근에서는 캐시된 값을 즉시 반환합니다.
      *
-     * @returns `Token` 객체의 리스트을 반환합니다.
+     * @returns `Token` 객체의 리스트를 반환합니다.
      */
     public get tokens(): Token[] {
         if (this.tokenized) {
@@ -209,7 +209,7 @@ export class CodeFile {
 
     /**
      * 코드를 정적으로 분석하여 유효성을 검사하고 잠재적인 오류를 찾습니다.
-     * @returns 검사 과정에서 발견된 오류(`YaksokError`) 리스트과, 검사에 사용된 스코프를 반환합니다.
+     * @returns 검사 과정에서 발견된 오류(`YaksokError`) 리스트와, 검사에 사용된 스코프를 반환합니다.
      */
     public validate(): { errors: YaksokError[]; validatingScope: Scope } {
         if (this.validationScopes) {
