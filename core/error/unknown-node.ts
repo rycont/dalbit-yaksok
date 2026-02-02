@@ -33,7 +33,7 @@ export class NotExecutableNodeError extends YaksokError<{
 
             this.message = `${blue(bold('"' + tokenText + '"'))}${dim(
                 `(${nodeName})`,
-            )}은 실행할 수 없는 코드에요.`
+            )}은 실행할 수 없는 코드예요.`
         }
     }
 }

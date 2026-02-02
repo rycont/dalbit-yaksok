@@ -62,7 +62,7 @@ Deno.test('NotExecutableNodeError without message', () => {
     })
 
     assertEquals(error.message.includes('test'), true)
-    assertEquals(error.message.includes('실행할 수 없는 코드에요'), true)
+    assertEquals(error.message.includes('실행할 수 없는 코드예요'), true)
 })
 
 Deno.test('IncompleteMentionError', () => {
