@@ -16,7 +16,7 @@
     },
     "tasks": {
         "purge": "rm -rf ./docs/.vitepress/dist && rm -rf ./docs/.vitepress/cache && rm -rf ./docs/.vitepress/.temp",
-        "typedoc": "deno run --allow-read --allow-write --allow-env --allow-run ./_/create-docs.ts",
+        "typedoc": "deno run --allow-read --allow-write --allow-env --allow-run --allow-sys ./_/create-docs.ts",
         "vitepress-dev": "deno run -A npm:vitepress dev .",
         "vitepress-build": "deno run -A npm:vitepress build .",
         "dev": "deno task typedoc --watch & deno task vitepress-dev",
