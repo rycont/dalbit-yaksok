@@ -72,6 +72,7 @@ export class CodeFile {
         const functionDeclareRanges = [
             ...functionDeclareRangesByType.yaksok,
             ...functionDeclareRangesByType.ffi,
+            ...functionDeclareRangesByType.class,
         ]
 
         const merged = mergeArgumentBranchingTokens(
@@ -101,6 +102,7 @@ export class CodeFile {
             const functionDeclareRanges = [
                 ...functionDeclareRangesByType.yaksok,
                 ...functionDeclareRangesByType.ffi,
+                ...functionDeclareRangesByType.class,
             ]
 
             const merged = mergeArgumentBranchingTokens(

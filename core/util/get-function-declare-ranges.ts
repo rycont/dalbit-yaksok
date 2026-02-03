@@ -1,6 +1,7 @@
 import {
     isFfiStartingPattern,
     isYaksokStartingPattern,
+    isClassStartingPattern,
 } from './is-function-starting.ts'
 import { TOKEN_TYPE } from '../prepare/tokenize/token.ts'
 import { Token } from '../prepare/tokenize/token.ts'
@@ -13,6 +14,7 @@ import { getEventDeclareRanges } from './get-event-declare-ranges.ts'
 interface FunctionDeclareRangesByType {
     yaksok: [number, number][]
     ffi: [number, number][]
+    class: [number, number][]
     event: [number, number][]
 }
 
@@ -27,23 +29,32 @@ export function getFunctionDeclareRanges(
         tokens,
         'ffi',
     )
+    const classFunctionDeclareRanges = getFunctionDeclareRangesByType(
+        tokens,
+        'class',
+    )
     const eventFunctionDeclareRanges = getEventDeclareRanges(tokens)
 
     return {
         yaksok: yaksokFunctionDeclareRanges,
         ffi: ffiFunctionDeclareRanges,
+        class: classFunctionDeclareRanges,
         event: eventFunctionDeclareRanges,
     }
 }
 
 function getFunctionDeclareRangesByType(
     _tokens: Token[],
-    type: 'yaksok' | 'ffi',
+    type: 'yaksok' | 'ffi' | 'class',
 ) {
     const tokens = [..._tokens]
 
+    let starterFinder = isYaksokStartingPattern
+    if (type === 'ffi') starterFinder = isFfiStartingPattern
+    if (type === 'class') starterFinder = isClassStartingPattern
+
     const functionStartingIndexes = tokens
-        .map(type === 'yaksok' ? isYaksokStartingPattern : isFfiStartingPattern)
+        .map(starterFinder)
         .map((isStarting, index) => (isStarting ? index : -1))
         .filter((index) => index !== -1)
 
@@ -59,7 +70,7 @@ function getFunctionDeclareRangesByType(
             ],
     )
 
-    if (type === 'yaksok') {
+    if (type === 'yaksok' || type === 'class') {
         assertValidYaksokDeclare(tokens, functionDeclareRanges)
     } else {
         assertValidFfiDeclare(tokens, functionDeclareRanges)

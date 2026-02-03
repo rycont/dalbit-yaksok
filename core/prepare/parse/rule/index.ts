@@ -40,6 +40,10 @@ import {
     SetVariable,
     TypeOf,
     TypeCast,
+    NewInstance,
+    MemberFunctionInvoke,
+    FetchMember,
+    FunctionInvoke,
 } from '../../../node/index.ts'
 import type { TypeCastTarget } from '../../../node/typecast.ts'
 import { NotEqualOperator } from '../../../node/operator.ts'
@@ -348,7 +352,7 @@ export const BASIC_RULES: Rule[][] = [
                     value: '+',
                 },
             ],
-            factory: (_nodes, tokens) => new PlusOperator(tokens),
+            factory: (nodes, tokens) => new PlusOperator(tokens),
         },
         {
             pattern: [
@@ -357,7 +361,7 @@ export const BASIC_RULES: Rule[][] = [
                     value: '-',
                 },
             ],
-            factory: (_nodes, tokens) => new MinusOperator(tokens),
+            factory: (nodes, tokens) => new MinusOperator(tokens),
         },
         {
             pattern: [
@@ -452,6 +456,61 @@ export const ADVANCED_RULES: Rule[] = [
         factory: (_nodes, tokens) => new Pause(tokens),
         flags: [RULE_FLAGS.IS_STATEMENT],
     },
+    {
+        pattern: [
+            { type: Evaluable },
+            { type: Expression, value: '.' },
+            { type: FunctionInvoke },
+        ],
+        factory: (nodes, tokens) => {
+            return new MemberFunctionInvoke(
+                nodes[0] as Evaluable,
+                nodes[2] as FunctionInvoke,
+                tokens,
+            )
+        },
+    },
+    {
+        pattern: [
+            { type: Evaluable },
+            { type: Expression, value: '.' },
+            { type: Identifier },
+        ],
+        factory: (nodes, tokens) => {
+            return new FetchMember(
+                nodes[0] as Evaluable,
+                (nodes[2] as Identifier).value,
+                tokens,
+            )
+        },
+    },
+    {
+        pattern: [
+            { type: NewInstance },
+            { type: ValueWithParenthesis },
+        ],
+        factory: (nodes, tokens) => {
+            const ni = nodes[0] as NewInstance
+            const vwp = nodes[1] as ValueWithParenthesis
+            let args: Evaluable[] = []
+            if (vwp.value instanceof Sequence) {
+                args = vwp.value.items as Evaluable[]
+            } else {
+                args = [vwp.value]
+            }
+            return new NewInstance(ni.className, args, tokens)
+        },
+    },
+    {
+        pattern: [
+            { type: Identifier, value: '새' },
+            { type: Identifier },
+        ],
+        factory: (nodes, tokens) => {
+            const className = (nodes[1] as Identifier).value
+            return new NewInstance(className, [], tokens)
+        },
+    },
     ...PYTHON_COMPAT_RULES,
     {
         pattern: [
@@ -469,6 +528,10 @@ export const ADVANCED_RULES: Rule[] = [
         factory: (nodes, tokens) => {
             const a = nodes[0] as Evaluable
             const b = nodes[2] as Evaluable
+
+            if (a instanceof Identifier && (a.value === '클래스' || a.value === '약속')) {
+                return null as any
+            }
 
             return new Sequence([a, b], tokens)
         },
@@ -506,31 +569,6 @@ export const ADVANCED_RULES: Rule[] = [
         ],
         factory: (_nodes, tokens) => new ListLiteral([], tokens),
     },
-    // {
-    //     pattern: [
-    //         {
-    //             type: Evaluable,
-    //         },
-    //         {
-    //             type: Identifier,
-    //             value: '입력받기',
-    //         },
-    //     ],
-    //     factory: (nodes, tokens) => {
-    //         const question = nodes[0] as Evaluable
-    //         return new Input(question, tokens)
-    //     },
-    // },
-    // {
-    //     pattern: [
-    //         {
-    //             type: Identifier,
-    //             value: '입력받기',
-    //         },
-    //     ],
-    //     factory: (_nodes, tokens) => new Input(null, tokens),
-    // },
-
     ...ASSIGNERS.map<Rule>((assigner) => ({
         pattern: [
             {

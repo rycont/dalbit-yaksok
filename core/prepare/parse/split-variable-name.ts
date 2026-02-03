@@ -1,6 +1,6 @@
 import type { CodeFile } from '../../type/code-file.ts'
 import type { Node } from '../../node/base.ts'
-import { Block, Expression, Identifier } from '../../node/index.ts'
+import { Block, Expression, Identifier, Sequence } from '../../node/index.ts'
 import { type Token, TOKEN_TYPE } from '../tokenize/token.ts'
 
 export function splitVariableName(
@@ -24,13 +24,16 @@ export function splitVariableName(
 
         if (
             isIdentifier &&
-            currentNode.value === '약속' &&
+            (currentNode.value === '약속' || currentNode.value === '클래스') &&
             currentNode.tokens[0].position.column - 1 === depth * 4
         ) {
-            const yaksokEndIndex =
-                cursor +
-                nodes.slice(cursor).findIndex((node) => node instanceof Block) -
-                1
+            const blockIndex = nodes.slice(cursor).findIndex((node) => node instanceof Block)
+            if (blockIndex === -1) {
+                cursor++
+                continue
+            }
+
+            const yaksokEndIndex = cursor + blockIndex - 1
 
             const nextNode = nodes[yaksokEndIndex + 1]
             if (!(nextNode instanceof Block)) {
@@ -38,16 +41,24 @@ export function splitVariableName(
                 continue
             }
 
-            const yaksokDeclaration = nodes.slice(cursor, yaksokEndIndex)
+            const yaksokDeclaration = nodes.slice(cursor, yaksokEndIndex + 1)
             const parameterNames =
                 getParameterNameFromFunctionDeclaration(yaksokDeclaration)
 
             const functionHeaderAfterDeclaration =
                 extractFunctionHeaderAfterParameter(yaksokDeclaration)
 
-            detectedFunctionHeaderAfterParameter.push(
-                ...functionHeaderAfterDeclaration,
-            )
+            if (currentNode.value === '클래스') {
+                const classNameNode = yaksokDeclaration.find(
+                    (node) =>
+                        node instanceof Identifier && node.value !== '클래스',
+                ) as Identifier
+                if (classNameNode) detectedIdentifierNames.push(classNameNode.value)
+            } else {
+                detectedFunctionHeaderAfterParameter.push(
+                    ...functionHeaderAfterDeclaration,
+                )
+            }
 
             splitVariableName(
                 nextNode.children,
@@ -140,6 +151,13 @@ export function splitVariableName(
             if (prevNode instanceof Identifier) {
                 detectedIdentifierNames.push(prevNode.value)
             }
+        } else if (
+            currentNode instanceof Identifier &&
+            currentNode.value === '새' &&
+            nodes[cursor + 1] instanceof Identifier
+        ) {
+            // "새 클래스이름" -> 클래스 이름을 식별자 목록에 추가 (동적 인식 지원)
+            detectedIdentifierNames.push((nodes[cursor + 1] as Identifier).value)
         } else if (currentNode instanceof Block) {
             currentNode.children = splitVariableName(
                 currentNode.children,
