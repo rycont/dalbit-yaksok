@@ -19,7 +19,8 @@
         "monaco-language-provider",
         "pyodide",
         "data-analyze",
-        "math"
+        "math",
+        "statistics"
     ],
     "version": "4.5.0",
     "tasks": {
