@@ -4,14 +4,23 @@ import { StatisticsExtension } from "../statistics/mod.ts";
 
 async function runStats(code: string): Promise<string> {
   let output = "";
+  let errorOutput = "";
   const session = new YaksokSession({
     stdout(value) {
       output += value + "\n";
+    },
+    stderr(value) {
+      errorOutput += value + "\n";
     },
   });
   await session.extend(new StatisticsExtension());
   session.addModule("main", code);
   await session.runModule("main");
+
+  if (errorOutput.trim()) {
+    throw new Error(errorOutput.trim());
+  }
+
   return output.trim();
 }
 
