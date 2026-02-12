@@ -24,14 +24,29 @@ ABS
 ROUND
 ***
 
+번역(수학), (값) 소수점 (숫자)번째에서/자리에서 반올림
+***
+ROUND_N
+***
+
 번역(수학), (값) 올림
 ***
 CEIL
 ***
 
-번역(수학), (값) 버림
+번역(수학), (값) 소수점 (숫자)번째에서/자리에서 올림
+***
+CEIL_N
+***
+
+번역(수학), (값) 버림/내림
 ***
 FLOOR
+***
+
+번역(수학), (값) 소수점 (숫자)번째에서/자리에서 버림/내림
+***
+FLOOR_N
 ***
 
 번역(수학), (값)의 제곱
@@ -194,15 +209,33 @@ AVERAGE
                 this.assertNumber(값)
                 return new NumberValue(Math.round(값.value))
             }
+            case 'ROUND_N': {
+                const { 값, 숫자 } = args
+                this.assertNumber(값)
+                this.assertNumber(숫자)
+                return new NumberValue(this.roundAt(값.value, 숫자.value, 'round'))
+            }
             case 'CEIL': {
                 const { 값 } = args
                 this.assertNumber(값)
                 return new NumberValue(Math.ceil(값.value))
             }
+            case 'CEIL_N': {
+                const { 값, 숫자 } = args
+                this.assertNumber(값)
+                this.assertNumber(숫자)
+                return new NumberValue(this.roundAt(값.value, 숫자.value, 'ceil'))
+            }
             case 'FLOOR': {
                 const { 값 } = args
                 this.assertNumber(값)
                 return new NumberValue(Math.floor(값.value))
+            }
+            case 'FLOOR_N': {
+                const { 값, 숫자 } = args
+                this.assertNumber(값)
+                this.assertNumber(숫자)
+                return new NumberValue(this.roundAt(값.value, 숫자.value, 'floor'))
             }
             case 'SQUARE': {
                 const { 값 } = args
@@ -357,6 +390,25 @@ AVERAGE
             default:
                 throw new Error(`Unknown math action: ${action}`)
         }
+    }
+
+    private roundAt(
+        value: number,
+        digits: number,
+        mode: 'round' | 'ceil' | 'floor',
+    ): number {
+        if (!Number.isInteger(digits) || digits < 0) {
+            throw new Error('소수점 자리 수는 0 이상의 정수여야 합니다')
+        }
+
+        const factor = 10 ** digits
+        if (mode === 'round') {
+            return Math.round(value * factor) / factor
+        }
+        if (mode === 'ceil') {
+            return Math.ceil(value * factor) / factor
+        }
+        return Math.floor(value * factor) / factor
     }
 
     private assertNumber(value: ValueType): asserts value is NumberValue {
