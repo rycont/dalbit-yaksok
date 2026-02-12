@@ -5,6 +5,9 @@ import {
 } from '../../../node/calculation.ts'
 import {
     AndOperator,
+    BitwiseAndOperator,
+    BitwiseOrOperator,
+    BitwiseXorOperator,
     Block,
     Break,
     DivideOperator,
@@ -25,6 +28,7 @@ import {
     BooleanLiteral,
     ListLiteral,
     Loop,
+    LeftShiftOperator,
     MinusOperator,
     ModularOperator,
     MultiplyOperator,
@@ -34,16 +38,23 @@ import {
     PlusOperator,
     PowerOperator,
     Print,
+    RadixFormatValue,
     RangeOperator,
+    RightShiftOperator,
     Sequence,
     SetToIndex,
     SetVariable,
     TypeOf,
     TypeCast,
+    UnaryBitwiseNot,
 } from '../../../node/index.ts'
 import type { TypeCastTarget } from '../../../node/typecast.ts'
 import { NotEqualOperator } from '../../../node/operator.ts'
-import { TemplateLiteral, TemplateStringPart } from '../../../node/primitive-literal.ts'
+import {
+    NumberLiteral,
+    TemplateLiteral,
+    TemplateStringPart,
+} from '../../../node/primitive-literal.ts'
 import { ReturnStatement } from '../../../node/return.ts'
 import { IndexedValue } from '../../../value/indexed.ts'
 import { NumberValue, StringValue } from '../../../value/primitive.ts'
@@ -327,6 +338,51 @@ export const BASIC_RULES: Rule[][] = [
             pattern: [
                 {
                     type: Operator,
+                    value: '&',
+                },
+            ],
+            factory: (_nodes, tokens) => new BitwiseAndOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Operator,
+                    value: '|',
+                },
+            ],
+            factory: (_nodes, tokens) => new BitwiseOrOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Operator,
+                    value: '^',
+                },
+            ],
+            factory: (_nodes, tokens) => new BitwiseXorOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Operator,
+                    value: '<<',
+                },
+            ],
+            factory: (_nodes, tokens) => new LeftShiftOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Operator,
+                    value: '>>',
+                },
+            ],
+            factory: (_nodes, tokens) => new RightShiftOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Operator,
                     value: '/',
                 },
             ],
@@ -394,6 +450,21 @@ export const BASIC_RULES: Rule[][] = [
                 },
             ],
             factory: (_nodes, tokens) => new OrOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Operator,
+                    value: '~',
+                },
+                {
+                    type: Evaluable,
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const value = nodes[1] as Evaluable
+                return new UnaryBitwiseNot(value, tokens)
+            },
         },
         {
             pattern: [
@@ -713,6 +784,110 @@ export const ADVANCED_RULES: Rule[] = [
         },
         flags: [RULE_FLAGS.IS_STATEMENT],
     },
+    ...[
+        '이진수',
+        '팔진수',
+        '십진수',
+        '십육진수',
+        '2진수',
+        '8진수',
+        '10진수',
+        '16진수',
+    ].flatMap((baseKeyword) => {
+        const radix =
+            baseKeyword === '이진수' || baseKeyword === '2진수'
+                ? 2
+                : baseKeyword === '팔진수' || baseKeyword === '8진수'
+                  ? 8
+                  : baseKeyword === '십진수' || baseKeyword === '10진수'
+                    ? 10
+                    : 16
+
+        return [
+            {
+                pattern: [
+                    {
+                        type: Identifier,
+                        value: baseKeyword,
+                    },
+                    {
+                        type: Identifier,
+                    },
+                ],
+                factory: (nodes, tokens) => {
+                    const digitsNode = nodes[1] as Identifier
+                    const parsed = parseInt(digitsNode.value, radix)
+                    return new NumberLiteral(parsed, tokens)
+                },
+            } as Rule,
+            {
+                pattern: [
+                    {
+                        type: Identifier,
+                        value: baseKeyword,
+                    },
+                    {
+                        type: NumberLiteral,
+                    },
+                ],
+                factory: (nodes, tokens) => {
+                    const numberNode = nodes[1] as NumberLiteral
+                    return new NumberLiteral(numberNode.toNumber(), tokens)
+                },
+            } as Rule,
+        ]
+    }),
+    ...[
+        '이진수',
+        '팔진수',
+        '십진수',
+        '십육진수',
+        '2진수',
+        '8진수',
+        '10진수',
+        '16진수',
+    ].map(
+        (baseKeyword) =>
+            ({
+                pattern: [
+                    { type: Evaluable },
+                    { type: Identifier, value: '의' },
+                    { type: Identifier, value: baseKeyword },
+                    { type: Identifier, value: '값' },
+                ],
+                factory: (nodes, tokens) => {
+                    const value = nodes[0] as Evaluable
+                    return new RadixFormatValue(value, baseKeyword, null, tokens)
+                },
+            }) as Rule,
+    ),
+    ...[
+        '이진수',
+        '팔진수',
+        '십진수',
+        '십육진수',
+        '2진수',
+        '8진수',
+        '10진수',
+        '16진수',
+    ].map(
+        (baseKeyword) =>
+            ({
+                pattern: [
+                    { type: Evaluable },
+                    { type: Identifier, value: '의' },
+                    { type: Identifier, value: baseKeyword },
+                    { type: Identifier, value: '값' },
+                    { type: NumberLiteral },
+                    { type: Identifier, value: '자리로' },
+                ],
+                factory: (nodes, tokens) => {
+                    const value = nodes[0] as Evaluable
+                    const digits = (nodes[4] as NumberLiteral).toNumber()
+                    return new RadixFormatValue(value, baseKeyword, digits, tokens)
+                },
+            }) as Rule,
+    ),
     {
         pattern: [
             {

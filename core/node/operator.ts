@@ -493,6 +493,131 @@ export class LessThanOrEqualOperator extends Operator {
     }
 }
 
+export class BitwiseAndOperator extends Operator {
+    static override friendlyName = '비트 AND(&)'
+
+    constructor(public override tokens: Token[]) {
+        super(null, tokens)
+    }
+
+    override toPrint(): string {
+        return '&'
+    }
+
+    override call(...operands: ValueType[]): NumberValue {
+        const [left, right] = operands
+
+        if (left instanceof NumberValue && right instanceof NumberValue) {
+            return new NumberValue(left.value & right.value)
+        }
+
+        throw new InvalidTypeForOperatorError({
+            position: this.tokens?.[0].position,
+            resource: { operator: this, operands },
+        })
+    }
+}
+
+export class BitwiseOrOperator extends Operator {
+    static override friendlyName = '비트 OR(|)'
+
+    constructor(public override tokens: Token[]) {
+        super(null, tokens)
+    }
+
+    override toPrint(): string {
+        return '|'
+    }
+
+    override call(...operands: ValueType[]): NumberValue {
+        const [left, right] = operands
+
+        if (left instanceof NumberValue && right instanceof NumberValue) {
+            return new NumberValue(left.value | right.value)
+        }
+
+        throw new InvalidTypeForOperatorError({
+            position: this.tokens?.[0].position,
+            resource: { operator: this, operands },
+        })
+    }
+}
+
+export class BitwiseXorOperator extends Operator {
+    static override friendlyName = '비트 XOR(^)'
+
+    constructor(public override tokens: Token[]) {
+        super(null, tokens)
+    }
+
+    override toPrint(): string {
+        return '^'
+    }
+
+    override call(...operands: ValueType[]): NumberValue {
+        const [left, right] = operands
+
+        if (left instanceof NumberValue && right instanceof NumberValue) {
+            return new NumberValue(left.value ^ right.value)
+        }
+
+        throw new InvalidTypeForOperatorError({
+            position: this.tokens?.[0].position,
+            resource: { operator: this, operands },
+        })
+    }
+}
+
+export class LeftShiftOperator extends Operator {
+    static override friendlyName = '왼쪽 비트 이동(<<)'
+
+    constructor(public override tokens: Token[]) {
+        super(null, tokens)
+    }
+
+    override toPrint(): string {
+        return '<<'
+    }
+
+    override call(...operands: ValueType[]): NumberValue {
+        const [left, right] = operands
+
+        if (left instanceof NumberValue && right instanceof NumberValue) {
+            return new NumberValue(left.value << right.value)
+        }
+
+        throw new InvalidTypeForOperatorError({
+            position: this.tokens?.[0].position,
+            resource: { operator: this, operands },
+        })
+    }
+}
+
+export class RightShiftOperator extends Operator {
+    static override friendlyName = '오른쪽 비트 이동(>>)'
+
+    constructor(public override tokens: Token[]) {
+        super(null, tokens)
+    }
+
+    override toPrint(): string {
+        return '>>'
+    }
+
+    override call(...operands: ValueType[]): NumberValue {
+        const [left, right] = operands
+
+        if (left instanceof NumberValue && right instanceof NumberValue) {
+            return new NumberValue(left.value >> right.value)
+        }
+
+        throw new InvalidTypeForOperatorError({
+            position: this.tokens?.[0].position,
+            resource: { operator: this, operands },
+        })
+    }
+}
+
 export class RangeOperator extends Operator {
     static override friendlyName = '범위에서 목록 만들기(~)'
 

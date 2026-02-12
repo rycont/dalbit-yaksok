@@ -13,8 +13,13 @@ const OPERATORS = [
     '<',
     '~',
     '%',
+    '&',
+    '|',
+    '^',
     '**',
     '//',
+    '<<',
+    '>>',
     '<=',
     '>=',
     '==',
@@ -46,6 +51,19 @@ export const RULES: {
     ) => RuleParseResult | MultiTokenParseResult | null
     type: TOKEN_TYPE
 }[] = [
+    {
+        type: TOKEN_TYPE.IDENTIFIER,
+        starter: /[2816]/,
+        parse: (code, index) => {
+            const matches = ['2진수', '8진수', '10진수', '16진수']
+            for (const keyword of matches) {
+                if (code.startsWith(keyword, index)) {
+                    return { value: keyword, newIndex: index + keyword.length }
+                }
+            }
+            return null
+        },
+    },
     {
         type: TOKEN_TYPE.NUMBER,
         starter: /[0-9\-]/,
