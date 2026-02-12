@@ -37,6 +37,7 @@ Deno.test('roundToPrecision - 특정 자리수 반올림', () => {
     assertEquals(roundToPrecision(result, 10), 0.1)
     assertEquals(roundToPrecision(1.23456789012345, 5), 1.23457)
     assertEquals(roundToPrecision(1.23456789012345, 10), 1.2345678901)
+    assertEquals(roundToPrecision(1.005, 2), 1.01)
 })
 
 Deno.test('실제 케이스 - 음수 결과', () => {

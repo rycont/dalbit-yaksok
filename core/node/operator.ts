@@ -209,7 +209,7 @@ export class ModularOperator extends Operator {
         const [left, right] = operands
 
         if (left instanceof NumberValue && right instanceof NumberValue) {
-            return new NumberValue(left.value % right.value)
+            return new NumberValue(cleanFloatingPointError(left.value % right.value))
         }
 
         throw new InvalidTypeForOperatorError({
@@ -236,7 +236,7 @@ export class PowerOperator extends Operator {
         const [left, right] = operands
 
         if (left instanceof NumberValue && right instanceof NumberValue) {
-            return new NumberValue(left.value ** right.value)
+            return new NumberValue(cleanFloatingPointError(left.value ** right.value))
         }
 
         throw new InvalidTypeForOperatorError({

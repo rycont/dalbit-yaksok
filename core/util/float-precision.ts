@@ -34,6 +34,5 @@ export function roundToPrecision(value: number, precision: number = 10): number 
         return value
     }
 
-    const factor = Math.pow(10, precision)
-    return Math.round(value * factor) / factor
+    return Number(`${Math.round(Number(`${value}e${precision}`))}e-${precision}`)
 }
