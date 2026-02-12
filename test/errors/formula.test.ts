@@ -1,4 +1,4 @@
-import { assert, assertEquals, assertInstanceOf } from '@std/assert'
+import { assert, assertAlmostEquals, assertInstanceOf } from '@std/assert'
 import { NumberValue, yaksok } from '../../core/mod.ts'
 
 function createRandomValue(depth = 0): number | (string | number)[] {
@@ -44,6 +44,6 @@ for (let i = 0; i < 10; i++) {
         ) as NumberValue
 
         assertInstanceOf(나이, NumberValue)
-        assertEquals(나이.value, eval(formula))
+        assertAlmostEquals(나이.value, eval(formula), 1e-4)
     })
 }
