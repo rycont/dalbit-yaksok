@@ -13,6 +13,7 @@ import { PrimitiveValue, ValueType } from '../value/base.ts'
 import { ListValue } from '../value/list.ts'
 import { BooleanValue, NumberValue, StringValue } from '../value/primitive.ts'
 import { Operator } from './base.ts'
+import { cleanFloatingPointError } from '../util/float-precision.ts'
 
 export class PlusOperator extends Operator {
     static override friendlyName = '더하기(+)'
@@ -31,7 +32,7 @@ export class PlusOperator extends Operator {
         const [left, right] = operands
 
         if (left instanceof NumberValue && right instanceof NumberValue) {
-            return new NumberValue(left.value + right.value)
+            return new NumberValue(cleanFloatingPointError(left.value + right.value))
         }
 
         if (left instanceof StringValue && right instanceof StringValue) {
@@ -77,7 +78,7 @@ export class MinusOperator extends Operator {
     override call(...operands: ValueType[]): NumberValue {
         const [left, right] = operands
         if (left instanceof NumberValue && right instanceof NumberValue) {
-            return new NumberValue(left.value - right.value)
+            return new NumberValue(cleanFloatingPointError(left.value - right.value))
         }
 
         throw new InvalidTypeForOperatorError({
@@ -134,7 +135,7 @@ export class MultiplyOperator extends Operator {
         }
 
         if (left instanceof NumberValue && right instanceof NumberValue) {
-            return new NumberValue(left.value * right.value)
+            return new NumberValue(cleanFloatingPointError(left.value * right.value))
         }
 
         if (left instanceof StringValue && right instanceof NumberValue) {
@@ -180,7 +181,7 @@ export class DivideOperator extends Operator {
         const [left, right] = operands
 
         if (left instanceof NumberValue && right instanceof NumberValue) {
-            return new NumberValue(left.value / right.value)
+            return new NumberValue(cleanFloatingPointError(left.value / right.value))
         }
 
         throw new InvalidTypeForOperatorError({
