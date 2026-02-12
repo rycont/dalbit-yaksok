@@ -117,6 +117,12 @@ Deno.test('파이', async () => {
     assertAlmostEquals(value, Math.PI, 0.0001)
 })
 
+Deno.test('원주율 (파이 별칭)', async () => {
+    const output = await runMath(`(@수학 원주율) 보여주기`)
+    const value = parseFloat(output)
+    assertAlmostEquals(value, Math.PI, 0.0001)
+})
+
 Deno.test('자연상수', async () => {
     const output = await runMath(`(@수학 자연상수) 보여주기`)
     const value = parseFloat(output)
