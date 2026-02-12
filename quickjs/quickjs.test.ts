@@ -175,15 +175,15 @@ Deno.test('Yaksok Passed List<string>', async () => {
     session.addModule(
         'main',
         `
-번역(QuickJS), (배열) 중 최대값
+번역(QuickJS), (리스트) 중 최대값
 ***
-    return Math.max(...배열)
+    return Math.max(...리스트)
 ***
 
-번역(QuickJS), (배열)에서 가장 큰 값 제거하기
+번역(QuickJS), (리스트)에서 가장 큰 값 제거하기
 ***
-    const n = 배열.indexOf(Math.max(...배열))
-    return [...배열.slice(0, n), ...배열.slice(n + 1)]
+    const n = 리스트.indexOf(Math.max(...리스트))
+    return [...리스트.slice(0, n), ...리스트.slice(n + 1)]
 ***
 
 내_점수 = [80, 90, 100]
@@ -206,7 +206,7 @@ Deno.test('Yaksok Passed List<string>', async () => {
     assertEquals(buffer, '100\n[80, 90]\n90\n')
 })
 
-Deno.test('QuickJS Passed List<string> - 빈 배열', async () => {
+Deno.test('QuickJS Passed List<string> - 빈 리스트', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout: (str) => {
@@ -216,13 +216,13 @@ Deno.test('QuickJS Passed List<string> - 빈 배열', async () => {
     await session.extend(new QuickJS())
     session.addModule(
         'main',
-        `번역(QuickJS), (배열) 길이
+        `번역(QuickJS), (리스트) 길이
 ***
-    return 배열.length
+    return 리스트.length
 ***
 
-배열 = []
-배열 길이 보여주기`,
+리스트 = []
+리스트 길이 보여주기`,
     )
     await session.runModule('main')
     assertEquals(output, '0')
@@ -238,13 +238,13 @@ Deno.test('QuickJS Passed List<string> - 중복 값', async () => {
     await session.extend(new QuickJS())
     session.addModule(
         'main',
-        `번역(QuickJS), (배열) 합치기
+        `번역(QuickJS), (리스트) 합치기
 ***
-    return 배열.join(",")
+    return 리스트.join(",")
 ***
 
-배열 = ["a", "a", "b"]
-배열 합치기 보여주기`,
+리스트 = ["a", "a", "b"]
+리스트 합치기 보여주기`,
     )
     await session.runModule('main')
     assertEquals(output, 'a,a,b')
@@ -260,13 +260,13 @@ Deno.test('QuickJS Passed List<string> - 특수문자/이모지/빈문자', asyn
     await session.extend(new QuickJS())
     session.addModule(
         'main',
-        `번역(QuickJS), (배열) 합치기
+        `번역(QuickJS), (리스트) 합치기
 ***
-    return 배열.join("|")
+    return 리스트.join("|")
 ***
 
-배열 = ["😀", "a!@#", "한글", ""]
-배열 합치기 보여주기`,
+리스트 = ["😀", "a!@#", "한글", ""]
+리스트 합치기 보여주기`,
     )
     await session.runModule('main')
     assertEquals(output, '😀|a!@#|한글|')
@@ -282,13 +282,13 @@ Deno.test('QuickJS Passed List<string> - 영문 대문자 변환', async () => {
     await session.extend(new QuickJS())
     session.addModule(
         'main',
-        `번역(QuickJS), (배열) 대문자
+        `번역(QuickJS), (리스트) 대문자
 ***
-    return 배열.map(x => x.toUpperCase()).join("")
+    return 리스트.map(x => x.toUpperCase()).join("")
 ***
 
-배열 = ["a", "b", "c"]
-배열 대문자 보여주기`,
+리스트 = ["a", "b", "c"]
+리스트 대문자 보여주기`,
     )
     await session.runModule('main')
     assertEquals(output, 'ABC')
@@ -304,13 +304,13 @@ Deno.test('QuickJS Passed List<string> - 공백/탭/개행', async () => {
     await session.extend(new QuickJS())
     session.addModule(
         'main',
-        `번역(QuickJS), (배열) 길이합치기
+        `번역(QuickJS), (리스트) 길이합치기
 ***
-    return 배열.map(x => x.length).join(",")
+    return 리스트.map(x => x.length).join(",")
 ***
 
-배열 = [" ", "   ", "\\t", "\\n"]
-배열 길이합치기 보여주기`,
+리스트 = [" ", "   ", "\\t", "\\n"]
+리스트 길이합치기 보여주기`,
     )
     await session.runModule('main')
     assertEquals(output, '1,3,1,1')
@@ -326,13 +326,13 @@ Deno.test('QuickJS Passed List<string> - 한글 포함 여부', async () => {
     await session.extend(new QuickJS())
     session.addModule(
         'main',
-        `번역(QuickJS), (배열) 포함
+        `번역(QuickJS), (리스트) 포함
 ***
-    return 배열.includes("나") ? "Y" : "N"
+    return 리스트.includes("나") ? "Y" : "N"
 ***
 
-배열 = ["가", "나", "다"]
-배열 포함 보여주기`,
+리스트 = ["가", "나", "다"]
+리스트 포함 보여주기`,
     )
     await session.runModule('main')
     assertEquals(output, 'Y')
@@ -348,19 +348,19 @@ Deno.test('QuickJS Passed List<string> - 숫자 문자열 합치기', async () =
     await session.extend(new QuickJS())
     session.addModule(
         'main',
-        `번역(QuickJS), (배열) 합치기
+        `번역(QuickJS), (리스트) 합치기
 ***
-    return 배열.reduce((a, b) => a + b, "")
+    return 리스트.reduce((a, b) => a + b, "")
 ***
 
-배열 = ["1", "2", "3"]
-배열 합치기 보여주기`,
+리스트 = ["1", "2", "3"]
+리스트 합치기 보여주기`,
     )
     await session.runModule('main')
     assertEquals(output, '123')
 })
 
-Deno.test('QuickJS Passed List<string> - 2차원 배열 flat', async () => {
+Deno.test('QuickJS Passed List<string> - 2차원 리스트 flat', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout: (str) => {
@@ -370,9 +370,9 @@ Deno.test('QuickJS Passed List<string> - 2차원 배열 flat', async () => {
     await session.extend(new QuickJS())
     session.addModule(
         'main',
-        `번역(QuickJS), (배열) flat
+        `번역(QuickJS), (리스트) flat
 ***
-    return 배열.flat().join("")
+    return 리스트.flat().join("")
 ***
 
 A = ["x", "y"]
