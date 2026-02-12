@@ -240,3 +240,19 @@ Deno.test('사인 90도', async () => {
     const value = parseFloat(output)
     assertAlmostEquals(value, 1, 0.0001)
 })
+
+Deno.test('@수학 반올림 - 변수 직접 전달', async () => {
+    const output = await runMath(`
+평균_손실 = 3.6
+(@수학 평균_손실 반올림) 보여주기
+`)
+    assertEquals(output, '4')
+})
+
+Deno.test('@수학 반올림 - 변수 괄호 전달', async () => {
+    const output = await runMath(`
+평균_손실 = 3.6
+(@수학 (평균_손실) 반올림) 보여주기
+`)
+    assertEquals(output, '4')
+})
