@@ -94,99 +94,70 @@ CORRELATION
     const action = code.trim();
 
     switch (action) {
-      case "SUM": {
-        const { 목록 } = args;
-        this.assertListValue(목록);
-        const numbers = this.extractNumbers(목록);
-        return new NumberValue(this.sum(numbers));
-      }
-      case "MEAN": {
-        const { 목록 } = args;
-        this.assertListValue(목록);
-        const numbers = this.extractNumbers(목록);
-        return new NumberValue(this.mean(numbers));
-      }
-      case "RANGE": {
-        const { 목록 } = args;
-        this.assertListValue(목록);
-        const numbers = this.extractNumbers(목록);
-        return new NumberValue(Math.max(...numbers) - Math.min(...numbers));
-      }
-      case "MEDIAN": {
-        const { 목록 } = args;
-        this.assertListValue(목록);
-        const numbers = this.extractNumbers(목록);
-        return new NumberValue(this.median(numbers));
-      }
-      case "MODE": {
-        const { 목록 } = args;
-        this.assertListValue(목록);
-        const numbers = this.extractNumbers(목록);
-        return new NumberValue(this.mode(numbers));
-      }
-      case "MAX": {
-        const { 목록 } = args;
-        this.assertListValue(목록);
-        const numbers = this.extractNumbers(목록);
-        return new NumberValue(Math.max(...numbers));
-      }
-      case "MIN": {
-        const { 목록 } = args;
-        this.assertListValue(목록);
-        const numbers = this.extractNumbers(목록);
-        return new NumberValue(Math.min(...numbers));
-      }
-      case "VARIANCE": {
-        const { 목록 } = args;
-        this.assertListValue(목록);
-        const numbers = this.extractNumbers(목록);
-        return new NumberValue(this.variance(numbers));
-      }
-      case "STDDEV": {
-        const { 목록 } = args;
-        this.assertListValue(목록);
-        const numbers = this.extractNumbers(목록);
-        return new NumberValue(Math.sqrt(this.variance(numbers)));
-      }
-      case "QUARTILES": {
-        const { 목록 } = args;
-        this.assertListValue(목록);
-        const numbers = this.extractNumbers(목록);
-        const [q1, q2, q3] = this.quartiles(numbers);
-        return new ListValue([
-          new NumberValue(q1),
-          new NumberValue(q2),
-          new NumberValue(q3),
-        ]);
-      }
-      case "SKEWNESS": {
-        const { 목록 } = args;
-        this.assertListValue(목록);
-        const numbers = this.extractNumbers(목록);
-        return new NumberValue(this.skewness(numbers));
-      }
-      case "KURTOSIS": {
-        const { 목록 } = args;
-        this.assertListValue(목록);
-        const numbers = this.extractNumbers(목록);
-        return new NumberValue(this.kurtosis(numbers));
-      }
-      case "COVARIANCE": {
-        const { 가, 나 } = args;
-        this.assertListValue(가);
-        this.assertListValue(나);
-        const numbersA = this.extractNumbers(가);
-        const numbersB = this.extractNumbers(나);
-        return new NumberValue(this.covariance(numbersA, numbersB));
-      }
-      case "CORRELATION": {
-        const { 가, 나 } = args;
-        this.assertListValue(가);
-        this.assertListValue(나);
-        const numbersA = this.extractNumbers(가);
-        const numbersB = this.extractNumbers(나);
-        return new NumberValue(this.correlation(numbersA, numbersB));
-      }
+      case "SUM":
+        return this.withNumbers(args, (numbers) => new NumberValue(this.sum(numbers)));
+      case "MEAN":
+        return this.withNumbers(
+          args,
+          (numbers) => new NumberValue(this.mean(numbers)),
+        );
+      case "RANGE":
+        return this.withNumbers(args, (numbers) => {
+          const { min, max } = this.minMax(numbers);
+          return new NumberValue(max - min);
+        });
+      case "MEDIAN":
+        return this.withNumbers(
+          args,
+          (numbers) => new NumberValue(this.median(numbers)),
+        );
+      case "MODE":
+        return this.withNumbers(args, (numbers) => new NumberValue(this.mode(numbers)));
+      case "MAX":
+        return this.withNumbers(args, (numbers) => new NumberValue(this.minMax(numbers).max));
+      case "MIN":
+        return this.withNumbers(args, (numbers) => new NumberValue(this.minMax(numbers).min));
+      case "VARIANCE":
+        return this.withNumbers(
+          args,
+          (numbers) => new NumberValue(this.variance(numbers)),
+        );
+      case "STDDEV":
+        return this.withNumbers(
+          args,
+          (numbers) => new NumberValue(Math.sqrt(this.variance(numbers))),
+        );
+      case "QUARTILES":
+        return this.withNumbers(args, (numbers) => {
+          const [q1, q2, q3] = this.quartiles(numbers);
+          return new ListValue([
+            new NumberValue(q1),
+            new NumberValue(q2),
+            new NumberValue(q3),
+          ]);
+        });
+      case "SKEWNESS":
+        return this.withNumbers(
+          args,
+          (numbers) => new NumberValue(this.skewness(numbers)),
+        );
+      case "KURTOSIS":
+        return this.withNumbers(
+          args,
+          (numbers) => new NumberValue(this.kurtosis(numbers)),
+        );
+      case "COVARIANCE":
+        return this.withTwoNumberLists(
+          args,
+          (numbersA, numbersB) =>
+            new NumberValue(this.covariance(numbersA, numbersB)),
+        );
+      case "CORRELATION":
+        return this.withTwoNumberLists(
+          args,
+          (numbersA, numbersB) =>
+            new NumberValue(this.correlation(numbersA, numbersB)),
+        );
       default:
         throw new Error(`알 수 없는 통계 연산입니다: ${action}`);
     }
@@ -216,6 +187,28 @@ CORRELATION
     }
 
     return numbers;
+  }
+
+  private withNumbers(
+    args: FunctionInvokingParams,
+    callback: (numbers: number[]) => ValueType,
+  ): ValueType {
+    const { 목록 } = args;
+    this.assertListValue(목록);
+    const numbers = this.extractNumbers(목록);
+    return callback(numbers);
+  }
+
+  private withTwoNumberLists(
+    args: FunctionInvokingParams,
+    callback: (numbersA: number[], numbersB: number[]) => ValueType,
+  ): ValueType {
+    const { 가, 나 } = args;
+    this.assertListValue(가);
+    this.assertListValue(나);
+    const numbersA = this.extractNumbers(가);
+    const numbersB = this.extractNumbers(나);
+    return callback(numbersA, numbersB);
   }
 
   private sum(numbers: number[]): number {
@@ -255,7 +248,28 @@ CORRELATION
       }
     }
 
+    if (maxFreq <= 1) {
+      throw new Error("최빈값이 없습니다");
+    }
+
     return modeValue;
+  }
+
+  private minMax(numbers: number[]): { min: number; max: number } {
+    let min = numbers[0];
+    let max = numbers[0];
+
+    for (let i = 1; i < numbers.length; i++) {
+      const value = numbers[i];
+      if (value < min) {
+        min = value;
+      }
+      if (value > max) {
+        max = value;
+      }
+    }
+
+    return { min, max };
   }
 
   private variance(numbers: number[]): number {

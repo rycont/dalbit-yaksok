@@ -1,4 +1,4 @@
-import { assertAlmostEquals, assertEquals } from "@std/assert";
+import { assertAlmostEquals, assertEquals, assertRejects } from "@std/assert";
 import { YaksokSession } from "../core/mod.ts";
 import { StatisticsExtension } from "../statistics/mod.ts";
 
@@ -25,6 +25,14 @@ Deno.test("합계", async () => {
 Deno.test("합계 - 총합 표기", async () => {
   const output = await runStats(`(@통계 [10, 20, 30]의 총합) 보여주기`);
   assertEquals(output, "60");
+});
+
+Deno.test("합계 - 빈 목록", async () => {
+  await assertRejects(
+    () => runStats(`(@통계 []의 합계) 보여주기`),
+    Error,
+    "목록이 비어있습니다",
+  );
 });
 
 // === 평균 ===
@@ -70,6 +78,14 @@ Deno.test("최빈값", async () => {
     `(@통계 [1, 2, 2, 3, 3, 3, 4]의 최빈값) 보여주기`,
   );
   assertEquals(output, "3");
+});
+
+Deno.test("최빈값 - 없음", async () => {
+  await assertRejects(
+    () => runStats(`(@통계 [1, 2, 3, 4]의 최빈값) 보여주기`),
+    Error,
+    "최빈값이 없습니다",
+  );
 });
 
 // === 최댓값 ===
@@ -158,6 +174,14 @@ Deno.test("공분산 - 음의 상관", async () => {
     `(@통계 [1, 2, 3, 4, 5]과 [10, 8, 6, 4, 2]의 공분산) 보여주기`,
   );
   assertEquals(output, "-4");
+});
+
+Deno.test("공분산 - 길이 불일치", async () => {
+  await assertRejects(
+    () => runStats(`(@통계 [1, 2, 3]와 [1, 2]의 공분산) 보여주기`),
+    Error,
+    "두 목록의 길이가 같아야 합니다",
+  );
 });
 
 // === 상관계수 ===
