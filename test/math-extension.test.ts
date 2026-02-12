@@ -263,17 +263,17 @@ Deno.test('@수학 반올림 - 변수 괄호 전달', async () => {
     assertEquals(output, '4')
 })
 
-Deno.test('소수점 n번째 자리 반올림', async () => {
-    const output = await runMath(`(@수학 (3.735323) 소수점 (2)번째에서 반올림) 보여주기`)
+Deno.test('소수점 n번째까지 반올림', async () => {
+    const output = await runMath(`(@수학 (3.153) 소수점 (2)번째까지 반올림) 보여주기`)
+    assertEquals(output, '3.15')
+})
+
+Deno.test('소수점 n자리까지 올림', async () => {
+    const output = await runMath(`(@수학 (3.731) 소수점 (2)자리까지 올림) 보여주기`)
     assertEquals(output, '3.74')
 })
 
-Deno.test('소수점 n자리에서 올림', async () => {
-    const output = await runMath(`(@수학 (3.731) 소수점 (2)자리에서 올림) 보여주기`)
-    assertEquals(output, '3.74')
-})
-
-Deno.test('소수점 n자리에서 내림', async () => {
-    const output = await runMath(`(@수학 (3.739) 소수점 (2)자리에서 내림) 보여주기`)
+Deno.test('소수점 n자리까지 내림', async () => {
+    const output = await runMath(`(@수학 (3.739) 소수점 (2)자리까지 내림) 보여주기`)
     assertEquals(output, '3.73')
 })
