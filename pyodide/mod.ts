@@ -116,6 +116,115 @@ export class Pyodide implements Extension {
                     ctor: (result as any)?.constructor?.name,
                 })
                 return convertPythonResultToYaksok(result)
+            } else if (code === 'CALL_REF') {
+                const orderedKeys = Object.keys(args).sort(
+                    (a, b) => Number(a) - Number(b),
+                )
+                const targetArg = args['0']
+                if (!targetArg) {
+                    throw new Error('CALL_REF requires target in args[0]')
+                }
+
+                const runner =
+                    this.pyodide.runPythonAsync || this.pyodide.runPython
+
+                let targetVarName: string | null = null
+                const tempVarNames: string[] = []
+                try {
+                    if (targetArg instanceof ReferenceStore) {
+                        targetVarName = `__yak_target_${Date.now()}_${this
+                            .tempVarCounter++}`
+                        this.pyodide!.globals.set(targetVarName, targetArg.ref)
+                        tempVarNames.push(targetVarName)
+                    } else {
+                        const literal = convertYaksokToPythonLiteral(targetArg)
+                        targetVarName = `__yak_target_${Date.now()}_${this
+                            .tempVarCounter++}`
+                        await runner.call(
+                            this.pyodide,
+                            `${targetVarName} = ${literal}`,
+                        )
+                        tempVarNames.push(targetVarName)
+                    }
+
+                    const callArgs: string[] = []
+                    for (const k of orderedKeys) {
+                        const idx = Number(k)
+                        if (idx === 0) continue
+                        const v = args[k]
+                        if (v instanceof ReferenceStore) {
+                            const varName = `__yak_arg_${Date.now()}_${this
+                                .tempVarCounter++}_${idx}`
+                            this.pyodide!.globals.set(varName, v.ref)
+                            callArgs.push(varName)
+                            tempVarNames.push(varName)
+                        } else {
+                            callArgs.push(convertYaksokToPythonLiteral(v))
+                        }
+                    }
+
+                    const pyArgs = callArgs.join(', ')
+                    const pyCode = `${targetVarName}(${pyArgs})`
+                    console.debug('[Pyodide.executeFFI] CALL_REF pyCode', pyCode)
+                    const result = await runner.call(this.pyodide, pyCode)
+                    return convertPythonResultToYaksok(result)
+                } finally {
+                    if (tempVarNames.length) {
+                        try {
+                            const cleanup = tempVarNames
+                                .map((n) => `del ${n}`)
+                                .join('; ')
+                            await runner.call(this.pyodide, cleanup)
+                        } catch (_) {
+                            // ignore cleanup errors
+                        }
+                    }
+                }
+            } else if (code.startsWith('CALL_ATTR ')) {
+                const attr = code.slice('CALL_ATTR '.length).trim()
+                const targetArg = args['0']
+                if (!targetArg) {
+                    throw new Error('CALL_ATTR requires target in args[0]')
+                }
+
+                const runner =
+                    this.pyodide.runPythonAsync || this.pyodide.runPython
+
+                let targetVarName: string | null = null
+                const tempVarNames: string[] = []
+                try {
+                    if (targetArg instanceof ReferenceStore) {
+                        targetVarName = `__yak_target_${Date.now()}_${this
+                            .tempVarCounter++}`
+                        this.pyodide!.globals.set(targetVarName, targetArg.ref)
+                        tempVarNames.push(targetVarName)
+                    } else {
+                        const literal = convertYaksokToPythonLiteral(targetArg)
+                        targetVarName = `__yak_target_${Date.now()}_${this
+                            .tempVarCounter++}`
+                        await runner.call(
+                            this.pyodide,
+                            `${targetVarName} = ${literal}`,
+                        )
+                        tempVarNames.push(targetVarName)
+                    }
+
+                    const pyCode = `${targetVarName}.${attr}`
+                    console.debug('[Pyodide.executeFFI] CALL_ATTR pyCode', pyCode)
+                    const result = await runner.call(this.pyodide, pyCode)
+                    return convertPythonResultToYaksok(result)
+                } finally {
+                    if (tempVarNames.length) {
+                        try {
+                            const cleanup = tempVarNames
+                                .map((n) => `del ${n}`)
+                                .join('; ')
+                            await runner.call(this.pyodide, cleanup)
+                        } catch (_) {
+                            // ignore cleanup errors
+                        }
+                    }
+                }
             } else if (code.startsWith('CALL_METHOD ')) {
                 const method = code.slice('CALL_METHOD '.length).trim()
                 const orderedKeys = Object.keys(args).sort(

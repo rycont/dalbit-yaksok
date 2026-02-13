@@ -5,6 +5,7 @@ import {
     Token,
     Scope,
     ValueType,
+    IndexedValue,
 } from '@dalbit-yaksok/core'
 
 export class PythonImport extends Executable {
@@ -121,5 +122,84 @@ export class PythonMethodCall extends Evaluable {
             ...this.args.flatMap((a) => a.validate(scope)),
         ].filter((e): e is YaksokError => !!e)
         return errors
+    }
+}
+
+export class PythonAttributeAccess extends Evaluable {
+    static override friendlyName = '파이썬 속성 접근'
+
+    constructor(
+        public target: Evaluable,
+        public attrName: string,
+        public override tokens: Token[],
+    ) {
+        super()
+    }
+
+    override async execute(scope: Scope): Promise<ValueType> {
+        const session = scope.codeFile?.session
+        if (!session) {
+            throw new Error('Session not mounted')
+        }
+
+        const evaluatedTarget = await this.target.execute(scope)
+
+        if (evaluatedTarget instanceof IndexedValue) {
+            return evaluatedTarget.getItem(this.attrName)
+        }
+
+        const argsMap: Record<string, ValueType> = {
+            '0': evaluatedTarget,
+        }
+
+        return await session.runFFI(
+            'Python',
+            `CALL_ATTR ${this.attrName}`,
+            argsMap,
+            scope,
+        )
+    }
+
+    override validate(scope: Scope): YaksokError[] {
+        return this.target.validate(scope)
+    }
+}
+
+export class PythonCallableCall extends Evaluable {
+    static override friendlyName = '파이썬 호출 가능한 객체 호출'
+
+    constructor(
+        public target: Evaluable,
+        public args: Evaluable[],
+        public override tokens: Token[],
+    ) {
+        super()
+    }
+
+    override async execute(scope: Scope): Promise<ValueType> {
+        const session = scope.codeFile?.session
+        if (!session) {
+            throw new Error('Session not mounted')
+        }
+
+        const evaluatedTarget = await this.target.execute(scope)
+        const evaluatedArgs = await Promise.all(
+            this.args.map((a) => a.execute(scope)),
+        )
+        const argsMap: Record<string, ValueType> = {
+            '0': evaluatedTarget,
+            ...Object.fromEntries(
+                evaluatedArgs.map((v, i) => [String(i + 1), v]),
+            ),
+        }
+
+        return await session.runFFI('Python', 'CALL_REF', argsMap, scope)
+    }
+
+    override validate(scope: Scope): YaksokError[] {
+        return [
+            ...this.target.validate(scope),
+            ...this.args.flatMap((a) => a.validate(scope)),
+        ].filter((e): e is YaksokError => !!e)
     }
 }
