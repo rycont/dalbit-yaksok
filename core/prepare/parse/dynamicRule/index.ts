@@ -29,8 +29,8 @@ export function createDynamicRule(codeFile: CodeFile): DynamicRuleSet {
         ) || []
 
     const rules: [Rule[][], Rule[][]] = [
-        [extensionRules, ...localRules[0]],
-        [...localRules[1], mentioningRules, baseContextRules],
+        [...localRules[0]],
+        [...localRules[1], extensionRules, mentioningRules, baseContextRules],
     ]
 
     // 함수 헤더 접미사는 함수 호출 규칙에서만 추출합니다.
