@@ -541,6 +541,30 @@ export const DOT_ACCESS_RULES: Rule[] = [
         pattern: [
             { type: Evaluable },
             { type: Expression, value: '.' },
+            { type: IndexFetch },
+        ],
+        factory: (nodes, tokens) => {
+            const indexed = nodes[2] as IndexFetch
+            if (!(indexed.list instanceof FunctionInvoke)) {
+                return null
+            }
+
+            const memberInvoke = new MemberFunctionInvoke(
+                nodes[0] as Evaluable,
+                indexed.list,
+                tokens,
+            )
+            return new IndexFetch(
+                memberInvoke as unknown as Evaluable<IndexedValue | StringValue>,
+                indexed.index,
+                tokens,
+            )
+        },
+    },
+    {
+        pattern: [
+            { type: Evaluable },
+            { type: Expression, value: '.' },
             { type: Identifier },
         ],
         factory: (nodes, tokens) => {

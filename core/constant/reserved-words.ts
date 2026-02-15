@@ -9,6 +9,7 @@ export const RESERVED_WORDS = new Set([
     '반복',
     '그만',
     '약속',
+    '메소드',
     '마다',
     '이고',
     '고',
