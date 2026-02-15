@@ -27,12 +27,14 @@ export class DeclareFFI extends Executable {
     public name: string
     public body: string
     public runtime: string
+    public dotReceiverTypeNames?: string[]
 
     constructor(
         props: {
             name: string
             body: string
             runtime: string
+            dotReceiverTypeNames?: string[]
             position?: Position
         },
         public override tokens: Token[],
@@ -41,6 +43,7 @@ export class DeclareFFI extends Executable {
         this.name = props.name
         this.body = props.body
         this.runtime = props.runtime
+        this.dotReceiverTypeNames = props.dotReceiverTypeNames
         this.position = props.position
     }
 
@@ -59,13 +62,17 @@ export class DeclareFFI extends Executable {
 
     toFFIObject(scope: Scope): FFIObject {
         const codeFile = scope.codeFile
-        return new FFIObject(this.name, this.body, this.runtime, codeFile)
+        return new FFIObject(this.name, this.body, this.runtime, codeFile, {
+            dotReceiverTypeNames: this.dotReceiverTypeNames,
+        })
     }
 
     override validate(scope: Scope): YaksokError[] {
         try {
             scope.addFunctionObject(
-                new FFIObject(this.name, 'VALIDATION', 'VALIDATION'),
+                new FFIObject(this.name, 'VALIDATION', 'VALIDATION', undefined, {
+                    dotReceiverTypeNames: this.dotReceiverTypeNames,
+                }),
             )
         } catch (error) {
             if (error instanceof YaksokError) {
