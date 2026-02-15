@@ -156,10 +156,8 @@ g.인사 보여주기
     assertEquals(outputs[0], '안녕')
 })
 
-Deno.test(
-    '멤버 메서드 인자는 호출자 스코프에서 평가된다',
-    async () => {
-        const outputs = await runAndCollect(`
+Deno.test('멤버 메서드 인자는 호출자 스코프에서 평가된다', async () => {
+    const outputs = await runAndCollect(`
 외부값 = "전역"
 클래스, C
     값 = "멤버"
@@ -170,9 +168,8 @@ o = 새 C
 o. (외부값 보기) 보여주기
 `)
 
-        assertEquals(outputs[0], '전역')
-    },
-)
+    assertEquals(outputs[0], '전역')
+})
 
 Deno.test(
     '멤버 자동 호출 내부 오류를 멤버 없음 오류로 마스킹하지 않는다',
@@ -362,10 +359,8 @@ Deno.test(
     },
 )
 
-Deno.test(
-    '상위: 다단계 상속에서도 상위 체인이 올바르게 연결된다',
-    async () => {
-        const outputs = await runAndCollect(`
+Deno.test('상위: 다단계 상속에서도 상위 체인이 올바르게 연결된다', async () => {
+    const outputs = await runAndCollect(`
 클래스, 조상
     약속, 말하기
         "조상" 반환하기
@@ -383,10 +378,9 @@ o = 새 자식
 o.테스트
 `)
 
-        assertEquals(outputs[0], '조상-부모')
-        assertEquals(outputs[1], '조상-부모')
-    },
-)
+    assertEquals(outputs[0], '조상-부모')
+    assertEquals(outputs[1], '조상-부모')
+})
 
 Deno.test(
     '상속 메서드 접근: 자신.부모메서드는 validation에서 오탐지되지 않는다',
@@ -611,6 +605,40 @@ Deno.test(
             msg.includes('모호'),
         ).length
         assertEquals(ambiguityCount, 1)
+    },
+)
+
+Deno.test(
+    '클래스: 같은 이름 메서드를 같은 클래스에 두 번 선언하면 검증 오류가 난다',
+    async () => {
+        const session = new YaksokSession()
+        session.addModule(
+            'main',
+            `
+클래스, C
+    약속, 인사
+        "첫번째" 반환하기
+
+    약속, 인사
+        "두번째" 반환하기
+`,
+        )
+
+        const results = await session.runModule('main')
+        const result = results.get('main')
+        if (!result) throw new Error('실행 결과가 없습니다.')
+
+        if (result.reason !== 'validation') {
+            throw new Error('검증 단계에서 중복 메서드 오류가 발생해야 합니다.')
+        }
+
+        const allMessages = [...result.errors.values()]
+            .flat()
+            .map((e) => e.message)
+            .join('\n')
+        assertStringIncludes(allMessages, '이미 정의')
+        assertStringIncludes(allMessages, '인사')
+        assertStringIncludes(allMessages, '메서드')
     },
 )
 
@@ -991,33 +1019,36 @@ Deno.test('클래스: 기존 함수 이름과 충돌하면 검증 오류가 난�
     assertStringIncludes(allMessages, '이미 정의')
 })
 
-Deno.test('멤버 접근 검증: 새 인스턴스 직접 타겟도 validation 단계에서 검출된다', async () => {
-    const session = new YaksokSession()
-    session.addModule(
-        'main',
-        `
+Deno.test(
+    '멤버 접근 검증: 새 인스턴스 직접 타겟도 validation 단계에서 검출된다',
+    async () => {
+        const session = new YaksokSession()
+        session.addModule(
+            'main',
+            `
 클래스, C
     값 = 1
 
 (새 C).없는멤버 보여주기
 `,
-    )
+        )
 
-    const results = await session.runModule('main')
-    const result = results.get('main')
-    if (!result) throw new Error('실행 결과가 없습니다.')
+        const results = await session.runModule('main')
+        const result = results.get('main')
+        if (!result) throw new Error('실행 결과가 없습니다.')
 
-    if (result.reason !== 'validation') {
-        throw new Error('검증 단계에서 멤버 없음 오류가 발생해야 합니다.')
-    }
+        if (result.reason !== 'validation') {
+            throw new Error('검증 단계에서 멤버 없음 오류가 발생해야 합니다.')
+        }
 
-    const allMessages = [...result.errors.values()]
-        .flat()
-        .map((e) => e.message)
-        .join('\n')
-    assertStringIncludes(allMessages, '없는멤버')
-    assertStringIncludes(allMessages, '멤버')
-})
+        const allMessages = [...result.errors.values()]
+            .flat()
+            .map((e) => e.message)
+            .join('\n')
+        assertStringIncludes(allMessages, '없는멤버')
+        assertStringIncludes(allMessages, '멤버')
+    },
+)
 
 Deno.test(
     '멤버 접근 검증: 메서드 내부 지역변수는 멤버 후보로 취급하지 않는다',
@@ -1134,10 +1165,8 @@ o.임시 보여주기
     },
 )
 
-Deno.test(
-    '멤버 접근 검증: 상위 멤버 할당도 멤버 후보로 인식한다',
-    async () => {
-        const outputs = await runAndCollect(`
+Deno.test('멤버 접근 검증: 상위 멤버 할당도 멤버 후보로 인식한다', async () => {
+    const outputs = await runAndCollect(`
 클래스, 부모
     값 = 0
 
@@ -1150,6 +1179,5 @@ o.세팅
 o.새값 보여주기
 `)
 
-        assertEquals(outputs[0], '1')
-    },
-)
+    assertEquals(outputs[0], '1')
+})

@@ -1,6 +1,7 @@
 import { YaksokError } from '../error/common.ts'
 import {
     AlreadyDefinedClassError,
+    AlreadyDefinedMemberFunctionError,
     ConstructorArityAmbiguousError,
     ConstructorArityMismatchError,
     InvalidParentClassError,
@@ -21,8 +22,10 @@ import { assignerToOperatorMap } from './operator.ts'
 import { assertValidIdentifierName } from '../util/assert-valid-identifier-name.ts'
 import {
     extractParamCountFromTokens,
+    getDuplicatedConstructorArities,
     getDeclaredConstructorsInClass,
-    isConstructorFunctionName,
+    isConstructorDeclaration,
+    resolveConstructorByArity,
 } from './class/constructor.ts'
 import {
     ClassValue,
@@ -63,7 +66,10 @@ function resolveValidationTargetValue(
 
     if (target instanceof NewInstance) {
         try {
-            const classValue = scope.getVariable(target.className, target.tokens)
+            const classValue = scope.getVariable(
+                target.className,
+                target.tokens,
+            )
             if (classValue instanceof ClassValue) {
                 return createValidationInstanceFromClass(
                     classValue,
@@ -135,6 +141,12 @@ export class DeclareClass extends Executable {
             })
         }
 
+        const duplicatedMemberFunctionErrors =
+            this.validateDuplicatedMemberFunctionName()
+        if (duplicatedMemberFunctionErrors.length > 0) {
+            throw duplicatedMemberFunctionErrors[0]
+        }
+
         const parentClass = this.resolveParentClass(scope)
         const classValue = new ClassValue(
             this.name,
@@ -182,6 +194,7 @@ export class DeclareClass extends Executable {
         const dummyInstance = createValidationInstanceFromClass(dummyClass)
         const validationErrors = this.body.validate(dummyInstance.scope)
         validationErrors.push(...this.validateDuplicatedConstructorArity())
+        validationErrors.push(...this.validateDuplicatedMemberFunctionName())
         return validationErrors
     }
 
@@ -212,7 +225,7 @@ export class DeclareClass extends Executable {
 
         for (const child of this.body.children) {
             if (!(child instanceof DeclareFunction)) continue
-            if (!isConstructorFunctionName(child.name)) continue
+            if (!isConstructorDeclaration(child)) continue
 
             const arity = extractParamCountFromTokens(child.tokens)
             constructorCountByArity.set(
@@ -231,6 +244,35 @@ export class DeclareClass extends Executable {
                     resource: {
                         className: this.name,
                         arity,
+                    },
+                    tokens: this.tokens,
+                }),
+        )
+    }
+
+    private validateDuplicatedMemberFunctionName(): YaksokError[] {
+        const functionCountByName = new Map<string, number>()
+
+        for (const child of this.body.children) {
+            if (!(child instanceof DeclareFunction)) continue
+            if (isConstructorDeclaration(child)) continue
+
+            functionCountByName.set(
+                child.name,
+                (functionCountByName.get(child.name) ?? 0) + 1,
+            )
+        }
+
+        const duplicatedNames = [...functionCountByName.entries()]
+            .filter(([, count]) => count > 1)
+            .map(([name]) => name)
+
+        return duplicatedNames.map(
+            (functionName) =>
+                new AlreadyDefinedMemberFunctionError({
+                    resource: {
+                        className: this.name,
+                        functionName,
                     },
                     tokens: this.tokens,
                 }),
@@ -359,9 +401,9 @@ export class NewInstance extends Evaluable {
                 })
             }
 
-            for (const [name, func] of scope.functions) {
-                if (!isConstructorFunctionName(name)) continue
-                if (func.paramNames.length === arity) {
+            for (const constructor of matchingDeclaredConstructors) {
+                const func = scope.functions.get(constructor.name)
+                if (func) {
                     matchingCandidates.push(func)
                 }
             }
@@ -477,8 +519,8 @@ export class MemberFunctionInvoke extends Evaluable {
 
     override validate(scope: Scope): YaksokError[] {
         const targetErrors = this.target.validate(scope)
-        const paramErrors = Object.values(this.invocation.params).flatMap((param) =>
-            param.validate(scope),
+        const paramErrors = Object.values(this.invocation.params).flatMap(
+            (param) => param.validate(scope),
         )
         const allErrors = [...targetErrors, ...paramErrors]
         if (allErrors.length > 0) {
@@ -488,7 +530,10 @@ export class MemberFunctionInvoke extends Evaluable {
         try {
             const rawTarget = resolveValidationTargetValue(this.target, scope)
             if (rawTarget) {
-                const resolved = resolveMemberAccessTarget(rawTarget, this.tokens)
+                const resolved = resolveMemberAccessTarget(
+                    rawTarget,
+                    this.tokens,
+                )
                 const memberFunction = findMemberFunction(
                     resolved.scope,
                     resolved.instance,
@@ -605,9 +650,13 @@ export class FetchMember extends Evaluable {
                 return targetErrors
             }
 
-            const classValue = resolveClassValueFromInstance(scope, resolved.instance)
+            const classValue = resolveClassValueFromInstance(
+                scope,
+                resolved.instance,
+            )
             if (classValue) {
-                const likelyMemberNames = collectLikelyMemberNamesInClass(classValue)
+                const likelyMemberNames =
+                    collectLikelyMemberNamesInClass(classValue)
                 if (likelyMemberNames.has(this.memberName)) {
                     return targetErrors
                 }
@@ -640,6 +689,7 @@ export class FetchMember extends Evaluable {
 
 export class SetMember extends Executable {
     static override friendlyName = '멤버 설정'
+    public readonly __kind = 'SetMember' as const
 
     constructor(
         public target: Evaluable,
@@ -656,7 +706,9 @@ export class SetMember extends Executable {
         const resolved = resolveMemberAccessTarget(rawTarget, this.tokens)
 
         const operatorNode =
-            assignerToOperatorMap[this.operator as keyof typeof assignerToOperatorMap]
+            assignerToOperatorMap[
+                this.operator as keyof typeof assignerToOperatorMap
+            ]
 
         const operand = await this.value.execute(scope)
         let newValue = operand

@@ -129,3 +129,21 @@ export class MemberNotFoundError extends YaksokError<MemberNotFoundErrorResource
         )} 멤버를 찾을 수 없습니다.`
     }
 }
+
+interface AlreadyDefinedMemberFunctionErrorResource {
+    className: string
+    functionName: string
+}
+
+export class AlreadyDefinedMemberFunctionError extends YaksokError<AlreadyDefinedMemberFunctionErrorResource> {
+    constructor(props: {
+        resource: AlreadyDefinedMemberFunctionErrorResource
+        tokens?: Token[]
+    }) {
+        super(props)
+        const { className, functionName } = props.resource
+        this.message = `${bold(blue(className))} 클래스의 ${bold(
+            blue(functionName),
+        )} 메서드는 이미 정의되어 있습니다.`
+    }
+}

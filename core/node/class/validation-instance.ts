@@ -3,10 +3,15 @@ import { ValueType } from '../../value/base.ts'
 import { FunctionObject } from '../../value/function.ts'
 import { extractParamNamesFromHeaderTokens } from '../../util/extract-param-names-from-header-tokens.ts'
 import { DeclareFunction } from '../function.ts'
-import { ClassValue, getInheritanceChain, InstanceValue, SuperValue } from './core.ts'
+import {
+    ClassValue,
+    getInheritanceChain,
+    InstanceValue,
+    SuperValue,
+} from './core.ts'
 import {
     extractParamCountFromTokens,
-    isConstructorFunctionName,
+    isConstructorDeclaration,
 } from './constructor.ts'
 import { collectGuaranteedMemberWritesFromBlock } from './validation-analysis.ts'
 
@@ -35,7 +40,10 @@ export function createClassInstanceLayerScopes(classValue: ClassValue): {
 
         layerScope.setLocalVariable('자신', instance)
         if (klass.parentClass) {
-            layerScope.setLocalVariable('상위', new SuperValue(instance, currentScope))
+            layerScope.setLocalVariable(
+                '상위',
+                new SuperValue(instance, currentScope),
+            )
         }
 
         layerScopes.push({
@@ -64,7 +72,8 @@ export function createValidationInstanceFromClass(
             if (!(child instanceof DeclareFunction)) continue
 
             const paramNames =
-                child.paramNames ?? extractParamNamesFromHeaderTokens(child.tokens)
+                child.paramNames ??
+                extractParamNamesFromHeaderTokens(child.tokens)
             scope.addFunctionObject(
                 new FunctionObject(child.name, child.body, scope, paramNames),
             )
@@ -83,7 +92,9 @@ export function createValidationInstanceFromClass(
 
         for (const write of deterministicWrites) {
             const ownerScope =
-                write.target === 'super' ? parentScope ?? current.scope : current.scope
+                write.target === 'super'
+                    ? (parentScope ?? current.scope)
+                    : current.scope
             ownerScope.setLocalVariable(write.name, new ValueType())
         }
     }
@@ -95,7 +106,7 @@ export function createValidationInstanceFromClass(
             const constructors = current.klass.body.children.filter(
                 (child): child is DeclareFunction =>
                     child instanceof DeclareFunction &&
-                    isConstructorFunctionName(child.name),
+                    isConstructorDeclaration(child),
             )
 
             const matchingConstructors = constructors.filter(
@@ -118,7 +129,7 @@ export function createValidationInstanceFromClass(
             for (const write of deterministicWrites) {
                 const ownerScope =
                     write.target === 'super'
-                        ? parentScope ?? current.scope
+                        ? (parentScope ?? current.scope)
                         : current.scope
                 ownerScope.setLocalVariable(write.name, new ValueType())
             }

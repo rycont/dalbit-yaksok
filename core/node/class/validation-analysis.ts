@@ -6,6 +6,7 @@ import { Block } from '../block.ts'
 import { BooleanLiteral } from '../primitive-literal.ts'
 import { Evaluable, Executable, Identifier } from '../base.ts'
 import { DeclareFunction } from '../function.ts'
+import { SetVariable } from '../variable.ts'
 import { ClassValue, getInheritanceChain } from './core.ts'
 
 type ValidationSeedTarget = 'self' | 'super'
@@ -15,31 +16,26 @@ interface MemberWriteSeed {
     target: ValidationSeedTarget
 }
 
-function isSetVariableNode(node: unknown): node is { name: string } {
-    return (
-        node instanceof Evaluable &&
-        'name' in node &&
-        typeof (node as { name?: unknown }).name === 'string' &&
-        'operator' in node &&
-        typeof (node as { operator?: unknown }).operator === 'string' &&
-        'value' in node
-    )
+interface SetMemberNodeLike {
+    __kind: 'SetMember'
+    target: unknown
+    memberName: string
 }
 
-function isSetMemberLikeNode(
-    node: unknown,
-): node is { target: unknown; memberName: string } {
+function isSetMemberLikeNode(node: unknown): node is SetMemberNodeLike {
     return (
         node instanceof Executable &&
+        '__kind' in node &&
+        (node as { __kind?: unknown }).__kind === 'SetMember' &&
         'target' in node &&
         'memberName' in node &&
-        typeof (node as { memberName?: unknown }).memberName === 'string' &&
-        'value' in node &&
-        'operator' in node
+        typeof (node as { memberName?: unknown }).memberName === 'string'
     )
 }
 
-function toStaticBoolean(condition: Evaluable | undefined): boolean | undefined {
+function toStaticBoolean(
+    condition: Evaluable | undefined,
+): boolean | undefined {
     if (!condition) return undefined
     if (!(condition instanceof BooleanLiteral)) return undefined
     return condition.toPrint() === '참'
@@ -54,7 +50,7 @@ export function collectGuaranteedMemberWritesFromBlock(
     const writes: MemberWriteSeed[] = []
 
     const collectFromNode = (node: unknown) => {
-        if (options.includePlainSetVariable && isSetVariableNode(node)) {
+        if (options.includePlainSetVariable && node instanceof SetVariable) {
             writes.push({
                 name: node.name,
                 target: 'self',
@@ -109,7 +105,9 @@ export function collectGuaranteedMemberWritesFromBlock(
         }
 
         if (node instanceof Block) {
-            writes.push(...collectGuaranteedMemberWritesFromBlock(node, options))
+            writes.push(
+                ...collectGuaranteedMemberWritesFromBlock(node, options),
+            )
         }
     }
 
@@ -120,7 +118,9 @@ export function collectGuaranteedMemberWritesFromBlock(
     return writes
 }
 
-export function collectLikelyMemberNamesInClass(classValue: ClassValue): Set<string> {
+export function collectLikelyMemberNamesInClass(
+    classValue: ClassValue,
+): Set<string> {
     const names = new Set<string>()
 
     const collectSetMemberWritesInNode = (node: unknown) => {
