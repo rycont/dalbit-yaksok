@@ -157,6 +157,24 @@ g.인사 보여주기
 })
 
 Deno.test(
+    '멤버 메서드 인자는 호출자 스코프에서 평가된다',
+    async () => {
+        const outputs = await runAndCollect(`
+외부값 = "전역"
+클래스, C
+    값 = "멤버"
+    약속, (x) 보기
+        x 반환하기
+
+o = 새 C
+o. (외부값 보기) 보여주기
+`)
+
+        assertEquals(outputs[0], '전역')
+    },
+)
+
+Deno.test(
     '멤버 자동 호출 내부 오류를 멤버 없음 오류로 마스킹하지 않는다',
     async () => {
         const session = new YaksokSession()
@@ -865,6 +883,34 @@ Deno.test('클래스: 기존 변수 이름과 충돌하면 검증 오류가 난�
 클래스, 값
     약속, __준비__
         자신.x = 1
+`,
+    )
+
+    const results = await session.runModule('main')
+    const result = results.get('main')
+    if (!result) throw new Error('실행 결과가 없습니다.')
+
+    if (result.reason !== 'validation') {
+        throw new Error('검증 단계에서 클래스명 충돌 오류가 발생해야 합니다.')
+    }
+
+    const allMessages = [...result.errors.values()]
+        .flat()
+        .map((e) => e.message)
+        .join('\n')
+    assertStringIncludes(allMessages, '이미 정의')
+})
+
+Deno.test('클래스: 기존 함수 이름과 충돌하면 검증 오류가 난다', async () => {
+    const session = new YaksokSession()
+    session.addModule(
+        'main',
+        `
+약속, 사람
+    "함수" 반환하기
+
+클래스, 사람
+    값 = 1
 `,
     )
 

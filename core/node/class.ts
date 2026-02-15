@@ -256,6 +256,69 @@ function resolveExistingIdentifierValue(
     }
 }
 
+function resolveExistingFunctionObject(
+    scope: Scope,
+    name: string,
+): RunnableObject | undefined {
+    try {
+        return scope.getFunctionObject(name)
+    } catch (error) {
+        if (error instanceof NotDefinedIdentifierError) {
+            return undefined
+        }
+        throw error
+    }
+}
+
+function hasExistingClassNameConflict(scope: Scope, name: string): boolean {
+    return (
+        resolveExistingIdentifierValue(scope, name) !== undefined ||
+        resolveExistingFunctionObject(scope, name) !== undefined
+    )
+}
+
+function createClassInstanceLayerScopes(classValue: ClassValue): {
+    instance: InstanceValue
+    layerScopes: { klass: ClassValue; scope: Scope }[]
+    finalScope: Scope
+} {
+    const rootScope = new Scope({
+        parent: classValue.definitionScope,
+        allowFunctionOverride: true,
+    })
+
+    const instance = new InstanceValue(classValue.name)
+    instance.classValue = classValue
+    instance.memberLookupRootScope = rootScope
+
+    let currentScope = rootScope
+    const layerScopes: { klass: ClassValue; scope: Scope }[] = []
+
+    for (const klass of getInheritanceChain(classValue)) {
+        const layerScope = new Scope({
+            parent: currentScope,
+            allowFunctionOverride: true,
+        })
+
+        layerScope.setVariable('자신', instance)
+        if (klass.parentClass) {
+            layerScope.setVariable('상위', new SuperValue(instance, currentScope))
+        }
+
+        layerScopes.push({
+            klass,
+            scope: layerScope,
+        })
+        currentScope = layerScope
+    }
+
+    return {
+        instance,
+        layerScopes,
+        finalScope: currentScope,
+    }
+}
+
 function resolveValidationTargetValue(
     target: Evaluable,
     scope: Scope,
@@ -308,51 +371,28 @@ function resolveValidationTargetValue(
 export function createValidationInstanceFromClass(
     classValue: ClassValue,
 ): InstanceValue {
-    const rootScope = new Scope({
-        parent: classValue.definitionScope,
-        allowFunctionOverride: true,
-    })
+    const { instance, layerScopes, finalScope } =
+        createClassInstanceLayerScopes(classValue)
 
-    const instance = new InstanceValue(classValue.name)
-    instance.classValue = classValue
-    instance.memberLookupRootScope = rootScope
-
-    let currentScope = rootScope
-
-    for (const klass of getInheritanceChain(classValue)) {
-        const layerScope = new Scope({
-            parent: currentScope,
-            allowFunctionOverride: true,
-        })
-
-        layerScope.setVariable('자신', instance)
-        if (klass.parentClass) {
-            layerScope.setVariable(
-                '상위',
-                new SuperValue(instance, currentScope),
-            )
-        }
-
+    for (const { klass, scope } of layerScopes) {
         for (const child of klass.body.children) {
             if (!(child instanceof DeclareFunction)) continue
 
             const paramNames =
                 child.paramNames ??
                 extractParamNamesFromHeaderTokens(child.tokens)
-            layerScope.addFunctionObject(
+            scope.addFunctionObject(
                 new FunctionObject(
                     child.name,
                     child.body,
-                    layerScope,
+                    scope,
                     paramNames,
                 ),
             )
         }
-
-        currentScope = layerScope
     }
 
-    instance.scope = currentScope
+    instance.scope = finalScope
     return instance
 }
 
@@ -375,7 +415,7 @@ export class DeclareClass extends Executable {
     }
 
     override execute(scope: Scope): Promise<void> {
-        if (resolveExistingIdentifierValue(scope, this.name)) {
+        if (hasExistingClassNameConflict(scope, this.name)) {
             throw new AlreadyDefinedClassError({
                 resource: {
                     name: this.name,
@@ -396,7 +436,7 @@ export class DeclareClass extends Executable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        if (resolveExistingIdentifierValue(scope, this.name)) {
+        if (hasExistingClassNameConflict(scope, this.name)) {
             return [
                 new AlreadyDefinedClassError({
                     resource: {
@@ -546,42 +586,14 @@ export class NewInstance extends Evaluable {
             })
         }
 
-        const rootScope = new Scope({
-            parent: classValue.definitionScope,
-            allowFunctionOverride: true,
-        })
-
-        // Create instance early so 자신 is available during __준비__ execution.
-        // scope는 상속 체인 실행 후 할당됩니다.
-        const instance = new InstanceValue(classValue.name)
-        instance.classValue = classValue
-        instance.memberLookupRootScope = rootScope
+        const { instance, layerScopes, finalScope } =
+            createClassInstanceLayerScopes(classValue)
 
         // 부모 -> 자식 순으로 바디를 실행해 상속 체인을 구성합니다.
-        const inheritanceChain = this.getInheritanceChain(classValue)
-        let currentScope = rootScope
-        const layerScopes: { klass: ClassValue; scope: Scope }[] = []
-
-        for (const klass of inheritanceChain) {
-            const layerScope = new Scope({
-                parent: currentScope,
-                allowFunctionOverride: true,
-            })
-            layerScope.setVariable('자신', instance)
-            if (klass.parentClass) {
-                layerScope.setVariable(
-                    '상위',
-                    new SuperValue(instance, currentScope),
-                )
-            }
+        for (const { klass, scope: layerScope } of layerScopes) {
             await klass.body.execute(layerScope)
-            layerScopes.push({
-                klass,
-                scope: layerScope,
-            })
-            currentScope = layerScope
         }
-        instance.scope = currentScope
+        instance.scope = finalScope
 
         // Call __준비__ (constructor) if it exists
         const initFunc = this.pickConstructorByArity(
@@ -832,7 +844,7 @@ export class MemberFunctionInvoke extends Evaluable {
 
         const args = await evaluateParams(
             this.invocation.params,
-            resolved.scope,
+            scope,
         )
         return await memberFunction.run(args, resolved.scope)
     }
