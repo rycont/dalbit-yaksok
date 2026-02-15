@@ -41,17 +41,17 @@ SPLIT
 JOIN
 ***
 
-메소드(사전, 리스트), 번역(표준), 열쇠들
+메소드(사전, 리스트), 번역(표준), 키들
 ***
 KEYS
 ***
 
-메소드(사전, 리스트), 번역(표준), (열쇠)를/을 (기본값)으로/로 가져오기
+메소드(사전, 리스트), 번역(표준), (키)를/을 (기본값)으로/로 가져오기
 ***
 GET
 ***
 
-메소드(문자, 리스트), 번역(표준), (부분)을/를 포함하는지/포함하는지확인
+메소드(문자, 리스트, 사전), 번역(표준), 안에 (대상)이/가 있는지/있는지확인
 ***
 INCLUDES
 ***
@@ -128,7 +128,7 @@ INCLUDES
             case 'KEYS': {
                 const { 자신 } = args
                 if (!(자신 instanceof IndexedValue)) {
-                    throw new Error('사전이나 목록이 아니면 열쇠를 가져올 수 없어요.')
+                    throw new Error('사전이나 목록이 아니면 키를 가져올 수 없어요.')
                 }
                 const keys = Array.from(자신.entries.keys()).map(k => {
                     if (typeof k === 'number') return new NumberValue(k)
@@ -137,22 +137,26 @@ INCLUDES
                 return new ListValue(keys)
             }
             case 'GET': {
-                const { 자신, 열쇠, 기본값 } = args
+                const { 자신, 키, 기본값 } = args
                 if (!(자신 instanceof IndexedValue)) {
                     throw new Error('사전이나 목록이 아니면 값을 가져올 수 없어요.')
                 }
-                const key = (열쇠 instanceof NumberValue || 열쇠 instanceof StringValue) ? 열쇠.value : 열쇠.toPrint()
+                const key = (키 instanceof NumberValue || 키 instanceof StringValue) ? 키.value : 키.toPrint()
                 const value = 자신.entries.get(key as any)
                 return value ?? 기본값
             }
             case 'INCLUDES': {
-                const { 자신, 부분 } = args
-                if (자신 instanceof StringValue && 부분 instanceof StringValue) {
-                    return new StringValue(자신.value.includes(부분.value) ? "참" : "거짓")
+                const { 자신, 대상 } = args
+                if (자신 instanceof StringValue && 대상 instanceof StringValue) {
+                    return new StringValue(자신.value.includes(대상.value) ? "참" : "거짓")
                 }
                 if (자신 instanceof ListValue) {
-                    const found = Array.from(자신.enumerate()).some(item => item.toPrint() === 부분.toPrint())
+                    const found = Array.from(자신.enumerate()).some(item => item.toPrint() === 대상.toPrint())
                     return new StringValue(found ? "참" : "거짓")
+                }
+                if (자신 instanceof IndexedValue) {
+                    const key = (대상 instanceof NumberValue || 대상 instanceof StringValue) ? 대상.value : 대상.toPrint()
+                    return new StringValue(자신.entries.has(key as any) ? "참" : "거짓")
                 }
                 throw new Error('포함 여부를 확인할 수 없는 대상이에요.')
             }
