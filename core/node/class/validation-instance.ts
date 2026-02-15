@@ -10,7 +10,7 @@ import {
     SuperValue,
 } from './core.ts'
 import {
-    extractParamCountFromTokens,
+    getFunctionDeclarationArity,
     isConstructorDeclaration,
 } from './constructor.ts'
 import { collectGuaranteedMemberWritesFromBlock } from './validation-analysis.ts'
@@ -111,7 +111,7 @@ export function createValidationInstanceFromClass(
 
             const matchingConstructors = constructors.filter(
                 (constructor) =>
-                    extractParamCountFromTokens(constructor.tokens) ===
+                    getFunctionDeclarationArity(constructor) ===
                     constructorArity,
             )
 
