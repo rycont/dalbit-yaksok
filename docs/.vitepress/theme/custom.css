@@ -1,7 +1,13 @@
 @import url('https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css');
 @import url('https://statics.goorm.io/fonts/GoormSansCode/v1.0.1/GoormSansCode.min.css');
 
-:root {
+    --vp-c-brand-1: #fbbf24; /* Moonlight Yellow */
+    --vp-c-brand-2: #f59e0b;
+    --vp-c-brand-3: #d97706;
+    --vp-c-brand-soft: rgba(251, 191, 36, 0.14);
+    
+    --vp-home-hero-name-color: transparent;
+    --vp-home-hero-name-background: linear-gradient(135deg, #fbbf24 10%, #6366f1 100%);
     --vp-font-family-base: 'Wanted Sans Variable', 'Wanted Sans', -apple-system,
         BlinkMacSystemFont, system-ui, 'Segoe UI', 'Apple SD Gothic Neo',
         'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji',
