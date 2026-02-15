@@ -3,6 +3,8 @@
         "@deno/vite-plugin": "npm:@deno/vite-plugin@^1.0.6",
         "@vue/runtime-dom": "npm:@vue/runtime-dom@^3.5.12",
         "@vueuse/core": "npm:@vueuse/core@^11.2.0",
+        "codemirror": "npm:codemirror@^6.0.1",
+        "@codemirror/lang-javascript": "npm:@codemirror/lang-javascript@^6.0.0",
         "dayjs": "npm:dayjs@^1.11.10",
         "debug": "npm:debug@^4.3.4",
         "cytoscape": "npm:cytoscape@^3.27.0",

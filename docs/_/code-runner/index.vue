@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import {
     YaksokSession,
-    CodeFile,
-    parse,
-    FEATURE_FLAG,
+    ValueType,
 } from '@dalbit-yaksok/core'
 import AnsiCode from 'ansi-to-html'
-import type { editor } from 'monaco-editor'
-import { onMounted, ref, useTemplateRef, watch } from 'vue'
+import { onMounted, ref, useTemplateRef, watch, shallowRef } from 'vue'
 
-import { loadMonaco } from './load-monaco'
+// CodeMirror imports
+import { EditorView, basicSetup } from "codemirror"
+import { EditorState } from "@codemirror/state"
+import { keymap } from "@codemirror/view"
+import { indentWithTab } from "@codemirror/commands"
+import { javascript } from "@codemirror/lang-javascript"
 
 const props = defineProps({
     code: {
@@ -26,128 +28,65 @@ const props = defineProps({
     },
 })
 
-const editorRef = useTemplateRef('editor')
-
-const code = ref(props.code)
+const editorContainer = useTemplateRef('editor')
 const stdout = ref<string[]>([])
-
-let editorInstance: editor.IStandaloneCodeEditor | null = null
-let monaco: Awaited<ReturnType<typeof loadMonaco>> | null = null
-
+const editorView = shallowRef<EditorView | null>(null)
 const ansiCode = new AnsiCode()
 
-async function initializeMonaco() {
-    const editorElement = editorRef.value!
-
-    const { DalbitYaksokApplier, LANG_ID } = await import(
-        '@dalbit-yaksok/monaco-language-provider'
-    )
-
-    monaco = await loadMonaco()
-
-    const languageProvider = new DalbitYaksokApplier(code.value)
-    languageProvider.register(monaco.languages)
-
-    editorInstance = monaco.editor.create(editorElement, {
-        automaticLayout: true,
-        value: code.value,
-        fontFamily: 'var(--vp-font-family-mono)',
-        minimap: {
-            enabled: false,
-        },
-        language: LANG_ID,
-        theme: 'vs',
-        guides: {
-            highlightActiveIndentation: false,
-            indentation: false,
-        },
-        renderLineHighlight: 'none',
-        lineNumbers: 'off',
-        // quickSuggestions: {
-        //     other: true,
-        //     comments: true,
-        //     strings: true,
-        // },
-        // 단어 기반 제안을 강제로 활성화하고, 현재 문서 전체를 참조하도록 합니다.
-        // wordBasedSuggestions: 'allDocuments',
-        // // 중요: 한글 등 다양한 문자가 오토컴플릿 트리거가 되도록 단어 구분자에서 일부를 제거하거나 조정합니다.
-        // unicodeHighlight: {
-        //     ambiguousCharacters: false,
-        // },
-        // quickSuggestionsDelay: 0,
-        // 'suggest.snippetsPreventQuickSuggestions': false,
-        // 'suggest.filterGraceful': true,
+function initializeCodeMirror() {
+    const startState = EditorState.create({
+        doc: props.code,
+        extensions: [
+            basicSetup,
+            keymap.of([
+                indentWithTab,
+                {
+                    key: "Mod-Enter",
+                    run: () => {
+                        runCode()
+                        return true
+                    }
+                }
+            ]),
+            // TODO: Replace with actual Dalbit Yaksok language support
+            javascript(),
+            EditorView.theme({
+                "&": { height: "300px" },
+                ".cm-scroller": { overflow: "auto" },
+                "&.cm-focused": { outline: "none" }
+            })
+        ]
     })
 
-    editorInstance.addAction({
-        id: 'trigger-suggest-custom',
-        label: '제안 창 띄우기',
-        keybindings: [monaco.KeyMod.Alt | monaco.KeyCode.Slash],
-        run: (ed) => {
-            // trigger('source', 'actionId', payload) 대신
-            // 직접 제안 컨트롤러를 호출하는 것이 가장 확실합니다.
-            const suggestContrib = ed.getContribution(
-                'editor.contrib.suggestController',
-            )
-            if (suggestContrib) {
-                suggestContrib.triggerSuggest()
-            }
-        },
+    const view = new EditorView({
+        state: startState,
+        parent: editorContainer.value!
     })
 
-    editorInstance.onDidChangeModelContent((e) => {
-        const suggestController = editorInstance.getContribution(
-            'editor.contrib.suggestController',
-        )
-
-        if (!suggestController) return
-
-        // 1. 변화가 여러 개거나 내용이 없는 경우(삭제 등) 제외
-        if (e.changes.length === 0) return
-
-        // 마지막에 추가된 텍스트 확인
-        const lastChange = e.changes[e.changes.length - 1]
-        const text = lastChange.text
-
-        // 2. 실제 글자가 입력되었는지 정규표현식으로 검사
-        // \S는 공백이 아닌 문자, [^\n\r]은 개행이 아님을 의미합니다.
-        const isRealCharacter = /\S/.test(text)
-
-        if (isRealCharacter) {
-            suggestController.triggerSuggest()
-        }
-    })
-
-    languageProvider.configEditor(editorInstance)
-
-    editorInstance.onDidFocusEditorText(() => {
-        editorInstance!.addCommand(
-            monaco!.KeyMod.CtrlCmd | monaco!.KeyCode.Enter,
-            runCode,
-        )
-    })
+    editorView.value = view
 }
 
 onMounted(() => {
-    initializeMonaco().then(runCode)
+    initializeCodeMirror()
+    runCode()
 })
 
-function ansiToHtml(content) {
-    const text = ansiCode.toHtml(content)
-    return text
+function ansiToHtml(content: string) {
+    return ansiCode.toHtml(content)
 }
 
 function viewAnswer() {
-    editorInstance!.setValue(props.challenge.answerCode)
+    if (editorView.value) {
+        editorView.value.dispatch({
+            changes: { from: 0, to: editorView.value.state.doc.length, insert: props.challenge.answerCode }
+        })
+    }
 }
 
-let prevDecorations: editor.IEditorDecorationsCollection | null = null
-
 async function runCode() {
-    if (!monaco) {
-        monaco = await loadMonaco()
-    }
-
+    if (!editorView.value) return
+    
+    const currentCode = editorView.value.state.doc.toString()
     stdout.value = []
 
     try {
@@ -158,63 +97,24 @@ async function runCode() {
             stderr: (output) => {
                 stdout.value = [...stdout.value, ansiToHtml(output)]
             },
-            events: {
-                runningCode(start, end, scope, tokens) {
-                    const range = new monaco!.Range(
-                        start.line,
-                        start.column,
-                        end.line,
-                        end.column,
-                    )
-
-                    const decorations =
-                        editorInstance?.createDecorationsCollection([
-                            {
-                                range,
-                                options: {
-                                    className: 'running-code',
-                                },
-                            },
-                        ])
-
-                    if (prevDecorations) {
-                        prevDecorations.clear()
-                    }
-
-                    if (decorations) {
-                        prevDecorations = decorations
-                    }
-                },
-            },
         })
 
-        // const c = new CodeFile(code.value)
-        // console.log(code.value, c.ast.children, parse(c))
-
-        session.addModule('main', editorInstance.getValue(), {
-            // executionDelay: 400,
-        })
-
-        console.log(await session.runModule('main'))
+        session.addModule('main', currentCode)
+        await session.runModule('main')
     } catch (error) {
         console.error(error)
-    }
-
-    if (prevDecorations) {
-        setTimeout(() => {
-            ;(prevDecorations as editor.IEditorDecorationsCollection).clear()
-        }, 400)
     }
 }
 
 function share() {
+    if (!editorView.value) return
     const url = new URL(window.location.href)
-    url.searchParams.set('code', code.value)
+    url.searchParams.set('code', editorView.value.state.doc.toString())
     navigator.clipboard.writeText(url.href)
     alert('코드가 클립보드에 복사되었습니다.')
 }
 
-watch(stdout, (output) => {
+watch(stdout, () => {
     if (stdout.value.join('\n') === props?.challenge?.output) {
         alert('정답입니다!')
     }
@@ -224,7 +124,7 @@ watch(stdout, (output) => {
 <template>
     <div class="wrapper" :id="props.id">
         <div class="header">
-            <p>약속실행기</p>
+            <p>약속실행기 (CodeMirror)</p>
             <button
                 v-if="props.challenge && props.challenge.answerCode"
                 @click="viewAnswer"
@@ -265,7 +165,7 @@ watch(stdout, (output) => {
                 실행 (Ctrl + Enter)
             </button>
         </div>
-        <div id="editor" ref="editor"></div>
+        <div ref="editor" class="editor-container"></div>
         <div class="output-box">
             <div>
                 <h2 class="output-header">출력</h2>
@@ -332,35 +232,18 @@ button svg {
     height: 16px;
 }
 
-textarea {
-    padding: 12px;
-    width: 100%;
-    height: 200px;
+.editor-container {
     font-family: var(--vp-font-family-mono);
-    line-height: 1.5;
-    box-sizing: border-box;
-    transition: box-shadow 0.2s;
     font-size: 14px;
-    background: var(--vp-c-bg);
+    border-bottom: 1px solid var(--vp-c-border);
 }
 
-textarea:focus {
-    box-shadow: inset 0 0 0 1px var(--vp-c-brand-1);
-}
-
-textarea:read-only {
-    border-color: var(--vp-c-border);
-    border-width: 1px;
-    border-style: solid;
-    background-color: transparent;
-}
-
-#editor {
+/* CodeMirror specific styling to match previous layout */
+:deep(.cm-editor) {
     height: 300px;
 }
 
 .output-box {
-    border-top: 1px solid var(--vp-c-border);
     display: flex;
 }
 
