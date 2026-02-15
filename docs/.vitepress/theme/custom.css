@@ -1,6 +1,7 @@
 @import url('https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css');
 @import url('https://statics.goorm.io/fonts/GoormSansCode/v1.0.1/GoormSansCode.min.css');
 
+:root {
     --vp-c-brand-1: #fbbf24; /* Moonlight Yellow */
     --vp-c-brand-2: #f59e0b;
     --vp-c-brand-3: #d97706;
