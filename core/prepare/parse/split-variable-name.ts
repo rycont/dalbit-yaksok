@@ -1,6 +1,6 @@
 import type { CodeFile } from '../../type/code-file.ts'
 import type { Node } from '../../node/base.ts'
-import { Block, Expression, Identifier, Sequence } from '../../node/index.ts'
+import { Block, Expression, Identifier } from '../../node/index.ts'
 import { type Token, TOKEN_TYPE } from '../tokenize/token.ts'
 
 export function splitVariableName(
@@ -27,7 +27,9 @@ export function splitVariableName(
             (currentNode.value === '약속' || currentNode.value === '클래스') &&
             currentNode.tokens[0].position.column - 1 === depth * 4
         ) {
-            const blockIndex = nodes.slice(cursor).findIndex((node) => node instanceof Block)
+            const blockIndex = nodes
+                .slice(cursor)
+                .findIndex((node) => node instanceof Block)
             if (blockIndex === -1) {
                 cursor++
                 continue
@@ -53,7 +55,8 @@ export function splitVariableName(
                     (node) =>
                         node instanceof Identifier && node.value !== '클래스',
                 ) as Identifier
-                if (classNameNode) detectedIdentifierNames.push(classNameNode.value)
+                if (classNameNode)
+                    detectedIdentifierNames.push(classNameNode.value)
             } else {
                 detectedFunctionHeaderAfterParameter.push(
                     ...functionHeaderAfterDeclaration,
@@ -69,6 +72,17 @@ export function splitVariableName(
             )
 
             cursor = yaksokEndIndex + 2
+            continue
+        } else if (
+            currentNode instanceof Identifier &&
+            currentNode.value === '새' &&
+            nodes[cursor + 1] instanceof Identifier
+        ) {
+            // "새 클래스이름" -> 클래스 이름을 식별자 목록에 추가 (동적 인식 지원)
+            detectedIdentifierNames.push(
+                (nodes[cursor + 1] as Identifier).value,
+            )
+            cursor++
             continue
         } else if (isIdentifier) {
             const trailingFunctionHeaders =
@@ -94,7 +108,9 @@ export function splitVariableName(
                     }
                     return null
                 })
-                .filter((candidate): candidate is string[] => candidate !== null)
+                .filter(
+                    (candidate): candidate is string[] => candidate !== null,
+                )
 
             if (candidates.length === 0) {
                 cursor++
@@ -151,13 +167,6 @@ export function splitVariableName(
             if (prevNode instanceof Identifier) {
                 detectedIdentifierNames.push(prevNode.value)
             }
-        } else if (
-            currentNode instanceof Identifier &&
-            currentNode.value === '새' &&
-            nodes[cursor + 1] instanceof Identifier
-        ) {
-            // "새 클래스이름" -> 클래스 이름을 식별자 목록에 추가 (동적 인식 지원)
-            detectedIdentifierNames.push((nodes[cursor + 1] as Identifier).value)
         } else if (currentNode instanceof Block) {
             currentNode.children = splitVariableName(
                 currentNode.children,

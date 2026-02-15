@@ -25,9 +25,7 @@ export class YaksokError<T = unknown> extends Error {
 }
 
 export function evaluableToText(evaluable: Evaluable) {
-    let text =
-        (evaluable.constructor as typeof Evaluable).friendlyName ||
-        evaluable.constructor.name
+    let text = (evaluable.constructor as typeof Evaluable).friendlyName
 
     try {
         text = bold(blue(evaluable.toPrint())) + dim(`(${text})`)
@@ -46,9 +44,7 @@ export function valueTypeToText(valueType: ValueType) {
 }
 
 export function operatorToText(operator: Operator) {
-    let text =
-        (operator.constructor as typeof Operator).friendlyName ||
-        operator.constructor.name
+    let text = (operator.constructor as typeof Operator).friendlyName
 
     const toPrint = operator.toPrint()
     if (toPrint !== 'unknown') text = blue(bold(toPrint)) + dim(`(${text})`)

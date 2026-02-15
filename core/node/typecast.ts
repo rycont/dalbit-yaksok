@@ -5,11 +5,7 @@ import { Evaluable } from './base.ts'
 import type { Scope } from '../executer/scope.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { ValueType } from '../value/base.ts'
-import {
-    StringValue,
-    NumberValue,
-    BooleanValue,
-} from '../value/primitive.ts'
+import { StringValue, NumberValue, BooleanValue } from '../value/primitive.ts'
 
 export type TypeCastTarget = '숫자' | '문자열' | '참거짓'
 

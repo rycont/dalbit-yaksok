@@ -6,7 +6,10 @@ export class Signal {
 }
 
 export class ReturnSignal extends Signal {
-    constructor(tokens: Token[], public value: ValueType | null = null) {
+    constructor(
+        tokens: Token[],
+        public value: ValueType | null = null,
+    ) {
         super(tokens)
     }
 }

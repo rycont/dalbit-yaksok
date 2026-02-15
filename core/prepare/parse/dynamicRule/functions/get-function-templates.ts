@@ -13,7 +13,9 @@ export function convertTokensToFunctionTemplate(
 ): FunctionTemplate {
     const tokens = _tokens.map((token) => ({ ...token }))
     const rawPieces: Array<
-        { type: 'value'; value: string[] } | { type: 'destructure'; value: string[] } | { type: 'static'; value: string }
+        | { type: 'value'; value: string[] }
+        | { type: 'destructure'; value: string[] }
+        | { type: 'static'; value: string }
     > = []
 
     for (let i = 0; i < tokens.length; i++) {
@@ -137,7 +139,10 @@ function convertToVerbForm(word: string): string {
     return word
 }
 
-function extractDestructureNames(tokens: Token[], startIndex: number): string[] {
+function extractDestructureNames(
+    tokens: Token[],
+    startIndex: number,
+): string[] {
     const names: string[] = []
     let i = startIndex
 
@@ -195,7 +200,8 @@ function assertValidFunctionHeader(
         }
 
         const nextNextToken = tokens[index + 2]
-        const isSingleParam = nextNextToken?.type === TOKEN_TYPE.CLOSING_PARENTHESIS
+        const isSingleParam =
+            nextNextToken?.type === TOKEN_TYPE.CLOSING_PARENTHESIS
         const isDestructureParam = nextNextToken?.type === TOKEN_TYPE.COMMA
 
         if (!isSingleParam && !isDestructureParam) {

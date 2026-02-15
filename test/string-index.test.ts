@@ -21,35 +21,38 @@ Deno.test('String allows indexing by number', async () => {
     assertEquals(stored.value, '빛')
 })
 
-Deno.test('String index must be a non-negative integer within bounds', async () => {
-    const negativeResult = await yaksok(`결과 = '가'[-1]`)
-    assert(
-        negativeResult.reason === 'error',
-        `Expected error, got ${negativeResult.reason}`,
-    )
-    assertIsError(
-        negativeResult.error,
-        ListIndexMustBeGreaterOrEqualThan0Error,
-    )
+Deno.test(
+    'String index must be a non-negative integer within bounds',
+    async () => {
+        const negativeResult = await yaksok(`결과 = '가'[-1]`)
+        assert(
+            negativeResult.reason === 'error',
+            `Expected error, got ${negativeResult.reason}`,
+        )
+        assertIsError(
+            negativeResult.error,
+            ListIndexMustBeGreaterOrEqualThan0Error,
+        )
 
-    const decimalResult = await yaksok(`결과 = '가'[0.5]`)
-    assert(
-        decimalResult.reason === 'error',
-        `Expected error, got ${decimalResult.reason}`,
-    )
-    assertIsError(decimalResult.error, ListIndexTypeError)
+        const decimalResult = await yaksok(`결과 = '가'[0.5]`)
+        assert(
+            decimalResult.reason === 'error',
+            `Expected error, got ${decimalResult.reason}`,
+        )
+        assertIsError(decimalResult.error, ListIndexTypeError)
 
-    const outOfRangeResult = await yaksok(`결과 = '가'[1]`)
-    assert(
-        outOfRangeResult.reason === 'error',
-        `Expected error, got ${outOfRangeResult.reason}`,
-    )
-    assertIsError(outOfRangeResult.error, StringIndexOutOfRangeError)
-    assertEquals(
-        outOfRangeResult.error.message,
-        "가에서 1번째 글자를 가져올 수 없어요. 가의 길이는 1이에요.",
-    )
-})
+        const outOfRangeResult = await yaksok(`결과 = '가'[1]`)
+        assert(
+            outOfRangeResult.reason === 'error',
+            `Expected error, got ${outOfRangeResult.reason}`,
+        )
+        assertIsError(outOfRangeResult.error, StringIndexOutOfRangeError)
+        assertEquals(
+            outOfRangeResult.error.message,
+            '가에서 1번째 글자를 가져올 수 없어요. 가의 길이는 1이에요.',
+        )
+    },
+)
 
 Deno.test('String variables can be indexed', async () => {
     const result = await yaksok(`대상 = '달빛'\n결과 = 대상[1]`)

@@ -8,7 +8,10 @@ import type { Scope } from '../executer/scope.ts'
 export class NumberLiteral extends Evaluable {
     static override friendlyName = '숫자'
 
-    constructor(private content: number, public override tokens: Token[]) {
+    constructor(
+        private content: number,
+        public override tokens: Token[],
+    ) {
         super()
     }
 
@@ -32,7 +35,10 @@ export class NumberLiteral extends Evaluable {
 export class StringLiteral extends Evaluable {
     static override friendlyName = '문자'
 
-    constructor(private content: string, public override tokens: Token[]) {
+    constructor(
+        private content: string,
+        public override tokens: Token[],
+    ) {
         super()
     }
 
@@ -52,7 +58,10 @@ export class StringLiteral extends Evaluable {
 export class BooleanLiteral extends Evaluable {
     static override friendlyName = '참거짓'
 
-    constructor(private content: boolean, public override tokens: Token[]) {
+    constructor(
+        private content: boolean,
+        public override tokens: Token[],
+    ) {
         super()
     }
 
@@ -72,7 +81,10 @@ export class BooleanLiteral extends Evaluable {
 export class TemplateStringPart extends Node {
     static override friendlyName = '템플릿 문자열 부분'
 
-    constructor(public content: string, public override tokens: Token[]) {
+    constructor(
+        public content: string,
+        public override tokens: Token[],
+    ) {
         super()
     }
 

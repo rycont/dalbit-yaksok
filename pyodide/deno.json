@@ -1,11 +1,11 @@
 {
-  "name": "@dalbit-yaksok/pyodide",
-  "exports": "./mod.ts",
-  "imports": {
-    "pyodide-module": "npm:pyodide@0.24.1/pyodide.js"
-  },
-  "version": "4.5.0",
-  "tasks": {
-    "test": "deno test --allow-net --allow-read --allow-write --parallel"
-  }
+    "name": "@dalbit-yaksok/pyodide",
+    "exports": "./mod.ts",
+    "imports": {
+        "pyodide-module": "npm:pyodide@0.24.1/pyodide.js"
+    },
+    "version": "4.5.0",
+    "tasks": {
+        "test": "deno test --allow-net --allow-read --allow-write --parallel"
+    }
 }

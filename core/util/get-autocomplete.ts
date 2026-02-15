@@ -3,7 +3,10 @@ import { Node } from '../node/base.ts'
 import { CodeFile } from '../type/code-file.ts'
 import { Position } from '../type/position.ts'
 
-export function getAutocomplete(codeFile: CodeFile, position: Position): string[] {
+export function getAutocomplete(
+    codeFile: CodeFile,
+    position: Position,
+): string[] {
     const scopes = codeFile.validationScopes
 
     let narrowestScope: Scope | null = null
@@ -12,7 +15,7 @@ export function getAutocomplete(codeFile: CodeFile, position: Position): string[
     for (const [node, scope] of scopes) {
         if (isCursorInNode(node, position)) {
             const scopeSize = node.tokens.length
-            
+
             if (scopeSize < narrowestScopeSize) {
                 narrowestScopeSize = scopeSize
                 narrowestScope = scope
@@ -56,7 +59,9 @@ function getAvailableIdentifiers(scope: Scope | undefined): string[] {
         return []
     }
 
-    const functionNames = [...scope.functions.keys()].flatMap(expandFunctionNameBranches)
+    const functionNames = [...scope.functions.keys()].flatMap(
+        expandFunctionNameBranches,
+    )
 
     return [
         ...Object.keys(scope.variables),
@@ -71,8 +76,8 @@ function getAvailableIdentifiers(scope: Scope | undefined): string[] {
  */
 function expandFunctionNameBranches(functionName: string): string[] {
     const parts = parseFunctionNameParts(functionName)
-    const hasBranching = parts.some(part => part.type === 'branching')
-    
+    const hasBranching = parts.some((part) => part.type === 'branching')
+
     if (!hasBranching) {
         return [functionName]
     }
@@ -110,49 +115,49 @@ function parseFunctionNameParts(functionName: string): FunctionNamePart[] {
         if (char === '/') {
             // 현재까지의 정적 부분에서 분기 시작점 찾기
             const branchStart = findBranchStartIndex(currentStaticPart)
-            
+
             if (branchStart > 0) {
                 parts.push({
                     type: 'static',
-                    value: currentStaticPart.slice(0, branchStart)
+                    value: currentStaticPart.slice(0, branchStart),
                 })
             }
 
             const firstBranch = currentStaticPart.slice(branchStart)
             const branches = [firstBranch]
-            
+
             // `/` 이후의 분기들 수집
             i++ // `/` 건너뛰기
             let nextBranch = ''
-            
+
             while (i < functionName.length) {
                 const nextChar = functionName[i]
-                
+
                 if (nextChar === '/') {
                     branches.push(nextBranch)
                     nextBranch = ''
                     i++
                     continue
                 }
-                
+
                 // 공백이나 괄호를 만나면 분기 종료
                 if (nextChar === ' ' || nextChar === '(') {
                     break
                 }
-                
+
                 nextBranch += nextChar
                 i++
             }
-            
+
             if (nextBranch) {
                 branches.push(nextBranch)
             }
 
             parts.push({
                 type: 'branching',
-                value: branches
+                value: branches,
             })
-            
+
             currentStaticPart = ''
             continue
         }
@@ -164,7 +169,7 @@ function parseFunctionNameParts(functionName: string): FunctionNamePart[] {
     if (currentStaticPart) {
         parts.push({
             type: 'static',
-            value: currentStaticPart
+            value: currentStaticPart,
         })
     }
 
@@ -179,7 +184,7 @@ function findBranchStartIndex(text: string): number {
     // 괄호 닫힘 이후의 위치를 먼저 확인 (조사가 붙는 위치)
     const lastParenIndex = text.lastIndexOf(')')
     const lastSpaceIndex = text.lastIndexOf(' ')
-    
+
     // 둘 다 있으면 더 뒤에 있는 것을 선택
     if (lastParenIndex !== -1 && lastSpaceIndex !== -1) {
         // 공백이 괄호보다 뒤에 있으면 공백 다음 위치 반환
@@ -189,17 +194,17 @@ function findBranchStartIndex(text: string): number {
         // 괄호가 공백보다 뒤에 있으면 괄호 다음 위치 반환
         return lastParenIndex + 1
     }
-    
+
     // 괄호만 있으면 괄호 다음 위치 반환
     if (lastParenIndex !== -1) {
         return lastParenIndex + 1
     }
-    
+
     // 공백만 있으면 공백 다음 위치 반환
     if (lastSpaceIndex !== -1) {
         return lastSpaceIndex + 1
     }
-    
+
     return 0
 }
 
@@ -211,17 +216,17 @@ function generateAllCombinations(parts: FunctionNamePart[]): string[] {
 
     for (const part of parts) {
         if (part.type === 'static') {
-            combinations = combinations.map(combo => combo + part.value)
+            combinations = combinations.map((combo) => combo + part.value)
         } else {
             const branches = part.value as string[]
             const newCombinations: string[] = []
-            
+
             for (const combo of combinations) {
                 for (const branch of branches) {
                     newCombinations.push(combo + branch)
                 }
             }
-            
+
             combinations = newCombinations
         }
     }
@@ -237,13 +242,13 @@ function getMentionedModuleIdentifiers(codeFile: CodeFile): string[] {
 
     const results: string[] = []
     const baseContextScope = session.baseContext?.ranScope ?? null
-    
+
     for (const [moduleName, moduleCodeFile] of Object.entries(session.files)) {
         // 현재 파일은 제외
         if (moduleCodeFile === codeFile) {
             continue
         }
-        
+
         // baseContext 심볼은 제외 (이미 로컬 스코프에 포함됨)
         if (typeof moduleName === 'symbol') {
             continue
@@ -255,7 +260,7 @@ function getMentionedModuleIdentifiers(codeFile: CodeFile): string[] {
                 validatingScope,
                 baseContextScope ?? undefined,
             )
-            
+
             for (const identifier of moduleIdentifiers) {
                 results.push(`@${moduleName} ${identifier}`)
             }
@@ -278,7 +283,9 @@ function getIdentifiersFromScope(
         return []
     }
 
-    const functionNames = [...scope.functions.keys()].flatMap(expandFunctionNameBranches)
+    const functionNames = [...scope.functions.keys()].flatMap(
+        expandFunctionNameBranches,
+    )
 
     const parentIdentifiers =
         scope.parent && scope.parent !== stopAtScope

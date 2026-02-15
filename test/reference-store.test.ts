@@ -24,32 +24,35 @@ Deno.test('ReferenceStore toPrint with object that throws in toString', () => {
     assertEquals(typeof result === 'string', true)
 })
 
-Deno.test('ReferenceStore toPrint with object that cannot be converted to string', () => {
-    // Create an object that throws when converted to string
-    // We need to override valueOf and toString to make String() throw
-    const obj: any = {}
-    let callCount = 0
-    Object.defineProperty(obj, 'toString', {
-        value: () => {
-            callCount++
-            if (callCount === 1) {
-                throw new Error('toString error')
-            }
-            throw new Error('Cannot convert')
-        },
-        configurable: true,
-    })
-    Object.defineProperty(obj, 'valueOf', {
-        value: () => {
-            throw new Error('valueOf error')
-        },
-        configurable: true,
-    })
-    const ref = new ReferenceStore(obj)
-    // First toString() call throws, then String() also throws, should return fallback
-    const result = ref.toPrint()
-    assertEquals(result, '[참조값]')
-})
+Deno.test(
+    'ReferenceStore toPrint with object that cannot be converted to string',
+    () => {
+        // Create an object that throws when converted to string
+        // We need to override valueOf and toString to make String() throw
+        const obj: any = {}
+        let callCount = 0
+        Object.defineProperty(obj, 'toString', {
+            value: () => {
+                callCount++
+                if (callCount === 1) {
+                    throw new Error('toString error')
+                }
+                throw new Error('Cannot convert')
+            },
+            configurable: true,
+        })
+        Object.defineProperty(obj, 'valueOf', {
+            value: () => {
+                throw new Error('valueOf error')
+            },
+            configurable: true,
+        })
+        const ref = new ReferenceStore(obj)
+        // First toString() call throws, then String() also throws, should return fallback
+        const result = ref.toPrint()
+        assertEquals(result, '[참조값]')
+    },
+)
 
 Deno.test('ReferenceStore toPrint with null', () => {
     const ref = new ReferenceStore(null)
@@ -70,4 +73,3 @@ Deno.test('ReferenceStore toPrint with boolean', () => {
     const ref = new ReferenceStore(true)
     assertEquals(ref.toPrint(), 'true')
 })
-

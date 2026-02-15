@@ -282,9 +282,12 @@ Deno.test('Promise를 반환하는 FFI', async () => {
         },
         executeFFI(_code, args) {
             return new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve(new NumberValue(0))
-                }, (args.숫자 as NumberValue).value * 1000)
+                setTimeout(
+                    () => {
+                        resolve(new NumberValue(0))
+                    },
+                    (args.숫자 as NumberValue).value * 1000,
+                )
             })
         },
         init() {

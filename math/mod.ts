@@ -213,7 +213,9 @@ AVERAGE
                 const { 값, 숫자 } = args
                 this.assertNumber(값)
                 this.assertNumber(숫자)
-                return new NumberValue(this.roundAt(값.value, 숫자.value, 'round'))
+                return new NumberValue(
+                    this.roundAt(값.value, 숫자.value, 'round'),
+                )
             }
             case 'CEIL': {
                 const { 값 } = args
@@ -224,7 +226,9 @@ AVERAGE
                 const { 값, 숫자 } = args
                 this.assertNumber(값)
                 this.assertNumber(숫자)
-                return new NumberValue(this.roundAt(값.value, 숫자.value, 'ceil'))
+                return new NumberValue(
+                    this.roundAt(값.value, 숫자.value, 'ceil'),
+                )
             }
             case 'FLOOR': {
                 const { 값 } = args
@@ -235,7 +239,9 @@ AVERAGE
                 const { 값, 숫자 } = args
                 this.assertNumber(값)
                 this.assertNumber(숫자)
-                return new NumberValue(this.roundAt(값.value, 숫자.value, 'floor'))
+                return new NumberValue(
+                    this.roundAt(값.value, 숫자.value, 'floor'),
+                )
             }
             case 'SQUARE': {
                 const { 값 } = args

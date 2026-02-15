@@ -15,18 +15,22 @@ export class Node {
     static friendlyName = '노드'
 
     validate(_scope: Scope): YaksokError[] {
-        throw new Error(`${this.constructor.name} has no validate method`)
+        throw new Error(`${this.getNodeTypeName()} has no validate method`)
     }
 
     toJSON(): object {
         return {
-            type: this.constructor.name,
+            type: this.getNodeTypeName(),
             ...this,
         }
     }
 
     toPrint(): string {
-        throw new Error(`${this.constructor.name} has no toPrint method`)
+        throw new Error(`${this.getNodeTypeName()} has no toPrint method`)
+    }
+
+    protected getNodeTypeName(): string {
+        return (this.constructor as typeof Node).friendlyName || '노드'
     }
 }
 
@@ -34,11 +38,11 @@ export class Executable extends Node {
     static override friendlyName = '실행 가능한 노드'
 
     execute(_scope: Scope): Promise<unknown> {
-        throw new Error(`${this.constructor.name} has no execute method`)
+        throw new Error(`${this.getNodeTypeName()} has no execute method`)
     }
 
     override toPrint(): string {
-        throw new Error(`${this.constructor.name} has no toPrint method`)
+        throw new Error(`${this.getNodeTypeName()} has no toPrint method`)
     }
 
     protected async onRunChild({
@@ -112,14 +116,17 @@ export class Evaluable<T extends ValueType = ValueType> extends Executable {
     static override friendlyName = '값이 있는 노드'
 
     override execute(_scope: Scope): Promise<T> {
-        throw new Error(`${this.constructor.name} has no execute method`)
+        throw new Error(`${this.getNodeTypeName()} has no execute method`)
     }
 }
 
 export class Identifier extends Evaluable {
     static override friendlyName = '식별자'
 
-    constructor(public value: string, public override tokens: Token[]) {
+    constructor(
+        public value: string,
+        public override tokens: Token[],
+    ) {
         super()
     }
 
@@ -184,7 +191,10 @@ export class Identifier extends Evaluable {
 export class Operator extends Node implements OperatorNode {
     static override friendlyName = '연산자'
 
-    constructor(public value: string | null, public override tokens: Token[]) {
+    constructor(
+        public value: string | null,
+        public override tokens: Token[],
+    ) {
         super()
     }
 
@@ -193,7 +203,7 @@ export class Operator extends Node implements OperatorNode {
     }
 
     call(..._operands: ValueType[]): ValueType {
-        throw new Error(`${this.constructor.name} has no call method`)
+        throw new Error(`${this.getNodeTypeName()} has no call method`)
     }
 
     override validate(): YaksokError[] {
@@ -212,7 +222,10 @@ export type OperatorClass = {
 export class Expression extends Node {
     static override friendlyName = '표현식'
 
-    constructor(public value: string, public override tokens: Token[]) {
+    constructor(
+        public value: string,
+        public override tokens: Token[],
+    ) {
         super()
     }
 

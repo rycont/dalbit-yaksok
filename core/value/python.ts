@@ -9,7 +9,11 @@ export class ReferenceStore extends ValueType {
 
     override toPrint(): string {
         try {
-            if (this.ref && typeof this.ref === 'object' && typeof this.ref.toString === 'function') {
+            if (
+                this.ref &&
+                typeof this.ref === 'object' &&
+                typeof this.ref.toString === 'function'
+            ) {
                 return String(this.ref.toString())
             }
         } catch (_) {
@@ -22,5 +26,3 @@ export class ReferenceStore extends ValueType {
         }
     }
 }
-
-

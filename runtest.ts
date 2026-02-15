@@ -7,7 +7,9 @@ const dataAnalyze = new DataAnalyze()
 await session.extend(dataAnalyze)
 await session.setBaseContext(dataAnalyze.manifest.module!['분석'])
 
-session.addModule("main", `
+session.addModule(
+    'main',
+    `
 편의점_상품들 = @데이터_불러오기 편의점 데이터
 
 편의점_상품들중 '상품ID'가 'CVS003'인 값들 보여주기
@@ -19,5 +21,6 @@ session.addModule("main", `
 간편식사_상품들 = 간편식사에서 ['상품ID', '상품명', '가격'] 가져오기
 간편한_ID들 = 간편식사_상품들에서 '상품ID' 가져오기
 간편한_ID들 보여주기
-`)
+`,
+)
 await session.runModule('main')

@@ -14,7 +14,9 @@ function getHeaderTemplate(code: string) {
 }
 
 Deno.test('adds verb-form variant only to the last static word', () => {
-    const template = getHeaderTemplate(`약속, (A)와/과 (B) 더하기\n    A + B 반환하기\n`)
+    const template = getHeaderTemplate(
+        `약속, (A)와/과 (B) 더하기\n    A + B 반환하기\n`,
+    )
 
     const lastPiece = template.pieces.at(-1)
     if (!lastPiece) {
@@ -33,38 +35,48 @@ Deno.test('adds verb-form variant only to the last static word', () => {
     )
 })
 
-Deno.test('skips verb-form variant when function header does not end with a static word', () => {
-    const template = getHeaderTemplate(`약속, (A)와/과 (B) 더하기 (C)\n    A + B + C 반환하기\n`)
+Deno.test(
+    'skips verb-form variant when function header does not end with a static word',
+    () => {
+        const template = getHeaderTemplate(
+            `약속, (A)와/과 (B) 더하기 (C)\n    A + B + C 반환하기\n`,
+        )
 
-    const lastStaticPiece = template.pieces.filter(
-        (piece) => piece.type === 'static',
-    ).at(-1)
+        const lastStaticPiece = template.pieces
+            .filter((piece) => piece.type === 'static')
+            .at(-1)
 
-    if (!lastStaticPiece) {
-        throw new Error('template must have at least one static piece')
-    }
+        if (!lastStaticPiece) {
+            throw new Error('template must have at least one static piece')
+        }
 
-    assertEquals(lastStaticPiece.value, ['더하기'])
-})
+        assertEquals(lastStaticPiece.value, ['더하기'])
+    },
+)
 
-Deno.test('adds verb-form variants for each slash-separated option in the final word', () => {
-    const template = getHeaderTemplate(`약속, 지금/현재/지금의 밀리초 가져오기/말하기\n    "" 반환하기\n`)
+Deno.test(
+    'adds verb-form variants for each slash-separated option in the final word',
+    () => {
+        const template = getHeaderTemplate(
+            `약속, 지금/현재/지금의 밀리초 가져오기/말하기\n    "" 반환하기\n`,
+        )
 
-    const lastPiece = template.pieces.at(-1)
-    if (!lastPiece) {
-        throw new Error('template must have at least one piece')
-    }
+        const lastPiece = template.pieces.at(-1)
+        if (!lastPiece) {
+            throw new Error('template must have at least one piece')
+        }
 
-    assertEquals(lastPiece.type, 'static')
-    assertEquals(
-        new Set(lastPiece.value),
-        new Set([
-            '가져오기',
-            '가져오고',
-            '말하기',
-            '말하고',
-            '가져오기/말하기',
-            '가져오고/말하고',
-        ]),
-    )
-})
+        assertEquals(lastPiece.type, 'static')
+        assertEquals(
+            new Set(lastPiece.value),
+            new Set([
+                '가져오기',
+                '가져오고',
+                '말하기',
+                '말하고',
+                '가져오기/말하기',
+                '가져오고/말하고',
+            ]),
+        )
+    },
+)

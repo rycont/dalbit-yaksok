@@ -2,7 +2,11 @@ import { Expression, Identifier, Node, Operator } from '../../node/base.ts'
 import { FFIBody } from '../../node/ffi.ts'
 import { Mention } from '../../node/mention.ts'
 import { EOL, Indent } from '../../node/misc.ts'
-import { NumberLiteral, StringLiteral, TemplateStringPart } from '../../node/primitive-literal.ts'
+import {
+    NumberLiteral,
+    StringLiteral,
+    TemplateStringPart,
+} from '../../node/primitive-literal.ts'
 import { Token, TOKEN_TYPE } from '../tokenize/token.ts'
 
 const escapeMap: Record<string, string> = {
@@ -47,10 +51,9 @@ function mapTokenToNode(token: Token) {
         case TOKEN_TYPE.NUMBER:
             return new NumberLiteral(parseFloat(token.value), [token])
         case TOKEN_TYPE.STRING:
-            return new StringLiteral(
-                unescapeString(token.value.slice(1, -1)),
-                [token],
-            )
+            return new StringLiteral(unescapeString(token.value.slice(1, -1)), [
+                token,
+            ])
         case TOKEN_TYPE.TEMPLATE_STRING_START:
             // Remove leading quote, unescape content
             return new TemplateStringPart(
@@ -58,10 +61,7 @@ function mapTokenToNode(token: Token) {
                 [token],
             )
         case TOKEN_TYPE.TEMPLATE_STRING_PART:
-            return new TemplateStringPart(
-                unescapeString(token.value),
-                [token],
-            )
+            return new TemplateStringPart(unescapeString(token.value), [token])
         case TOKEN_TYPE.TEMPLATE_STRING_END:
             // Remove trailing quote, unescape content
             return new TemplateStringPart(

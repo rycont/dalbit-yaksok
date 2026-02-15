@@ -45,6 +45,9 @@ Deno.test('debugger keyword', async () => {
     assert(result.reason === 'finish')
     assert(debugEventPayload !== null)
     assertEquals(debugEventPayload?.node.tokens[0].position.line, 5)
-    assertEquals(result.codeFile.ranScope?.getVariable('내_변수').toPrint(), '20')
+    assertEquals(
+        result.codeFile.ranScope?.getVariable('내_변수').toPrint(),
+        '20',
+    )
     assertEquals(output, 'ABCD')
 })

@@ -18,10 +18,7 @@ Deno.test('IndexedValue getItemsFromKeys', () => {
         ]),
     )
 
-    const keys = new ListValue([
-        new StringValue('a'),
-        new NumberValue(2),
-    ])
+    const keys = new ListValue([new StringValue('a'), new NumberValue(2)])
 
     const result = indexed.getItemsFromKeys(keys)
     const entries = [...result.getEntries()]
@@ -35,9 +32,7 @@ Deno.test('IndexedValue getItemsFromKeys', () => {
 
 Deno.test('IndexedValue getItemsFromKeys with invalid key type', () => {
     const indexed = new IndexedValue(
-        new Map<string, ValueType>([
-            ['a', new StringValue('apple')],
-        ]),
+        new Map<string, ValueType>([['a', new StringValue('apple')]]),
     )
 
     const keys = new ListValue([
@@ -77,4 +72,3 @@ Deno.test('IndexedValue enumerate with empty dict', () => {
     const enumerated = [...indexed.enumerate()]
     assertEquals(enumerated.length, 0)
 })
-

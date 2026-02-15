@@ -21,7 +21,10 @@ import { assignerToOperatorMap } from './operator.ts'
 export class Sequence extends Node {
     static override friendlyName = '나열된 값'
 
-    constructor(public items: Evaluable[], public override tokens: Token[]) {
+    constructor(
+        public items: Evaluable[],
+        public override tokens: Token[],
+    ) {
         super()
     }
 
@@ -40,7 +43,10 @@ export class Sequence extends Node {
 export class ListLiteral extends Evaluable {
     static override friendlyName = '목록'
 
-    constructor(public items: Evaluable[], public override tokens: Token[]) {
+    constructor(
+        public items: Evaluable[],
+        public override tokens: Token[],
+    ) {
         super()
     }
 
@@ -65,7 +71,10 @@ export class ListLiteral extends Evaluable {
 export class TupleLiteral extends Evaluable {
     static override friendlyName = '튜플'
 
-    constructor(public items: Evaluable[], public override tokens: Token[]) {
+    constructor(
+        public items: Evaluable[],
+        public override tokens: Token[],
+    ) {
         super()
     }
 

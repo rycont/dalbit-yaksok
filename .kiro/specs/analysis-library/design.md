@@ -5,6 +5,7 @@
 한국어 자연어 문법을 사용하여 데이터 분석을 수행할 수 있는 라이브러리를 설계합니다. 이 라이브러리는 Dalbit Yaksok의 Extension 시스템을 활용하여 구현되며, 체이닝 방식으로 동작하는 함수들을 제공합니다.
 
 핵심 아이디어는 다음과 같은 자연스러운 한국어 문장을 코드로 작성할 수 있게 하는 것입니다:
+
 ```yak
 결과 = 번역(분석), (거래내역)중 '금액'이 5000보다 큰것 중 가장많이나온 '이름'
 ***
@@ -23,11 +24,11 @@ graph TD
     C --> D[FilterOperations]
     C --> E[SortOperations]
     C --> F[AggregateOperations]
-    
+
     G[Korean Grammar Parser] --> D
     G --> E
     G --> F
-    
+
     H[Data Types] --> C
     I[ListValue/IndexedValue] --> H
 ```
@@ -49,8 +50,8 @@ graph TD
 export class AnalysisExtension implements Extension {
     manifest: ExtensionManifest = {
         ffiRunner: {
-            runtimeName: '분석'
-        }
+            runtimeName: '분석',
+        },
     }
 
     executeFFI(code: string, args: FunctionInvokingParams): ValueType {
@@ -74,7 +75,7 @@ export class AnalysisChain extends ObjectValue {
     중(condition: string): AnalysisChain
     을_를(field: string): AnalysisChain
     로_으로(field: string): AnalysisChain
-    
+
     // 최종 결과 메서드들
     가장많이나온것(field: string): ValueType
 }
@@ -85,13 +86,16 @@ export class AnalysisChain extends ObjectValue {
 ```typescript
 export class KoreanGrammarParser {
     // 조사 변화 처리
-    static parseParticle(word: string, particle: '이/가' | '을/를' | '로/으로'): string
-    
+    static parseParticle(
+        word: string,
+        particle: '이/가' | '을/를' | '로/으로',
+    ): string
+
     // 함수명 파싱
     static parseFunction(expression: string): {
-        functionName: string,
-        field: string,
-        value?: any,
+        functionName: string
+        field: string
+        value?: any
         operator?: string
     }
 }
@@ -105,9 +109,9 @@ export class KoreanGrammarParser {
 
 ```typescript
 // ListValue 형태의 데이터 (각 항목은 IndexedValue)
-[
-    { "이름": "김철수", "금액": 5000, "결제수단": "카드", "일자": "2024-01-01" },
-    { "이름": "이영희", "금액": 3000, "결제수단": "현금", "일자": "2024-01-02" },
+;[
+    { 이름: '김철수', 금액: 5000, 결제수단: '카드', 일자: '2024-01-01' },
+    { 이름: '이영희', 금액: 3000, 결제수단: '현금', 일자: '2024-01-02' },
     // ...
 ]
 ```
@@ -115,16 +119,16 @@ export class KoreanGrammarParser {
 ### 함수 시그니처
 
 1. **필터링 함수들**
-   - `중 '필드명'이/가 값보다 큰것`: 숫자 비교 (>)
-   - `중 '필드명'이/가 값보다 작은것`: 숫자 비교 (<)
-   - `중 '필드명'이/가 값인것`: 정확한 일치 (===)
-   - `중 '필드명'에 값이/가 들어가있는것`: 문자열 포함 (includes)
+    - `중 '필드명'이/가 값보다 큰것`: 숫자 비교 (>)
+    - `중 '필드명'이/가 값보다 작은것`: 숫자 비교 (<)
+    - `중 '필드명'이/가 값인것`: 정확한 일치 (===)
+    - `중 '필드명'에 값이/가 들어가있는것`: 문자열 포함 (includes)
 
 2. **정렬 함수**
-   - `을/를 '필드명'로/으로 정렬한것`: 오름차순 정렬
+    - `을/를 '필드명'로/으로 정렬한것`: 오름차순 정렬
 
 3. **집계 함수**
-   - `가장많이나온 '필드명'`: 최빈값 반환
+    - `가장많이나온 '필드명'`: 최빈값 반환
 
 ## Error Handling
 
@@ -155,44 +159,46 @@ try {
 ### 단위 테스트
 
 1. **KoreanGrammarParser 테스트**
-   - 조사 변화 처리 정확성
-   - 함수명 파싱 정확성
+    - 조사 변화 처리 정확성
+    - 함수명 파싱 정확성
 
 2. **AnalysisChain 테스트**
-   - 각 필터링 함수의 동작
-   - 체이닝 동작 검증
-   - 데이터 타입 변환
+    - 각 필터링 함수의 동작
+    - 체이닝 동작 검증
+    - 데이터 타입 변환
 
 3. **AnalysisExtension 테스트**
-   - FFI 인터페이스 구현
-   - 에러 처리
+    - FFI 인터페이스 구현
+    - 에러 처리
 
 ### 통합 테스트
 
 1. **전체 워크플로우 테스트**
-   ```yak
-   번역(분석), (데이터)중 '금액'이 3000보다 큰것 중 가장많이나온 '이름'
-   ***
-   return 데이터중('금액이 3000보다 큰것').중('가장많이나온 이름')
-   ***
-   
-   거래내역 = [
-       {"이름": "김철수", "금액": 5000, "결제수단": "카드"},
-       {"이름": "이영희", "금액": 3000, "결제수단": "현금"}
-   ]
-   
-   결과 = (거래내역)중 '금액'이 3000보다 큰것 중 가장많이나온 '이름'
-   ```
+
+    ```yak
+    번역(분석), (데이터)중 '금액'이 3000보다 큰것 중 가장많이나온 '이름'
+    ***
+    return 데이터중('금액이 3000보다 큰것').중('가장많이나온 이름')
+    ***
+
+    거래내역 = [
+        {"이름": "김철수", "금액": 5000, "결제수단": "카드"},
+        {"이름": "이영희", "금액": 3000, "결제수단": "현금"}
+    ]
+
+    결과 = (거래내역)중 '금액'이 3000보다 큰것 중 가장많이나온 '이름'
+    ```
 
 2. **복잡한 체이닝 테스트**
-   ```yak
-   번역(분석), (데이터)중 '결제수단'가 '카드'인것 중 '금액'이 100보다 큰것을 '일자'로 정렬한것
-   ***
-   return 데이터중('결제수단이 카드인것').중('금액이 100보다 큰것').을('일자로 정렬한것')
-   ***
-   
-   결과 = (거래내역)중 '결제수단'가 '카드'인것 중 '금액'이 100보다 큰것을 '일자'로 정렬한것
-   ```
+
+    ```yak
+    번역(분석), (데이터)중 '결제수단'가 '카드'인것 중 '금액'이 100보다 큰것을 '일자'로 정렬한것
+    ***
+    return 데이터중('결제수단이 카드인것').중('금액이 100보다 큰것').을('일자로 정렬한것')
+    ***
+
+    결과 = (거래내역)중 '결제수단'가 '카드'인것 중 '금액'이 100보다 큰것을 '일자'로 정렬한것
+    ```
 
 ### 성능 테스트
 
@@ -212,7 +218,7 @@ Dalbit Yaksok의 번역 문법을 사용합니다:
 return 데이터중('필드명이 ' + 값 + '보다 큰것')
 ***
 
-번역(분석), (데이터)중 '필드명'이/가 값보다 작은것  
+번역(분석), (데이터)중 '필드명'이/가 값보다 작은것
 ***
 return 데이터중('필드명이 ' + 값 + '보다 작은것')
 ***
@@ -244,12 +250,12 @@ AnalysisExtension의 executeFFI에서는 JavaScript 코드를 실행하고 적�
 executeFFI(code: string, args: FunctionInvokingParams): ValueType {
     // code는 "return 데이터중('필드명이 값보다 큰것')" 형태
     // args에는 함수 호출 시 전달된 매개변수들이 포함됨
-    
+
     const analysisChain = new AnalysisChain(args.데이터 as ListValue)
-    
+
     // JavaScript 코드 실행하여 분석 수행
     const result = eval(code.replace('return ', ''))
-    
+
     return result
 }
 ```
@@ -274,7 +280,7 @@ executeFFI(code: string, args: FunctionInvokingParams): ValueType {
 ```typescript
 static parseParticle(word: string, particle: '이/가' | '을/를' | '로/으로'): string {
     const hasJongseong = this.hasJongseong(word)
-    
+
     switch (particle) {
         case '이/가': return hasJongseong ? '이' : '가'
         case '을/를': return hasJongseong ? '을' : '를'

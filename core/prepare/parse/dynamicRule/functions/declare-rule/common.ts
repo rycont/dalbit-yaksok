@@ -31,7 +31,10 @@ export function functionHeaderToPattern(tokens: Token[]): PatternUnit[] {
 
 function skipDestructureGroup(tokens: Token[], startIndex: number): number {
     let i = startIndex + 1
-    while (i < tokens.length && tokens[i].type !== TOKEN_TYPE.CLOSING_PARENTHESIS) {
+    while (
+        i < tokens.length &&
+        tokens[i].type !== TOKEN_TYPE.CLOSING_PARENTHESIS
+    ) {
         i++
     }
     return i + 1

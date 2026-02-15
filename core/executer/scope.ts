@@ -1,14 +1,14 @@
-import { AlreadyDefinedFunctionError } from "../error/function.ts";
-import { NotDefinedIdentifierError } from "../error/index.ts";
-import { ValueType } from "../value/base.ts";
+import { AlreadyDefinedFunctionError } from '../error/function.ts'
+import { NotDefinedIdentifierError } from '../error/index.ts'
+import { ValueType } from '../value/base.ts'
 
-import { FEATURE_FLAG } from "../constant/feature-flags.ts";
+import { FEATURE_FLAG } from '../constant/feature-flags.ts'
 
-import type { Token } from "../prepare/tokenize/token.ts";
-import type { Node } from "../node/base.ts";
+import type { Token } from '../prepare/tokenize/token.ts'
+import type { Node } from '../node/base.ts'
 
-import type { CodeFile } from "../type/code-file.ts";
-import type { RunnableObject } from "../value/function.ts";
+import type { CodeFile } from '../type/code-file.ts'
+import type { RunnableObject } from '../value/function.ts'
 
 /**
  * 실행 컨텍스트(Execution Context)를 관리하는 클래스입니다.
@@ -19,214 +19,225 @@ import type { RunnableObject } from "../value/function.ts";
  * 이는 `달빛 약속` 언어의 클로저와 변수 유효 범위를 결정하는 핵심적인 메커니즘입니다.
  */
 export class Scope {
-  variables: Record<string, ValueType>;
-  parent: Scope | undefined;
-  codeFile?: CodeFile;
-  public functions: Map<string, RunnableObject> = new Map();
-  public callStackDepth: number;
-  private readonly allowFunctionOverride: boolean;
+    variables: Record<string, ValueType>
+    parent: Scope | undefined
+    codeFile?: CodeFile
+    public functions: Map<string, RunnableObject> = new Map()
+    public callStackDepth: number
+    private readonly allowFunctionOverride: boolean
 
-  constructor(
-    config: {
-      parent?: Scope;
-      codeFile?: CodeFile;
-      initialVariable?: Record<string, ValueType> | null;
-      callStackDepth?: number;
-      callerNode?: Node;
-      allowFunctionOverride?: boolean;
-    } = {},
-  ) {
-    this.variables = config.initialVariable || {};
-
-    if (config.parent) {
-      this.parent = config.parent;
-    }
-
-    if (config.callStackDepth !== undefined) {
-      this.callStackDepth = config.callStackDepth;
-    } else if (config.parent) {
-      this.callStackDepth = config.parent.callStackDepth;
-    } else {
-      this.callStackDepth = 0;
-    }
-
-    if (config.codeFile) {
-      this.codeFile = config.codeFile;
-    } else if (config.parent?.codeFile) {
-      this.codeFile = config.parent.codeFile;
-    }
-
-    if (!config.parent && config.codeFile?.session?.baseContext?.ranScope) {
-      this.parent = config.codeFile.session.baseContext.ranScope;
-    }
-
-    this.allowFunctionOverride = config.allowFunctionOverride ?? false;
-
-    if (this.codeFile && config.callerNode) {
-      this.codeFile.registerScope(this, config.callerNode);
-    }
-  }
-
-  /**
-   * 변수를 설정합니다. 이미 상위 스코프에 변수가 존재하면 그 변수의 값을 갱신하고,
-   * 그렇지 않으면 현재 스코프에 새로운 변수를 생성합니다.
-   * @param name - 설정할 변수의 이름입니다.
-   * @param value - 변수에 할당할 값입니다.
-   * @param tokens - 변수 설정과 관련된 토큰 리스트입니다. 이벤트 발생 시 사용됩니다.
-   */
-  setVariable(name: string, value: ValueType, tokens?: Token[]) {
-    if (this.parent?.askSetVariable(name, value, tokens)) return;
-    this.variables[name] = value;
-    this.emitVariableSetEvent(name, value, tokens);
-  }
-
-  /**
-   * 상위 스코프로 거슬러 올라가며 변수가 존재하는지 확인하고, 존재하면 값을 설정합니다.
-   * `setVariable` 내부에서 호출되는 헬퍼 메서드입니다.
-   * @param name - 설정할 변수의 이름입니다.
-   * @param value - 변수에 할당할 값입니다.
-   * @param tokens - 변수 설정과 관련된 토큰 리스트입니다. 이벤트 발생 시 사용됩니다.
-   * @returns 변수를 성공적으로 설정했는지 여부를 반환합니다.
-   */
-  askSetVariable(name: string, value: ValueType, tokens?: Token[]): boolean {
-    if (name in this.variables) {
-      this.variables[name] = value;
-      this.emitVariableSetEvent(name, value, tokens);
-      return true;
-    }
-
-    if (this.parent) return this.parent.askSetVariable(name, value, tokens);
-    return false;
-  }
-
-  /**
-   * 현재 스코프 또는 상위 스코프에서 변수를 찾아 그 값을 반환합니다.
-   *
-   * **스코프 체인 탐색**: 먼저 현재 스코프의 `variables`에서 변수를 찾습니다.
-   * 만약 없다면, `parent` 스코프의 `getVariable`을 재귀적으로 호출하여
-   * 스코프 체인을 따라 올라가며 변수를 찾습니다. 최상위 스코프에도 변수가 없으면
-   * `NotDefinedIdentifierError`를 발생시킵니다.
-   *
-   * @param name - 찾을 변수의 이름입니다.
-   * @param tokens - 변수 읽기와 관련된 토큰 리스트입니다. 이벤트 발생 시 사용됩니다.
-   * @returns 변수의 값을 담은 `ValueType` 객체를 반환합니다.
-   */
-  getVariable(name: string, tokens?: Token[]): ValueType {
-    if (name in this.variables) {
-      const value = this.variables[name];
-      this.emitVariableReadEvent(name, value, tokens);
-      return value;
-    }
-
-    if (this.parent) {
-      return this.parent.getVariable(name, tokens);
-    }
-
-    const errorInstance = new NotDefinedIdentifierError({
-      resource: {
-        name,
-      },
-    });
-
-    errorInstance.codeFile = this.codeFile;
-    throw errorInstance;
-  }
-
-  /**
-   * 현재 스코프에 새로운 함수(약속)를 추가합니다.
-   * @param functionObject - 추가할 함수를 나타내는 `RunnableObject`입니다.
-   */
-  addFunctionObject(functionObject: RunnableObject) {
-    if (
-      this.functions.has(functionObject.name) &&
-      !this.allowFunctionOverride
+    constructor(
+        config: {
+            parent?: Scope
+            codeFile?: CodeFile
+            initialVariable?: Record<string, ValueType> | null
+            callStackDepth?: number
+            callerNode?: Node
+            allowFunctionOverride?: boolean
+        } = {},
     ) {
-      const errorInstance = new AlreadyDefinedFunctionError({
-        resource: {
-          name: functionObject.name,
-        },
-      });
-      errorInstance.codeFile = this.codeFile;
-      throw errorInstance;
+        this.variables = config.initialVariable || {}
+
+        if (config.parent) {
+            this.parent = config.parent
+        }
+
+        if (config.callStackDepth !== undefined) {
+            this.callStackDepth = config.callStackDepth
+        } else if (config.parent) {
+            this.callStackDepth = config.parent.callStackDepth
+        } else {
+            this.callStackDepth = 0
+        }
+
+        if (config.codeFile) {
+            this.codeFile = config.codeFile
+        } else if (config.parent?.codeFile) {
+            this.codeFile = config.parent.codeFile
+        }
+
+        if (!config.parent && config.codeFile?.session?.baseContext?.ranScope) {
+            this.parent = config.codeFile.session.baseContext.ranScope
+        }
+
+        this.allowFunctionOverride = config.allowFunctionOverride ?? false
+
+        if (this.codeFile && config.callerNode) {
+            this.codeFile.registerScope(this, config.callerNode)
+        }
     }
-    this.functions.set(functionObject.name, functionObject);
-  }
 
-  /**
-   * 현재 스코프 또는 상위 스코프에서 함수(약속)를 찾아 반환합니다.
-   *
-   * 변수 검색과 마찬가지로, 스코프 체인을 따라 올라가며 재귀적으로 함수를 찾습니다.
-   *
-   * @param name - 찾을 함수의 이름입니다.
-   * @returns 함수를 나타내는 `RunnableObject`를 반환합니다.
-   */
-  getFunctionObject(name: string): RunnableObject {
-    const fromCurrentScope = this.functions.get(name);
-    if (fromCurrentScope) return fromCurrentScope;
-
-    if (this.parent) {
-      return this.parent.getFunctionObject(name);
+    /**
+     * 변수를 설정합니다. 이미 상위 스코프에 변수가 존재하면 그 변수의 값을 갱신하고,
+     * 그렇지 않으면 현재 스코프에 새로운 변수를 생성합니다.
+     * @param name - 설정할 변수의 이름입니다.
+     * @param value - 변수에 할당할 값입니다.
+     * @param tokens - 변수 설정과 관련된 토큰 리스트입니다. 이벤트 발생 시 사용됩니다.
+     */
+    setVariable(name: string, value: ValueType, tokens?: Token[]) {
+        if (this.parent?.askSetVariable(name, value, tokens)) return
+        this.variables[name] = value
+        this.emitVariableSetEvent(name, value, tokens)
     }
 
-    const errorInstance = new NotDefinedIdentifierError({
-      resource: {
-        name,
-      },
-    });
+    /**
+     * 현재 스코프에만 변수를 설정합니다.
+     * 상위 스코프 탐색 없이 로컬 슬롯을 직접 갱신해야 하는 경우 사용합니다.
+     */
+    setLocalVariable(name: string, value: ValueType, tokens?: Token[]) {
+        this.variables[name] = value
+        this.emitVariableSetEvent(name, value, tokens)
+    }
 
-    errorInstance.codeFile = this.codeFile;
-    throw errorInstance;
-  }
+    /**
+     * 상위 스코프로 거슬러 올라가며 변수가 존재하는지 확인하고, 존재하면 값을 설정합니다.
+     * `setVariable` 내부에서 호출되는 헬퍼 메서드입니다.
+     * @param name - 설정할 변수의 이름입니다.
+     * @param value - 변수에 할당할 값입니다.
+     * @param tokens - 변수 설정과 관련된 토큰 리스트입니다. 이벤트 발생 시 사용됩니다.
+     * @returns 변수를 성공적으로 설정했는지 여부를 반환합니다.
+     */
+    askSetVariable(name: string, value: ValueType, tokens?: Token[]): boolean {
+        if (name in this.variables) {
+            this.variables[name] = value
+            this.emitVariableSetEvent(name, value, tokens)
+            return true
+        }
 
-  private emitVariableSetEvent(
-    name: string,
-    value: ValueType,
-    tokens?: Token[],
-  ) {
-    if (!this.codeFile?.session) return;
-    if (!tokens || tokens.length === 0) return;
+        if (this.parent) return this.parent.askSetVariable(name, value, tokens)
+        return false
+    }
 
-    // 플래그 확인: DISABLE_VARIABLE_EVENTS가 활성화되면 이벤트를 발생시키지 않음
-    const isDisabled = this.codeFile.session.flags[
-      FEATURE_FLAG.DISABLE_VARIABLE_EVENTS
-    ] === true;
+    /**
+     * 현재 스코프 또는 상위 스코프에서 변수를 찾아 그 값을 반환합니다.
+     *
+     * **스코프 체인 탐색**: 먼저 현재 스코프의 `variables`에서 변수를 찾습니다.
+     * 만약 없다면, `parent` 스코프의 `getVariable`을 재귀적으로 호출하여
+     * 스코프 체인을 따라 올라가며 변수를 찾습니다. 최상위 스코프에도 변수가 없으면
+     * `NotDefinedIdentifierError`를 발생시킵니다.
+     *
+     * @param name - 찾을 변수의 이름입니다.
+     * @param tokens - 변수 읽기와 관련된 토큰 리스트입니다. 이벤트 발생 시 사용됩니다.
+     * @returns 변수의 값을 담은 `ValueType` 객체를 반환합니다.
+     */
+    getVariable(name: string, tokens?: Token[]): ValueType {
+        if (name in this.variables) {
+            const value = this.variables[name]
+            this.emitVariableReadEvent(name, value, tokens)
+            return value
+        }
 
-    if (isDisabled) return;
+        if (this.parent) {
+            return this.parent.getVariable(name, tokens)
+        }
 
-    this.codeFile.session.pubsub.pub("variableSet", [
-      {
-        type: "variable-set",
-        name,
-        value,
-        scope: this,
-        tokens,
-      },
-    ]);
-  }
+        const errorInstance = new NotDefinedIdentifierError({
+            resource: {
+                name,
+            },
+        })
 
-  private emitVariableReadEvent(
-    name: string,
-    value: ValueType,
-    tokens?: Token[],
-  ) {
-    if (!this.codeFile?.session) return;
-    if (!tokens || tokens.length === 0) return;
+        errorInstance.codeFile = this.codeFile
+        throw errorInstance
+    }
 
-    // 플래그 확인: DISABLE_VARIABLE_EVENTS가 활성화되면 이벤트를 발생시키지 않음
-    const isDisabled = this.codeFile.session.flags[
-      FEATURE_FLAG.DISABLE_VARIABLE_EVENTS
-    ] === true;
+    /**
+     * 현재 스코프에 새로운 함수(약속)를 추가합니다.
+     * @param functionObject - 추가할 함수를 나타내는 `RunnableObject`입니다.
+     */
+    addFunctionObject(functionObject: RunnableObject) {
+        if (
+            this.functions.has(functionObject.name) &&
+            !this.allowFunctionOverride
+        ) {
+            const errorInstance = new AlreadyDefinedFunctionError({
+                resource: {
+                    name: functionObject.name,
+                },
+            })
+            errorInstance.codeFile = this.codeFile
+            throw errorInstance
+        }
+        this.functions.set(functionObject.name, functionObject)
+    }
 
-    if (isDisabled) return;
+    /**
+     * 현재 스코프 또는 상위 스코프에서 함수(약속)를 찾아 반환합니다.
+     *
+     * 변수 검색과 마찬가지로, 스코프 체인을 따라 올라가며 재귀적으로 함수를 찾습니다.
+     *
+     * @param name - 찾을 함수의 이름입니다.
+     * @returns 함수를 나타내는 `RunnableObject`를 반환합니다.
+     */
+    getFunctionObject(name: string): RunnableObject {
+        const fromCurrentScope = this.functions.get(name)
+        if (fromCurrentScope) return fromCurrentScope
 
-    this.codeFile.session.pubsub.pub("variableRead", [
-      {
-        type: "variable-read",
-        name,
-        value,
-        scope: this,
-        tokens,
-      },
-    ]);
-  }
+        if (this.parent) {
+            return this.parent.getFunctionObject(name)
+        }
+
+        const errorInstance = new NotDefinedIdentifierError({
+            resource: {
+                name,
+            },
+        })
+
+        errorInstance.codeFile = this.codeFile
+        throw errorInstance
+    }
+
+    private emitVariableSetEvent(
+        name: string,
+        value: ValueType,
+        tokens?: Token[],
+    ) {
+        if (!this.codeFile?.session) return
+        if (!tokens || tokens.length === 0) return
+
+        // 플래그 확인: DISABLE_VARIABLE_EVENTS가 활성화되면 이벤트를 발생시키지 않음
+        const isDisabled =
+            this.codeFile.session.flags[
+                FEATURE_FLAG.DISABLE_VARIABLE_EVENTS
+            ] === true
+
+        if (isDisabled) return
+
+        this.codeFile.session.pubsub.pub('variableSet', [
+            {
+                type: 'variable-set',
+                name,
+                value,
+                scope: this,
+                tokens,
+            },
+        ])
+    }
+
+    private emitVariableReadEvent(
+        name: string,
+        value: ValueType,
+        tokens?: Token[],
+    ) {
+        if (!this.codeFile?.session) return
+        if (!tokens || tokens.length === 0) return
+
+        // 플래그 확인: DISABLE_VARIABLE_EVENTS가 활성화되면 이벤트를 발생시키지 않음
+        const isDisabled =
+            this.codeFile.session.flags[
+                FEATURE_FLAG.DISABLE_VARIABLE_EVENTS
+            ] === true
+
+        if (isDisabled) return
+
+        this.codeFile.session.pubsub.pub('variableRead', [
+            {
+                type: 'variable-read',
+                name,
+                value,
+                scope: this,
+                tokens,
+            },
+        ])
+    }
 }

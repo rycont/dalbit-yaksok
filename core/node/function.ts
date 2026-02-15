@@ -10,7 +10,8 @@ import {
     ErrorInFFIExecution,
     ErrorOccurredWhileRunningFFIExecution,
 } from '../error/ffi.ts'
-import { type Token, TOKEN_TYPE } from '../prepare/tokenize/token.ts'
+import { type Token } from '../prepare/tokenize/token.ts'
+import { extractParamNamesFromHeaderTokens } from '../util/extract-param-names-from-header-tokens.ts'
 import { Block } from './block.ts'
 
 /**
@@ -237,42 +238,5 @@ export async function evaluateParams(
 }
 
 function extractParamsFromTokens(allTokens: Token[]): string[] {
-    const linebreakIndex = allTokens.findIndex(
-        (token) => token.type === TOKEN_TYPE.NEW_LINE,
-    )
-
-    const headers = allTokens.slice(0, linebreakIndex)
-    const params: string[] = []
-
-    for (let i = 0; i < headers.length - 1; i++) {
-        if (headers[i].type !== TOKEN_TYPE.OPENING_PARENTHESIS) {
-            continue
-        }
-
-        const nextToken = headers[i + 1]
-        if (nextToken?.type !== TOKEN_TYPE.IDENTIFIER) {
-            continue
-        }
-
-        const nextNextToken = headers[i + 2]
-        if (nextNextToken?.type === TOKEN_TYPE.CLOSING_PARENTHESIS) {
-            params.push(nextToken.value)
-        } else if (nextNextToken?.type === TOKEN_TYPE.COMMA) {
-            let j = i + 1
-            while (j < headers.length && headers[j]?.type === TOKEN_TYPE.IDENTIFIER) {
-                params.push(headers[j].value)
-                const after = headers[j + 1]
-                if (after?.type === TOKEN_TYPE.CLOSING_PARENTHESIS) {
-                    break
-                }
-                if (after?.type === TOKEN_TYPE.COMMA) {
-                    j += 2
-                } else {
-                    break
-                }
-            }
-        }
-    }
-
-    return params
+    return extractParamNamesFromHeaderTokens(allTokens)
 }

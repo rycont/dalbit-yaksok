@@ -159,7 +159,12 @@ export const PARSING_RULES: Rule[] = [
             const target = nodes[0] as Evaluable
             const methodName = (nodes[2] as Identifier).value
             const wrapped = nodes[3] as ValueWithParenthesis
-            return new PythonMethodCall(target, methodName, [wrapped.value], tokens)
+            return new PythonMethodCall(
+                target,
+                methodName,
+                [wrapped.value],
+                tokens,
+            )
         },
     },
     // Python: func() - () becomes TupleLiteral([]) after tuple parsing

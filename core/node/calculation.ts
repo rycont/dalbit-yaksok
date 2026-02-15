@@ -31,7 +31,10 @@ import {
 export class ValueWithParenthesis extends Evaluable {
     static override friendlyName = '괄호로 묶인 값'
 
-    constructor(public value: Evaluable, public override tokens: Token[]) {
+    constructor(
+        public value: Evaluable,
+        public override tokens: Token[],
+    ) {
         super()
     }
 
@@ -47,7 +50,10 @@ export class ValueWithParenthesis extends Evaluable {
 export class NotExpression extends Evaluable {
     static override friendlyName = '부정'
 
-    constructor(public value: Evaluable, public override tokens: Token[]) {
+    constructor(
+        public value: Evaluable,
+        public override tokens: Token[],
+    ) {
         super()
     }
 
@@ -149,7 +155,10 @@ export class Formula extends Evaluable {
             if (term instanceof Operator) {
                 while (
                     operatorStack.length > 0 &&
-                    this.shouldPopOperator(term, operatorStack[operatorStack.length - 1])
+                    this.shouldPopOperator(
+                        term,
+                        operatorStack[operatorStack.length - 1],
+                    )
                 ) {
                     outputQueue.push(operatorStack.pop()!)
                 }
@@ -188,7 +197,10 @@ export class Formula extends Evaluable {
             operator instanceof ModularOperator
         )
             return 4
-        if (operator instanceof PlusOperator || operator instanceof MinusOperator)
+        if (
+            operator instanceof PlusOperator ||
+            operator instanceof MinusOperator
+        )
             return 3
         if (
             operator instanceof GreaterThanOperator ||

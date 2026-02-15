@@ -20,7 +20,7 @@ export function emitLoopIterationWarning({
             typeof fileName === 'string'
                 ? fileName
                 : typeof fileName === 'symbol'
-                  ? fileName.description ?? fileName.toString()
+                  ? (fileName.description ?? fileName.toString())
                   : '알 수 없는 파일'
 
         console.warn(

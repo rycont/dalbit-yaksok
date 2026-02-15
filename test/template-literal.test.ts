@@ -12,7 +12,9 @@ Deno.test('Single variable interpolation', async () => {
 `,
     )
     await session.runModule('main')
-    const result = session.getCodeFile('main').ranScope?.getVariable('결과') as StringValue
+    const result = session
+        .getCodeFile('main')
+        .ranScope?.getVariable('결과') as StringValue
     assertEquals(result.value, '안녕, 홍길동!')
 })
 
@@ -27,7 +29,9 @@ Deno.test('Multiple variables interpolation', async () => {
 `,
     )
     await session.runModule('main')
-    const result = session.getCodeFile('main').ranScope?.getVariable('결과') as StringValue
+    const result = session
+        .getCodeFile('main')
+        .ranScope?.getVariable('결과') as StringValue
     assertEquals(result.value, '철수님은 25살입니다')
 })
 
@@ -41,7 +45,9 @@ Deno.test('Arithmetic expression interpolation', async () => {
 `,
     )
     await session.runModule('main')
-    const result = session.getCodeFile('main').ranScope?.getVariable('결과') as StringValue
+    const result = session
+        .getCodeFile('main')
+        .ranScope?.getVariable('결과') as StringValue
     assertEquals(result.value, '결과는 20입니다')
 })
 
@@ -56,7 +62,9 @@ b = 3
 `,
     )
     await session.runModule('main')
-    const result = session.getCodeFile('main').ranScope?.getVariable('결과') as StringValue
+    const result = session
+        .getCodeFile('main')
+        .ranScope?.getVariable('결과') as StringValue
     assertEquals(result.value, '합: 8, 곱: 15')
 })
 
@@ -71,7 +79,9 @@ b = 3
 `,
     )
     await session.runModule('main')
-    const result = session.getCodeFile('main').ranScope?.getVariable('결과') as StringValue
+    const result = session
+        .getCodeFile('main')
+        .ranScope?.getVariable('결과') as StringValue
     assertEquals(result.value, '10')
 })
 
@@ -86,7 +96,9 @@ Deno.test('String concatenation in template', async () => {
 `,
     )
     await session.runModule('main')
-    const result = session.getCodeFile('main').ranScope?.getVariable('결과') as StringValue
+    const result = session
+        .getCodeFile('main')
+        .ranScope?.getVariable('결과') as StringValue
     assertEquals(result.value, '이름: 김철수')
 })
 
@@ -100,7 +112,9 @@ Deno.test('Single quote template', async () => {
 `,
     )
     await session.runModule('main')
-    const result = session.getCodeFile('main').ranScope?.getVariable('결과') as StringValue
+    const result = session
+        .getCodeFile('main')
+        .ranScope?.getVariable('결과') as StringValue
     assertEquals(result.value, '안녕, 홍길동!')
 })
 
@@ -132,7 +146,9 @@ Deno.test('Only interpolation (no static parts)', async () => {
 `,
     )
     await session.runModule('main')
-    const result = session.getCodeFile('main').ranScope?.getVariable('결과') as StringValue
+    const result = session
+        .getCodeFile('main')
+        .ranScope?.getVariable('결과') as StringValue
     assertEquals(result.value, '42')
 })
 
@@ -145,20 +161,27 @@ Deno.test('No interpolation (plain string)', async () => {
 `,
     )
     await session.runModule('main')
-    const result = session.getCodeFile('main').ranScope?.getVariable('결과') as StringValue
+    const result = session
+        .getCodeFile('main')
+        .ranScope?.getVariable('결과') as StringValue
     assertEquals(result.value, '일반 문자열')
 })
 
-Deno.test('Nested braces should work as plain text outside interpolation', async () => {
-    const session = new YaksokSession()
-    session.addModule(
-        'main',
-        `
+Deno.test(
+    'Nested braces should work as plain text outside interpolation',
+    async () => {
+        const session = new YaksokSession()
+        session.addModule(
+            'main',
+            `
 값 = 10
 결과 = "값: {값}"
 `,
-    )
-    await session.runModule('main')
-    const result = session.getCodeFile('main').ranScope?.getVariable('결과') as StringValue
-    assertEquals(result.value, '값: 10')
-})
+        )
+        await session.runModule('main')
+        const result = session
+            .getCodeFile('main')
+            .ranScope?.getVariable('결과') as StringValue
+        assertEquals(result.value, '값: 10')
+    },
+)

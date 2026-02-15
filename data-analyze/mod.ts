@@ -9,7 +9,7 @@ import {
     NumberValue,
     StringValue,
     ValueType,
-    FunctionInvokingParams
+    FunctionInvokingParams,
 } from '@dalbit-yaksok/core'
 import { 편의점 } from './virtual-data/cvs.ts'
 
@@ -160,11 +160,11 @@ GET_COLUMNS
             this.assertListValue(데이터)
 
             try {
-              this.assertListValue(컬럼)
-              return this.getColumns(데이터, 컬럼)
+                this.assertListValue(컬럼)
+                return this.getColumns(데이터, 컬럼)
             } catch (_) {
-              this.assertKey(컬럼)
-              return this.getColumn(데이터, 컬럼)
+                this.assertKey(컬럼)
+                return this.getColumn(데이터, 컬럼)
             }
         }
 

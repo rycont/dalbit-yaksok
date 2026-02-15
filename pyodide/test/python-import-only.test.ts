@@ -17,5 +17,3 @@ Deno.test({
         assertEquals(result.reason, 'finish')
     },
 })
-
-

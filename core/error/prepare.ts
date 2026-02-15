@@ -135,9 +135,7 @@ export class FileForRunNotExistError extends YaksokError<{
     }) {
         super(props)
 
-        if (
-            props.resource.files.length === 0
-        ) {
+        if (props.resource.files.length === 0) {
             this.message = '실행할 코드가 없어요.' // 기본 entryPoint('main')를 실행하려는데 파일이 전혀 없는 경우
         } else {
             this.message = `실행하려는 파일 ${blue(

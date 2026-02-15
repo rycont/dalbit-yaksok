@@ -120,8 +120,8 @@ export class CompletionItemProvider
             )
                 ? 2
                 : LABEL_SYLLABLE_MAP.get(item.label)?.includes(dissembledWord)
-                ? 1
-                : 0,
+                  ? 1
+                  : 0,
             item,
         }))
             .filter(({ score }) => score > 0)

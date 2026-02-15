@@ -34,30 +34,47 @@ import type { Scope } from '../executer/scope.ts'
 import { ErrorGroups } from '../error/validation.ts'
 import { ErrorInFFIExecution } from '../error/ffi.ts'
 
+/**
+ * 인터프리터 실행 진입점 세션입니다.
+ *
+ * 모듈 등록/실행과 입출력, 확장(FFI), 런타임 이벤트를 관리합니다.
+ */
 export class YaksokSession {
+    /** base context 모듈을 식별하기 위한 내부 심볼 */
     readonly #BASE_CONTEXT_SYMBOL = Symbol('baseContext')
     public get BASE_CONTEXT_SYMBOL(): symbol {
         return this.#BASE_CONTEXT_SYMBOL
     }
 
+    /** 현재 실행 중인 runModule Promise */
     public runningPromise: Promise<RunModuleResult[]> | null = null
+    /** `보여주기` 출력 훅 */
     public stdout: SessionConfig['stdout']
+    /** `입력받기` 입력 훅 */
     public stdin: SessionConfig['stdin']
+    /** 에러 출력 훅 */
     public stderr: SessionConfig['stderr']
+    /** 런타임 기능 플래그 */
     public flags: Partial<EnabledFlags> = {}
+    /** FFI 확장 목록 */
     public extensions: Extension[] = []
+    /** base context 체인 */
     public baseContexts: CodeFile[] = []
     public get baseContext(): CodeFile | undefined {
         return this.baseContexts[this.baseContexts.length - 1]
     }
+    /** 외부 중단 시그널 */
     public signal: AbortSignal | null = null
+    /** 실행 일시정지 여부 */
     public paused: boolean = false
     public stepByStep: boolean = false
     public stepUnit: (new (...args: any[]) => Node) | null = null
     public canRunNode:
         | ((scope: Scope, node: Node) => Promise<boolean> | boolean)
         | null = null
+    /** 세션 이벤트 버스 */
     public pubsub: PubSub<Events> = new PubSub<Events>()
+    /** 세션에 등록된 모듈 저장소 */
     public files: Record<string | symbol, CodeFile> = {}
 
     private tick = 0
@@ -121,11 +138,11 @@ export class YaksokSession {
 
     async extend(extension: Extension): Promise<void> {
         this.extensions.push(extension)
-        if(extension.manifest.module) {
-          const { module } = extension.manifest;
-          for(const [name, code] of Object.entries(module)) {
-            this.addModule(name, code);
-          }
+        if (extension.manifest.module) {
+            const { module } = extension.manifest
+            for (const [name, code] of Object.entries(module)) {
+                this.addModule(name, code)
+            }
         }
         await extension.init?.()
     }
@@ -218,12 +235,13 @@ export class YaksokSession {
             ? moduleName
             : [moduleName]
 
-        this.runningPromise = Promise.all(runModuleNames.map(n => this.runOneModule(n)))
+        this.runningPromise = Promise.all(
+            runModuleNames.map((n) => this.runOneModule(n)),
+        )
 
-        const entries = (await this.runningPromise).map((result, index) => [
-            runModuleNames[index],
-            result,
-        ] as const)
+        const entries = (await this.runningPromise).map(
+            (result, index) => [runModuleNames[index], result] as const,
+        )
 
         return new Map(entries)
     }
@@ -234,7 +252,7 @@ export class YaksokSession {
 
         const results = await this.runModule(moduleName)
         const result = results.get(moduleName)!
-        
+
         if (result.reason === 'finish') {
             this.baseContexts.push(result.codeFile)
         }

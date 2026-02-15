@@ -14,7 +14,10 @@ import {
 export class Loop extends Executable {
     static override friendlyName = '반복'
 
-    constructor(public body: Block, public override tokens: Token[]) {
+    constructor(
+        public body: Block,
+        public override tokens: Token[],
+    ) {
         super()
     }
 

@@ -31,18 +31,19 @@ core/
 
 ## WHERE TO LOOK
 
-| Task | Location |
-|------|----------|
-| New statement type | `node/` + `prepare/parse/rule/` |
-| New operator | `node/operator.ts` (587L) |
-| Value type | `value/` (extend ValueType) |
-| Error handling | `error/` (extend YaksokError) |
-| Session config | `session/session-config.ts` |
-| Parsing rules | `prepare/parse/rule/index.ts` (900L) |
+| Task               | Location                             |
+| ------------------ | ------------------------------------ |
+| New statement type | `node/` + `prepare/parse/rule/`      |
+| New operator       | `node/operator.ts` (587L)            |
+| Value type         | `value/` (extend ValueType)          |
+| Error handling     | `error/` (extend YaksokError)        |
+| Session config     | `session/session-config.ts`          |
+| Parsing rules      | `prepare/parse/rule/index.ts` (900L) |
 
 ## KEY ABSTRACTIONS
 
 ### Node Hierarchy
+
 ```
 Node (base)
 ├── Executable (has execute())
@@ -54,6 +55,7 @@ Node (base)
 ```
 
 ### Value Hierarchy
+
 ```
 ValueType (base)
 ├── PrimitiveValue
@@ -65,18 +67,19 @@ ValueType (base)
 ```
 
 ### Parsing Stages
+
 1. `tokenize()` - Regex rules → Token[]
 2. `convertTokensToNodes()` - Token → initial AST
 3. `parse()` - Multi-pass: dynamic rules → indent → bracket → reduce
 
 ## COMPLEXITY HOTSPOTS
 
-| File | Lines | Why Complex |
-|------|-------|-------------|
-| `prepare/parse/rule/index.ts` | 900 | All parsing rules, shift-reduce |
-| `node/operator.ts` | 587 | All operator implementations |
-| `session/session.ts` | 575 | Main API, module management |
-| `prepare/tokenize/rules.ts` | 518 | Tokenization regex patterns |
+| File                          | Lines | Why Complex                     |
+| ----------------------------- | ----- | ------------------------------- |
+| `prepare/parse/rule/index.ts` | 900   | All parsing rules, shift-reduce |
+| `node/operator.ts`            | 587   | All operator implementations    |
+| `session/session.ts`          | 575   | Main API, module management     |
+| `prepare/tokenize/rules.ts`   | 518   | Tokenization regex patterns     |
 
 ## CONVENTIONS
 
