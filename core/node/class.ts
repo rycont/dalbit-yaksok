@@ -327,9 +327,12 @@ function createClassInstanceLayerScopes(classValue: ClassValue): {
             allowFunctionOverride: true,
         })
 
-        layerScope.setVariable('자신', instance)
+        layerScope.setLocalVariable('자신', instance)
         if (klass.parentClass) {
-            layerScope.setVariable('상위', new SuperValue(instance, currentScope))
+            layerScope.setLocalVariable(
+                '상위',
+                new SuperValue(instance, currentScope),
+            )
         }
 
         layerScopes.push({
@@ -353,8 +356,11 @@ function resolveValidationTargetValue(
     if (target instanceof Identifier) {
         try {
             return scope.getVariable(target.value)
-        } catch {
-            return undefined
+        } catch (error) {
+            if (error instanceof NotDefinedIdentifierError) {
+                return undefined
+            }
+            throw error
         }
     }
 
@@ -364,8 +370,11 @@ function resolveValidationTargetValue(
             if (classValue instanceof ClassValue) {
                 return createValidationInstanceFromClass(classValue)
             }
-        } catch {
-            return undefined
+        } catch (error) {
+            if (error instanceof YaksokError) {
+                return undefined
+            }
+            throw error
         }
     }
 
@@ -387,8 +396,11 @@ function resolveValidationTargetValue(
                 target.memberName,
                 target.tokens,
             )
-        } catch {
-            return undefined
+        } catch (error) {
+            if (error instanceof YaksokError) {
+                return undefined
+            }
+            throw error
         }
     }
 
@@ -495,29 +507,8 @@ export class DeclareClass extends Executable {
         )
         scope.setVariable(this.name, dummyClass)
 
-        const classScope = new Scope({
-            parent: scope,
-            allowFunctionOverride: true,
-        })
-
-        const dummyInstance = new InstanceValue(this.name)
-        dummyInstance.classValue = dummyClass
-        dummyInstance.scope = classScope
-        dummyInstance.memberLookupRootScope = classScope
-        classScope.setVariable('자신', dummyInstance)
-        if (parentClass) {
-            const parentValidationInstance =
-                createValidationInstanceFromClass(parentClass)
-            classScope.setVariable(
-                '상위',
-                new SuperValue(
-                    parentValidationInstance,
-                    parentValidationInstance.scope,
-                ),
-            )
-        }
-
-        const validationErrors = this.body.validate(classScope)
+        const dummyInstance = createValidationInstanceFromClass(dummyClass)
+        const validationErrors = this.body.validate(dummyInstance.scope)
         validationErrors.push(...this.validateDuplicatedConstructorArity())
         return validationErrors
     }

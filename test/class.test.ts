@@ -362,6 +362,52 @@ Deno.test(
     },
 )
 
+Deno.test(
+    '상위: 다단계 상속에서도 상위 체인이 올바르게 연결된다',
+    async () => {
+        const outputs = await runAndCollect(`
+클래스, 조상
+    약속, 말하기
+        "조상" 반환하기
+
+클래스, 부모(조상)
+    약속, 말하기
+        상위.말하기 + "-부모" 반환하기
+
+클래스, 자식(부모)
+    약속, 테스트
+        상위.말하기 보여주기
+        자신.말하기 보여주기
+
+o = 새 자식
+o.테스트
+`)
+
+        assertEquals(outputs[0], '조상-부모')
+        assertEquals(outputs[1], '조상-부모')
+    },
+)
+
+Deno.test(
+    '상속 메서드 접근: 자신.부모메서드는 validation에서 오탐지되지 않는다',
+    async () => {
+        const outputs = await runAndCollect(`
+클래스, 부모
+    약속, 인사
+        "안녕" 반환하기
+
+클래스, 자식(부모)
+    약속, 테스트
+        자신.인사 보여주기
+
+o = 새 자식
+o.테스트
+`)
+
+        assertEquals(outputs[0], '안녕')
+    },
+)
+
 Deno.test('상위: 부모가 없으면 상위를 사용할 수 없다', async () => {
     const session = new YaksokSession()
     session.addModule(
