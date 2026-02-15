@@ -8,7 +8,7 @@ import { Scope } from '../executer/scope.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { ValueType } from '../value/base.ts'
 import { IndexedValue } from '../value/indexed.ts'
-import { NumberValue } from '../value/primitive.ts'
+import { NumberValue, StringValue } from '../value/primitive.ts'
 import type { Block } from './block.ts'
 import {
     emitLoopIterationWarning,
@@ -79,8 +79,9 @@ export class ListLoop extends Executable {
 
     assertRepeatTargetIsList(
         target: ValueType,
-    ): asserts target is IndexedValue {
-        if (target instanceof IndexedValue) return
+    ): asserts target is IndexedValue | StringValue {
+        if (target instanceof IndexedValue || target instanceof StringValue)
+            return
 
         throw new NotEnumerableValueForListLoopError({
             resource: {
