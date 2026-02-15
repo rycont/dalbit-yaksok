@@ -227,7 +227,7 @@ function parseNotParsablePrintError(
 function parseInvalidDotMethodCall(
     line: YaksokError[],
     allTokens: Token[],
-): [YaksokError[], Token[]] {
+): [YaksokError[]] {
     const dotError = line.find(
         (error) =>
             error instanceof NotExecutableNodeError &&
@@ -236,7 +236,7 @@ function parseInvalidDotMethodCall(
     )
 
     if (!dotError || !dotError.tokens?.[0]) {
-        return [line, allTokens]
+        return [line]
     }
 
     const dotToken = dotError.tokens[0]
@@ -247,18 +247,18 @@ function parseInvalidDotMethodCall(
     const dotIndex = tokensInLine.indexOf(dotToken)
 
     if (dotIndex === -1) {
-        return [line, allTokens]
+        return [line]
     }
 
     const methodTokens = tokensInLine.slice(dotIndex + 1)
     if (methodTokens.length === 0) {
-        return [line, allTokens]
+        return [line]
     }
 
     let methodText = methodTokens.map((token) => token.value).join('').trim()
     methodText = methodText.replace(/\s*보여주기\s*$/, '').trim()
     if (methodText.length === 0) {
-        return [line, allTokens]
+        return [line]
     }
 
     dotError.tokens = methodTokens
@@ -266,7 +266,7 @@ function parseInvalidDotMethodCall(
         bold(methodText),
     )}라는 메소드를 찾을 수 없어요.`
 
-    return [[dotError], allTokens]
+    return [[dotError]]
 }
 
 function splitErrorsByLine(errors: YaksokError[]) {

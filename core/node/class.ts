@@ -128,7 +128,7 @@ function isDotMethodReceiverTypeMatch(
         if (typeName === '문자' || typeName === '문자열') {
             return value instanceof StringValue
         }
-        if (typeName === '리스트' || typeName === '배열') {
+        if (typeName === '리스트' || typeName === '목록' || typeName === '배열') {
             return value instanceof ListValue
         }
         if (typeName === '딕셔너리' || typeName === '사전') {
@@ -137,7 +137,7 @@ function isDotMethodReceiverTypeMatch(
         if (typeName === '숫자') {
             return value instanceof NumberValue
         }
-        if (typeName === '불리언' || typeName === '논리') {
+        if (typeName === '불리언' || typeName === '논리' || typeName === '참거짓') {
             return value instanceof BooleanValue
         }
         if (typeName === '튜플') {
@@ -547,36 +547,71 @@ export class FetchMember extends Evaluable {
 
     override async execute(scope: Scope): Promise<ValueType> {
         const rawTarget = await this.target.execute(scope)
-        const resolved = resolveMemberAccessTarget(rawTarget, this.tokens)
+        
+        if (rawTarget instanceof InstanceValue || rawTarget instanceof SuperValue) {
+            const resolved = resolveMemberAccessTarget(rawTarget, this.tokens)
 
-        try {
-            return getMemberVariable(
-                resolved.scope,
-                resolved.instance,
-                this.memberName,
-                this.tokens,
-            )
-        } catch (error) {
-            if (!(error instanceof NotDefinedIdentifierError)) throw error
+            try {
+                return getMemberVariable(
+                    resolved.scope,
+                    resolved.instance,
+                    this.memberName,
+                    this.tokens,
+                )
+            } catch (error) {
+                if (!(error instanceof NotDefinedIdentifierError)) throw error
 
-            const func = findMemberFunction(
-                resolved.scope,
-                resolved.instance,
-                this.memberName,
-            )
-            if (!func) {
-                throw new MemberNotFoundError({
-                    resource: {
-                        className: resolved.instance.className,
-                        memberName: this.memberName,
-                    },
-                    tokens: this.tokens,
-                })
+                const func = findMemberFunction(
+                    resolved.scope,
+                    resolved.instance,
+                    this.memberName,
+                )
+                if (!func) {
+                    throw new MemberNotFoundError({
+                        resource: {
+                            className: resolved.instance.className,
+                            memberName: this.memberName,
+                        },
+                        tokens: this.tokens,
+                    })
+                }
+
+                resolved.scope.setVariable('자신', resolved.instance, this.tokens)
+                return await func.run({}, resolved.scope)
             }
-
-            resolved.scope.setVariable('자신', resolved.instance, this.tokens)
-            return await func.run({}, resolved.scope)
         }
+
+        // 일반 ValueType에 대한 메소드 호출(인자 없음) 지원
+        const functionOwner = findFunctionOwnerScope(scope, this.memberName)
+        if (functionOwner) {
+            const functionObject = functionOwner.functions.get(this.memberName)
+            if (
+                (functionObject instanceof FunctionObject || functionObject instanceof FFIObject) &&
+                functionObject.options.dotReceiverTypeNames &&
+                isDotMethodReceiverTypeMatch(rawTarget, functionObject.options.dotReceiverTypeNames)
+            ) {
+                const hasExistingSelf = Object.prototype.hasOwnProperty.call(functionOwner.variables, '자신')
+                const previousSelf = functionOwner.variables['자신']
+
+                functionOwner.setLocalVariable('자신', rawTarget, this.tokens)
+                try {
+                    if (functionObject instanceof FFIObject) {
+                        return await functionObject.run({ 자신: rawTarget }, scope)
+                    }
+                    return await functionObject.run({}, scope)
+                } finally {
+                    if (hasExistingSelf) {
+                        functionOwner.setLocalVariable('자신', previousSelf, this.tokens)
+                    } else {
+                        delete functionOwner.variables['자신']
+                    }
+                }
+            }
+        }
+
+        // 만약 인스턴스가 아니면 resolveMemberAccessTarget이 에러를 던짐
+        const resolved = resolveMemberAccessTarget(rawTarget, this.tokens)
+        return getMemberVariable(resolved.scope, resolved.instance, this.memberName, this.tokens)
     }
 
     override validate(scope: Scope): YaksokError[] {
@@ -588,6 +623,10 @@ export class FetchMember extends Evaluable {
         try {
             const rawTarget = resolveValidationTargetValue(this.target, scope)
             if (!rawTarget) {
+                return targetErrors
+            }
+
+            if (!(rawTarget instanceof InstanceValue) && !(rawTarget instanceof SuperValue)) {
                 return targetErrors
             }
 
