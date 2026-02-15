@@ -312,3 +312,29 @@ Deno.test("상속: 부모 클래스가 아니면 오류가 난다", async () => 
 
   throw new Error("부모 클래스 오류가 발생해야 합니다.");
 });
+
+Deno.test("생성자: 인자 개수가 맞는 생성자가 없으면 오류가 난다", async () => {
+  const code = `
+클래스, 사람
+    약속, __준비__ (이름)
+        자신.이름 = 이름
+    약속, __준비__ (이름, 나이)
+        자신.이름 = 이름
+        자신.나이 = 나이
+
+나 = 새 사람(1, 2, 3)
+`;
+  const session = new YaksokSession();
+  session.addModule("main", code);
+  const results = await session.runModule("main");
+  const result = results.get("main");
+  if (!result) throw new Error("실행 결과가 없습니다.");
+
+  if (result.reason === "error") {
+    assertStringIncludes(result.error.message, "__준비__");
+    assertStringIncludes(result.error.message, "인자");
+    return;
+  }
+
+  throw new Error("생성자 인자 개수 불일치 오류가 발생해야 합니다.");
+});

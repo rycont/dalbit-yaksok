@@ -7,6 +7,7 @@ import type { Token } from "../prepare/tokenize/token.ts";
 import type { RunnableObject } from "../value/function.ts";
 import { YaksokError } from "../error/common.ts";
 import {
+  ConstructorArityMismatchError,
   DotAccessOnlyOnInstanceError,
   InvalidParentClassError,
   NotAClassError,
@@ -77,7 +78,8 @@ export class DeclareClass extends Executable {
       allowFunctionOverride: true,
     });
 
-    const dummyInstance = new InstanceValue(this.name, classScope);
+    const dummyInstance = new InstanceValue(this.name);
+    dummyInstance.scope = classScope;
     classScope.setVariable("자신", dummyInstance);
     if (this.parentName) {
       classScope.setVariable("상위", new SuperValue(dummyInstance, scope));
@@ -152,8 +154,9 @@ export class NewInstance extends Evaluable {
       allowFunctionOverride: true,
     });
 
-    // Create instance early so 자신 is available during __준비__ execution
-    const instance = new InstanceValue(classValue.name, rootScope);
+    // Create instance early so 자신 is available during __준비__ execution.
+    // scope는 상속 체인 실행 후 할당됩니다.
+    const instance = new InstanceValue(classValue.name);
 
     // 부모 -> 자식 순으로 바디를 실행해 상속 체인을 구성합니다.
     const inheritanceChain = this.getInheritanceChain(classValue);
@@ -164,9 +167,9 @@ export class NewInstance extends Evaluable {
         parent: currentScope,
         allowFunctionOverride: true,
       });
-      layerScope.variables["자신"] = instance;
+      layerScope.setVariable("자신", instance);
       if (klass.parentClass) {
-        layerScope.variables["상위"] = new SuperValue(instance, currentScope);
+        layerScope.setVariable("상위", new SuperValue(instance, currentScope));
       }
       await klass.body.execute(layerScope);
       currentScope = layerScope;
@@ -177,6 +180,7 @@ export class NewInstance extends Evaluable {
     const initFunc = this.pickConstructorByArity(
       instance.scope,
       this.arguments_.length,
+      classValue.name,
     );
 
     if (initFunc) {
@@ -216,7 +220,11 @@ export class NewInstance extends Evaluable {
     return chain;
   }
 
-  private pickConstructorByArity(scope: Scope, arity: number) {
+  private pickConstructorByArity(
+    scope: Scope,
+    arity: number,
+    className: string,
+  ): RunnableObject | undefined {
     const constructors: RunnableObject[] = [];
     const seen = new Set<string>();
     let cursor: Scope | undefined = scope;
@@ -235,20 +243,34 @@ export class NewInstance extends Evaluable {
       return undefined;
     }
 
-    return (
-      constructors.find((func) => func.paramNames.length === arity) ??
-        constructors[0]
+    const exactMatch = constructors.find(
+      (func) => func.paramNames.length === arity,
     );
+    if (exactMatch) {
+      return exactMatch;
+    }
+
+    const expectedArities = [
+      ...new Set(constructors.map((f) => f.paramNames.length)),
+    ].sort((a, b) => a - b);
+    throw new ConstructorArityMismatchError({
+      resource: {
+        className,
+        expected: expectedArities,
+        received: arity,
+      },
+      tokens: this.tokens,
+    });
   }
 }
 
 export class InstanceValue extends ObjectValue {
   static override friendlyName = "인스턴스";
 
-  constructor(
-    public className: string,
-    public scope: Scope,
-  ) {
+  /** 상속 체인 실행 후 NewInstance에서 할당됩니다. */
+  public scope!: Scope;
+
+  constructor(public className: string) {
     super();
   }
 
@@ -292,7 +314,11 @@ export class MemberFunctionInvoke extends Evaluable {
   }
 
   override validate(scope: Scope): YaksokError[] {
-    return this.target.validate(scope);
+    const targetErrors = this.target.validate(scope);
+    const paramErrors = Object.values(this.invocation.params).flatMap(
+      (param) => param.validate(scope),
+    );
+    return [...targetErrors, ...paramErrors];
   }
 
   override toPrint(): string {
