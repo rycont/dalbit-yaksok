@@ -2,8 +2,9 @@ import { Expression, Identifier } from '../../../../../node/base.ts'
 import { Block } from '../../../../../node/block.ts'
 import { DeclareClass } from '../../../../../node/class.ts'
 import { EOL } from '../../../../../node/misc.ts'
-import { type Token, TOKEN_TYPE } from '../../../../tokenize/token.ts'
+import { type Token } from '../../../../tokenize/token.ts'
 import { PatternUnit, Rule } from '../../../type.ts'
+import { parseClassHeaderTokens } from './class-header.ts'
 
 const PREFIX: PatternUnit[] = [
     {
@@ -26,14 +27,8 @@ const SUFFIX: PatternUnit[] = [
 ]
 
 export function tokensToClassDeclareRule(headerTokens: Token[]): Rule {
-    const identifierTokens = headerTokens.filter(
-        (t) => t.type === TOKEN_TYPE.IDENTIFIER,
-    )
-    const name = identifierTokens[0]?.value || ''
-    const parentName = identifierTokens[1]?.value
-    const hasPythonStyleInheritance = headerTokens.some(
-        (t) => t.type === TOKEN_TYPE.OPENING_PARENTHESIS,
-    )
+    const { name, parentName, inheritanceStyle } =
+        parseClassHeaderTokens(headerTokens)
 
     const pattern: PatternUnit[] = [
         ...PREFIX,
@@ -42,7 +37,7 @@ export function tokensToClassDeclareRule(headerTokens: Token[]): Rule {
             value: name,
         },
         ...(parentName
-            ? hasPythonStyleInheritance
+            ? inheritanceStyle === 'parenthesis'
                 ? ([
                       {
                           type: Expression,

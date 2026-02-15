@@ -1,353 +1,50 @@
-import { Scope } from '../executer/scope.ts'
-import { ObjectValue, ValueType } from '../value/base.ts'
-import { Evaluable, Executable, Identifier } from './base.ts'
-import { Block } from './block.ts'
-import { ValueWithParenthesis } from './calculation.ts'
-import { CountLoop } from './count-loop.ts'
-import { DeclareFunction, evaluateParams, FunctionInvoke } from './function.ts'
-import { IfStatement } from './IfStatement.ts'
-import { ListLoop } from './listLoop.ts'
-import { Loop } from './loop.ts'
-import { type Token } from '../prepare/tokenize/token.ts'
-import { FunctionObject, type RunnableObject } from '../value/function.ts'
 import { YaksokError } from '../error/common.ts'
 import {
     AlreadyDefinedClassError,
     ConstructorArityAmbiguousError,
     ConstructorArityMismatchError,
-    DotAccessOnlyOnInstanceError,
     InvalidParentClassError,
     MemberFunctionNotFoundError,
     MemberNotFoundError,
     NotAClassError,
 } from '../error/class.ts'
 import { NotDefinedIdentifierError } from '../error/variable.ts'
+import { Scope } from '../executer/scope.ts'
+import type { Token } from '../prepare/tokenize/token.ts'
+import { ValueType } from '../value/base.ts'
+import type { RunnableObject } from '../value/function.ts'
+import { Evaluable, Executable, Identifier } from './base.ts'
+import { ValueWithParenthesis } from './calculation.ts'
+import { Block } from './block.ts'
+import { DeclareFunction, evaluateParams, FunctionInvoke } from './function.ts'
 import { assignerToOperatorMap } from './operator.ts'
-import { extractParamNamesFromHeaderTokens } from '../util/extract-param-names-from-header-tokens.ts'
 import { assertValidIdentifierName } from '../util/assert-valid-identifier-name.ts'
+import {
+    extractParamCountFromTokens,
+    getDeclaredConstructorsInClass,
+    isConstructorFunctionName,
+} from './class/constructor.ts'
+import {
+    ClassValue,
+    getInheritanceChain,
+    resolveClassValueFromInstance,
+} from './class/core.ts'
+import {
+    findMemberFunction,
+    findVariableOwnerScopeInMemberChain,
+    getMemberVariable,
+    resolveMemberAccessTarget,
+    setMemberVariable,
+} from './class/member-runtime.ts'
+import { hasExistingClassNameConflict } from './class/name-conflict.ts'
+import { collectLikelyMemberNamesInClass } from './class/validation-analysis.ts'
+import {
+    createClassInstanceLayerScopes,
+    createValidationInstanceFromClass,
+} from './class/validation-instance.ts'
 
-type MemberAccessTarget = InstanceValue | SuperValue
-
-const CONSTRUCTOR_NAME_PATTERN = /^__준비__(?:\s*\([^)]*\))?$/
-
-function resolveMemberAccessTarget(
-    target: ValueType,
-    tokens: Token[],
-): { scope: Scope; instance: InstanceValue } {
-    if (target instanceof InstanceValue) {
-        return {
-            scope: target.scope,
-            instance: target,
-        }
-    }
-
-    if (target instanceof SuperValue) {
-        return {
-            scope: target.scope,
-            instance: target.instance,
-        }
-    }
-
-    throw new DotAccessOnlyOnInstanceError({
-        tokens,
-    })
-}
-
-function findMemberFunction(
-    scope: Scope,
-    instance: InstanceValue,
-    functionName: string,
-): RunnableObject | undefined {
-    let cursor: Scope | undefined = scope
-    while (cursor) {
-        const fromCurrentScope = cursor.functions.get(functionName)
-        if (fromCurrentScope) {
-            return fromCurrentScope
-        }
-        if (cursor === instance.memberLookupRootScope) {
-            break
-        }
-        cursor = cursor.parent
-    }
-
-    return undefined
-}
-
-function findVariableOwnerScopeInMemberChain(
-    scope: Scope,
-    instance: InstanceValue,
-    memberName: string,
-): Scope | undefined {
-    let cursor: Scope | undefined = scope
-    while (cursor) {
-        if (memberName in cursor.variables) {
-            return cursor
-        }
-        if (cursor === instance.memberLookupRootScope) {
-            break
-        }
-        cursor = cursor.parent
-    }
-
-    return undefined
-}
-
-function getMemberVariable(
-    scope: Scope,
-    instance: InstanceValue,
-    memberName: string,
-    tokens: Token[],
-): ValueType {
-    const owner = findVariableOwnerScopeInMemberChain(
-        scope,
-        instance,
-        memberName,
-    )
-    if (!owner) {
-        const error = new NotDefinedIdentifierError({
-            resource: {
-                name: memberName,
-            },
-        })
-        error.tokens = tokens
-        throw error
-    }
-    return owner.getVariable(memberName, tokens)
-}
-
-function setMemberVariable(
-    scope: Scope,
-    instance: InstanceValue,
-    memberName: string,
-    value: ValueType,
-    tokens: Token[],
-): void {
-    const owner = findVariableOwnerScopeInMemberChain(
-        scope,
-        instance,
-        memberName,
-    )
-    if (owner) {
-        owner.setLocalVariable(memberName, value, tokens)
-        return
-    }
-
-    scope.setLocalVariable(memberName, value, tokens)
-}
-
-function resolveClassValueFromInstance(
-    scope: Scope,
-    instance: InstanceValue,
-): ClassValue | undefined {
-    if (instance.classValue) {
-        return instance.classValue
-    }
-
-    try {
-        const value = scope.getVariable(instance.className)
-        if (value instanceof ClassValue) {
-            return value
-        }
-        return undefined
-    } catch (error) {
-        if (error instanceof NotDefinedIdentifierError) {
-            return undefined
-        }
-        throw error
-    }
-}
-
-function collectPotentialMemberNamesInClass(
-    classValue: ClassValue,
-): Set<string> {
-    const names = new Set<string>()
-
-    const isSetVariableNode = (
-        node: unknown,
-    ): node is { name: string } => {
-        return (
-            node instanceof Evaluable &&
-            'name' in node &&
-            typeof (node as { name?: unknown }).name === 'string' &&
-            'operator' in node &&
-            typeof (node as { operator?: unknown }).operator === 'string' &&
-            'value' in node
-        )
-    }
-
-    const isSetMemberOnSelfNode = (
-        node: unknown,
-    ): node is SetMember => {
-        return (
-            node instanceof SetMember &&
-            node.target instanceof Identifier &&
-            node.target.value === '자신'
-        )
-    }
-
-    const collectInNode = (node: unknown, inFunctionScope = false) => {
-        if (!inFunctionScope && isSetVariableNode(node)) {
-            names.add(node.name)
-        }
-
-        if (isSetMemberOnSelfNode(node)) {
-            names.add(node.memberName)
-        }
-
-        if (node instanceof DeclareFunction) {
-            collectInBlock(node.body, true)
-            return
-        }
-
-        if (node instanceof Block) {
-            collectInBlock(node, inFunctionScope)
-            return
-        }
-
-        if (node instanceof IfStatement) {
-            for (const caseItem of node.cases) {
-                collectInBlock(caseItem.body, inFunctionScope)
-            }
-            return
-        }
-
-        if (
-            node instanceof Loop ||
-            node instanceof CountLoop ||
-            node instanceof ListLoop
-        ) {
-            collectInBlock(node.body, inFunctionScope)
-        }
-    }
-
-    const collectInBlock = (block: Block, inFunctionScope = false) => {
-        for (const child of block.children) {
-            collectInNode(child, inFunctionScope)
-        }
-    }
-
-    for (const klass of getInheritanceChain(classValue)) {
-        collectInBlock(klass.body)
-    }
-
-    return names
-}
-
-function isConstructorFunctionName(name: string): boolean {
-    return CONSTRUCTOR_NAME_PATTERN.test(name)
-}
-
-function getDeclaredConstructorsInClass(klass: ClassValue): {
-    arity: number
-}[] {
-    const constructors: { arity: number }[] = []
-
-    for (const child of klass.body.children) {
-        if (!(child instanceof DeclareFunction)) continue
-        if (!isConstructorFunctionName(child.name)) continue
-        constructors.push({
-            arity: extractParamCountFromTokens(child.tokens),
-        })
-    }
-
-    return constructors
-}
-
-function extractParamCountFromTokens(allTokens: Token[]): number {
-    return extractParamNamesFromHeaderTokens(allTokens).length
-}
-
-function getInheritanceChain(classValue: ClassValue): ClassValue[] {
-    const chain: ClassValue[] = []
-    let cursor: ClassValue | undefined = classValue
-
-    while (cursor) {
-        chain.unshift(cursor)
-        cursor = cursor.parentClass
-    }
-
-    return chain
-}
-
-function resolveExistingIdentifierValue(
-    scope: Scope,
-    name: string,
-): ValueType | undefined {
-    try {
-        return scope.getVariable(name)
-    } catch (error) {
-        if (error instanceof NotDefinedIdentifierError) {
-            return undefined
-        }
-        throw error
-    }
-}
-
-function resolveExistingFunctionObject(
-    scope: Scope,
-    name: string,
-): RunnableObject | undefined {
-    try {
-        return scope.getFunctionObject(name)
-    } catch (error) {
-        if (error instanceof NotDefinedIdentifierError) {
-            return undefined
-        }
-        throw error
-    }
-}
-
-function hasExistingClassNameConflict(scope: Scope, name: string): boolean {
-    return (
-        resolveExistingIdentifierValue(scope, name) !== undefined ||
-        resolveExistingFunctionObject(scope, name) !== undefined
-    )
-}
-
-function createClassInstanceLayerScopes(classValue: ClassValue): {
-    instance: InstanceValue
-    layerScopes: { klass: ClassValue; scope: Scope }[]
-    finalScope: Scope
-} {
-    const rootScope = new Scope({
-        parent: classValue.definitionScope,
-        allowFunctionOverride: true,
-    })
-
-    const instance = new InstanceValue(classValue.name)
-    instance.classValue = classValue
-    instance.memberLookupRootScope = rootScope
-
-    let currentScope = rootScope
-    const layerScopes: { klass: ClassValue; scope: Scope }[] = []
-
-    for (const klass of getInheritanceChain(classValue)) {
-        const layerScope = new Scope({
-            parent: currentScope,
-            allowFunctionOverride: true,
-        })
-
-        layerScope.setLocalVariable('자신', instance)
-        if (klass.parentClass) {
-            layerScope.setLocalVariable(
-                '상위',
-                new SuperValue(instance, currentScope),
-            )
-        }
-
-        layerScopes.push({
-            klass,
-            scope: layerScope,
-        })
-        currentScope = layerScope
-    }
-
-    return {
-        instance,
-        layerScopes,
-        finalScope: currentScope,
-    }
-}
+export { ClassValue, InstanceValue, SuperValue } from './class/core.ts'
+export { createValidationInstanceFromClass } from './class/validation-instance.ts'
 
 function resolveValidationTargetValue(
     target: Evaluable,
@@ -368,7 +65,10 @@ function resolveValidationTargetValue(
         try {
             const classValue = scope.getVariable(target.className, target.tokens)
             if (classValue instanceof ClassValue) {
-                return createValidationInstanceFromClass(classValue)
+                return createValidationInstanceFromClass(
+                    classValue,
+                    target.arguments_.length,
+                )
             }
         } catch (error) {
             if (error instanceof YaksokError) {
@@ -405,34 +105,6 @@ function resolveValidationTargetValue(
     }
 
     return undefined
-}
-
-export function createValidationInstanceFromClass(
-    classValue: ClassValue,
-): InstanceValue {
-    const { instance, layerScopes, finalScope } =
-        createClassInstanceLayerScopes(classValue)
-
-    for (const { klass, scope } of layerScopes) {
-        for (const child of klass.body.children) {
-            if (!(child instanceof DeclareFunction)) continue
-
-            const paramNames =
-                child.paramNames ??
-                extractParamNamesFromHeaderTokens(child.tokens)
-            scope.addFunctionObject(
-                new FunctionObject(
-                    child.name,
-                    child.body,
-                    scope,
-                    paramNames,
-                ),
-            )
-        }
-    }
-
-    instance.scope = finalScope
-    return instance
 }
 
 export class DeclareClass extends Executable {
@@ -541,6 +213,7 @@ export class DeclareClass extends Executable {
         for (const child of this.body.children) {
             if (!(child instanceof DeclareFunction)) continue
             if (!isConstructorFunctionName(child.name)) continue
+
             const arity = extractParamCountFromTokens(child.tokens)
             constructorCountByArity.set(
                 arity,
@@ -565,23 +238,6 @@ export class DeclareClass extends Executable {
     }
 }
 
-export class ClassValue extends ValueType {
-    static override friendlyName = '클래스'
-
-    constructor(
-        public name: string,
-        public body: Block,
-        public definitionScope: Scope,
-        public parentClass?: ClassValue,
-    ) {
-        super()
-    }
-
-    override toPrint(): string {
-        return `<클래스 ${this.name}>`
-    }
-}
-
 export class NewInstance extends Evaluable {
     static override friendlyName = '새 인스턴스 만들기'
 
@@ -593,7 +249,7 @@ export class NewInstance extends Evaluable {
         super()
     }
 
-    override async execute(scope: Scope): Promise<InstanceValue> {
+    override async execute(scope: Scope) {
         const classValue = scope.getVariable(this.className)
         if (!(classValue instanceof ClassValue)) {
             throw new NotAClassError({
@@ -607,13 +263,11 @@ export class NewInstance extends Evaluable {
         const { instance, layerScopes, finalScope } =
             createClassInstanceLayerScopes(classValue)
 
-        // 부모 -> 자식 순으로 바디를 실행해 상속 체인을 구성합니다.
         for (const { klass, scope: layerScope } of layerScopes) {
             await klass.body.execute(layerScope)
         }
         instance.scope = finalScope
 
-        // Call __준비__ (constructor) if it exists
         const initFunc = this.pickConstructorByArity(
             layerScopes,
             this.arguments_.length,
@@ -632,7 +286,6 @@ export class NewInstance extends Evaluable {
 
             await initFunc.run(args, instance.scope)
         }
-        // If no __준비__, args are silently ignored
 
         return instance
     }
@@ -675,10 +328,6 @@ export class NewInstance extends Evaluable {
 
     override toPrint(): string {
         return `새 ${this.className}`
-    }
-
-    private getInheritanceChain(classValue: ClassValue): ClassValue[] {
-        return getInheritanceChain(classValue)
     }
 
     private pickConstructorByArity(
@@ -753,7 +402,7 @@ export class NewInstance extends Evaluable {
     ): YaksokError[] {
         const expectedArities = new Set<number>()
         let hasDuplicatedArityInLayer = false
-        const chain = this.getInheritanceChain(classValue)
+        const chain = getInheritanceChain(classValue)
 
         for (let i = chain.length - 1; i >= 0; i--) {
             const klass = chain[i]
@@ -774,11 +423,7 @@ export class NewInstance extends Evaluable {
             }
         }
 
-        if (expectedArities.size === 0) {
-            return []
-        }
-        if (hasDuplicatedArityInLayer) {
-            // Duplicate arity ambiguity is already reported at class declaration validation.
+        if (expectedArities.size === 0 || hasDuplicatedArityInLayer) {
             return []
         }
 
@@ -792,40 +437,6 @@ export class NewInstance extends Evaluable {
                 tokens: this.tokens,
             }),
         ]
-    }
-}
-
-export class InstanceValue extends ObjectValue {
-    static override friendlyName = '인스턴스'
-
-    /** 상속 체인 실행 후 NewInstance에서 할당됩니다. */
-    public scope!: Scope
-    /** 멤버 메서드 탐색은 이 스코프까지 허용됩니다. */
-    public memberLookupRootScope!: Scope
-    /** 선언 시점 클래스 심볼이 가려져도 validation에서 클래스 메타를 참조하기 위한 원본입니다. */
-    public classValue?: ClassValue
-
-    constructor(public className: string) {
-        super()
-    }
-
-    override toPrint(): string {
-        return `<${this.className} 인스턴스>`
-    }
-}
-
-export class SuperValue extends ObjectValue {
-    static override friendlyName = '상위'
-
-    constructor(
-        public instance: InstanceValue,
-        public scope: Scope,
-    ) {
-        super()
-    }
-
-    override toPrint(): string {
-        return '<상위>'
     }
 }
 
@@ -860,17 +471,14 @@ export class MemberFunctionInvoke extends Evaluable {
             })
         }
 
-        const args = await evaluateParams(
-            this.invocation.params,
-            scope,
-        )
+        const args = await evaluateParams(this.invocation.params, scope)
         return await memberFunction.run(args, resolved.scope)
     }
 
     override validate(scope: Scope): YaksokError[] {
         const targetErrors = this.target.validate(scope)
-        const paramErrors = Object.values(this.invocation.params).flatMap(
-            (param) => param.validate(scope),
+        const paramErrors = Object.values(this.invocation.params).flatMap((param) =>
+            param.validate(scope),
         )
         const allErrors = [...targetErrors, ...paramErrors]
         if (allErrors.length > 0) {
@@ -880,10 +488,7 @@ export class MemberFunctionInvoke extends Evaluable {
         try {
             const rawTarget = resolveValidationTargetValue(this.target, scope)
             if (rawTarget) {
-                const resolved = resolveMemberAccessTarget(
-                    rawTarget,
-                    this.tokens,
-                )
+                const resolved = resolveMemberAccessTarget(rawTarget, this.tokens)
                 const memberFunction = findMemberFunction(
                     resolved.scope,
                     resolved.instance,
@@ -939,10 +544,9 @@ export class FetchMember extends Evaluable {
                 this.memberName,
                 this.tokens,
             )
-        } catch (e) {
-            if (!(e instanceof NotDefinedIdentifierError)) throw e
+        } catch (error) {
+            if (!(error instanceof NotDefinedIdentifierError)) throw error
 
-            // Variable not found — fall back to no-arg method invocation
             const func = findMemberFunction(
                 resolved.scope,
                 resolved.instance,
@@ -957,6 +561,7 @@ export class FetchMember extends Evaluable {
                     tokens: this.tokens,
                 })
             }
+
             resolved.scope.setVariable('자신', resolved.instance, this.tokens)
             return await func.run({}, resolved.scope)
         }
@@ -973,14 +578,13 @@ export class FetchMember extends Evaluable {
             if (!rawTarget) {
                 return targetErrors
             }
-            const resolved = resolveMemberAccessTarget(rawTarget, this.tokens)
 
+            const resolved = resolveMemberAccessTarget(rawTarget, this.tokens)
             const owner = findVariableOwnerScopeInMemberChain(
                 resolved.scope,
                 resolved.instance,
                 this.memberName,
             )
-
             if (owner) {
                 return targetErrors
             }
@@ -990,32 +594,34 @@ export class FetchMember extends Evaluable {
                 resolved.instance,
                 this.memberName,
             )
-
             if (func) {
                 return targetErrors
             }
 
-            const classValue = resolveClassValueFromInstance(
-                scope,
-                resolved.instance,
-            )
-            if (!classValue) {
+            const isInternalSelfOrSuperAccess =
+                this.target instanceof Identifier &&
+                (this.target.value === '자신' || this.target.value === '상위')
+            if (isInternalSelfOrSuperAccess) {
                 return targetErrors
             }
 
-            const possibleMemberNames =
-                collectPotentialMemberNamesInClass(classValue)
-            if (!possibleMemberNames.has(this.memberName)) {
-                targetErrors.push(
-                    new MemberNotFoundError({
-                        resource: {
-                            className: resolved.instance.className,
-                            memberName: this.memberName,
-                        },
-                        tokens: this.tokens,
-                    }),
-                )
+            const classValue = resolveClassValueFromInstance(scope, resolved.instance)
+            if (classValue) {
+                const likelyMemberNames = collectLikelyMemberNamesInClass(classValue)
+                if (likelyMemberNames.has(this.memberName)) {
+                    return targetErrors
+                }
             }
+
+            targetErrors.push(
+                new MemberNotFoundError({
+                    resource: {
+                        className: resolved.instance.className,
+                        memberName: this.memberName,
+                    },
+                    tokens: this.tokens,
+                }),
+            )
         } catch (error) {
             if (error instanceof YaksokError) {
                 targetErrors.push(error)
@@ -1050,9 +656,7 @@ export class SetMember extends Executable {
         const resolved = resolveMemberAccessTarget(rawTarget, this.tokens)
 
         const operatorNode =
-            assignerToOperatorMap[
-                this.operator as keyof typeof assignerToOperatorMap
-            ]
+            assignerToOperatorMap[this.operator as keyof typeof assignerToOperatorMap]
 
         const operand = await this.value.execute(scope)
         let newValue = operand

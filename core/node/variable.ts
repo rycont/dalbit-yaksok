@@ -75,7 +75,10 @@ function inferValidationValue(value: Evaluable, scope: Scope): ValueType {
         try {
             const classValue = scope.getVariable(value.className, value.tokens)
             if (classValue instanceof ClassValue) {
-                return createValidationInstanceFromClass(classValue)
+                return createValidationInstanceFromClass(
+                    classValue,
+                    value.arguments_.length,
+                )
             }
         } catch {
             // Ignore lookup errors and fall back to unknown numeric placeholder.

@@ -1100,3 +1100,56 @@ o.없는멤버 보여주기
         assertStringIncludes(allMessages, '멤버')
     },
 )
+
+Deno.test(
+    '멤버 접근 검증: 클래스 본문의 거짓 분기 할당은 멤버 후보로 간주하지 않는다',
+    async () => {
+        const session = new YaksokSession()
+        session.addModule(
+            'main',
+            `
+클래스, C
+    만약 거짓 이면
+        임시 = 1
+
+o = 새 C
+o.임시 보여주기
+`,
+        )
+
+        const results = await session.runModule('main')
+        const result = results.get('main')
+        if (!result) throw new Error('실행 결과가 없습니다.')
+
+        if (result.reason !== 'validation') {
+            throw new Error('검증 단계에서 멤버 없음 오류가 발생해야 합니다.')
+        }
+
+        const allMessages = [...result.errors.values()]
+            .flat()
+            .map((e) => e.message)
+            .join('\n')
+        assertStringIncludes(allMessages, '임시')
+        assertStringIncludes(allMessages, '멤버')
+    },
+)
+
+Deno.test(
+    '멤버 접근 검증: 상위 멤버 할당도 멤버 후보로 인식한다',
+    async () => {
+        const outputs = await runAndCollect(`
+클래스, 부모
+    값 = 0
+
+클래스, 자식(부모)
+    약속, 세팅
+        상위.새값 = 1
+
+o = 새 자식
+o.세팅
+o.새값 보여주기
+`)
+
+        assertEquals(outputs[0], '1')
+    },
+)
