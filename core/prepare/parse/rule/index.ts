@@ -34,6 +34,7 @@ import {
     ModularOperator,
     MultiplyOperator,
     NewInstance,
+    LambdaLiteral,
     Operator,
     OrOperator,
     Pause,
@@ -626,6 +627,29 @@ export const ADVANCED_RULES: Rule[] = [
     {
         pattern: [
             {
+                type: Identifier,
+                value: '람다',
+            },
+            {
+                type: Identifier,
+            },
+            {
+                type: Expression,
+                value: ':',
+            },
+            {
+                type: Evaluable,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const paramName = (nodes[1] as Identifier).value
+            const body = nodes[3] as Evaluable
+            return new LambdaLiteral([paramName], body, tokens)
+        },
+    },
+    {
+        pattern: [
+            {
                 type: Evaluable,
             },
             {
@@ -668,6 +692,30 @@ export const ADVANCED_RULES: Rule[] = [
             const b = nodes[2] as Evaluable
 
             return new Sequence([...a.items, b], tokens)
+        },
+    },
+    {
+        pattern: [
+            {
+                type: Identifier,
+                value: '람다',
+            },
+            {
+                type: Sequence,
+            },
+            {
+                type: Expression,
+                value: ':',
+            },
+            {
+                type: Evaluable,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const params = extractLambdaParamNames(nodes[1] as Sequence)
+            if (!params) return null
+
+            return new LambdaLiteral(params, nodes[3] as Evaluable, tokens)
         },
     },
     {
@@ -1104,4 +1152,21 @@ function createTypeCastRules(): Rule[] {
     }
 
     return rules
+}
+
+function extractLambdaParamNames(sequence: Sequence): string[] | null {
+    const names: string[] = []
+
+    for (const item of sequence.items) {
+        if (!(item instanceof Identifier)) {
+            return null
+        }
+        names.push(item.value)
+    }
+
+    if (names.length === 0) {
+        return null
+    }
+
+    return names
 }
