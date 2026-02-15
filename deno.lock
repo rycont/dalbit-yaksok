@@ -5,7 +5,7 @@
     "jsr:@std/assert@^1.0.8": "1.0.15",
     "jsr:@std/internal@^1.0.12": "1.0.12",
     "npm:@braintree/sanitize-url@^6.0.4": "6.0.4",
-    "npm:@deno/vite-plugin@^1.0.5": "1.0.5_vite@5.4.21",
+    "npm:@deno/vite-plugin@^1.0.6": "1.0.6_vite@5.4.21",
     "npm:@vue/runtime-dom@^3.5.12": "3.5.24",
     "npm:@vueuse/core@^11.2.0": "11.3.0_vue@3.5.24",
     "npm:ansi-to-html@~0.7.2": "0.7.2",
@@ -240,8 +240,8 @@
     "@chevrotain/utils@11.0.3": {
       "integrity": "sha512-YslZMgtJUyuMbZ+aKvfF3x1f5liK4mWNxghFRv7jqRR9C3R3fAOGTTKvxXDa2Y1s9zSbcpuO0cAxDYsc9SrXoQ=="
     },
-    "@deno/vite-plugin@1.0.5_vite@5.4.21": {
-      "integrity": "sha512-tLja5n4dyMhcze1NzvSs2iiriBymfBlDCZIrjMTxb9O2ru0gvmV6mn5oBD2teNw5Sd92cj3YJzKwsAs8tMJXlg==",
+    "@deno/vite-plugin@1.0.6_vite@5.4.21": {
+      "integrity": "sha512-Sh5XqvFuKAwjARTesi0n6xRpEXm1V0UeqKh+SxIrexCofxOaieNDMqXZD02RiZCg0mrJ43V8eCMuVrDfq6mLmg==",
       "dependencies": [
         "vite"
       ]
@@ -1817,6 +1817,7 @@
         "package-json-from-dist",
         "path-scurry"
       ],
+      "deprecated": true,
       "bin": true
     },
     "glob@7.2.3": {
@@ -3037,7 +3038,7 @@
       "docs": {
         "dependencies": [
           "npm:@braintree/sanitize-url@^6.0.4",
-          "npm:@deno/vite-plugin@^1.0.5",
+          "npm:@deno/vite-plugin@^1.0.6",
           "npm:@vue/runtime-dom@^3.5.12",
           "npm:@vueuse/core@^11.2.0",
           "npm:ansi-to-html@~0.7.2",
