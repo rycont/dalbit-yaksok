@@ -5,6 +5,11 @@ import { Block } from "./block.ts";
 import { FunctionInvoke } from "./function.ts";
 import type { Token } from "../prepare/tokenize/token.ts";
 import { YaksokError } from "../error/common.ts";
+import {
+  DotAccessOnlyOnInstanceError,
+  InvalidParentClassError,
+  NotAClassError,
+} from "../error/class.ts";
 import { NotDefinedIdentifierError } from "../error/variable.ts";
 import { assignerToOperatorMap } from "./operator.ts";
 
@@ -58,7 +63,11 @@ export class DeclareClass extends Executable {
 
     const parentValue = scope.getVariable(this.parentName);
     if (!(parentValue instanceof ClassValue)) {
-      throw new Error(`${this.parentName}은(는) 부모 클래스로 쓸 수 없습니다.`);
+      throw new InvalidParentClassError({
+        resource: {
+          name: this.parentName,
+        },
+      });
     }
 
     return parentValue;
@@ -100,7 +109,12 @@ export class NewInstance extends Evaluable {
   override async execute(scope: Scope): Promise<InstanceValue> {
     const classValue = scope.getVariable(this.className);
     if (!(classValue instanceof ClassValue)) {
-      throw new Error(`${this.className}은(는) 클래스가 아닙니다.`);
+      throw new NotAClassError({
+        resource: {
+          className: this.className,
+        },
+        tokens: this.tokens,
+      });
     }
 
     const instanceScope = new Scope({
@@ -208,7 +222,9 @@ export class MemberFunctionInvoke extends Evaluable {
   override async execute(scope: Scope): Promise<ValueType> {
     const instance = await this.target.execute(scope);
     if (!(instance instanceof InstanceValue)) {
-      throw new Error("온점(.)은 인스턴스에만 사용할 수 있습니다.");
+      throw new DotAccessOnlyOnInstanceError({
+        tokens: this.tokens,
+      });
     }
 
     instance.scope.variables["자신"] = instance;
@@ -239,7 +255,9 @@ export class FetchMember extends Evaluable {
   override async execute(scope: Scope): Promise<ValueType> {
     const instance = await this.target.execute(scope);
     if (!(instance instanceof InstanceValue)) {
-      throw new Error("온점(.)은 인스턴스에만 사용할 수 있습니다.");
+      throw new DotAccessOnlyOnInstanceError({
+        tokens: this.tokens,
+      });
     }
 
     try {
@@ -249,10 +267,7 @@ export class FetchMember extends Evaluable {
 
       // Variable not found — fall back to no-arg method invocation
       for (const [name, func] of instance.scope.functions) {
-        if (
-          name === this.memberName ||
-          name.startsWith(this.memberName)
-        ) {
+        if (name === this.memberName) {
           instance.scope.variables["자신"] = instance;
           return await func.run({}, instance.scope);
         }
@@ -287,7 +302,9 @@ export class SetMember extends Executable {
   override async execute(scope: Scope): Promise<void> {
     const instance = await this.target.execute(scope);
     if (!(instance instanceof InstanceValue)) {
-      throw new Error("온점(.)은 인스턴스에만 사용할 수 있습니다.");
+      throw new DotAccessOnlyOnInstanceError({
+        tokens: this.tokens,
+      });
     }
 
     const operatorNode = assignerToOperatorMap[
@@ -303,7 +320,7 @@ export class SetMember extends Executable {
       newValue = tempOperator.call(oldValue, operand);
     }
 
-    instance.scope.setVariable(this.memberName, newValue);
+    instance.scope.variables[this.memberName] = newValue;
   }
 
   override validate(scope: Scope): YaksokError[] {

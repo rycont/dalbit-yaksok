@@ -219,11 +219,21 @@ Deno.test("상속: 부모 클래스가 아니면 오류가 난다", async () => 
 `;
   const session = new YaksokSession();
   session.addModule("main", code);
-  try {
-    await session.runModule("main");
-  } catch (error) {
-    if (!(error instanceof Error)) throw error;
-    assertStringIncludes(error.message, "부모 클래스로 쓸 수 없습니다");
+  const results = await session.runModule("main");
+  const result = results.get("main");
+  if (!result) throw new Error("실행 결과가 없습니다.");
+
+  if (result.reason === "validation") {
+    const allMessages = [...result.errors.values()]
+      .flat()
+      .map((e) => e.message)
+      .join("\n");
+    assertStringIncludes(allMessages, "부모 클래스로 쓸 수 없습니다");
+    return;
+  }
+
+  if (result.reason === "error") {
+    assertStringIncludes(result.error.message, "부모 클래스로 쓸 수 없습니다");
     return;
   }
 
