@@ -1,6 +1,7 @@
 import { ValueType } from '../value/base.ts'
 import { IndexedValue } from '../value/indexed.ts'
 import { ListValue } from '../value/list.ts'
+import { TupleValue } from '../value/tuple.ts'
 import { BooleanValue, NumberValue, StringValue } from '../value/primitive.ts'
 import { ReferenceStore } from '../value/python.ts'
 
@@ -24,6 +25,14 @@ export const dalbitToJS = (value: ValueType): unknown => {
     }
 
     if (value instanceof ListValue) {
+        const jsArray: unknown[] = []
+        for (const item of value.enumerate()) {
+            jsArray.push(dalbitToJS(item))
+        }
+        return jsArray
+    }
+
+    if (value instanceof TupleValue) {
         const jsArray: unknown[] = []
         for (const item of value.enumerate()) {
             jsArray.push(dalbitToJS(item))
