@@ -1,17 +1,18 @@
 import { Scope } from '../executer/scope.ts'
-import { ValueType, ObjectValue } from '../value/base.ts'
+import { ObjectValue, ValueType } from '../value/base.ts'
 import { Evaluable, Executable, Identifier } from './base.ts'
 import { Block } from './block.ts'
 import { FunctionInvoke } from './function.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import { YaksokError } from '../error/common.ts'
+import { NotDefinedIdentifierError } from '../error/variable.ts'
+import { assignerToOperatorMap } from './operator.ts'
 
 export class DeclareClass extends Executable {
     static override friendlyName = '클래스 선언'
 
     constructor(
         public name: string,
-        public params: string[],
         public body: Block,
         public override tokens: Token[],
     ) {
@@ -19,27 +20,25 @@ export class DeclareClass extends Executable {
     }
 
     override async execute(scope: Scope): Promise<void> {
-        const classValue = new ClassValue(this.name, this.params, this.body, scope)
+        const classValue = new ClassValue(this.name, this.body, scope)
         scope.setVariable(this.name, classValue)
     }
 
     override validate(scope: Scope): YaksokError[] {
-        const dummyClass = new ClassValue(this.name, this.params, this.body, scope)
+        const dummyClass = new ClassValue(this.name, this.body, scope)
         scope.setVariable(this.name, dummyClass)
 
         const classScope = new Scope({
             parent: scope,
         })
 
-        for (const param of this.params) {
-            classScope.setVariable(param, new ValueType())
-        }
+        classScope.setVariable('자신', new InstanceValue(this.name, classScope))
 
         return this.body.validate(classScope)
     }
 
     override toPrint(): string {
-        return `클래스 ${this.name}(${this.params.join(', ')})`
+        return `클래스 ${this.name}`
     }
 }
 
@@ -48,7 +47,6 @@ export class ClassValue extends ValueType {
 
     constructor(
         public name: string,
-        public params: string[],
         public body: Block,
         public definitionScope: Scope,
     ) {
@@ -81,15 +79,46 @@ export class NewInstance extends Evaluable {
             parent: classValue.definitionScope,
         })
 
-        for (let i = 0; i < classValue.params.length; i++) {
-            const paramName = classValue.params[i]
-            const argValue = await (this.arguments_[i] || new ValueType()).execute(scope)
-            instanceScope.setVariable(paramName, argValue)
-        }
+        // Create instance early so 자신 is available during __준비__ execution
+        const instance = new InstanceValue(classValue.name, instanceScope)
 
+        // Inject 자신 (self) into instance scope
+        instanceScope.variables['자신'] = instance
+
+        // Execute class body (registers __준비__ and other methods/fields)
         await classValue.body.execute(instanceScope)
 
-        return new InstanceValue(classValue.name, instanceScope)
+        // Call __준비__ (constructor) if it exists
+        // Function names include params (e.g. "__준비__(이름)"), so use prefix match
+        let initFunc: typeof instanceScope.functions extends Map<
+            string,
+            infer V
+        >
+            ? V | undefined
+            : never = undefined
+
+        for (const [name, func] of instanceScope.functions) {
+            if (name.startsWith('__준비__')) {
+                initFunc = func
+                break
+            }
+        }
+
+        if (initFunc) {
+            const args: Record<string, ValueType> = {}
+
+            for (let i = 0; i < initFunc.paramNames.length; i++) {
+                const paramName = initFunc.paramNames[i]
+                if (i < this.arguments_.length) {
+                    args[paramName] = await this.arguments_[i].execute(scope)
+                }
+            }
+
+            await initFunc.run(args, instanceScope)
+        }
+        // If no __준비__, args are silently ignored
+
+        return instance
     }
 
     override validate(scope: Scope): YaksokError[] {
@@ -104,7 +133,10 @@ export class NewInstance extends Evaluable {
 export class InstanceValue extends ObjectValue {
     static override friendlyName = '인스턴스'
 
-    constructor(public className: string, public scope: Scope) {
+    constructor(
+        public className: string,
+        public scope: Scope,
+    ) {
         super()
     }
 
@@ -129,6 +161,8 @@ export class MemberFunctionInvoke extends Evaluable {
         if (!(instance instanceof InstanceValue)) {
             throw new Error('온점(.)은 인스턴스에만 사용할 수 있습니다.')
         }
+
+        instance.scope.variables['자신'] = instance
 
         return await this.invocation.execute(instance.scope)
     }
@@ -159,7 +193,24 @@ export class FetchMember extends Evaluable {
             throw new Error('온점(.)은 인스턴스에만 사용할 수 있습니다.')
         }
 
-        return instance.scope.getVariable(this.memberName)
+        try {
+            return instance.scope.getVariable(this.memberName)
+        } catch (e) {
+            if (!(e instanceof NotDefinedIdentifierError)) throw e
+
+            // Variable not found — fall back to no-arg method invocation
+            for (const [name, func] of instance.scope.functions) {
+                if (
+                    name === this.memberName ||
+                    name.startsWith(this.memberName)
+                ) {
+                    instance.scope.variables['자신'] = instance
+                    return await func.run({}, instance.scope)
+                }
+            }
+
+            throw e
+        }
     }
 
     override validate(scope: Scope): YaksokError[] {
@@ -168,5 +219,50 @@ export class FetchMember extends Evaluable {
 
     override toPrint(): string {
         return `${this.target.toPrint()}.${this.memberName}`
+    }
+}
+
+export class SetMember extends Executable {
+    static override friendlyName = '멤버 설정'
+
+    constructor(
+        public target: Evaluable,
+        public memberName: string,
+        public value: Evaluable,
+        private readonly operator: string,
+        public override tokens: Token[],
+    ) {
+        super()
+    }
+
+    override async execute(scope: Scope): Promise<void> {
+        const instance = await this.target.execute(scope)
+        if (!(instance instanceof InstanceValue)) {
+            throw new Error('온점(.)은 인스턴스에만 사용할 수 있습니다.')
+        }
+
+        const operatorNode =
+            assignerToOperatorMap[
+                this.operator as keyof typeof assignerToOperatorMap
+            ]
+
+        const operand = await this.value.execute(scope)
+        let newValue = operand
+
+        if (operatorNode) {
+            const oldValue = instance.scope.getVariable(this.memberName)
+            const tempOperator = new operatorNode(this.tokens)
+            newValue = tempOperator.call(oldValue, operand)
+        }
+
+        instance.scope.variables[this.memberName] = newValue
+    }
+
+    override validate(scope: Scope): YaksokError[] {
+        return [...this.target.validate(scope), ...this.value.validate(scope)]
+    }
+
+    override toPrint(): string {
+        return `${this.target.toPrint()}.${this.memberName} ${this.operator} ...`
     }
 }

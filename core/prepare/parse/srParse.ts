@@ -1,4 +1,4 @@
-import { ADVANCED_RULES, BASIC_RULES } from './rule/index.ts'
+import { ADVANCED_RULES, BASIC_RULES, DOT_ACCESS_RULES } from './rule/index.ts'
 import { satisfiesPattern } from './satisfiesPattern.ts'
 
 import { Block } from '../../node/block.ts'
@@ -35,10 +35,13 @@ export function SRParse(_nodes: Node[], rules: Rule[]) {
 
             const reduced = reduce(stackSlice, rule)
 
-            if(stackSlice.length === 1 && reduced.constructor === stackSlice[0].constructor) {
+            if (
+                stackSlice.length === 1 &&
+                reduced.constructor === stackSlice[0].constructor
+            ) {
                 continue
             }
-        
+
             buffer.splice(-rule.pattern.length, rule.pattern.length, reduced)
 
             changed = true
@@ -83,7 +86,9 @@ export function callParseRecursively(
 
     const patternsByLevel = [
         ...externalPatterns[0],
-        ...BASIC_RULES,
+        BASIC_RULES[0],
+        DOT_ACCESS_RULES,
+        ...BASIC_RULES.slice(1),
         ...externalPatterns[1],
         ADVANCED_RULES,
     ]

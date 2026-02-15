@@ -6,6 +6,7 @@ import {
 import {
     AndOperator,
     Block,
+    BooleanLiteral,
     Break,
     DivideOperator,
     ElseIfStatement,
@@ -14,6 +15,8 @@ import {
     EqualOperator,
     Evaluable,
     Expression,
+    FetchMember,
+    FunctionInvoke,
     GreaterThanOperator,
     GreaterThanOrEqualOperator,
     Identifier,
@@ -22,12 +25,13 @@ import {
     IntegerDivideOperator,
     LessThanOperator,
     LessThanOrEqualOperator,
-    BooleanLiteral,
     ListLiteral,
     Loop,
+    MemberFunctionInvoke,
     MinusOperator,
     ModularOperator,
     MultiplyOperator,
+    NewInstance,
     Operator,
     OrOperator,
     Pause,
@@ -36,18 +40,18 @@ import {
     Print,
     RangeOperator,
     Sequence,
+    SetMember,
     SetToIndex,
     SetVariable,
-    TypeOf,
     TypeCast,
-    NewInstance,
-    MemberFunctionInvoke,
-    FetchMember,
-    FunctionInvoke,
+    TypeOf,
 } from '../../../node/index.ts'
 import type { TypeCastTarget } from '../../../node/typecast.ts'
 import { NotEqualOperator } from '../../../node/operator.ts'
-import { TemplateLiteral, TemplateStringPart } from '../../../node/primitive-literal.ts'
+import {
+    TemplateLiteral,
+    TemplateStringPart,
+} from '../../../node/primitive-literal.ts'
 import { ReturnStatement } from '../../../node/return.ts'
 import { IndexedValue } from '../../../value/indexed.ts'
 import { NumberValue, StringValue } from '../../../value/primitive.ts'
@@ -90,7 +94,10 @@ export const BASIC_RULES: Rule[][] = [
                 const template = nodes[0] as TemplateLiteral
                 const expr = nodes[2] as Evaluable
                 const endPart = nodes[4] as TemplateStringPart
-                return new TemplateLiteral([...template.parts, expr, endPart], tokens)
+                return new TemplateLiteral(
+                    [...template.parts, expr, endPart],
+                    tokens,
+                )
             },
         },
         ...['참', '맞음', 'True', 'true'].map(
@@ -105,7 +112,7 @@ export const BASIC_RULES: Rule[][] = [
                     factory: (_nodes, tokens) => {
                         return new BooleanLiteral(true, tokens)
                     },
-                } as Rule),
+                }) as Rule,
         ),
         ...['거짓', '아님', 'False', 'false'].map(
             (keyword) =>
@@ -119,7 +126,7 @@ export const BASIC_RULES: Rule[][] = [
                     factory: (_nodes, tokens) => {
                         return new BooleanLiteral(false, tokens)
                     },
-                } as Rule),
+                }) as Rule,
         ),
         {
             pattern: [
@@ -441,21 +448,7 @@ export const BASIC_RULES: Rule[][] = [
     ],
 ]
 
-export const ADVANCED_RULES: Rule[] = [
-    {
-        pattern: [
-            {
-                type: Identifier,
-                value: '잠깐',
-            },
-            {
-                type: Identifier,
-                value: '멈추기',
-            },
-        ],
-        factory: (_nodes, tokens) => new Pause(tokens),
-        flags: [RULE_FLAGS.IS_STATEMENT],
-    },
+export const DOT_ACCESS_RULES: Rule[] = [
     {
         pattern: [
             { type: Evaluable },
@@ -484,11 +477,25 @@ export const ADVANCED_RULES: Rule[] = [
             )
         },
     },
+]
+
+export const ADVANCED_RULES: Rule[] = [
     {
         pattern: [
-            { type: NewInstance },
-            { type: ValueWithParenthesis },
+            {
+                type: Identifier,
+                value: '잠깐',
+            },
+            {
+                type: Identifier,
+                value: '멈추기',
+            },
         ],
+        factory: (_nodes, tokens) => new Pause(tokens),
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    },
+    {
+        pattern: [{ type: NewInstance }, { type: ValueWithParenthesis }],
         factory: (nodes, tokens) => {
             const ni = nodes[0] as NewInstance
             const vwp = nodes[1] as ValueWithParenthesis
@@ -502,10 +509,7 @@ export const ADVANCED_RULES: Rule[] = [
         },
     },
     {
-        pattern: [
-            { type: Identifier, value: '새' },
-            { type: Identifier },
-        ],
+        pattern: [{ type: Identifier, value: '새' }, { type: Identifier }],
         factory: (nodes, tokens) => {
             const className = (nodes[1] as Identifier).value
             return new NewInstance(className, [], tokens)
@@ -529,7 +533,10 @@ export const ADVANCED_RULES: Rule[] = [
             const a = nodes[0] as Evaluable
             const b = nodes[2] as Evaluable
 
-            if (a instanceof Identifier && (a.value === '클래스' || a.value === '약속')) {
+            if (
+                a instanceof Identifier &&
+                (a.value === '클래스' || a.value === '약속')
+            ) {
                 return null as any
             }
 
@@ -569,6 +576,34 @@ export const ADVANCED_RULES: Rule[] = [
         ],
         factory: (_nodes, tokens) => new ListLiteral([], tokens),
     },
+    ...ASSIGNERS.map<Rule>((assigner) => ({
+        pattern: [
+            {
+                type: FetchMember,
+            },
+            {
+                type: Expression,
+                value: assigner,
+            },
+            {
+                type: Evaluable,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const fetchMember = nodes[0] as FetchMember
+            const operator = nodes[1] as Expression
+            const value = nodes[2] as Evaluable
+
+            return new SetMember(
+                fetchMember.target,
+                fetchMember.memberName,
+                value,
+                operator.value,
+                tokens,
+            )
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    })),
     ...ASSIGNERS.map<Rule>((assigner) => ({
         pattern: [
             {
