@@ -22,14 +22,12 @@ import { assignerToOperatorMap } from './operator.ts'
 import { assertValidIdentifierName } from '../util/assert-valid-identifier-name.ts'
 import {
     extractParamCountFromTokens,
-    getDuplicatedConstructorArities,
     getDeclaredConstructorsInClass,
     isConstructorDeclaration,
     resolveConstructorByArity,
 } from './class/constructor.ts'
 import {
     ClassValue,
-    getInheritanceChain,
     resolveClassValueFromInstance,
 } from './class/core.ts'
 import {
@@ -377,61 +375,52 @@ export class NewInstance extends Evaluable {
         arity: number,
         className: string,
     ): RunnableObject | undefined {
-        const expectedArities = new Set<number>()
+        const resolution = resolveConstructorByArity(
+            layerScopes.map(({ klass }) => ({
+                className: klass.name,
+                arities: getDeclaredConstructorsInClass(klass).map(
+                    (constructor) => constructor.arity,
+                ),
+            })),
+            arity,
+        )
+
+        if (resolution.kind === 'ambiguous') {
+            throw new ConstructorArityAmbiguousError({
+                resource: {
+                    className: resolution.className,
+                    arity,
+                },
+                tokens: this.tokens,
+            })
+        }
 
         for (let i = layerScopes.length - 1; i >= 0; i--) {
             const { klass, scope } = layerScopes[i]
-            const matchingCandidates: RunnableObject[] = []
             const declaredConstructors = getDeclaredConstructorsInClass(klass)
-
-            for (const constructor of declaredConstructors) {
-                expectedArities.add(constructor.arity)
-            }
-
             const matchingDeclaredConstructors = declaredConstructors.filter(
                 (constructor) => constructor.arity === arity,
             )
-            if (matchingDeclaredConstructors.length > 1) {
-                throw new ConstructorArityAmbiguousError({
-                    resource: {
-                        className: klass.name,
-                        arity,
-                    },
-                    tokens: this.tokens,
-                })
-            }
 
             for (const constructor of matchingDeclaredConstructors) {
                 const func = scope.functions.get(constructor.name)
                 if (func) {
-                    matchingCandidates.push(func)
+                    return func
                 }
-            }
-
-            if (matchingCandidates.length > 1) {
-                throw new ConstructorArityAmbiguousError({
-                    resource: {
-                        className: klass.name,
-                        arity,
-                    },
-                    tokens: this.tokens,
-                })
-            }
-
-            if (matchingCandidates.length === 1) {
-                return matchingCandidates[0]
             }
         }
 
-        if (expectedArities.size === 0) {
+        if (resolution.kind === 'none') {
             return undefined
         }
 
-        const sortedExpectedArities = [...expectedArities].sort((a, b) => a - b)
+        const expectedArities = resolution.kind === 'mismatch'
+            ? resolution.expectedArities
+            : [arity]
         throw new ConstructorArityMismatchError({
             resource: {
                 className,
-                expected: sortedExpectedArities,
+                expected: expectedArities,
                 received: arity,
             },
             tokens: this.tokens,
@@ -442,30 +431,15 @@ export class NewInstance extends Evaluable {
         classValue: ClassValue,
         arity: number,
     ): YaksokError[] {
-        const expectedArities = new Set<number>()
-        let hasDuplicatedArityInLayer = false
-        const chain = getInheritanceChain(classValue)
-
-        for (let i = chain.length - 1; i >= 0; i--) {
-            const klass = chain[i]
-            const constructors = getDeclaredConstructorsInClass(klass)
-            const matchingCandidates = constructors.filter(
-                (constructor) => constructor.arity === arity,
-            )
-            if (matchingCandidates.length > 1) {
-                hasDuplicatedArityInLayer = true
-            }
-
-            for (const constructor of constructors) {
-                expectedArities.add(constructor.arity)
-            }
-
-            if (matchingCandidates.length === 1) {
-                return []
-            }
-        }
-
-        if (expectedArities.size === 0 || hasDuplicatedArityInLayer) {
+        const resolution = resolveConstructorByArity(
+            createClassChainConstructorLayers(classValue),
+            arity,
+        )
+        if (
+            resolution.kind === 'matched' ||
+            resolution.kind === 'none' ||
+            resolution.kind === 'ambiguous'
+        ) {
             return []
         }
 
@@ -473,13 +447,33 @@ export class NewInstance extends Evaluable {
             new ConstructorArityMismatchError({
                 resource: {
                     className: classValue.name,
-                    expected: [...expectedArities].sort((a, b) => a - b),
+                    expected: resolution.expectedArities,
                     received: arity,
                 },
                 tokens: this.tokens,
             }),
         ]
     }
+}
+
+function createClassChainConstructorLayers(classValue: ClassValue): {
+    className: string
+    arities: number[]
+}[] {
+    const layers: { className: string; arities: number[] }[] = []
+    let cursor: ClassValue | undefined = classValue
+
+    while (cursor) {
+        layers.unshift({
+            className: cursor.name,
+            arities: getDeclaredConstructorsInClass(cursor).map(
+                (constructor) => constructor.arity,
+            ),
+        })
+        cursor = cursor.parentClass
+    }
+
+    return layers
 }
 
 export class MemberFunctionInvoke extends Evaluable {
