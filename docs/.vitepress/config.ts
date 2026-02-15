@@ -21,31 +21,31 @@ export default defineConfig(
         withSidebar(
             {
                 title: '달빛약속',
-                description: '교육용 프로그래밍 언어, 약속의 포크',
+                description: '가장 아름다운 한글 프로그래밍 언어',
                 themeConfig: {
                     nav: [
-                        { text: 'Home', link: '/' },
+                        { text: '홈', link: '/' },
+                        {
+                            text: '언어 문법',
+                            link: '/language/1. getting-started',
+                        },
+                        {
+                            text: '라이브러리',
+                            link: '/library/1. getting-started',
+                        },
                         {
                             text: 'API',
                             link: '/api/',
                         },
                         {
-                            text: 'Language',
-                            link: '/language/1.%20getting-started.html',
-                        },
-                        {
-                            text: 'Library',
-                            link: '/library/1.%20getting-started.html',
-                        },
-                        {
-                            text: 'Contribution',
-                            link: '/codebook/00.introduction.html',
+                            text: '기여하기',
+                            link: '/guide/00.introduction',
                         },
                     ],
                     socialLinks: [
                         {
                             icon: 'github',
-                            link: 'https://github.com/rycont/yaksok.ts',
+                            link: 'https://github.com/rycont/dalbit-yaksok',
                         },
                         {
                             icon: {
