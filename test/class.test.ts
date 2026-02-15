@@ -210,6 +210,79 @@ d.소리 보여주기
   assertEquals(outputs[2], "멍멍");
 });
 
+Deno.test("상위: __준비__를 호출해 부모 초기화를 재사용할 수 있다", async () => {
+  const outputs = await runAndCollect(`
+클래스, 부모
+    약속, __준비__
+        자신.이름 = "부모초기화"
+
+클래스, 자식(부모)
+    약속, __준비__ (나이)
+        상위.__준비__
+        자신.나이 = 나이
+
+나 = 새 자식(4)
+나.이름 보여주기
+나.나이 보여주기
+`);
+
+  assertEquals(outputs[0], "부모초기화");
+  assertEquals(outputs[1], "4");
+});
+
+Deno.test("상위: 상위.(...) 문법으로 부모 메서드를 호출할 수 있다", async () => {
+  const outputs = await runAndCollect(`
+클래스, 부모
+    약속, (음료) 마시기
+        "부모가 " + 음료 + " 마심" 반환하기
+
+클래스, 자식(부모)
+    약속, (음료) 마시기
+        r = 상위.("주스" 마시기)
+        "[" + r + "]" 반환하기
+
+나 = 새 자식
+나. "주스" 마시기 보여주기
+`);
+
+  assertEquals(outputs[0], "[부모가 주스 마심]");
+});
+
+Deno.test("상위: 부모가 없으면 상위를 사용할 수 없다", async () => {
+  const session = new YaksokSession();
+  session.addModule(
+    "main",
+    `
+클래스, 사람
+    약속, 테스트
+        상위.__준비__
+
+나 = 새 사람
+나.테스트
+`,
+  );
+
+  const results = await session.runModule("main");
+  const result = results.get("main");
+  if (!result) throw new Error("실행 결과가 없습니다.");
+
+  if (result.reason === "validation") {
+    const allMessages = [...result.errors.values()]
+      .flat()
+      .map((e) => e.message)
+      .join("\n");
+    assertStringIncludes(allMessages, '"상위"');
+    return;
+  }
+
+  if (result.reason === "error") {
+    assertStringIncludes(result.error.message, '"상위"');
+    return;
+  }
+
+  throw new Error("부모 없는 상위 사용 오류가 발생해야 합니다.");
+});
+
 Deno.test("상속: 부모 클래스가 아니면 오류가 난다", async () => {
   const code = `
 값 = 1

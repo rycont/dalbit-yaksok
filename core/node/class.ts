@@ -4,6 +4,7 @@ import { Evaluable, Executable, Identifier } from "./base.ts";
 import { Block } from "./block.ts";
 import { FunctionInvoke } from "./function.ts";
 import type { Token } from "../prepare/tokenize/token.ts";
+import type { RunnableObject } from "../value/function.ts";
 import { YaksokError } from "../error/common.ts";
 import {
   DotAccessOnlyOnInstanceError,
@@ -12,6 +13,31 @@ import {
 } from "../error/class.ts";
 import { NotDefinedIdentifierError } from "../error/variable.ts";
 import { assignerToOperatorMap } from "./operator.ts";
+
+type MemberAccessTarget = InstanceValue | SuperValue;
+
+function resolveMemberAccessTarget(
+  target: ValueType,
+  tokens: Token[],
+): { scope: Scope; instance: InstanceValue } {
+  if (target instanceof InstanceValue) {
+    return {
+      scope: target.scope,
+      instance: target,
+    };
+  }
+
+  if (target instanceof SuperValue) {
+    return {
+      scope: target.scope,
+      instance: target.instance,
+    };
+  }
+
+  throw new DotAccessOnlyOnInstanceError({
+    tokens,
+  });
+}
 
 export class DeclareClass extends Executable {
   static override friendlyName = "클래스 선언";
@@ -51,7 +77,11 @@ export class DeclareClass extends Executable {
       allowFunctionOverride: true,
     });
 
-    classScope.setVariable("자신", new InstanceValue(this.name, classScope));
+    const dummyInstance = new InstanceValue(this.name, classScope);
+    classScope.setVariable("자신", dummyInstance);
+    if (this.parentName) {
+      classScope.setVariable("상위", new SuperValue(dummyInstance, scope));
+    }
 
     return this.body.validate(classScope);
   }
@@ -117,26 +147,35 @@ export class NewInstance extends Evaluable {
       });
     }
 
-    const instanceScope = new Scope({
+    const rootScope = new Scope({
       parent: classValue.definitionScope,
       allowFunctionOverride: true,
     });
 
     // Create instance early so 자신 is available during __준비__ execution
-    const instance = new InstanceValue(classValue.name, instanceScope);
-
-    // Inject 자신 (self) into instance scope
-    instanceScope.variables["자신"] = instance;
+    const instance = new InstanceValue(classValue.name, rootScope);
 
     // 부모 -> 자식 순으로 바디를 실행해 상속 체인을 구성합니다.
     const inheritanceChain = this.getInheritanceChain(classValue);
+    let currentScope = rootScope;
+
     for (const klass of inheritanceChain) {
-      await klass.body.execute(instanceScope);
+      const layerScope = new Scope({
+        parent: currentScope,
+        allowFunctionOverride: true,
+      });
+      layerScope.variables["자신"] = instance;
+      if (klass.parentClass) {
+        layerScope.variables["상위"] = new SuperValue(instance, currentScope);
+      }
+      await klass.body.execute(layerScope);
+      currentScope = layerScope;
     }
+    instance.scope = currentScope;
 
     // Call __준비__ (constructor) if it exists
     const initFunc = this.pickConstructorByArity(
-      instanceScope,
+      instance.scope,
       this.arguments_.length,
     );
 
@@ -150,7 +189,7 @@ export class NewInstance extends Evaluable {
         }
       }
 
-      await initFunc.run(args, instanceScope);
+      await initFunc.run(args, instance.scope);
     }
     // If no __준비__, args are silently ignored
 
@@ -178,9 +217,19 @@ export class NewInstance extends Evaluable {
   }
 
   private pickConstructorByArity(scope: Scope, arity: number) {
-    const constructors = [...scope.functions.entries()]
-      .filter(([name]) => name.startsWith("__준비__"))
-      .map(([, func]) => func);
+    const constructors: RunnableObject[] = [];
+    const seen = new Set<string>();
+    let cursor: Scope | undefined = scope;
+
+    while (cursor) {
+      for (const [name, func] of cursor.functions) {
+        if (!name.startsWith("__준비__")) continue;
+        if (seen.has(name)) continue;
+        seen.add(name);
+        constructors.push(func);
+      }
+      cursor = cursor.parent;
+    }
 
     if (constructors.length === 0) {
       return undefined;
@@ -208,6 +257,21 @@ export class InstanceValue extends ObjectValue {
   }
 }
 
+export class SuperValue extends ObjectValue {
+  static override friendlyName = "상위";
+
+  constructor(
+    public instance: InstanceValue,
+    public scope: Scope,
+  ) {
+    super();
+  }
+
+  override toPrint(): string {
+    return "<상위>";
+  }
+}
+
 export class MemberFunctionInvoke extends Evaluable {
   static override friendlyName = "메서드 호출";
 
@@ -220,16 +284,11 @@ export class MemberFunctionInvoke extends Evaluable {
   }
 
   override async execute(scope: Scope): Promise<ValueType> {
-    const instance = await this.target.execute(scope);
-    if (!(instance instanceof InstanceValue)) {
-      throw new DotAccessOnlyOnInstanceError({
-        tokens: this.tokens,
-      });
-    }
+    const rawTarget = await this.target.execute(scope);
+    const resolved = resolveMemberAccessTarget(rawTarget, this.tokens);
+    resolved.scope.variables["자신"] = resolved.instance;
 
-    instance.scope.variables["자신"] = instance;
-
-    return await this.invocation.execute(instance.scope);
+    return await this.invocation.execute(resolved.scope);
   }
 
   override validate(scope: Scope): YaksokError[] {
@@ -253,24 +312,21 @@ export class FetchMember extends Evaluable {
   }
 
   override async execute(scope: Scope): Promise<ValueType> {
-    const instance = await this.target.execute(scope);
-    if (!(instance instanceof InstanceValue)) {
-      throw new DotAccessOnlyOnInstanceError({
-        tokens: this.tokens,
-      });
-    }
+    const rawTarget = await this.target.execute(scope);
+    const resolved = resolveMemberAccessTarget(rawTarget, this.tokens);
 
     try {
-      return instance.scope.getVariable(this.memberName);
+      return resolved.scope.getVariable(this.memberName);
     } catch (e) {
       if (!(e instanceof NotDefinedIdentifierError)) throw e;
 
       // Variable not found — fall back to no-arg method invocation
-      for (const [name, func] of instance.scope.functions) {
-        if (name === this.memberName) {
-          instance.scope.variables["자신"] = instance;
-          return await func.run({}, instance.scope);
-        }
+      try {
+        const func = resolved.scope.getFunctionObject(this.memberName);
+        resolved.scope.variables["자신"] = resolved.instance;
+        return await func.run({}, resolved.scope);
+      } catch (funcError) {
+        if (!(funcError instanceof NotDefinedIdentifierError)) throw funcError;
       }
 
       throw e;
@@ -300,12 +356,8 @@ export class SetMember extends Executable {
   }
 
   override async execute(scope: Scope): Promise<void> {
-    const instance = await this.target.execute(scope);
-    if (!(instance instanceof InstanceValue)) {
-      throw new DotAccessOnlyOnInstanceError({
-        tokens: this.tokens,
-      });
-    }
+    const rawTarget = await this.target.execute(scope);
+    const resolved = resolveMemberAccessTarget(rawTarget, this.tokens);
 
     const operatorNode = assignerToOperatorMap[
       this.operator as keyof typeof assignerToOperatorMap
@@ -315,12 +367,12 @@ export class SetMember extends Executable {
     let newValue = operand;
 
     if (operatorNode) {
-      const oldValue = instance.scope.getVariable(this.memberName);
+      const oldValue = resolved.scope.getVariable(this.memberName);
       const tempOperator = new operatorNode(this.tokens);
       newValue = tempOperator.call(oldValue, operand);
     }
 
-    instance.scope.variables[this.memberName] = newValue;
+    resolved.scope.variables[this.memberName] = newValue;
   }
 
   override validate(scope: Scope): YaksokError[] {

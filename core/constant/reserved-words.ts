@@ -18,4 +18,5 @@ export const RESERVED_WORDS = new Set([
     '잠깐',
     '멈추기',
     '자신',
+    '상위',
 ])

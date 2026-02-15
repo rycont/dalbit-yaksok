@@ -523,6 +523,24 @@ export const DOT_ACCESS_RULES: Rule[] = [
     pattern: [
       { type: Evaluable },
       { type: Expression, value: "." },
+      { type: ValueWithParenthesis },
+    ],
+    factory: (nodes, tokens) => {
+      const wrapped = nodes[2] as ValueWithParenthesis;
+      if (!(wrapped.value instanceof FunctionInvoke)) {
+        return null;
+      }
+      return new MemberFunctionInvoke(
+        nodes[0] as Evaluable,
+        wrapped.value,
+        tokens,
+      );
+    },
+  },
+  {
+    pattern: [
+      { type: Evaluable },
+      { type: Expression, value: "." },
       { type: Identifier },
     ],
     factory: (nodes, tokens) => {
