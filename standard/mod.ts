@@ -1,4 +1,5 @@
 import {
+    BooleanValue,
     type Extension,
     ExtensionManifest,
     NumberValue,
@@ -7,6 +8,7 @@ import {
     ValueType,
     FunctionInvokingParams,
     IndexedValue,
+    Scope,
 } from '@dalbit-yaksok/core'
 
 export class StandardExtension implements Extension {
@@ -55,14 +57,20 @@ GET
 ***
 INCLUDES
 ***
+
+번역(표준), (리스트)를/을 (판별함수)로 filter/거르기
+***
+FILTER
+***
 `,
         },
     }
 
-    executeFFI(
+    async executeFFI(
         code: string,
         args: FunctionInvokingParams,
-    ): ValueType | Promise<ValueType> {
+        callerScope: Scope,
+    ): Promise<ValueType> {
         const action = code.trim()
 
         switch (action) {
@@ -82,12 +90,15 @@ INCLUDES
                 if (!(자신 instanceof ListValue)) {
                     throw new Error('합계를 구할 수 없는 대상이에요.')
                 }
-                const sum = Array.from(자신.enumerate()).reduce((acc, curr) => {
+                const sum = Array.from(자신.enumerate()).reduce(
+                    (acc: number, curr: ValueType) => {
                     if (!(curr instanceof NumberValue)) {
                         throw new Error('목록에 숫자가 아닌 값이 들어있어요.')
                     }
                     return acc + curr.value
-                }, 0)
+                    },
+                    0,
+                )
                 return new NumberValue(sum)
             }
             case 'PRODUCT': {
@@ -95,12 +106,15 @@ INCLUDES
                 if (!(자신 instanceof ListValue)) {
                     throw new Error('곱을 구할 수 없는 대상이에요.')
                 }
-                const product = Array.from(자신.enumerate()).reduce((acc, curr) => {
-                    if (!(curr instanceof NumberValue)) {
-                        throw new Error('목록에 숫자가 아닌 값이 들어있어요.')
-                    }
-                    return acc * curr.value
-                }, 1)
+                const product = Array.from(자신.enumerate()).reduce(
+                    (acc: number, curr: ValueType) => {
+                        if (!(curr instanceof NumberValue)) {
+                            throw new Error('목록에 숫자가 아닌 값이 들어있어요.')
+                        }
+                        return acc * curr.value
+                    },
+                    1,
+                )
                 return new NumberValue(product)
             }
             case 'SPLIT': {
@@ -122,7 +136,9 @@ INCLUDES
                 if (!(구분자 instanceof StringValue)) {
                     throw new Error('구분자는 문자열이어야 해요.')
                 }
-                const joined = Array.from(자신.enumerate()).map(v => v.toPrint()).join(구분자.value)
+                const joined = Array.from(자신.enumerate())
+                    .map((v: ValueType) => v.toPrint())
+                    .join(구분자.value)
                 return new StringValue(joined)
             }
             case 'KEYS': {
@@ -160,8 +176,79 @@ INCLUDES
                 }
                 throw new Error('포함 여부를 확인할 수 없는 대상이에요.')
             }
+            case 'FILTER': {
+                const 리스트 = args.리스트 ?? args.자신
+                const 판별함수 = args.판별함수
+
+                if (!(리스트 instanceof ListValue)) {
+                    throw new Error('목록이 아니면 거를 수 없어요.')
+                }
+
+                if (!isRunnableObject(판별함수)) {
+                    throw new Error('판별함수는 약속(람다)이어야 해요.')
+                }
+
+                const firstParamName = 판별함수.paramNames[0]
+                const secondParamName = 판별함수.paramNames[1]
+                const filtered: ValueType[] = []
+
+                for (const [index, item] of Array.from(리스트.enumerate()).entries()) {
+                    const runArgs: Record<string, ValueType> = {}
+
+                    if (firstParamName) {
+                        runArgs[firstParamName] = item
+                    }
+
+                    if (secondParamName) {
+                        runArgs[secondParamName] = new NumberValue(index)
+                    }
+
+                    const result = await 판별함수.run(runArgs, callerScope)
+                    if (isTruthy(result)) {
+                        filtered.push(item)
+                    }
+                }
+
+                return new ListValue(filtered)
+            }
             default:
                 throw new Error(`알 수 없는 표준 동작: ${action}`)
         }
     }
+}
+
+function isRunnableObject(
+    value: ValueType | undefined,
+): value is ValueType & {
+    run(
+        args: Record<string, ValueType>,
+        fileScope?: Scope,
+    ): Promise<ValueType>
+    paramNames: string[]
+} {
+    if (!value || !('run' in value) || typeof value.run !== 'function') {
+        return false
+    }
+
+    if (!('paramNames' in value) || !Array.isArray(value.paramNames)) {
+        return false
+    }
+
+    return true
+}
+
+function isTruthy(value: ValueType): boolean {
+    if (value instanceof BooleanValue) {
+        return value.value
+    }
+
+    if (value instanceof NumberValue) {
+        return value.value !== 0
+    }
+
+    if (value instanceof StringValue) {
+        return value.value !== ''
+    }
+
+    return !!value
 }
