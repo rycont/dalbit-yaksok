@@ -114,6 +114,7 @@ function setMemberVariable(
     instance: InstanceValue,
     memberName: string,
     value: ValueType,
+    tokens: Token[],
 ): void {
     const owner = findVariableOwnerScopeInMemberChain(
         scope,
@@ -121,11 +122,97 @@ function setMemberVariable(
         memberName,
     )
     if (owner) {
-        owner.variables[memberName] = value
+        owner.setLocalVariable(memberName, value, tokens)
         return
     }
 
-    scope.variables[memberName] = value
+    scope.setLocalVariable(memberName, value, tokens)
+}
+
+function resolveClassValueFromInstance(
+    scope: Scope,
+    instance: InstanceValue,
+): ClassValue | undefined {
+    try {
+        const value = scope.getVariable(instance.className)
+        if (value instanceof ClassValue) {
+            return value
+        }
+        return undefined
+    } catch {
+        return undefined
+    }
+}
+
+function collectPotentialMemberNamesInClass(
+    classValue: ClassValue,
+): Set<string> {
+    const names = new Set<string>()
+
+    const isSetVariableNode = (
+        node: unknown,
+    ): node is { name: string; constructor: { name: string } } => {
+        return (
+            typeof node === 'object' &&
+            node !== null &&
+            'constructor' in node &&
+            (node as { constructor: { name?: unknown } }).constructor?.name ===
+                'SetVariable' &&
+            'name' in node &&
+            typeof (node as { name?: unknown }).name === 'string'
+        )
+    }
+
+    const isSetMemberOnSelfNode = (
+        node: unknown,
+    ): node is {
+        target: Identifier
+        memberName: string
+        constructor: { name: string }
+    } => {
+        if (
+            !(
+                typeof node === 'object' &&
+                node !== null &&
+                'constructor' in node &&
+                (node as { constructor: { name?: unknown } }).constructor
+                    ?.name === 'SetMember' &&
+                'memberName' in node &&
+                typeof (node as { memberName?: unknown }).memberName ===
+                    'string' &&
+                'target' in node
+            )
+        ) {
+            return false
+        }
+
+        const target = (node as { target: unknown }).target
+        return target instanceof Identifier && target.value === '자신'
+    }
+
+    const collectInBlock = (block: Block) => {
+        for (const child of block.children) {
+            if (isSetVariableNode(child)) {
+                names.add(child.name)
+            }
+
+            if (isSetMemberOnSelfNode(child)) {
+                names.add(child.memberName)
+            }
+
+            if (child instanceof DeclareFunction) {
+                collectInBlock(child.body)
+            } else if (child instanceof Block) {
+                collectInBlock(child)
+            }
+        }
+    }
+
+    for (const klass of getInheritanceChain(classValue)) {
+        collectInBlock(klass.body)
+    }
+
+    return names
 }
 
 function isConstructorFunctionName(name: string): boolean {
@@ -802,7 +889,69 @@ export class FetchMember extends Evaluable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        return this.target.validate(scope)
+        const targetErrors = this.target.validate(scope)
+        if (targetErrors.length > 0) {
+            return targetErrors
+        }
+
+        if (!(this.target instanceof Identifier)) {
+            return targetErrors
+        }
+
+        try {
+            const rawTarget = scope.getVariable(this.target.value, this.tokens)
+            const resolved = resolveMemberAccessTarget(rawTarget, this.tokens)
+
+            const owner = findVariableOwnerScopeInMemberChain(
+                resolved.scope,
+                resolved.instance,
+                this.memberName,
+            )
+
+            if (owner) {
+                return targetErrors
+            }
+
+            const func = findMemberFunction(
+                resolved.scope,
+                resolved.instance,
+                this.memberName,
+            )
+
+            if (func) {
+                return targetErrors
+            }
+
+            const classValue = resolveClassValueFromInstance(
+                scope,
+                resolved.instance,
+            )
+            if (!classValue) {
+                return targetErrors
+            }
+
+            const possibleMemberNames =
+                collectPotentialMemberNamesInClass(classValue)
+            if (!possibleMemberNames.has(this.memberName)) {
+                targetErrors.push(
+                    new MemberNotFoundError({
+                        resource: {
+                            className: resolved.instance.className,
+                            memberName: this.memberName,
+                        },
+                        tokens: this.tokens,
+                    }),
+                )
+            }
+        } catch (error) {
+            if (error instanceof YaksokError) {
+                targetErrors.push(error)
+            } else {
+                throw error
+            }
+        }
+
+        return targetErrors
     }
 
     override toPrint(): string {
@@ -851,6 +1000,7 @@ export class SetMember extends Executable {
             resolved.instance,
             this.memberName,
             newValue,
+            this.tokens,
         )
     }
 

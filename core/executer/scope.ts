@@ -81,6 +81,15 @@ export class Scope {
     }
 
     /**
+     * 현재 스코프에만 변수를 설정합니다.
+     * 상위 스코프 탐색 없이 로컬 슬롯을 직접 갱신해야 하는 경우 사용합니다.
+     */
+    setLocalVariable(name: string, value: ValueType, tokens?: Token[]) {
+        this.variables[name] = value
+        this.emitVariableSetEvent(name, value, tokens)
+    }
+
+    /**
      * 상위 스코프로 거슬러 올라가며 변수가 존재하는지 확인하고, 존재하면 값을 설정합니다.
      * `setVariable` 내부에서 호출되는 헬퍼 메서드입니다.
      * @param name - 설정할 변수의 이름입니다.

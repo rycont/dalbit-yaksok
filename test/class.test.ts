@@ -80,6 +80,16 @@ o.x 보여주기
     const result = results.get('main')
     if (!result) throw new Error('실행 결과가 없습니다.')
 
+    if (result.reason === 'validation') {
+        const allMessages = [...result.errors.values()]
+            .flat()
+            .map((e) => e.message)
+            .join('\n')
+        assertStringIncludes(allMessages, '멤버')
+        assertStringIncludes(allMessages, 'x')
+        return
+    }
+
     if (result.reason === 'error') {
         assertStringIncludes(result.error.message, '멤버')
         assertStringIncludes(result.error.message, 'x')
@@ -601,6 +611,16 @@ Deno.test('멤버 자동 호출도 전역 함수로 폴백하지 않는다', asy
     const result = results.get('main')
     if (!result) throw new Error('실행 결과가 없습니다.')
 
+    if (result.reason === 'validation') {
+        const allMessages = [...result.errors.values()]
+            .flat()
+            .map((e) => e.message)
+            .join('\n')
+        assertStringIncludes(allMessages, '멤버')
+        assertStringIncludes(allMessages, '인사')
+        return
+    }
+
     if (result.reason === 'error') {
         assertStringIncludes(result.error.message, '멤버')
         assertStringIncludes(result.error.message, '인사')
@@ -745,4 +765,68 @@ o.값 보여주기
 
     assertEquals(outputs[0], '자식')
     assertEquals(outputs[1], '11')
+})
+
+Deno.test('멤버 접근 오류는 validation 단계에서 검출된다', async () => {
+    const session = new YaksokSession()
+    session.addModule(
+        'main',
+        `
+클래스, C
+    값 = 1
+
+o = 새 C
+o.없는멤버 보여주기
+`,
+    )
+
+    const results = await session.runModule('main')
+    const result = results.get('main')
+    if (!result) throw new Error('실행 결과가 없습니다.')
+
+    if (result.reason !== 'validation') {
+        throw new Error('검증 단계에서 멤버 없음 오류가 발생해야 합니다.')
+    }
+
+    const allMessages = [...result.errors.values()]
+        .flat()
+        .map((e) => e.message)
+        .join('\n')
+    assertStringIncludes(allMessages, '없는멤버')
+    assertStringIncludes(allMessages, '멤버')
+})
+
+Deno.test('클래스 멤버 대입도 variableSet 이벤트를 발생시킨다', async () => {
+    const setEventNames: string[] = []
+    const session = new YaksokSession({
+        events: {
+            variableSet: (event) => {
+                setEventNames.push(event.name)
+            },
+        },
+    })
+
+    session.addModule(
+        'main',
+        `
+클래스, C
+    약속, 바꾸기
+        자신.새값 = 42
+
+o = 새 C
+o.바꾸기
+`,
+    )
+
+    const results = await session.runModule('main')
+    const result = results.get('main')
+    if (!result) throw new Error('실행 결과가 없습니다.')
+    if (result.reason === 'validation') {
+        throw new Error('검증 오류가 발생하면 안 됩니다.')
+    }
+    if (result.reason === 'error') {
+        throw result.error
+    }
+
+    assertEquals(setEventNames.includes('새값'), true)
 })

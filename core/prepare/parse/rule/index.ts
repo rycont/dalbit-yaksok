@@ -619,7 +619,7 @@ export const ADVANCED_RULES: Rule[] = [
                 a instanceof Identifier &&
                 (a.value === '클래스' || a.value === '약속')
             ) {
-                return null as any
+                return null
             }
 
             return new Sequence([a, b], tokens)
