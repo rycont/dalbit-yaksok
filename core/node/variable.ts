@@ -15,6 +15,7 @@ import {
 
 export class SetVariable extends Evaluable {
     static override friendlyName = '변수 정하기'
+    public readonly __kind = 'SetVariable' as const
 
     constructor(
         public name: string,

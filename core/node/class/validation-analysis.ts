@@ -6,7 +6,6 @@ import { Block } from '../block.ts'
 import { BooleanLiteral } from '../primitive-literal.ts'
 import { Evaluable, Executable, Identifier } from '../base.ts'
 import { DeclareFunction } from '../function.ts'
-import { SetVariable } from '../variable.ts'
 import { ClassValue, getInheritanceChain } from './core.ts'
 
 type ValidationSeedTarget = 'self' | 'super'
@@ -22,6 +21,11 @@ interface SetMemberNodeLike {
     memberName: string
 }
 
+interface SetVariableNodeLike {
+    __kind: 'SetVariable'
+    name: string
+}
+
 function isSetMemberLikeNode(node: unknown): node is SetMemberNodeLike {
     return (
         node instanceof Executable &&
@@ -30,6 +34,16 @@ function isSetMemberLikeNode(node: unknown): node is SetMemberNodeLike {
         'target' in node &&
         'memberName' in node &&
         typeof (node as { memberName?: unknown }).memberName === 'string'
+    )
+}
+
+function isSetVariableLikeNode(node: unknown): node is SetVariableNodeLike {
+    return (
+        node instanceof Evaluable &&
+        '__kind' in node &&
+        (node as { __kind?: unknown }).__kind === 'SetVariable' &&
+        'name' in node &&
+        typeof (node as { name?: unknown }).name === 'string'
     )
 }
 
@@ -50,7 +64,7 @@ export function collectGuaranteedMemberWritesFromBlock(
     const writes: MemberWriteSeed[] = []
 
     const collectFromNode = (node: unknown) => {
-        if (options.includePlainSetVariable && node instanceof SetVariable) {
+        if (options.includePlainSetVariable && isSetVariableLikeNode(node)) {
             writes.push({
                 name: node.name,
                 target: 'self',
