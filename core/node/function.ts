@@ -25,15 +25,17 @@ export class DeclareFunction extends Executable {
 
     name: string
     body: Block
+    paramNames?: string[]
 
     constructor(
-        props: { body: Block; name: string },
+        props: { body: Block; name: string; paramNames?: string[] },
         public override tokens: Token[],
     ) {
         super()
 
         this.name = props.name
         this.body = props.body
+        this.paramNames = props.paramNames
     }
 
     /**
@@ -58,7 +60,8 @@ export class DeclareFunction extends Executable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        const paramNames = extractParamsFromTokens(this.tokens)
+        const paramNames =
+            this.paramNames ?? extractParamsFromTokens(this.tokens)
 
         const params: Record<string, ValueType> = Object.fromEntries(
             paramNames.map((name) => [name, new ValueType()]),
@@ -230,12 +233,35 @@ function extractParamsFromTokens(allTokens: Token[]): string[] {
     )
 
     const headers = allTokens.slice(0, linebreakIndex)
-
     const params: string[] = []
 
     for (let i = 0; i < headers.length - 1; i++) {
-        if (headers[i].type === TOKEN_TYPE.OPENING_PARENTHESIS) {
-            params.push(headers[i + 1].value)
+        if (headers[i].type !== TOKEN_TYPE.OPENING_PARENTHESIS) {
+            continue
+        }
+
+        const nextToken = headers[i + 1]
+        if (nextToken?.type !== TOKEN_TYPE.IDENTIFIER) {
+            continue
+        }
+
+        const nextNextToken = headers[i + 2]
+        if (nextNextToken?.type === TOKEN_TYPE.CLOSING_PARENTHESIS) {
+            params.push(nextToken.value)
+        } else if (nextNextToken?.type === TOKEN_TYPE.COMMA) {
+            let j = i + 1
+            while (j < headers.length && headers[j]?.type === TOKEN_TYPE.IDENTIFIER) {
+                params.push(headers[j].value)
+                const after = headers[j + 1]
+                if (after?.type === TOKEN_TYPE.CLOSING_PARENTHESIS) {
+                    break
+                }
+                if (after?.type === TOKEN_TYPE.COMMA) {
+                    j += 2
+                } else {
+                    break
+                }
+            }
         }
     }
 

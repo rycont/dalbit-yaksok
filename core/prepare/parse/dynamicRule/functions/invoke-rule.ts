@@ -1,5 +1,8 @@
 import { Evaluable, Identifier, type Node } from '../../../../node/base.ts'
 import { FunctionInvoke } from '../../../../node/function.ts'
+import { IndexFetch } from '../../../../node/list.ts'
+import { NumberLiteral } from '../../../../node/primitive-literal.ts'
+import type { IndexedValue } from '../../../../value/indexed.ts'
 import { getCombination } from './combination.ts'
 
 import type {
@@ -127,18 +130,32 @@ export function parseParameterFromTemplate(
     template: FunctionTemplate,
     matchedNodes: Node[],
 ): Record<string, Evaluable> {
-    const parameters = template.pieces
-        .map((piece, index) => {
-            if (piece.type === 'static') {
-                return null
+    let nodeIndex = 0
+    const parameters: [string, Evaluable][] = []
+
+    for (const piece of template.pieces) {
+        if (piece.type === 'static') {
+            nodeIndex++
+            continue
+        }
+
+        const matchedNode = matchedNodes[nodeIndex] as Evaluable
+        nodeIndex++
+
+        if (piece.type === 'destructure') {
+            for (let i = 0; i < piece.value.length; i++) {
+                const paramName = piece.value[i]
+                const indexFetch = new IndexFetch(
+                    matchedNode as Evaluable<IndexedValue>,
+                    new NumberLiteral(i, matchedNode.tokens),
+                    matchedNode.tokens,
+                )
+                parameters.push([paramName, indexFetch])
             }
-
-            const paramName = piece.value[0]
-            const matchedNode = matchedNodes[index]
-
-            return [paramName, matchedNode]
-        })
-        .filter(Boolean) as [string, Identifier][]
+        } else {
+            parameters.push([piece.value[0], matchedNode])
+        }
+    }
 
     return Object.fromEntries(parameters)
 }

@@ -12,41 +12,43 @@ export function convertTokensToFunctionTemplate(
     _tokens: Token[],
 ): FunctionTemplate {
     const tokens = _tokens.map((token) => ({ ...token }))
+    const rawPieces: Array<
+        { type: 'value'; value: string[] } | { type: 'destructure'; value: string[] } | { type: 'static'; value: string }
+    > = []
 
-    const rawPieces = tokens
-        .map((token, index) => {
-            if (token.type !== TOKEN_TYPE.IDENTIFIER) {
-                return null
+    for (let i = 0; i < tokens.length; i++) {
+        const token = tokens[i]
+
+        if (token.type !== TOKEN_TYPE.IDENTIFIER) {
+            continue
+        }
+
+        const isPrevTokenOpeningParenthesis =
+            tokens[i - 1]?.type === TOKEN_TYPE.OPENING_PARENTHESIS
+        const isNextTokenClosingParenthesis =
+            tokens[i + 1]?.type === TOKEN_TYPE.CLOSING_PARENTHESIS
+        const isNextTokenComma = tokens[i + 1]?.type === TOKEN_TYPE.COMMA
+
+        if (isPrevTokenOpeningParenthesis && isNextTokenClosingParenthesis) {
+            rawPieces.push({ type: 'value', value: [token.value] })
+            continue
+        }
+
+        if (isPrevTokenOpeningParenthesis && isNextTokenComma) {
+            const destructureNames = extractDestructureNames(tokens, i)
+            if (destructureNames.length > 0) {
+                rawPieces.push({ type: 'destructure', value: destructureNames })
+                i += destructureNames.length * 2 - 1
+                continue
             }
+        }
 
-            const isPrevTokenOpeningParenthesis =
-                tokens[index - 1]?.type === TOKEN_TYPE.OPENING_PARENTHESIS
-            const isNextTokenClosingParenthesis =
-                tokens[index + 1]?.type === TOKEN_TYPE.CLOSING_PARENTHESIS
-
-            if (
-                isPrevTokenOpeningParenthesis &&
-                isNextTokenClosingParenthesis &&
-                token.type === TOKEN_TYPE.IDENTIFIER
-            ) {
-                return {
-                    type: 'value' as const,
-                    value: [token.value],
-                }
-            }
-
-            return {
-                type: 'static' as const,
-                value: token.value,
-            }
-        })
-        .filter(Boolean) as Array<
-        { type: 'value'; value: string[] } | { type: 'static'; value: string }
-    >
+        rawPieces.push({ type: 'static', value: token.value })
+    }
 
     const lastPiece = rawPieces[rawPieces.length - 1]
     const pieces: FunctionTemplatePiece[] = rawPieces.map((piece, index) => {
-        if (piece.type === 'value') {
+        if (piece.type === 'value' || piece.type === 'destructure') {
             return piece
         }
 
@@ -135,6 +137,27 @@ function convertToVerbForm(word: string): string {
     return word
 }
 
+function extractDestructureNames(tokens: Token[], startIndex: number): string[] {
+    const names: string[] = []
+    let i = startIndex
+
+    while (i < tokens.length) {
+        if (tokens[i].type === TOKEN_TYPE.IDENTIFIER) {
+            names.push(tokens[i].value)
+            const next = tokens[i + 1]
+            if (next?.type === TOKEN_TYPE.CLOSING_PARENTHESIS) {
+                return names
+            }
+            if (next?.type === TOKEN_TYPE.COMMA) {
+                i += 2
+                continue
+            }
+        }
+        return names
+    }
+    return names
+}
+
 function assertValidFunctionHeader(
     pieces: FunctionTemplatePiece[],
     tokens: Token[],
@@ -160,9 +183,9 @@ function assertValidFunctionHeader(
         }
 
         const nextToken = tokens[index + 1]
-        const isNextTokenValid = nextToken?.type === TOKEN_TYPE.IDENTIFIER
+        const isNextTokenIdentifier = nextToken?.type === TOKEN_TYPE.IDENTIFIER
 
-        if (!isNextTokenValid) {
+        if (!isNextTokenIdentifier) {
             throw new UnexpectedTokenError({
                 resource: {
                     parts: '약속 인자',
@@ -172,13 +195,13 @@ function assertValidFunctionHeader(
         }
 
         const nextNextToken = tokens[index + 2]
-        const isNextNextTokenValid =
-            nextNextToken?.type === TOKEN_TYPE.CLOSING_PARENTHESIS
+        const isSingleParam = nextNextToken?.type === TOKEN_TYPE.CLOSING_PARENTHESIS
+        const isDestructureParam = nextNextToken?.type === TOKEN_TYPE.COMMA
 
-        if (!isNextNextTokenValid) {
+        if (!isSingleParam && !isDestructureParam) {
             throw new UnexpectedTokenError({
                 resource: {
-                    parts: '약속 인자를 닫는 괄호',
+                    parts: '약속 인자를 닫는 괄호 또는 추가 인자',
                 },
                 tokens: [nextNextToken],
             })

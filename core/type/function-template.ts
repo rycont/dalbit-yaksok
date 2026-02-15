@@ -1,5 +1,5 @@
 export interface FunctionTemplatePiece {
-    type: 'static' | 'value'
+    type: 'static' | 'value' | 'destructure'
     value: string[]
 }
 
