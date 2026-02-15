@@ -647,6 +647,10 @@ export const DOT_FETCH_MEMBER_RULES: Rule[] = [
             { type: Identifier },
         ],
         factory: (nodes, tokens) => {
+            if ((nodes[2] as Identifier).value === '람다') {
+                return null
+            }
+
             const formula = nodes[0] as Formula
             const lastTerm = formula.terms[formula.terms.length - 1]
             if (
@@ -680,6 +684,10 @@ export const DOT_FETCH_MEMBER_RULES: Rule[] = [
             { type: Identifier },
         ],
         factory: (nodes, tokens) => {
+            if ((nodes[2] as Identifier).value === '람다') {
+                return null
+            }
+
             const target = nodes[0] as Evaluable
             const memberName = (nodes[2] as Identifier).value
 

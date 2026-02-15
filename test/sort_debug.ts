@@ -13,8 +13,8 @@ async function runTest() {
 
     const code = `
 목록 = [3, 1, 2]
-정렬된목록 = 목록.정렬하기
-정렬된목록 보여주기
+결과 = 목록.정렬하기
+결과 보여주기
 `
     try {
         session.addModule('main', code)

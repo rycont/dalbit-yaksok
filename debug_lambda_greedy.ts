@@ -12,16 +12,11 @@ async function runTest() {
     await session.setBaseContext(standardCode)
 
     const code = `
-목록 = [3, 1, 2]
-정렬된목록 = 목록.정렬하기
-정렬된목록 보여주기
+목록 = [1, 2, 3]
+목록 . 람다 가:가 + 1 로 변환하기
 `
-    try {
-        session.addModule('main', code)
-        await session.runModule('main')
-    } catch(e) {
-        console.error("Crash:", e)
-    }
+    session.addModule('main', code)
+    await session.runModule('main')
 }
 
 runTest()
