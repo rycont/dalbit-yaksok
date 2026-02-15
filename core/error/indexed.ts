@@ -128,6 +128,16 @@ export class RangeStartMustBeNumberError extends YaksokError {
     }
 }
 
+export class TupleNotMutableError extends YaksokError {
+    constructor(props: {
+        tokens?: Token[]
+        resource?: Record<string, unknown>
+    }) {
+        super(props)
+        this.message = `튜플은 한 번 만들면 값을 바꿀 수 없어요.`
+    }
+}
+
 export class TargetIsNotIndexedValueError extends YaksokError {
     constructor(props: {
         tokens: Token[]

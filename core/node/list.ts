@@ -6,8 +6,10 @@ import {
 
 import { Scope } from '../executer/scope.ts'
 import { ValueType } from '../value/base.ts'
+import { TupleNotMutableError } from '../error/indexed.ts'
 import { IndexedValue } from '../value/indexed.ts'
 import { ListValue } from '../value/list.ts'
+import { TupleValue } from '../value/tuple.ts'
 import { NumberValue, StringValue } from '../value/primitive.ts'
 import { Evaluable, Executable, Node } from './base.ts'
 
@@ -48,6 +50,31 @@ export class ListLiteral extends Evaluable {
         )
 
         const value = new ListValue(evaluatedItems)
+        return value
+    }
+
+    override validate(scope: Scope): YaksokError[] {
+        const errors = this.items
+            .flatMap((item) => item.validate(scope))
+            .filter((error): error is YaksokError => !!error)
+
+        return errors
+    }
+}
+
+export class TupleLiteral extends Evaluable {
+    static override friendlyName = '튜플'
+
+    constructor(public items: Evaluable[], public override tokens: Token[]) {
+        super()
+    }
+
+    override async execute(scope: Scope): Promise<TupleValue> {
+        const evaluatedItems = await Promise.all(
+            this.items.map((item) => item.execute(scope)),
+        )
+
+        const value = new TupleValue(evaluatedItems)
         return value
     }
 
@@ -146,6 +173,13 @@ export class IndexFetch extends Evaluable {
     ) {
         const list = await this.list.execute(scope)
         const index = await this.index.execute(scope)
+
+        if (list instanceof TupleValue) {
+            throw new TupleNotMutableError({
+                tokens: this.tokens,
+                resource: {},
+            })
+        }
 
         if (!(list instanceof IndexedValue)) {
             throw new TargetIsNotIndexedValueError({

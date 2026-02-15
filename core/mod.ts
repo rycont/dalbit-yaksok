@@ -1,6 +1,7 @@
 export { ObjectValue, PrimitiveValue, ValueType } from './value/base.ts'
 export { IndexedValue } from './value/indexed.ts'
 export { ListValue } from './value/list.ts'
+export { TupleValue } from './value/tuple.ts'
 export { BooleanValue, NumberValue, StringValue } from './value/primitive.ts'
 export { ReferenceStore } from './value/python.ts'
 
