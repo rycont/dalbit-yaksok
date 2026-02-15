@@ -244,7 +244,7 @@ export class NewInstance extends Evaluable {
         super()
     }
 
-    override async execute(scope: Scope) {
+    override async execute(scope: Scope): Promise<ValueType> {
         const classValue = scope.getVariable(this.className)
         if (!(classValue instanceof ClassValue)) {
             throw new NotAClassError({
