@@ -135,13 +135,20 @@ function resolveClassValueFromInstance(
     scope: Scope,
     instance: InstanceValue,
 ): ClassValue | undefined {
+    if (instance.classValue) {
+        return instance.classValue
+    }
+
     try {
         const value = scope.getVariable(instance.className)
         if (value instanceof ClassValue) {
             return value
         }
         return undefined
-    } catch {
+    } catch (error) {
+        if (error instanceof NotDefinedIdentifierError) {
+            return undefined
+        }
         return undefined
     }
 }
@@ -153,48 +160,30 @@ function collectPotentialMemberNamesInClass(
 
     const isSetVariableNode = (
         node: unknown,
-    ): node is { name: string; constructor: { name: string } } => {
+    ): node is { name: string } => {
         return (
-            typeof node === 'object' &&
-            node !== null &&
-            'constructor' in node &&
-            (node as { constructor: { name?: unknown } }).constructor?.name ===
-                'SetVariable' &&
+            node instanceof Evaluable &&
             'name' in node &&
-            typeof (node as { name?: unknown }).name === 'string'
+            typeof (node as { name?: unknown }).name === 'string' &&
+            'operator' in node &&
+            typeof (node as { operator?: unknown }).operator === 'string' &&
+            'value' in node
         )
     }
 
     const isSetMemberOnSelfNode = (
         node: unknown,
-    ): node is {
-        target: Identifier
-        memberName: string
-        constructor: { name: string }
-    } => {
-        if (
-            !(
-                typeof node === 'object' &&
-                node !== null &&
-                'constructor' in node &&
-                (node as { constructor: { name?: unknown } }).constructor
-                    ?.name === 'SetMember' &&
-                'memberName' in node &&
-                typeof (node as { memberName?: unknown }).memberName ===
-                    'string' &&
-                'target' in node
-            )
-        ) {
-            return false
-        }
-
-        const target = (node as { target: unknown }).target
-        return target instanceof Identifier && target.value === '자신'
+    ): node is SetMember => {
+        return (
+            node instanceof SetMember &&
+            node.target instanceof Identifier &&
+            node.target.value === '자신'
+        )
     }
 
-    const collectInBlock = (block: Block) => {
+    const collectInBlock = (block: Block, inFunctionScope = false) => {
         for (const child of block.children) {
-            if (isSetVariableNode(child)) {
+            if (!inFunctionScope && isSetVariableNode(child)) {
                 names.add(child.name)
             }
 
@@ -203,9 +192,9 @@ function collectPotentialMemberNamesInClass(
             }
 
             if (child instanceof DeclareFunction) {
-                collectInBlock(child.body)
+                collectInBlock(child.body, true)
             } else if (child instanceof Block) {
-                collectInBlock(child)
+                collectInBlock(child, inFunctionScope)
             }
         }
     }
@@ -325,6 +314,7 @@ export function createValidationInstanceFromClass(
     })
 
     const instance = new InstanceValue(classValue.name)
+    instance.classValue = classValue
     instance.memberLookupRootScope = rootScope
 
     let currentScope = rootScope
@@ -444,6 +434,7 @@ export class DeclareClass extends Executable {
         })
 
         const dummyInstance = new InstanceValue(this.name)
+        dummyInstance.classValue = dummyClass
         dummyInstance.scope = classScope
         dummyInstance.memberLookupRootScope = classScope
         classScope.setVariable('자신', dummyInstance)
@@ -563,6 +554,7 @@ export class NewInstance extends Evaluable {
         // Create instance early so 자신 is available during __준비__ execution.
         // scope는 상속 체인 실행 후 할당됩니다.
         const instance = new InstanceValue(classValue.name)
+        instance.classValue = classValue
         instance.memberLookupRootScope = rootScope
 
         // 부모 -> 자식 순으로 바디를 실행해 상속 체인을 구성합니다.
@@ -780,6 +772,8 @@ export class InstanceValue extends ObjectValue {
     public scope!: Scope
     /** 멤버 메서드 탐색은 이 스코프까지 허용됩니다. */
     public memberLookupRootScope!: Scope
+    /** 선언 시점 클래스 심볼이 가려져도 validation에서 클래스 메타를 참조하기 위한 원본입니다. */
+    public classValue?: ClassValue
 
     constructor(public className: string) {
         super()
