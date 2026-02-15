@@ -6,6 +6,7 @@ import {
     StringValue,
     ValueType,
     FunctionInvokingParams,
+    IndexedValue,
 } from '@dalbit-yaksok/core'
 
 export class StandardExtension implements Extension {
@@ -38,6 +39,21 @@ SPLIT
 메소드(리스트), 번역(표준), (구분자)로 합치기
 ***
 JOIN
+***
+
+메소드(사전, 리스트), 번역(표준), 열쇠들
+***
+KEYS
+***
+
+메소드(사전, 리스트), 번역(표준), (열쇠)를/을 (기본값)으로/로 가져오기
+***
+GET
+***
+
+메소드(문자, 리스트), 번역(표준), (부분)을/를 포함하는지/포함하는지확인
+***
+INCLUDES
 ***
 `,
         },
@@ -108,6 +124,37 @@ JOIN
                 }
                 const joined = Array.from(자신.enumerate()).map(v => v.toPrint()).join(구분자.value)
                 return new StringValue(joined)
+            }
+            case 'KEYS': {
+                const { 자신 } = args
+                if (!(자신 instanceof IndexedValue)) {
+                    throw new Error('사전이나 목록이 아니면 열쇠를 가져올 수 없어요.')
+                }
+                const keys = Array.from(자신.entries.keys()).map(k => {
+                    if (typeof k === 'number') return new NumberValue(k)
+                    return new StringValue(String(k))
+                })
+                return new ListValue(keys)
+            }
+            case 'GET': {
+                const { 자신, 열쇠, 기본값 } = args
+                if (!(자신 instanceof IndexedValue)) {
+                    throw new Error('사전이나 목록이 아니면 값을 가져올 수 없어요.')
+                }
+                const key = (열쇠 instanceof NumberValue || 열쇠 instanceof StringValue) ? 열쇠.value : 열쇠.toPrint()
+                const value = 자신.entries.get(key as any)
+                return value ?? 기본값
+            }
+            case 'INCLUDES': {
+                const { 자신, 부분 } = args
+                if (자신 instanceof StringValue && 부분 instanceof StringValue) {
+                    return new StringValue(자신.value.includes(부분.value) ? "참" : "거짓")
+                }
+                if (자신 instanceof ListValue) {
+                    const found = Array.from(자신.enumerate()).some(item => item.toPrint() === 부분.toPrint())
+                    return new StringValue(found ? "참" : "거짓")
+                }
+                throw new Error('포함 여부를 확인할 수 없는 대상이에요.')
             }
             default:
                 throw new Error(`알 수 없는 표준 동작: ${action}`)
