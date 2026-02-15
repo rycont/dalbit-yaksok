@@ -146,7 +146,7 @@ FILTER
                 if (!(자신 instanceof IndexedValue)) {
                     throw new Error('사전이나 목록이 아니면 키를 가져올 수 없어요.')
                 }
-                const keys = Array.from(자신.entries.keys()).map(k => {
+                const keys = Array.from(자신.getEntries()).map(([k]) => {
                     if (typeof k === 'number') return new NumberValue(k)
                     return new StringValue(String(k))
                 })
@@ -157,9 +157,14 @@ FILTER
                 if (!(자신 instanceof IndexedValue)) {
                     throw new Error('사전이나 목록이 아니면 값을 가져올 수 없어요.')
                 }
-                const key = (키 instanceof NumberValue || 키 instanceof StringValue) ? 키.value : 키.toPrint()
-                const value = 자신.entries.get(key as any)
-                return value ?? 기본값
+                const key = getIndexKeyValue(키)
+
+                const item = tryGetIndexedItem(자신, key)
+                if (!item.found) {
+                    return 기본값
+                }
+
+                return item.value
             }
             case 'INCLUDES': {
                 const { 자신, 대상 } = args
@@ -171,8 +176,9 @@ FILTER
                     return new StringValue(found ? "참" : "거짓")
                 }
                 if (자신 instanceof IndexedValue) {
-                    const key = (대상 instanceof NumberValue || 대상 instanceof StringValue) ? 대상.value : 대상.toPrint()
-                    return new StringValue(자신.entries.has(key as any) ? "참" : "거짓")
+                    const key = getIndexKeyValue(대상)
+                    const found = tryGetIndexedItem(자신, key).found
+                    return new StringValue(found ? "참" : "거짓")
                 }
                 throw new Error('포함 여부를 확인할 수 없는 대상이에요.')
             }
@@ -251,4 +257,26 @@ function isTruthy(value: ValueType): boolean {
     }
 
     return !!value
+}
+
+function getIndexKeyValue(value: ValueType): string | number {
+    if (value instanceof NumberValue || value instanceof StringValue) {
+        return value.value
+    }
+
+    return value.toPrint()
+}
+
+function tryGetIndexedItem(
+    target: IndexedValue,
+    key: string | number,
+): { found: true; value: ValueType } | { found: false } {
+    try {
+        return {
+            found: true,
+            value: target.getItem(key),
+        }
+    } catch {
+        return { found: false }
+    }
 }

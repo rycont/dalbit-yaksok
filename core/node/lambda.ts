@@ -1,3 +1,4 @@
+import { YaksokError } from "../error/common.ts";
 import { Scope } from '../executer/scope.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import { ValueType } from '../value/base.ts'
@@ -19,7 +20,7 @@ export class LambdaLiteral extends Evaluable<LambdaFunctionValue> {
         return new LambdaFunctionValue(this.paramNames, this.body, scope)
     }
 
-    override validate(scope: Scope) {
+    override validate(scope: Scope): YaksokError[] {
         const lambdaScope = new Scope({
             parent: scope,
             initialVariable: Object.fromEntries(

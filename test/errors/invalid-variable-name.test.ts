@@ -1,7 +1,6 @@
 import { yaksok } from '@dalbit-yaksok/core'
 import { assert } from '@std/assert'
 import { assertEquals } from 'assert/equals'
-import { NotExecutableNodeError } from '../../core/error/unknown-node.ts'
 import {
     NotDefinedIdentifierError,
     NotProperIdentifierNameToDefineError,
@@ -22,7 +21,6 @@ Deno.test('Variable name is not a valid identifier', async () => {
 
     assertEquals(errorTypes, [
         NotProperIdentifierNameToDefineError,
-        NotExecutableNodeError,
         NotDefinedIdentifierError,
     ])
 })
