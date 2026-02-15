@@ -34,6 +34,10 @@ import type { Scope } from '../executer/scope.ts'
 import { ErrorGroups } from '../error/validation.ts'
 import { ErrorInFFIExecution } from '../error/ffi.ts'
 
+export interface ExtendOptions {
+    baseContextFileName?: string[]
+}
+
 /**
  * 인터프리터 실행 진입점 세션입니다.
  *
@@ -136,7 +140,7 @@ export class YaksokSession {
         }
     }
 
-    async extend(extension: Extension): Promise<void> {
+    async extend(extension: Extension, options: ExtendOptions = {}): Promise<void> {
         this.extensions.push(extension)
         if (extension.manifest.module) {
             const { module } = extension.manifest
@@ -145,6 +149,22 @@ export class YaksokSession {
             }
         }
         await extension.init?.()
+
+        const baseContextFileNames = options.baseContextFileName ?? []
+        for (const fileName of baseContextFileNames) {
+            const code = this.getCodeFile(fileName).text
+            const result = await this.setBaseContext(code)
+
+            if (result.reason === 'error') {
+                throw result.error
+            }
+
+            if (result.reason !== 'finish') {
+                throw new Error(
+                    `기본 문맥 파일 "${fileName}"을 불러오지 못했어요. (reason: ${result.reason})`,
+                )
+            }
+        }
     }
 
     private async runOneModule(

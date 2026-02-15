@@ -6,11 +6,9 @@ async function run(file: string) {
         stdout: (msg) => console.log(msg),
         stderr: (msg) => console.error(msg)
     })
-    await session.extend(new StandardExtension())
-    
-    // 표준 라이브러리 약속을 전역으로 주입하기 위해 setBaseContext를 사용합니다.
-    const standardCode = session.getCodeFile('표준').text
-    await session.setBaseContext(standardCode)
+    await session.extend(new StandardExtension(), {
+        baseContextFileName: ['표준'],
+    })
 
     const userCode = await Deno.readTextFile(file)
     session.addModule('main', userCode)
