@@ -506,7 +506,7 @@ export const BASIC_RULES: Rule[][] = [
     ],
 ]
 
-export const DOT_ACCESS_RULES: Rule[] = [
+export const DOT_MEMBER_FUNCTION_INVOKE_RULES: Rule[] = [
     {
         pattern: [
             { type: Evaluable },
@@ -563,6 +563,9 @@ export const DOT_ACCESS_RULES: Rule[] = [
             )
         },
     },
+]
+
+export const DOT_FETCH_MEMBER_RULES: Rule[] = [
     {
         pattern: [
             { type: Evaluable },
@@ -577,6 +580,11 @@ export const DOT_ACCESS_RULES: Rule[] = [
             )
         },
     },
+]
+
+export const DOT_ACCESS_RULES: Rule[] = [
+    ...DOT_MEMBER_FUNCTION_INVOKE_RULES,
+    ...DOT_FETCH_MEMBER_RULES,
 ]
 
 export const ADVANCED_RULES: Rule[] = [
