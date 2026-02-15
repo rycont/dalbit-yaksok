@@ -20,6 +20,9 @@ export class FunctionObject extends ObjectValue implements RunnableObject {
         private body: Block,
         private declaredScope?: Scope,
         public paramNames: string[] = [],
+        public options: {
+            dotReceiverTypeNames?: string[]
+        } = {},
     ) {
         super()
     }

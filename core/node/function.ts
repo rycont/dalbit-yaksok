@@ -27,9 +27,15 @@ export class DeclareFunction extends Executable {
     name: string
     body: Block
     paramNames?: string[]
+    dotReceiverTypeNames?: string[]
 
     constructor(
-        props: { body: Block; name: string; paramNames?: string[] },
+        props: {
+            body: Block
+            name: string
+            paramNames?: string[]
+            dotReceiverTypeNames?: string[]
+        },
         public override tokens: Token[],
     ) {
         super()
@@ -37,6 +43,7 @@ export class DeclareFunction extends Executable {
         this.name = props.name
         this.body = props.body
         this.paramNames = props.paramNames
+        this.dotReceiverTypeNames = props.dotReceiverTypeNames
     }
 
     /**
@@ -50,6 +57,9 @@ export class DeclareFunction extends Executable {
             this.body,
             scope,
             paramNames,
+            {
+                dotReceiverTypeNames: this.dotReceiverTypeNames,
+            },
         )
 
         try {
@@ -71,6 +81,15 @@ export class DeclareFunction extends Executable {
         const params: Record<string, ValueType> = Object.fromEntries(
             paramNames.map((name) => [name, new ValueType()]),
         )
+        try {
+            scope.getVariable('자신')
+        } catch (error) {
+            if (error instanceof YaksokError) {
+                params['자신'] = new ValueType()
+            } else {
+                throw error
+            }
+        }
 
         const functionScope = new Scope({
             parent: scope,
@@ -87,6 +106,9 @@ export class DeclareFunction extends Executable {
                     this.body,
                     functionScope,
                     paramNames,
+                    {
+                        dotReceiverTypeNames: this.dotReceiverTypeNames,
+                    },
                 ),
             )
         } catch (error) {

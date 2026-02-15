@@ -14,6 +14,9 @@ export class FFIObject extends ObjectValue implements RunnableObject {
         private code: string,
         private runtime: string,
         private declaredIn?: CodeFile,
+        public options: {
+            dotReceiverTypeNames?: string[]
+        } = {},
     ) {
         super()
     }

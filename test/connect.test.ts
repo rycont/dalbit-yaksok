@@ -133,6 +133,47 @@ RRR
     assertEquals(output, '[황선형, 도지석]\n')
 })
 
+Deno.test('키워드 재사용형 메소드 번역 선언으로 점 표기 호출', async () => {
+    let output = ''
+
+    const session = new YaksokSession({
+        stdout(value) {
+            output += value + '\n'
+        },
+    })
+
+    await session.extend({
+        manifest: {
+            ffiRunner: {
+                runtimeName: 'mock',
+            },
+        },
+        executeFFI(_code, args) {
+            const self = args.자신 as StringValue
+            const separator = args.구분자 as StringValue
+            return new StringValue(self.value + separator.value)
+        },
+        init() {
+            return Promise.resolve()
+        },
+    })
+
+    session.addModule(
+        'main',
+        `메소드(문자, 리스트), 번역(mock), (구분자)로 자르기
+***
+RETURN
+***
+날짜 = "2026-02-15"
+(날짜."-"로 자르기)[0] 보여주기
+`,
+    )
+
+    await session.runModule('main')
+
+    assertEquals(output, '2\n')
+})
+
 Deno.test('올바르지 않은 연결 반환값: JS String', async () => {
     const session = new YaksokSession()
 

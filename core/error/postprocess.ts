@@ -13,6 +13,7 @@ interface ErrorProcessor {
 }
 
 const PROCESSORS: ErrorProcessor[] = [
+    parseInvalidDotMethodCall,
     parseNotParsablePrintError,
     parseInvalidVariableName,
     parseVariableAssigningValueParsingError,
@@ -221,6 +222,51 @@ function parseNotParsablePrintError(
     }
 
     return [line.slice(0, -1)]
+}
+
+function parseInvalidDotMethodCall(
+    line: YaksokError[],
+    allTokens: Token[],
+): [YaksokError[], Token[]] {
+    const dotError = line.find(
+        (error) =>
+            error instanceof NotExecutableNodeError &&
+            error.tokens?.length === 1 &&
+            error.tokens[0].value === '.',
+    )
+
+    if (!dotError || !dotError.tokens?.[0]) {
+        return [line, allTokens]
+    }
+
+    const dotToken = dotError.tokens[0]
+    const lineNumber = dotToken.position.line
+    const tokensInLine = allTokens.filter(
+        (token) => token.position.line === lineNumber,
+    )
+    const dotIndex = tokensInLine.indexOf(dotToken)
+
+    if (dotIndex === -1) {
+        return [line, allTokens]
+    }
+
+    const methodTokens = tokensInLine.slice(dotIndex + 1)
+    if (methodTokens.length === 0) {
+        return [line, allTokens]
+    }
+
+    let methodText = methodTokens.map((token) => token.value).join('').trim()
+    methodText = methodText.replace(/\s*보여주기\s*$/, '').trim()
+    if (methodText.length === 0) {
+        return [line, allTokens]
+    }
+
+    dotError.tokens = methodTokens
+    dotError.message = `${blue(
+        bold(methodText),
+    )}라는 메소드를 찾을 수 없어요.`
+
+    return [[dotError], allTokens]
 }
 
 function splitErrorsByLine(errors: YaksokError[]) {
