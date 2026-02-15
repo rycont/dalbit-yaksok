@@ -15,7 +15,7 @@ import { ListValue } from '../value/list.ts'
 import { BooleanValue, NumberValue, StringValue } from '../value/primitive.ts'
 import { TupleValue } from '../value/tuple.ts'
 import { Evaluable, Executable, Identifier } from './base.ts'
-import { ValueWithParenthesis } from './calculation.ts'
+import { Formula, ValueWithParenthesis } from './calculation.ts'
 import { Block } from './block.ts'
 import { evaluateParams, FunctionInvoke } from './function.ts'
 import { assignerToOperatorMap } from './operator.ts'
@@ -546,6 +546,17 @@ export class FetchMember extends Evaluable {
     }
 
     override async execute(scope: Scope): Promise<ValueType> {
+        if (this.target instanceof Formula) {
+            const rewritten = rewriteFormulaTailMemberAccess(
+                this.target,
+                this.memberName,
+                this.tokens,
+            )
+            if (rewritten) {
+                return await rewritten.execute(scope)
+            }
+        }
+
         const rawTarget = await this.target.execute(scope)
         
         if (rawTarget instanceof InstanceValue || rawTarget instanceof SuperValue) {
@@ -691,6 +702,20 @@ export class FetchMember extends Evaluable {
     override toPrint(): string {
         return `${this.target.toPrint()}.${this.memberName}`
     }
+}
+
+function rewriteFormulaTailMemberAccess(
+    formula: Formula,
+    memberName: string,
+    tokens: Token[],
+): Formula | null {
+    const lastTerm = formula.terms[formula.terms.length - 1]
+    if (!(lastTerm instanceof Evaluable)) {
+        return null
+    }
+
+    const fetchedLast = new FetchMember(lastTerm, memberName, tokens)
+    return new Formula([...formula.terms.slice(0, -1), fetchedLast], tokens)
 }
 
 export class SetMember extends Executable {

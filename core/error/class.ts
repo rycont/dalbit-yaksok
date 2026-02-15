@@ -108,7 +108,7 @@ export class MemberFunctionNotFoundError extends YaksokError<MemberFunctionNotFo
         const { className, functionName } = props.resource
         this.message = `${bold(blue(className))} 인스턴스에서 ${bold(
             blue(functionName),
-        )} 메서드를 찾을 수 없습니다.`
+        )} 멤버 메서드를 찾을 수 없습니다.`
     }
 }
 

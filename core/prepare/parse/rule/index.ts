@@ -293,6 +293,80 @@ export const BASIC_RULES: Rule[][] = [
                     type: Evaluable,
                 },
                 {
+                    type: Expression,
+                    value: '.',
+                },
+                {
+                    type: Identifier,
+                },
+                {
+                    type: Operator,
+                },
+                {
+                    type: Evaluable,
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const left = new FetchMember(
+                    nodes[0] as Evaluable,
+                    (nodes[2] as Identifier).value,
+                    [
+                        ...nodes[0].tokens,
+                        ...nodes[1].tokens,
+                        ...nodes[2].tokens,
+                    ],
+                )
+                const operator = nodes[3] as Operator
+                const right = nodes[4] as Evaluable
+
+                return new Formula([left, operator, right], tokens)
+            },
+        },
+        {
+            pattern: [
+                {
+                    type: Evaluable,
+                },
+                {
+                    type: Operator,
+                },
+                {
+                    type: Evaluable,
+                },
+                {
+                    type: Expression,
+                    value: '.',
+                },
+                {
+                    type: Identifier,
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const left = nodes[0] as Evaluable
+                const operator = nodes[1] as Operator
+                const right = new FetchMember(
+                    nodes[2] as Evaluable,
+                    (nodes[4] as Identifier).value,
+                    [
+                        ...nodes[2].tokens,
+                        ...nodes[3].tokens,
+                        ...nodes[4].tokens,
+                    ],
+                )
+
+                if (left instanceof Formula) {
+                    return new Formula([...left.terms, operator, right], tokens)
+                }
+
+                return new Formula([left, operator, right], tokens)
+            },
+        },
+        {
+            pattern: [
+                {
+                    type: Evaluable,
+                },
+                {
                     type: Operator,
                 },
                 {
@@ -568,14 +642,76 @@ export const DOT_MEMBER_FUNCTION_INVOKE_RULES: Rule[] = [
 export const DOT_FETCH_MEMBER_RULES: Rule[] = [
     {
         pattern: [
+            { type: Formula },
+            { type: Expression, value: '.' },
+            { type: Identifier },
+        ],
+        factory: (nodes, tokens) => {
+            const formula = nodes[0] as Formula
+            const lastTerm = formula.terms[formula.terms.length - 1]
+            if (
+                !lastTerm ||
+                typeof lastTerm !== 'object' ||
+                !Array.isArray((lastTerm as { tokens?: unknown }).tokens)
+            ) {
+                return null
+            }
+
+            const fetched = new FetchMember(
+                lastTerm as Evaluable,
+                (nodes[2] as Identifier).value,
+                [
+                    ...(lastTerm as Evaluable).tokens,
+                    ...nodes[1].tokens,
+                    ...nodes[2].tokens,
+                ],
+            )
+
+            return new Formula(
+                [...formula.terms.slice(0, -1), fetched],
+                tokens,
+            )
+        },
+    },
+    {
+        pattern: [
             { type: Evaluable },
             { type: Expression, value: '.' },
             { type: Identifier },
         ],
         factory: (nodes, tokens) => {
+            const target = nodes[0] as Evaluable
+            const memberName = (nodes[2] as Identifier).value
+
+            const terms =
+                target instanceof Formula
+                    ? target.terms
+                    : (target as { terms?: unknown }).terms
+
+            if (Array.isArray(terms) && terms.length > 0) {
+                const lastTerm = terms[terms.length - 1]
+                if (
+                    lastTerm &&
+                    typeof lastTerm === 'object' &&
+                    Array.isArray((lastTerm as { tokens?: unknown }).tokens)
+                ) {
+                    const fetched = new FetchMember(
+                        lastTerm as Evaluable,
+                        memberName,
+                        [
+                            ...(lastTerm as Evaluable).tokens,
+                            ...nodes[1].tokens,
+                            ...nodes[2].tokens,
+                        ],
+                    )
+
+                    return new Formula([...terms.slice(0, -1), fetched], tokens)
+                }
+            }
+
             return new FetchMember(
-                nodes[0] as Evaluable,
-                (nodes[2] as Identifier).value,
+                target,
+                memberName,
                 tokens,
             )
         },
