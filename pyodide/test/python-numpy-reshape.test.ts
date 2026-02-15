@@ -35,11 +35,11 @@ mat.reshape(4, 3) 보여주기`,
         assertEquals(result.reason, 'finish')
 
         const lines = output.split('\n').map((l) => l.trim()).filter((l) => l.length > 0)
-        // 숫자만 있는 줄만 추출 (배열 출력은 여러 줄이므로 제외)
+        // 숫자만 있는 줄만 추출 (리스트 출력은 여러 줄이므로 제외)
         const numericLines = lines.filter((l) => /^-?\d+(?:\.\d+)?$/.test(l))
         // 최소 합계/평균 2줄이 있어야 함
         assertEquals(numericLines.length >= 2, true)
-        // sum과 mean이 숫자인지 체크 (시드는 환경별 numpy 버전에 따라 배열이 달라질 수 있음)
+        // sum과 mean이 숫자인지 체크 (시드는 환경별 numpy 버전에 따라 리스트가 달라질 수 있음)
         const sumVal = Number(numericLines[0])
         const meanVal = Number(numericLines[1])
         assertEquals(Number.isFinite(sumVal), true)

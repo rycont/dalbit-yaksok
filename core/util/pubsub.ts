@@ -62,7 +62,7 @@ export class PubSub<
     /**
      * 지정된 이벤트를 생성합니다.
      * @param event - 생성할 이벤트의 이름입니다.
-     * @param args - 이벤트 핸들러에 전달할 인수의 배열입니다.
+     * @param args - 이벤트 핸들러에 전달할 인수의 리스트입니다.
      *
      *
      * ```ts

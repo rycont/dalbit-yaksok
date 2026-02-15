@@ -24,7 +24,7 @@ interface ParseResult {
     ast: Block
     /**
      * 해당 코드 파일에서 `내보내기`로 선언된 변수나 함수를 다른 파일에서 불러올 수 있도록
-     * 동적으로 생성된 파서 규칙(Rule)의 배열입니다.
+     * 동적으로 생성된 파서 규칙(Rule)의 리스트입니다.
      * @see Rule
      */
     exportedRules: Rule[]

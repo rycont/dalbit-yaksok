@@ -3,6 +3,7 @@ import {
     NotExpression,
     ValueWithParenthesis,
 } from '../../../node/calculation.ts'
+import { TupleLiteral } from '../../../node/list.ts'
 import {
     AndOperator,
     Block,
@@ -186,6 +187,61 @@ export const BASIC_RULES: Rule[][] = [
         },
     ],
     [
+        {
+            pattern: [
+                {
+                    type: Expression,
+                    value: '(',
+                },
+                {
+                    type: Expression,
+                    value: ')',
+                },
+            ],
+            factory: (_nodes, tokens) => new TupleLiteral([], tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Expression,
+                    value: '(',
+                },
+                {
+                    type: Sequence,
+                },
+                {
+                    type: Expression,
+                    value: ')',
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const sequence = nodes[1] as Sequence
+                return new TupleLiteral(sequence.items, tokens)
+            },
+        },
+        {
+            pattern: [
+                {
+                    type: Expression,
+                    value: '(',
+                },
+                {
+                    type: Evaluable,
+                },
+                {
+                    type: Expression,
+                    value: ',',
+                },
+                {
+                    type: Expression,
+                    value: ')',
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const item = nodes[1] as Evaluable
+                return new TupleLiteral([item], tokens)
+            },
+        },
         {
             pattern: [
                 {

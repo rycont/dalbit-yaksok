@@ -3,6 +3,7 @@ import {
     Identifier,
     Expression,
     Sequence,
+    TupleLiteral,
     ValueWithParenthesis,
     RULE_FLAGS,
     type Rule,
@@ -131,179 +132,53 @@ export const PARSING_RULES: Rule[] = [
         flags: [RULE_FLAGS.IS_STATEMENT],
     },
 
-    // Python: <expr> . name()
+    // Python: <expr> . name() - () becomes TupleLiteral([]) after tuple parsing
     {
         pattern: [
-            {
-                type: Evaluable,
-            },
-            {
-                type: Expression,
-                value: '.',
-            },
-            {
-                type: Identifier,
-            },
-            {
-                type: Expression,
-                value: '(',
-            },
-            {
-                type: Expression,
-                value: ')',
-            },
+            { type: Evaluable },
+            { type: Expression, value: '.' },
+            { type: Identifier },
+            { type: TupleLiteral },
         ],
         factory: (nodes, tokens) => {
             const target = nodes[0] as Evaluable
             const methodName = (nodes[2] as Identifier).value
-            return new PythonMethodCall(target, methodName, [], tokens)
+            const tuple = nodes[3] as TupleLiteral
+            return new PythonMethodCall(target, methodName, tuple.items, tokens)
         },
     },
-    // Python: <expr> . name(<expr>)
+    // Python: <expr> . name(<expr>) - (expr) becomes ValueWithParenthesis
     {
         pattern: [
-            {
-                type: Evaluable,
-            },
-            {
-                type: Expression,
-                value: '.',
-            },
-            {
-                type: Identifier,
-            },
-            {
-                type: Expression,
-                value: '(',
-            },
-            {
-                type: Evaluable,
-            },
-            {
-                type: Expression,
-                value: ')',
-            },
+            { type: Evaluable },
+            { type: Expression, value: '.' },
+            { type: Identifier },
+            { type: ValueWithParenthesis },
         ],
         factory: (nodes, tokens) => {
             const target = nodes[0] as Evaluable
             const methodName = (nodes[2] as Identifier).value
-            const arg = nodes[4] as Evaluable
-            return new PythonMethodCall(target, methodName, [arg], tokens)
+            const wrapped = nodes[3] as ValueWithParenthesis
+            return new PythonMethodCall(target, methodName, [wrapped.value], tokens)
         },
     },
-    // Python: <expr> . name(<a>, <b>, ...)
+    // Python: func() - () becomes TupleLiteral([]) after tuple parsing
+    // Python: func(<a>, <b>, ...) - (a,b,...) becomes TupleLiteral
     {
-        pattern: [
-            {
-                type: Evaluable,
-            },
-            {
-                type: Expression,
-                value: '.',
-            },
-            {
-                type: Identifier,
-            },
-            {
-                type: Expression,
-                value: '(',
-            },
-            {
-                type: Sequence,
-            },
-            {
-                type: Expression,
-                value: ')',
-            },
-        ],
-        factory: (nodes, tokens) => {
-            const target = nodes[0] as Evaluable
-            const methodName = (nodes[2] as Identifier).value
-            const seq = nodes[4] as Sequence
-            return new PythonMethodCall(target, methodName, seq.items, tokens)
-        },
-    },
-    // Python: func()
-    {
-        pattern: [
-            {
-                type: Identifier,
-            },
-            {
-                type: Expression,
-                value: '(',
-            },
-            {
-                type: Expression,
-                value: ')',
-            },
-        ],
+        pattern: [{ type: Identifier }, { type: TupleLiteral }],
         factory: (nodes, tokens) => {
             const name = (nodes[0] as Identifier).value
-            return new PythonCall(name, [], tokens)
+            const tuple = nodes[1] as TupleLiteral
+            return new PythonCall(name, tuple.items, tokens)
         },
     },
-    // Python: func(<expr>)
+    // Python: func(<expr>) - (expr) becomes ValueWithParenthesis
     {
-        pattern: [
-            {
-                type: Identifier,
-            },
-            {
-                type: Expression,
-                value: '(',
-            },
-            {
-                type: Evaluable,
-            },
-            {
-                type: Expression,
-                value: ')',
-            },
-        ],
+        pattern: [{ type: Identifier }, { type: ValueWithParenthesis }],
         factory: (nodes, tokens) => {
             const name = (nodes[0] as Identifier).value
-            const v = nodes[2] as Evaluable
-            return new PythonCall(name, [v], tokens)
-        },
-    },
-    // // Python: func(<a>, <b>, ...)
-    {
-        pattern: [
-            {
-                type: Identifier,
-            },
-            {
-                type: Expression,
-                value: '(',
-            },
-            {
-                type: Sequence,
-            },
-            {
-                type: Expression,
-                value: ')',
-            },
-        ],
-        factory: (nodes, tokens) => {
-            const name = (nodes[0] as Identifier).value
-            const seq = nodes[2] as Sequence
-            return new PythonCall(name, seq.items, tokens)
-        },
-    },
-    {
-        pattern: [
-            {
-                type: Identifier,
-            },
-            {
-                type: ValueWithParenthesis,
-            },
-        ],
-        factory: (nodes, tokens) => {
-            const name = (nodes[0] as Identifier).value
-            const seq = nodes[1] as ValueWithParenthesis
-            return new PythonCall(name, [seq.value], tokens)
+            const wrapped = nodes[1] as ValueWithParenthesis
+            return new PythonCall(name, [wrapped.value], tokens)
         },
     },
 ]

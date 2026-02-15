@@ -1,6 +1,6 @@
 import { UnexpectedEndOfCodeError } from '../../error/prepare.ts'
 import { Expression, Node } from '../../node/base.ts'
-import { ListLiteral, Sequence } from '../../node/list.ts'
+import { ListLiteral, Sequence, TupleLiteral } from '../../node/list.ts'
 import { Token } from '../tokenize/token.ts'
 import type { Rule } from './rule/index.ts'
 import { callParseRecursively } from './srParse.ts'
@@ -49,7 +49,10 @@ export function parseBracket(
                     OPENING_TO_CLOSING_BRACKETS[openingBracketNode.value]
 
             if (isClosingBracket) {
-                if (closingIndexCandidate - openingBracketIndex <= 2) {
+                const distance = closingIndexCandidate - openingBracketIndex
+                const isEmptyParen =
+                    openingBracketNode.value === '(' && distance === 1
+                if (distance <= 2 && !isEmptyParen) {
                     continue rangeSeekingLoop
                 }
 
@@ -98,14 +101,25 @@ export function parseBracket(
 
     const mergedNode = callParseRecursively(nodesInBrackets, dynamicRules)
 
-    if (mergedNode.length === nodesInBrackets.length) {
+    const openingNode = nodes[openingBracketIndex]
+    const isOpeningParenForTuple =
+        openingNode instanceof Expression && openingNode.value === '('
+
+    if (
+        mergedNode.length === nodesInBrackets.length &&
+        !(mergedNode.length === 0 && isOpeningParenForTuple)
+    ) {
         return nodes // No change in nodes, return original
     }
 
-    const openingNode = nodes[openingBracketIndex]
-    const isOpeningBracketNode = openingNode instanceof Expression && openingNode.value === '['
+    const isOpeningSquareBracket =
+        openingNode instanceof Expression && openingNode.value === '['
 
-    if (mergedNode.length === 1 && mergedNode[0] instanceof Sequence && isOpeningBracketNode) {
+    if (
+        mergedNode.length === 1 &&
+        mergedNode[0] instanceof Sequence &&
+        isOpeningSquareBracket
+    ) {
         const listLiteral = new ListLiteral(
             mergedNode[0].items,
             nodes[openingBracketIndex].tokens,
@@ -118,7 +132,27 @@ export function parseBracket(
         ]
 
         return parseBracket(newNodes, tokens, dynamicRules)
-    } else {
+    }
+
+    if (
+        (mergedNode.length === 1 && mergedNode[0] instanceof Sequence) ||
+        (mergedNode.length === 0 && isOpeningParenForTuple)
+    ) {
+        const tupleLiteral = new TupleLiteral(
+            mergedNode.length === 1 ? (mergedNode[0] as Sequence).items : [],
+            nodes[openingBracketIndex].tokens,
+        )
+
+        const newNodes = [
+            ...nodes.slice(0, openingBracketIndex),
+            tupleLiteral,
+            ...nodes.slice(closingPosition + 1),
+        ]
+
+        return parseBracket(newNodes, tokens, dynamicRules)
+    }
+
+    {
         const newNodes = [
             ...nodes.slice(0, openingBracketIndex + 1),
             ...mergedNode,

@@ -65,7 +65,7 @@ mcpServer.registerTool(
                 .array(z.string())
                 .optional()
                 .describe(
-                    '`입력받기` 명령어에서 사용할 입력값 배열입니다. 코드에서 `입력받기`가 호출되는 순서대로 값이 사용됩니다. 예: `["홍길동", "30"]`',
+                    '`입력받기` 명령어에서 사용할 입력값 리스트입니다. 코드에서 `입력받기`가 호출되는 순서대로 값이 사용됩니다. 예: `["홍길동", "30"]`',
                 ),
         },
     },
@@ -90,7 +90,7 @@ mcpServer.registerTool(
                     output += question + '\n'
                 }
 
-                // 입력값 배열에서 순서대로 반환
+                // 입력값 리스트에서 순서대로 반환
                 if (stdinIndex < stdinInputs.length) {
                     const value = stdinInputs[stdinIndex]
                     stdinIndex++

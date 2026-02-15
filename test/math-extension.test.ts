@@ -117,6 +117,12 @@ Deno.test('파이', async () => {
     assertAlmostEquals(value, Math.PI, 0.0001)
 })
 
+Deno.test('원주율 (파이 별칭)', async () => {
+    const output = await runMath(`(@수학 원주율) 보여주기`)
+    const value = parseFloat(output)
+    assertAlmostEquals(value, Math.PI, 0.0001)
+})
+
 Deno.test('자연상수', async () => {
     const output = await runMath(`(@수학 자연상수) 보여주기`)
     const value = parseFloat(output)
@@ -239,4 +245,35 @@ Deno.test('사인 90도', async () => {
     const output = await runMath(`(@수학 사인 (90)도) 보여주기`)
     const value = parseFloat(output)
     assertAlmostEquals(value, 1, 0.0001)
+})
+
+Deno.test('@수학 반올림 - 변수 직접 전달', async () => {
+    const output = await runMath(`
+평균_손실 = 3.6
+(@수학 평균_손실 반올림) 보여주기
+`)
+    assertEquals(output, '4')
+})
+
+Deno.test('@수학 반올림 - 변수 괄호 전달', async () => {
+    const output = await runMath(`
+평균_손실 = 3.6
+(@수학 (평균_손실) 반올림) 보여주기
+`)
+    assertEquals(output, '4')
+})
+
+Deno.test('소수점 n번째까지 반올림', async () => {
+    const output = await runMath(`(@수학 (3.153) 소수점 (2)번째까지 반올림) 보여주기`)
+    assertEquals(output, '3.15')
+})
+
+Deno.test('소수점 n자리까지 올림', async () => {
+    const output = await runMath(`(@수학 (3.731) 소수점 (2)자리까지 올림) 보여주기`)
+    assertEquals(output, '3.74')
+})
+
+Deno.test('소수점 n자리까지 내림', async () => {
+    const output = await runMath(`(@수학 (3.739) 소수점 (2)자리까지 내림) 보여주기`)
+    assertEquals(output, '3.73')
 })
