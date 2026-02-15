@@ -9,6 +9,7 @@ import {
     Block,
     BooleanLiteral,
     Break,
+    ConditionalLoop,
     DivideOperator,
     ElseIfStatement,
     ElseStatement,
@@ -1000,6 +1001,33 @@ export const ADVANCED_RULES: Rule[] = [
     },
     ...LIST_LOOP_RULES,
     ...COUNT_LOOP_RULES,
+    {
+        pattern: [
+            {
+                type: Identifier,
+                value: '반복',
+            },
+            {
+                type: Evaluable,
+            },
+            {
+                type: Identifier,
+                value: '동안',
+            },
+            {
+                type: EOL,
+            },
+            {
+                type: Block,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const condition = nodes[1] as Evaluable
+            const body = nodes[4] as Block
+            return new ConditionalLoop(condition, body, tokens)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    },
     {
         pattern: [
             {
