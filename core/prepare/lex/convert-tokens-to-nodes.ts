@@ -40,6 +40,7 @@ function mapTokenToNode(token: Token) {
         case TOKEN_TYPE.OPENING_BRACE:
         case TOKEN_TYPE.CLOSING_BRACE:
         case TOKEN_TYPE.COLON:
+        case TOKEN_TYPE.DOT:
         case TOKEN_TYPE.ASSIGNER:
         case TOKEN_TYPE.UNKNOWN:
             return new Expression(token.value, [token])

@@ -19,6 +19,7 @@ export class FunctionObject extends ObjectValue implements RunnableObject {
         public name: string,
         private body: Block,
         private declaredScope?: Scope,
+        public paramNames: string[] = [],
     ) {
         super()
     }
@@ -80,4 +81,5 @@ export class FunctionObject extends ObjectValue implements RunnableObject {
 export interface RunnableObject extends ObjectValue {
     run(args: Record<string, ValueType>, fileScope?: Scope): Promise<ValueType>
     name: string
+    paramNames: string[]
 }

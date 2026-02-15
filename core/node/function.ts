@@ -10,7 +10,7 @@ import {
     ErrorInFFIExecution,
     ErrorOccurredWhileRunningFFIExecution,
 } from '../error/ffi.ts'
-import { TOKEN_TYPE, type Token } from '../prepare/tokenize/token.ts'
+import { type Token, TOKEN_TYPE } from '../prepare/tokenize/token.ts'
 import { Block } from './block.ts'
 
 /**
@@ -43,9 +43,13 @@ export class DeclareFunction extends Executable {
      * @param scope - 함수가 선언되는 현재의 스코프입니다.
      */
     override execute(scope: Scope): Promise<void> {
-        // 함수가 선언될 때의 스코프(scope)를 캡처하여 FunctionObject를 생성합니다.
-        // 이것이 바로 클로저의 핵심 원리입니다.
-        const functionObject = new FunctionObject(this.name, this.body, scope)
+        const paramNames = extractParamsFromTokens(this.tokens)
+        const functionObject = new FunctionObject(
+            this.name,
+            this.body,
+            scope,
+            paramNames,
+        )
 
         try {
             scope.addFunctionObject(functionObject)
@@ -77,7 +81,12 @@ export class DeclareFunction extends Executable {
 
         try {
             scope.addFunctionObject(
-                new FunctionObject(this.name, this.body, functionScope),
+                new FunctionObject(
+                    this.name,
+                    this.body,
+                    functionScope,
+                    paramNames,
+                ),
             )
         } catch (error) {
             if (error instanceof YaksokError) {

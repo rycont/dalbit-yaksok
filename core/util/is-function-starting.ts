@@ -21,6 +21,27 @@ export function isYaksokStartingPattern(
     return isPrevTokenComma
 }
 
+export function isClassStartingPattern(
+    _: Token,
+    index: number,
+    allTokens: Token[],
+) {
+    const prevPrevToken = allTokens[index - 2]
+    const prevToken = allTokens[index - 1]
+
+    if (!prevPrevToken || !prevToken) return false
+
+    const isPrevPrevTokenClassKeyword =
+        prevPrevToken.type === TOKEN_TYPE.IDENTIFIER &&
+        prevPrevToken.value === '클래스'
+
+    if (!isPrevPrevTokenClassKeyword) return false
+
+    const isPrevTokenComma = prevToken.type === TOKEN_TYPE.COMMA
+
+    return isPrevTokenComma
+}
+
 export function isFfiStartingPattern(
     _: Token,
     index: number,

@@ -139,12 +139,12 @@ export class Identifier extends Evaluable {
                     assertValidReturnValue(this, functionResult)
 
                     return functionResult
-                } catch (e) {
-                    if (e instanceof NotDefinedIdentifierError) {
-                        e.tokens = this.tokens
+                } catch (e2) {
+                    if (e2 instanceof NotDefinedIdentifierError) {
+                        e2.tokens = this.tokens
                     }
 
-                    throw e
+                    throw e2
                 }
             }
 
