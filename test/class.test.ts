@@ -830,3 +830,83 @@ o.바꾸기
 
     assertEquals(setEventNames.includes('새값'), true)
 })
+
+Deno.test('클래스: 예약어 이름은 검증 오류가 난다', async () => {
+    const session = new YaksokSession()
+    session.addModule(
+        'main',
+        `
+클래스, 자신
+    값 = 1
+`,
+    )
+
+    const results = await session.runModule('main')
+    const result = results.get('main')
+    if (!result) throw new Error('실행 결과가 없습니다.')
+
+    if (result.reason !== 'validation') {
+        throw new Error('검증 단계에서 예약어 클래스명 오류가 발생해야 합니다.')
+    }
+
+    const allMessages = [...result.errors.values()]
+        .flat()
+        .map((e) => e.message)
+        .join('\n')
+    assertStringIncludes(allMessages, '이름으로 사용할 수 없어요')
+})
+
+Deno.test('클래스: 기존 변수 이름과 충돌하면 검증 오류가 난다', async () => {
+    const session = new YaksokSession()
+    session.addModule(
+        'main',
+        `
+값 = 1
+클래스, 값
+    약속, __준비__
+        자신.x = 1
+`,
+    )
+
+    const results = await session.runModule('main')
+    const result = results.get('main')
+    if (!result) throw new Error('실행 결과가 없습니다.')
+
+    if (result.reason !== 'validation') {
+        throw new Error('검증 단계에서 클래스명 충돌 오류가 발생해야 합니다.')
+    }
+
+    const allMessages = [...result.errors.values()]
+        .flat()
+        .map((e) => e.message)
+        .join('\n')
+    assertStringIncludes(allMessages, '이미 정의')
+})
+
+Deno.test('멤버 접근 검증: 새 인스턴스 직접 타겟도 validation 단계에서 검출된다', async () => {
+    const session = new YaksokSession()
+    session.addModule(
+        'main',
+        `
+클래스, C
+    값 = 1
+
+(새 C).없는멤버 보여주기
+`,
+    )
+
+    const results = await session.runModule('main')
+    const result = results.get('main')
+    if (!result) throw new Error('실행 결과가 없습니다.')
+
+    if (result.reason !== 'validation') {
+        throw new Error('검증 단계에서 멤버 없음 오류가 발생해야 합니다.')
+    }
+
+    const allMessages = [...result.errors.values()]
+        .flat()
+        .map((e) => e.message)
+        .join('\n')
+    assertStringIncludes(allMessages, '없는멤버')
+    assertStringIncludes(allMessages, '멤버')
+})

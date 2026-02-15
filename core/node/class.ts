@@ -2,6 +2,7 @@ import { Scope } from '../executer/scope.ts'
 import { ObjectValue, ValueType } from '../value/base.ts'
 import { Evaluable, Executable, Identifier } from './base.ts'
 import { Block } from './block.ts'
+import { ValueWithParenthesis } from './calculation.ts'
 import { DeclareFunction, evaluateParams, FunctionInvoke } from './function.ts'
 import { type Token } from '../prepare/tokenize/token.ts'
 import { FunctionObject, type RunnableObject } from '../value/function.ts'
@@ -19,6 +20,7 @@ import {
 import { NotDefinedIdentifierError } from '../error/variable.ts'
 import { assignerToOperatorMap } from './operator.ts'
 import { extractParamNamesFromHeaderTokens } from '../util/extract-param-names-from-header-tokens.ts'
+import { assertValidIdentifierName } from '../util/assert-valid-identifier-name.ts'
 
 type MemberAccessTarget = InstanceValue | SuperValue
 
@@ -251,22 +253,67 @@ function getInheritanceChain(classValue: ClassValue): ClassValue[] {
     return chain
 }
 
-function resolveExistingClassValue(
+function resolveExistingIdentifierValue(
     scope: Scope,
-    className: string,
-): ClassValue | undefined {
+    name: string,
+): ValueType | undefined {
     try {
-        const existing = scope.getVariable(className)
-        if (existing instanceof ClassValue) {
-            return existing
-        }
-        return undefined
+        return scope.getVariable(name)
     } catch (error) {
         if (error instanceof NotDefinedIdentifierError) {
             return undefined
         }
         throw error
     }
+}
+
+function resolveValidationTargetValue(
+    target: Evaluable,
+    scope: Scope,
+): ValueType | undefined {
+    if (target instanceof Identifier) {
+        try {
+            return scope.getVariable(target.value)
+        } catch {
+            return undefined
+        }
+    }
+
+    if (target instanceof NewInstance) {
+        try {
+            const classValue = scope.getVariable(target.className, target.tokens)
+            if (classValue instanceof ClassValue) {
+                return createValidationInstanceFromClass(classValue)
+            }
+        } catch {
+            return undefined
+        }
+    }
+
+    if (target instanceof ValueWithParenthesis) {
+        return resolveValidationTargetValue(target.value, scope)
+    }
+
+    if (target instanceof FetchMember) {
+        const rawTarget = resolveValidationTargetValue(target.target, scope)
+        if (!rawTarget) {
+            return undefined
+        }
+
+        const resolved = resolveMemberAccessTarget(rawTarget, target.tokens)
+        try {
+            return getMemberVariable(
+                resolved.scope,
+                resolved.instance,
+                target.memberName,
+                target.tokens,
+            )
+        } catch {
+            return undefined
+        }
+    }
+
+    return undefined
 }
 
 export function createValidationInstanceFromClass(
@@ -329,10 +376,16 @@ export class DeclareClass extends Executable {
         public parentName?: string,
     ) {
         super()
+        const nameToken =
+            this.tokens.find((token) => token.value === this.name) ||
+            this.tokens[0]
+        if (nameToken) {
+            assertValidIdentifierName(this.name, nameToken)
+        }
     }
 
     override execute(scope: Scope): Promise<void> {
-        if (resolveExistingClassValue(scope, this.name)) {
+        if (resolveExistingIdentifierValue(scope, this.name)) {
             throw new AlreadyDefinedClassError({
                 resource: {
                     name: this.name,
@@ -353,7 +406,7 @@ export class DeclareClass extends Executable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        if (resolveExistingClassValue(scope, this.name)) {
+        if (resolveExistingIdentifierValue(scope, this.name)) {
             return [
                 new AlreadyDefinedClassError({
                     resource: {
@@ -800,12 +853,9 @@ export class MemberFunctionInvoke extends Evaluable {
             return allErrors
         }
 
-        if (this.target instanceof Identifier) {
-            try {
-                const rawTarget = scope.getVariable(
-                    this.target.value,
-                    this.tokens,
-                )
+        try {
+            const rawTarget = resolveValidationTargetValue(this.target, scope)
+            if (rawTarget) {
                 const resolved = resolveMemberAccessTarget(
                     rawTarget,
                     this.tokens,
@@ -826,12 +876,12 @@ export class MemberFunctionInvoke extends Evaluable {
                         }),
                     )
                 }
-            } catch (error) {
-                if (error instanceof YaksokError) {
-                    allErrors.push(error)
-                } else {
-                    throw error
-                }
+            }
+        } catch (error) {
+            if (error instanceof YaksokError) {
+                allErrors.push(error)
+            } else {
+                throw error
             }
         }
 
@@ -894,12 +944,11 @@ export class FetchMember extends Evaluable {
             return targetErrors
         }
 
-        if (!(this.target instanceof Identifier)) {
-            return targetErrors
-        }
-
         try {
-            const rawTarget = scope.getVariable(this.target.value, this.tokens)
+            const rawTarget = resolveValidationTargetValue(this.target, scope)
+            if (!rawTarget) {
+                return targetErrors
+            }
             const resolved = resolveMemberAccessTarget(rawTarget, this.tokens)
 
             const owner = findVariableOwnerScopeInMemberChain(
