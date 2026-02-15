@@ -3,7 +3,11 @@ import { ObjectValue, ValueType } from '../value/base.ts'
 import { Evaluable, Executable, Identifier } from './base.ts'
 import { Block } from './block.ts'
 import { ValueWithParenthesis } from './calculation.ts'
+import { CountLoop } from './count-loop.ts'
 import { DeclareFunction, evaluateParams, FunctionInvoke } from './function.ts'
+import { IfStatement } from './IfStatement.ts'
+import { ListLoop } from './listLoop.ts'
+import { Loop } from './loop.ts'
 import { type Token } from '../prepare/tokenize/token.ts'
 import { FunctionObject, type RunnableObject } from '../value/function.ts'
 import { YaksokError } from '../error/common.ts'
@@ -24,7 +28,7 @@ import { assertValidIdentifierName } from '../util/assert-valid-identifier-name.
 
 type MemberAccessTarget = InstanceValue | SuperValue
 
-const CONSTRUCTOR_NAME_PATTERN = /^__준비__(\s*\(|\s*$)/
+const CONSTRUCTOR_NAME_PATTERN = /^__준비__(?:\s*\([^)]*\))?$/
 
 function resolveMemberAccessTarget(
     target: ValueType,
@@ -149,7 +153,7 @@ function resolveClassValueFromInstance(
         if (error instanceof NotDefinedIdentifierError) {
             return undefined
         }
-        return undefined
+        throw error
     }
 }
 
@@ -181,21 +185,44 @@ function collectPotentialMemberNamesInClass(
         )
     }
 
+    const collectInNode = (node: unknown, inFunctionScope = false) => {
+        if (!inFunctionScope && isSetVariableNode(node)) {
+            names.add(node.name)
+        }
+
+        if (isSetMemberOnSelfNode(node)) {
+            names.add(node.memberName)
+        }
+
+        if (node instanceof DeclareFunction) {
+            collectInBlock(node.body, true)
+            return
+        }
+
+        if (node instanceof Block) {
+            collectInBlock(node, inFunctionScope)
+            return
+        }
+
+        if (node instanceof IfStatement) {
+            for (const caseItem of node.cases) {
+                collectInBlock(caseItem.body, inFunctionScope)
+            }
+            return
+        }
+
+        if (
+            node instanceof Loop ||
+            node instanceof CountLoop ||
+            node instanceof ListLoop
+        ) {
+            collectInBlock(node.body, inFunctionScope)
+        }
+    }
+
     const collectInBlock = (block: Block, inFunctionScope = false) => {
         for (const child of block.children) {
-            if (!inFunctionScope && isSetVariableNode(child)) {
-                names.add(child.name)
-            }
-
-            if (isSetMemberOnSelfNode(child)) {
-                names.add(child.memberName)
-            }
-
-            if (child instanceof DeclareFunction) {
-                collectInBlock(child.body, true)
-            } else if (child instanceof Block) {
-                collectInBlock(child, inFunctionScope)
-            }
+            collectInNode(child, inFunctionScope)
         }
     }
 

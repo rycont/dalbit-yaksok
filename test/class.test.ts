@@ -664,6 +664,22 @@ o = 새 T
     },
 )
 
+Deno.test(
+    '생성자 인식: __준비__로 시작하는 일반 메서드(인자 포함)는 생성자가 아니다',
+    async () => {
+        const outputs = await runAndCollect(`
+클래스, T
+    약속, __준비__ (x) 도우미
+        자신.x = x
+
+o = 새 T
+"ok" 보여주기
+`)
+
+        assertEquals(outputs[0], 'ok')
+    },
+)
+
 Deno.test('클래스: 같은 이름 재선언은 검증 오류가 난다', async () => {
     const session = new YaksokSession()
     session.addModule(
@@ -987,6 +1003,22 @@ o.임시 보여주기
             .join('\n')
         assertStringIncludes(allMessages, '임시')
         assertStringIncludes(allMessages, '멤버')
+    },
+)
+
+Deno.test(
+    '멤버 접근 검증: 클래스 본문 조건문 내부 할당도 멤버 후보로 인식한다',
+    async () => {
+        const outputs = await runAndCollect(`
+클래스, C
+    만약 참 이면
+        임시 = 1
+
+o = 새 C
+o.임시 보여주기
+`)
+
+        assertEquals(outputs[0], '1')
     },
 )
 
