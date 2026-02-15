@@ -2,20 +2,27 @@ import { Scope } from "../executer/scope.ts";
 import { ObjectValue, ValueType } from "../value/base.ts";
 import { Evaluable, Executable, Identifier } from "./base.ts";
 import { Block } from "./block.ts";
-import { FunctionInvoke } from "./function.ts";
-import type { Token } from "../prepare/tokenize/token.ts";
-import type { RunnableObject } from "../value/function.ts";
+import { DeclareFunction, evaluateParams, FunctionInvoke } from "./function.ts";
+import { type Token } from "../prepare/tokenize/token.ts";
+import { FunctionObject, type RunnableObject } from "../value/function.ts";
 import { YaksokError } from "../error/common.ts";
 import {
+  AlreadyDefinedClassError,
+  ConstructorArityAmbiguousError,
   ConstructorArityMismatchError,
   DotAccessOnlyOnInstanceError,
   InvalidParentClassError,
+  MemberFunctionNotFoundError,
+  MemberNotFoundError,
   NotAClassError,
 } from "../error/class.ts";
 import { NotDefinedIdentifierError } from "../error/variable.ts";
 import { assignerToOperatorMap } from "./operator.ts";
+import { extractParamNamesFromHeaderTokens } from "../util/extract-param-names-from-header-tokens.ts";
 
 type MemberAccessTarget = InstanceValue | SuperValue;
+
+const CONSTRUCTOR_NAME_PATTERN = /^__준비__(\s*\(|\s*$)/;
 
 function resolveMemberAccessTarget(
   target: ValueType,
@@ -40,6 +47,182 @@ function resolveMemberAccessTarget(
   });
 }
 
+function findMemberFunction(
+  scope: Scope,
+  instance: InstanceValue,
+  functionName: string,
+): RunnableObject | undefined {
+  let cursor: Scope | undefined = scope;
+  while (cursor) {
+    const fromCurrentScope = cursor.functions.get(functionName);
+    if (fromCurrentScope) {
+      return fromCurrentScope;
+    }
+    if (cursor === instance.memberLookupRootScope) {
+      break;
+    }
+    cursor = cursor.parent;
+  }
+
+  return undefined;
+}
+
+function findVariableOwnerScopeInMemberChain(
+  scope: Scope,
+  instance: InstanceValue,
+  memberName: string,
+): Scope | undefined {
+  let cursor: Scope | undefined = scope;
+  while (cursor) {
+    if (memberName in cursor.variables) {
+      return cursor;
+    }
+    if (cursor === instance.memberLookupRootScope) {
+      break;
+    }
+    cursor = cursor.parent;
+  }
+
+  return undefined;
+}
+
+function getMemberVariable(
+  scope: Scope,
+  instance: InstanceValue,
+  memberName: string,
+  tokens: Token[],
+): ValueType {
+  const owner = findVariableOwnerScopeInMemberChain(
+    scope,
+    instance,
+    memberName,
+  );
+  if (!owner) {
+    const error = new NotDefinedIdentifierError({
+      resource: {
+        name: memberName,
+      },
+    });
+    error.tokens = tokens;
+    throw error;
+  }
+  return owner.getVariable(memberName, tokens);
+}
+
+function setMemberVariable(
+  scope: Scope,
+  instance: InstanceValue,
+  memberName: string,
+  value: ValueType,
+): void {
+  const owner = findVariableOwnerScopeInMemberChain(
+    scope,
+    instance,
+    memberName,
+  );
+  if (owner) {
+    owner.variables[memberName] = value;
+    return;
+  }
+
+  scope.variables[memberName] = value;
+}
+
+function isConstructorFunctionName(name: string): boolean {
+  return CONSTRUCTOR_NAME_PATTERN.test(name);
+}
+
+function getDeclaredConstructorsInClass(klass: ClassValue): {
+  arity: number;
+}[] {
+  const constructors: { arity: number }[] = [];
+
+  for (const child of klass.body.children) {
+    if (!(child instanceof DeclareFunction)) continue;
+    if (!isConstructorFunctionName(child.name)) continue;
+    constructors.push({
+      arity: extractParamCountFromTokens(child.tokens),
+    });
+  }
+
+  return constructors;
+}
+
+function extractParamCountFromTokens(allTokens: Token[]): number {
+  return extractParamNamesFromHeaderTokens(allTokens).length;
+}
+
+function getInheritanceChain(classValue: ClassValue): ClassValue[] {
+  const chain: ClassValue[] = [];
+  let cursor: ClassValue | undefined = classValue;
+
+  while (cursor) {
+    chain.unshift(cursor);
+    cursor = cursor.parentClass;
+  }
+
+  return chain;
+}
+
+function resolveExistingClassValue(
+  scope: Scope,
+  className: string,
+): ClassValue | undefined {
+  try {
+    const existing = scope.getVariable(className);
+    if (existing instanceof ClassValue) {
+      return existing;
+    }
+    return undefined;
+  } catch (error) {
+    if (error instanceof NotDefinedIdentifierError) {
+      return undefined;
+    }
+    throw error;
+  }
+}
+
+export function createValidationInstanceFromClass(
+  classValue: ClassValue,
+): InstanceValue {
+  const rootScope = new Scope({
+    parent: classValue.definitionScope,
+    allowFunctionOverride: true,
+  });
+
+  const instance = new InstanceValue(classValue.name);
+  instance.memberLookupRootScope = rootScope;
+
+  let currentScope = rootScope;
+
+  for (const klass of getInheritanceChain(classValue)) {
+    const layerScope = new Scope({
+      parent: currentScope,
+      allowFunctionOverride: true,
+    });
+
+    layerScope.setVariable("자신", instance);
+    if (klass.parentClass) {
+      layerScope.setVariable("상위", new SuperValue(instance, currentScope));
+    }
+
+    for (const child of klass.body.children) {
+      if (!(child instanceof DeclareFunction)) continue;
+
+      const paramNames = child.paramNames ??
+        extractParamNamesFromHeaderTokens(child.tokens);
+      layerScope.addFunctionObject(
+        new FunctionObject(child.name, child.body, layerScope, paramNames),
+      );
+    }
+
+    currentScope = layerScope;
+  }
+
+  instance.scope = currentScope;
+  return instance;
+}
+
 export class DeclareClass extends Executable {
   static override friendlyName = "클래스 선언";
 
@@ -52,7 +235,16 @@ export class DeclareClass extends Executable {
     super();
   }
 
-  override async execute(scope: Scope): Promise<void> {
+  override execute(scope: Scope): Promise<void> {
+    if (resolveExistingClassValue(scope, this.name)) {
+      throw new AlreadyDefinedClassError({
+        resource: {
+          name: this.name,
+        },
+        tokens: this.tokens,
+      });
+    }
+
     const parentClass = this.resolveParentClass(scope);
     const classValue = new ClassValue(
       this.name,
@@ -61,10 +253,34 @@ export class DeclareClass extends Executable {
       parentClass,
     );
     scope.setVariable(this.name, classValue);
+    return Promise.resolve();
   }
 
   override validate(scope: Scope): YaksokError[] {
-    const parentClass = this.resolveParentClass(scope);
+    if (resolveExistingClassValue(scope, this.name)) {
+      return [
+        new AlreadyDefinedClassError({
+          resource: {
+            name: this.name,
+          },
+          tokens: this.tokens,
+        }),
+      ];
+    }
+
+    let parentClass: ClassValue | undefined;
+    try {
+      parentClass = this.resolveParentClass(scope);
+    } catch (error) {
+      if (error instanceof YaksokError) {
+        if (!error.tokens) {
+          error.tokens = this.tokens;
+        }
+        return [error];
+      }
+      throw error;
+    }
+
     const dummyClass = new ClassValue(
       this.name,
       this.body,
@@ -80,12 +296,24 @@ export class DeclareClass extends Executable {
 
     const dummyInstance = new InstanceValue(this.name);
     dummyInstance.scope = classScope;
+    dummyInstance.memberLookupRootScope = classScope;
     classScope.setVariable("자신", dummyInstance);
-    if (this.parentName) {
-      classScope.setVariable("상위", new SuperValue(dummyInstance, scope));
+    if (parentClass) {
+      const parentValidationInstance = createValidationInstanceFromClass(
+        parentClass,
+      );
+      classScope.setVariable(
+        "상위",
+        new SuperValue(
+          parentValidationInstance,
+          parentValidationInstance.scope,
+        ),
+      );
     }
 
-    return this.body.validate(classScope);
+    const validationErrors = this.body.validate(classScope);
+    validationErrors.push(...this.validateDuplicatedConstructorArity());
+    return validationErrors;
   }
 
   private resolveParentClass(scope: Scope): ClassValue | undefined {
@@ -99,6 +327,7 @@ export class DeclareClass extends Executable {
         resource: {
           name: this.parentName,
         },
+        tokens: this.tokens,
       });
     }
 
@@ -107,6 +336,34 @@ export class DeclareClass extends Executable {
 
   override toPrint(): string {
     return `클래스 ${this.name}`;
+  }
+
+  private validateDuplicatedConstructorArity(): YaksokError[] {
+    const constructorCountByArity = new Map<number, number>();
+
+    for (const child of this.body.children) {
+      if (!(child instanceof DeclareFunction)) continue;
+      if (!isConstructorFunctionName(child.name)) continue;
+      const arity = extractParamCountFromTokens(child.tokens);
+      constructorCountByArity.set(
+        arity,
+        (constructorCountByArity.get(arity) ?? 0) + 1,
+      );
+    }
+
+    const duplicatedArities = [...constructorCountByArity.entries()]
+      .filter(([, count]) => count > 1)
+      .map(([arity]) => arity);
+
+    return duplicatedArities.map((arity) =>
+      new ConstructorArityAmbiguousError({
+        resource: {
+          className: this.name,
+          arity,
+        },
+        tokens: this.tokens,
+      })
+    );
   }
 }
 
@@ -157,10 +414,12 @@ export class NewInstance extends Evaluable {
     // Create instance early so 자신 is available during __준비__ execution.
     // scope는 상속 체인 실행 후 할당됩니다.
     const instance = new InstanceValue(classValue.name);
+    instance.memberLookupRootScope = rootScope;
 
     // 부모 -> 자식 순으로 바디를 실행해 상속 체인을 구성합니다.
     const inheritanceChain = this.getInheritanceChain(classValue);
     let currentScope = rootScope;
+    const layerScopes: { klass: ClassValue; scope: Scope }[] = [];
 
     for (const klass of inheritanceChain) {
       const layerScope = new Scope({
@@ -172,13 +431,17 @@ export class NewInstance extends Evaluable {
         layerScope.setVariable("상위", new SuperValue(instance, currentScope));
       }
       await klass.body.execute(layerScope);
+      layerScopes.push({
+        klass,
+        scope: layerScope,
+      });
       currentScope = layerScope;
     }
     instance.scope = currentScope;
 
     // Call __준비__ (constructor) if it exists
     const initFunc = this.pickConstructorByArity(
-      instance.scope,
+      layerScopes,
       this.arguments_.length,
       classValue.name,
     );
@@ -201,7 +464,39 @@ export class NewInstance extends Evaluable {
   }
 
   override validate(scope: Scope): YaksokError[] {
-    return this.arguments_.flatMap((arg) => arg.validate(scope));
+    const errors = this.arguments_.flatMap((arg) => arg.validate(scope));
+
+    try {
+      const classValue = scope.getVariable(this.className, this.tokens);
+      if (!(classValue instanceof ClassValue)) {
+        errors.push(
+          new NotAClassError({
+            resource: {
+              className: this.className,
+            },
+            tokens: this.tokens,
+          }),
+        );
+      } else {
+        errors.push(
+          ...this.validateConstructorByArity(
+            classValue,
+            this.arguments_.length,
+          ),
+        );
+      }
+    } catch (error) {
+      if (error instanceof YaksokError) {
+        if (!error.tokens) {
+          error.tokens = this.tokens;
+        }
+        errors.push(error);
+      } else {
+        throw error;
+      }
+    }
+
+    return errors;
   }
 
   override toPrint(): string {
@@ -209,58 +504,120 @@ export class NewInstance extends Evaluable {
   }
 
   private getInheritanceChain(classValue: ClassValue): ClassValue[] {
-    const chain: ClassValue[] = [];
-    let cursor: ClassValue | undefined = classValue;
-
-    while (cursor) {
-      chain.unshift(cursor);
-      cursor = cursor.parentClass;
-    }
-
-    return chain;
+    return getInheritanceChain(classValue);
   }
 
   private pickConstructorByArity(
-    scope: Scope,
+    layerScopes: { klass: ClassValue; scope: Scope }[],
     arity: number,
     className: string,
   ): RunnableObject | undefined {
-    const constructors: RunnableObject[] = [];
-    const seen = new Set<string>();
-    let cursor: Scope | undefined = scope;
+    const expectedArities = new Set<number>();
 
-    while (cursor) {
-      for (const [name, func] of cursor.functions) {
-        if (!name.startsWith("__준비__")) continue;
-        if (seen.has(name)) continue;
-        seen.add(name);
-        constructors.push(func);
+    for (let i = layerScopes.length - 1; i >= 0; i--) {
+      const { klass, scope } = layerScopes[i];
+      const matchingCandidates: RunnableObject[] = [];
+      const declaredConstructors = getDeclaredConstructorsInClass(klass);
+
+      for (const constructor of declaredConstructors) {
+        expectedArities.add(constructor.arity);
       }
-      cursor = cursor.parent;
+
+      const matchingDeclaredConstructors = declaredConstructors.filter(
+        (constructor) => constructor.arity === arity,
+      );
+      if (matchingDeclaredConstructors.length > 1) {
+        throw new ConstructorArityAmbiguousError({
+          resource: {
+            className: klass.name,
+            arity,
+          },
+          tokens: this.tokens,
+        });
+      }
+
+      for (const [name, func] of scope.functions) {
+        if (!isConstructorFunctionName(name)) continue;
+        if (func.paramNames.length === arity) {
+          matchingCandidates.push(func);
+        }
+      }
+
+      if (matchingCandidates.length > 1) {
+        throw new ConstructorArityAmbiguousError({
+          resource: {
+            className: klass.name,
+            arity,
+          },
+          tokens: this.tokens,
+        });
+      }
+
+      if (matchingCandidates.length === 1) {
+        return matchingCandidates[0];
+      }
     }
 
-    if (constructors.length === 0) {
+    if (expectedArities.size === 0) {
       return undefined;
     }
 
-    const exactMatch = constructors.find(
-      (func) => func.paramNames.length === arity,
-    );
-    if (exactMatch) {
-      return exactMatch;
-    }
-
-    const expectedArities = [
-      ...new Set(constructors.map((f) => f.paramNames.length)),
-    ].sort((a, b) => a - b);
+    const sortedExpectedArities = [...expectedArities].sort((a, b) => a - b);
     throw new ConstructorArityMismatchError({
       resource: {
         className,
-        expected: expectedArities,
+        expected: sortedExpectedArities,
         received: arity,
       },
       tokens: this.tokens,
     });
+  }
+
+  private validateConstructorByArity(
+    classValue: ClassValue,
+    arity: number,
+  ): YaksokError[] {
+    const expectedArities = new Set<number>();
+    let hasDuplicatedArityInLayer = false;
+    const chain = this.getInheritanceChain(classValue);
+
+    for (let i = chain.length - 1; i >= 0; i--) {
+      const klass = chain[i];
+      const constructors = getDeclaredConstructorsInClass(klass);
+      const matchingCandidates = constructors.filter(
+        (constructor) => constructor.arity === arity,
+      );
+      if (matchingCandidates.length > 1) {
+        hasDuplicatedArityInLayer = true;
+      }
+
+      for (const constructor of constructors) {
+        expectedArities.add(constructor.arity);
+      }
+
+      if (matchingCandidates.length === 1) {
+        return [];
+      }
+    }
+
+    if (expectedArities.size === 0) {
+      return [];
+    }
+    if (hasDuplicatedArityInLayer) {
+      // Duplicate arity ambiguity is already reported at class declaration validation.
+      return [];
+    }
+
+    return [
+      new ConstructorArityMismatchError({
+        resource: {
+          className: classValue.name,
+          expected: [...expectedArities].sort((a, b) => a - b),
+          received: arity,
+        },
+        tokens: this.tokens,
+      }),
+    ];
   }
 }
 
@@ -269,6 +626,8 @@ export class InstanceValue extends ObjectValue {
 
   /** 상속 체인 실행 후 NewInstance에서 할당됩니다. */
   public scope!: Scope;
+  /** 멤버 메서드 탐색은 이 스코프까지 허용됩니다. */
+  public memberLookupRootScope!: Scope;
 
   constructor(public className: string) {
     super();
@@ -308,9 +667,25 @@ export class MemberFunctionInvoke extends Evaluable {
   override async execute(scope: Scope): Promise<ValueType> {
     const rawTarget = await this.target.execute(scope);
     const resolved = resolveMemberAccessTarget(rawTarget, this.tokens);
-    resolved.scope.variables["자신"] = resolved.instance;
+    resolved.scope.setVariable("자신", resolved.instance, this.tokens);
 
-    return await this.invocation.execute(resolved.scope);
+    const memberFunction = findMemberFunction(
+      resolved.scope,
+      resolved.instance,
+      this.invocation.name,
+    );
+    if (!memberFunction) {
+      throw new MemberFunctionNotFoundError({
+        resource: {
+          className: resolved.instance.className,
+          functionName: this.invocation.name,
+        },
+        tokens: this.tokens,
+      });
+    }
+
+    const args = await evaluateParams(this.invocation.params, resolved.scope);
+    return await memberFunction.run(args, resolved.scope);
   }
 
   override validate(scope: Scope): YaksokError[] {
@@ -318,7 +693,41 @@ export class MemberFunctionInvoke extends Evaluable {
     const paramErrors = Object.values(this.invocation.params).flatMap(
       (param) => param.validate(scope),
     );
-    return [...targetErrors, ...paramErrors];
+    const allErrors = [...targetErrors, ...paramErrors];
+    if (allErrors.length > 0) {
+      return allErrors;
+    }
+
+    if (this.target instanceof Identifier) {
+      try {
+        const rawTarget = scope.getVariable(this.target.value, this.tokens);
+        const resolved = resolveMemberAccessTarget(rawTarget, this.tokens);
+        const memberFunction = findMemberFunction(
+          resolved.scope,
+          resolved.instance,
+          this.invocation.name,
+        );
+        if (!memberFunction) {
+          allErrors.push(
+            new MemberFunctionNotFoundError({
+              resource: {
+                className: resolved.instance.className,
+                functionName: this.invocation.name,
+              },
+              tokens: this.tokens,
+            }),
+          );
+        }
+      } catch (error) {
+        if (error instanceof YaksokError) {
+          allErrors.push(error);
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    return allErrors;
   }
 
   override toPrint(): string {
@@ -342,20 +751,32 @@ export class FetchMember extends Evaluable {
     const resolved = resolveMemberAccessTarget(rawTarget, this.tokens);
 
     try {
-      return resolved.scope.getVariable(this.memberName);
+      return getMemberVariable(
+        resolved.scope,
+        resolved.instance,
+        this.memberName,
+        this.tokens,
+      );
     } catch (e) {
       if (!(e instanceof NotDefinedIdentifierError)) throw e;
 
       // Variable not found — fall back to no-arg method invocation
-      try {
-        const func = resolved.scope.getFunctionObject(this.memberName);
-        resolved.scope.variables["자신"] = resolved.instance;
-        return await func.run({}, resolved.scope);
-      } catch (funcError) {
-        if (!(funcError instanceof NotDefinedIdentifierError)) throw funcError;
+      const func = findMemberFunction(
+        resolved.scope,
+        resolved.instance,
+        this.memberName,
+      );
+      if (!func) {
+        throw new MemberNotFoundError({
+          resource: {
+            className: resolved.instance.className,
+            memberName: this.memberName,
+          },
+          tokens: this.tokens,
+        });
       }
-
-      throw e;
+      resolved.scope.setVariable("자신", resolved.instance, this.tokens);
+      return await func.run({}, resolved.scope);
     }
   }
 
@@ -393,12 +814,22 @@ export class SetMember extends Executable {
     let newValue = operand;
 
     if (operatorNode) {
-      const oldValue = resolved.scope.getVariable(this.memberName);
+      const oldValue = getMemberVariable(
+        resolved.scope,
+        resolved.instance,
+        this.memberName,
+        this.tokens,
+      );
       const tempOperator = new operatorNode(this.tokens);
       newValue = tempOperator.call(oldValue, operand);
     }
 
-    resolved.scope.variables[this.memberName] = newValue;
+    setMemberVariable(
+      resolved.scope,
+      resolved.instance,
+      this.memberName,
+      newValue,
+    );
   }
 
   override validate(scope: Scope): YaksokError[] {

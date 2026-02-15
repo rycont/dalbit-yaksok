@@ -63,6 +63,48 @@ c.값 보여주기
   assertEquals(outputs[1], "1");
 });
 
+Deno.test("멤버 조회는 전역 변수로 누수되지 않는다", async () => {
+  const session = new YaksokSession();
+  session.addModule(
+    "main",
+    `
+x = 99
+클래스, C
+    값 = 1
+o = 새 C
+o.x 보여주기
+`,
+  );
+
+  const results = await session.runModule("main");
+  const result = results.get("main");
+  if (!result) throw new Error("실행 결과가 없습니다.");
+
+  if (result.reason === "error") {
+    assertStringIncludes(result.error.message, "멤버");
+    assertStringIncludes(result.error.message, "x");
+    return;
+  }
+
+  throw new Error("멤버 조회가 전역 변수로 누수되면 안 됩니다.");
+});
+
+Deno.test("멤버 대입은 전역 변수를 덮어쓰지 않는다", async () => {
+  const outputs = await runAndCollect(`
+x = 10
+클래스, C
+    약속, 바꾸기
+        자신.x = 42
+o = 새 C
+o.바꾸기
+o.x 보여주기
+x 보여주기
+`);
+
+  assertEquals(outputs[0], "42");
+  assertEquals(outputs[1], "10");
+});
+
 Deno.test("클래스 생성자 다중 인수", async () => {
   const outputs = await runAndCollect(`
 클래스, 사람
@@ -102,6 +144,41 @@ g.인사 보여주기
 `);
 
   assertEquals(outputs[0], "안녕");
+});
+
+Deno.test("멤버 자동 호출 내부 오류를 멤버 없음 오류로 마스킹하지 않는다", async () => {
+  const session = new YaksokSession();
+  session.addModule(
+    "main",
+    `
+클래스, 사람
+    약속, 인사
+        없는값 보여주기
+
+나 = 새 사람
+나.인사 보여주기
+`,
+  );
+
+  const results = await session.runModule("main");
+  const result = results.get("main");
+  if (!result) throw new Error("실행 결과가 없습니다.");
+
+  if (result.reason === "validation") {
+    const allMessages = [...result.errors.values()]
+      .flat()
+      .map((e) => e.message)
+      .join("\n");
+    assertStringIncludes(allMessages, '"없는값"');
+    return;
+  }
+
+  if (result.reason === "error") {
+    assertStringIncludes(result.error.message, '"없는값"');
+    return;
+  }
+
+  throw new Error("메서드 내부 식별자 오류가 발생해야 합니다.");
 });
 
 Deno.test("상속: 부모 메서드와 필드를 물려받는다", async () => {
@@ -330,6 +407,16 @@ Deno.test("생성자: 인자 개수가 맞는 생성자가 없으면 오류가 �
   const result = results.get("main");
   if (!result) throw new Error("실행 결과가 없습니다.");
 
+  if (result.reason === "validation") {
+    const allMessages = [...result.errors.values()]
+      .flat()
+      .map((e) => e.message)
+      .join("\n");
+    assertStringIncludes(allMessages, "__준비__");
+    assertStringIncludes(allMessages, "인자");
+    return;
+  }
+
   if (result.reason === "error") {
     assertStringIncludes(result.error.message, "__준비__");
     assertStringIncludes(result.error.message, "인자");
@@ -337,4 +424,292 @@ Deno.test("생성자: 인자 개수가 맞는 생성자가 없으면 오류가 �
   }
 
   throw new Error("생성자 인자 개수 불일치 오류가 발생해야 합니다.");
+});
+
+Deno.test("생성자: 같은 클래스에서 같은 인자 개수 생성자는 모호성 오류가 난다", async () => {
+  const code = `
+클래스, 사람
+    약속, __준비__ (이름)
+        자신.이름 = 이름
+
+    약속, __준비__ (별명)
+        자신.이름 = 별명
+
+나 = 새 사람("달빛")
+`;
+  const session = new YaksokSession();
+  session.addModule("main", code);
+  const results = await session.runModule("main");
+  const result = results.get("main");
+  if (!result) throw new Error("실행 결과가 없습니다.");
+
+  if (result.reason === "validation") {
+    const allMessages = [...result.errors.values()]
+      .flat()
+      .map((e) => e.message)
+      .join("\n");
+    assertStringIncludes(allMessages, "__준비__");
+    assertStringIncludes(allMessages, "모호");
+    return;
+  }
+
+  if (result.reason === "error") {
+    assertStringIncludes(result.error.message, "__준비__");
+    assertStringIncludes(result.error.message, "모호");
+    return;
+  }
+
+  throw new Error("생성자 모호성 오류가 발생해야 합니다.");
+});
+
+Deno.test("생성자 모호성은 중복 보고되지 않는다", async () => {
+  const session = new YaksokSession();
+  session.addModule(
+    "main",
+    `
+클래스, 사람
+    약속, __준비__ (이름)
+        자신.이름 = 이름
+
+    약속, __준비__ (별명)
+        자신.이름 = 별명
+
+나 = 새 사람("달빛")
+`,
+  );
+
+  const results = await session.runModule("main");
+  const result = results.get("main");
+  if (!result) throw new Error("실행 결과가 없습니다.");
+  if (result.reason !== "validation") {
+    throw new Error("검증 단계에서 생성자 모호성 오류가 발생해야 합니다.");
+  }
+
+  const messages = [...result.errors.values()].flat().map((e) => e.message);
+  const ambiguityCount = messages.filter((msg) => msg.includes("모호")).length;
+  assertEquals(ambiguityCount, 1);
+});
+
+Deno.test("생성자: 인스턴스화 없이도 같은 인자 개수 중복은 검증 오류다", async () => {
+  const session = new YaksokSession();
+  session.addModule(
+    "main",
+    `
+클래스, 사람
+    약속, __준비__ (이름)
+        자신.이름 = 이름
+
+    약속, __준비__ (별명)
+        자신.이름 = 별명
+`,
+  );
+
+  const results = await session.runModule("main");
+  const result = results.get("main");
+  if (!result) throw new Error("실행 결과가 없습니다.");
+  if (result.reason !== "validation") {
+    throw new Error("검증 단계에서 생성자 모호성 오류가 발생해야 합니다.");
+  }
+
+  const messages = [...result.errors.values()].flat().map((e) => e.message);
+  const ambiguityCount = messages.filter((msg) => msg.includes("모호")).length;
+  assertEquals(ambiguityCount, 1);
+});
+
+Deno.test("멤버 호출은 전역 함수로 폴백하지 않는다", async () => {
+  const session = new YaksokSession();
+  session.addModule(
+    "main",
+    `
+약속, (음료) 마시기
+    "전역 " + 음료 반환하기
+
+클래스, 사람
+    약속, __준비__
+        자신.이름 = "달이"
+
+나 = 새 사람
+나. "물" 마시기
+`,
+  );
+
+  const results = await session.runModule("main");
+  const result = results.get("main");
+  if (!result) throw new Error("실행 결과가 없습니다.");
+
+  if (result.reason === "validation") {
+    const allMessages = [...result.errors.values()]
+      .flat()
+      .map((e) => e.message)
+      .join("\n");
+    assertStringIncludes(allMessages, "메서드");
+    assertStringIncludes(allMessages, "마시기");
+    return;
+  }
+
+  if (result.reason === "error") {
+    assertStringIncludes(result.error.message, "메서드");
+    assertStringIncludes(result.error.message, "마시기");
+    return;
+  }
+
+  throw new Error("전역 함수 폴백 없이 메서드 탐색 오류가 발생해야 합니다.");
+});
+
+Deno.test("멤버 자동 호출도 전역 함수로 폴백하지 않는다", async () => {
+  const session = new YaksokSession();
+  session.addModule(
+    "main",
+    `
+약속, 인사
+    "전역 인사" 반환하기
+
+클래스, 사람
+    약속, __준비__
+        자신.이름 = "달이"
+
+나 = 새 사람
+나.인사 보여주기
+`,
+  );
+
+  const results = await session.runModule("main");
+  const result = results.get("main");
+  if (!result) throw new Error("실행 결과가 없습니다.");
+
+  if (result.reason === "error") {
+    assertStringIncludes(result.error.message, "멤버");
+    assertStringIncludes(result.error.message, "인사");
+    return;
+  }
+
+  throw new Error("전역 함수 폴백 없이 식별자 오류가 발생해야 합니다.");
+});
+
+Deno.test("생성자 인식: __준비__ 접두 이름은 생성자로 오인되지 않는다", async () => {
+  const outputs = await runAndCollect(`
+클래스, T
+    약속, __준비__도우미 (x)
+        자신.x = x
+
+o = 새 T
+"ok" 보여주기
+`);
+
+  assertEquals(outputs[0], "ok");
+});
+
+Deno.test("클래스: 같은 이름 재선언은 검증 오류가 난다", async () => {
+  const session = new YaksokSession();
+  session.addModule(
+    "main",
+    `
+클래스, 사람
+    약속, 이름
+        "첫번째" 반환하기
+
+클래스, 사람
+    약속, 이름
+        "두번째" 반환하기
+`,
+  );
+
+  const results = await session.runModule("main");
+  const result = results.get("main");
+  if (!result) throw new Error("실행 결과가 없습니다.");
+
+  if (result.reason !== "validation") {
+    throw new Error("검증 단계에서 클래스 재선언 오류가 발생해야 합니다.");
+  }
+
+  const allMessages = [...result.errors.values()]
+    .flat()
+    .map((e) => e.message)
+    .join("\n");
+  assertStringIncludes(allMessages, "이미 정의");
+});
+
+Deno.test("인스턴스화: 클래스가 아닌 값은 validation 단계에서 검출된다", async () => {
+  const session = new YaksokSession();
+  session.addModule(
+    "main",
+    `
+없는클래스 = 1
+o = 새 없는클래스
+`,
+  );
+
+  const results = await session.runModule("main");
+  const result = results.get("main");
+  if (!result) throw new Error("실행 결과가 없습니다.");
+
+  if (result.reason === "validation") {
+    const allMessages = [...result.errors.values()]
+      .flat()
+      .map((e) => e.message)
+      .join("\n");
+    assertStringIncludes(allMessages, "클래스가 아닙니다");
+    return;
+  }
+
+  throw new Error("클래스 타입 오류가 validation 단계에서 발생해야 합니다.");
+});
+
+Deno.test("상위: 부모에 없는 멤버 호출은 오류가 난다", async () => {
+  const session = new YaksokSession();
+  session.addModule(
+    "main",
+    `
+클래스, 부모
+    약속, 기존메서드
+        "ok" 반환하기
+
+클래스, 자식(부모)
+    약속, 테스트
+        상위.없는메서드
+
+o = 새 자식
+o.테스트
+`,
+  );
+
+  const results = await session.runModule("main");
+  const result = results.get("main");
+  if (!result) throw new Error("실행 결과가 없습니다.");
+
+  if (result.reason === "validation" || result.reason === "error") {
+    const allMessages = result.reason === "validation"
+      ? [...result.errors.values()]
+        .flat()
+        .map((e) => e.message)
+        .join("\n")
+      : result.error.message;
+
+    assertStringIncludes(allMessages, "없는메서드");
+    assertStringIncludes(allMessages, "멤버");
+    return;
+  }
+
+  throw new Error("상위 멤버 오류가 발생해야 합니다.");
+});
+
+Deno.test("생성자 충돌: 같은 인자 개수면 자식 생성자가 우선된다", async () => {
+  const outputs = await runAndCollect(`
+클래스, 부모
+    약속, __준비__ (값)
+        자신.출처 = "부모"
+        자신.값 = 값
+
+클래스, 자식(부모)
+    약속, __준비__ (값)
+        자신.출처 = "자식"
+        자신.값 = 값 + 1
+
+o = 새 자식(10)
+o.출처 보여주기
+o.값 보여주기
+`);
+
+  assertEquals(outputs[0], "자식");
+  assertEquals(outputs[1], "11");
 });

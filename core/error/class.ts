@@ -5,9 +5,31 @@ interface InvalidParentClassErrorResource {
   name: string;
 }
 
+interface AlreadyDefinedClassErrorResource {
+  name: string;
+}
+
+export class AlreadyDefinedClassError
+  extends YaksokError<AlreadyDefinedClassErrorResource> {
+  constructor(props: {
+    resource: AlreadyDefinedClassErrorResource;
+    tokens?: Token[];
+  }) {
+    super(props);
+    this.message = `${
+      bold(
+        blue(props.resource.name),
+      )
+    } 클래스는 이미 정의되어 있습니다.`;
+  }
+}
+
 export class InvalidParentClassError
   extends YaksokError<InvalidParentClassErrorResource> {
-  constructor(props: { resource: InvalidParentClassErrorResource }) {
+  constructor(props: {
+    resource: InvalidParentClassErrorResource;
+    tokens?: Token[];
+  }) {
     super(props);
     this.message = `${
       bold(
@@ -56,12 +78,68 @@ export class ConstructorArityMismatchError
   }) {
     super(props);
     const { className, expected, received } = props.resource;
-    const expectedStr =
-      expected.length === 1
-        ? `${expected[0]}개`
-        : `${expected.slice(0, -1).join(", ")} 또는 ${expected.at(-1)}개`;
+    const expectedStr = expected.length === 1
+      ? `${expected[0]}개`
+      : `${expected.slice(0, -1).join(", ")} 또는 ${expected.at(-1)}개`;
     this.message = `${
       bold(blue(className))
     }의 __준비__에 인자 ${received}개를 넘겼지만, 정의된 생성자는 ${expectedStr} 인자를 받습니다.`;
+  }
+}
+
+interface ConstructorArityAmbiguousErrorResource {
+  className: string;
+  arity: number;
+}
+
+export class ConstructorArityAmbiguousError
+  extends YaksokError<ConstructorArityAmbiguousErrorResource> {
+  constructor(props: {
+    resource: ConstructorArityAmbiguousErrorResource;
+    tokens?: Token[];
+  }) {
+    super(props);
+    const { className, arity } = props.resource;
+    this.message = `${
+      bold(blue(className))
+    }의 __준비__에 인자 ${arity}개 생성자가 여러 개 있어 모호합니다.`;
+  }
+}
+
+interface MemberFunctionNotFoundErrorResource {
+  className: string;
+  functionName: string;
+}
+
+export class MemberFunctionNotFoundError
+  extends YaksokError<MemberFunctionNotFoundErrorResource> {
+  constructor(props: {
+    resource: MemberFunctionNotFoundErrorResource;
+    tokens?: Token[];
+  }) {
+    super(props);
+    const { className, functionName } = props.resource;
+    this.message = `${bold(blue(className))} 인스턴스에서 ${
+      bold(blue(functionName))
+    } 메서드를 찾을 수 없습니다.`;
+  }
+}
+
+interface MemberNotFoundErrorResource {
+  className: string;
+  memberName: string;
+}
+
+export class MemberNotFoundError
+  extends YaksokError<MemberNotFoundErrorResource> {
+  constructor(props: {
+    resource: MemberNotFoundErrorResource;
+    tokens?: Token[];
+  }) {
+    super(props);
+    const { className, memberName } = props.resource;
+    this.message = `${bold(blue(className))} 인스턴스에서 ${
+      bold(blue(memberName))
+    } 멤버를 찾을 수 없습니다.`;
   }
 }
