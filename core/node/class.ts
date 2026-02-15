@@ -1,9 +1,6 @@
 import { YaksokError } from '../error/common.ts'
 import {
     AlreadyDefinedClassError,
-    AlreadyDefinedMemberFunctionError,
-    ConstructorArityAmbiguousError,
-    ConstructorArityMismatchError,
     InvalidParentClassError,
     MemberFunctionNotFoundError,
     MemberNotFoundError,
@@ -13,19 +10,12 @@ import { NotDefinedIdentifierError } from '../error/variable.ts'
 import { Scope } from '../executer/scope.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import { ValueType } from '../value/base.ts'
-import type { RunnableObject } from '../value/function.ts'
 import { Evaluable, Executable, Identifier } from './base.ts'
 import { ValueWithParenthesis } from './calculation.ts'
 import { Block } from './block.ts'
-import { DeclareFunction, evaluateParams, FunctionInvoke } from './function.ts'
+import { evaluateParams, FunctionInvoke } from './function.ts'
 import { assignerToOperatorMap } from './operator.ts'
 import { assertValidIdentifierName } from '../util/assert-valid-identifier-name.ts'
-import {
-    extractParamCountFromTokens,
-    getDeclaredConstructorsInClass,
-    isConstructorDeclaration,
-    resolveConstructorByArity,
-} from './class/constructor.ts'
 import {
     ClassValue,
     resolveClassValueFromInstance,
@@ -43,6 +33,14 @@ import {
     createClassInstanceLayerScopes,
     createValidationInstanceFromClass,
 } from './class/validation-instance.ts'
+import {
+    validateDuplicatedConstructorArity,
+    validateDuplicatedMemberFunctionName,
+} from './class/declare-validation.ts'
+import {
+    pickConstructorByArity,
+    validateConstructorByArity,
+} from './class/new-instance-constructor.ts'
 
 export { ClassValue, InstanceValue, SuperValue } from './class/core.ts'
 export { createValidationInstanceFromClass } from './class/validation-instance.ts'
@@ -140,7 +138,11 @@ export class DeclareClass extends Executable {
         }
 
         const duplicatedMemberFunctionErrors =
-            this.validateDuplicatedMemberFunctionName()
+            validateDuplicatedMemberFunctionName(
+                this.name,
+                this.body.children,
+                this.tokens,
+            )
         if (duplicatedMemberFunctionErrors.length > 0) {
             throw duplicatedMemberFunctionErrors[0]
         }
@@ -191,8 +193,20 @@ export class DeclareClass extends Executable {
 
         const dummyInstance = createValidationInstanceFromClass(dummyClass)
         const validationErrors = this.body.validate(dummyInstance.scope)
-        validationErrors.push(...this.validateDuplicatedConstructorArity())
-        validationErrors.push(...this.validateDuplicatedMemberFunctionName())
+        validationErrors.push(
+            ...validateDuplicatedConstructorArity(
+                this.name,
+                dummyClass,
+                this.tokens,
+            ),
+        )
+        validationErrors.push(
+            ...validateDuplicatedMemberFunctionName(
+                this.name,
+                this.body.children,
+                this.tokens,
+            ),
+        )
         return validationErrors
     }
 
@@ -216,65 +230,6 @@ export class DeclareClass extends Executable {
 
     override toPrint(): string {
         return `클래스 ${this.name}`
-    }
-
-    private validateDuplicatedConstructorArity(): YaksokError[] {
-        const constructorCountByArity = new Map<number, number>()
-
-        for (const child of this.body.children) {
-            if (!(child instanceof DeclareFunction)) continue
-            if (!isConstructorDeclaration(child)) continue
-
-            const arity = extractParamCountFromTokens(child.tokens)
-            constructorCountByArity.set(
-                arity,
-                (constructorCountByArity.get(arity) ?? 0) + 1,
-            )
-        }
-
-        const duplicatedArities = [...constructorCountByArity.entries()]
-            .filter(([, count]) => count > 1)
-            .map(([arity]) => arity)
-
-        return duplicatedArities.map(
-            (arity) =>
-                new ConstructorArityAmbiguousError({
-                    resource: {
-                        className: this.name,
-                        arity,
-                    },
-                    tokens: this.tokens,
-                }),
-        )
-    }
-
-    private validateDuplicatedMemberFunctionName(): YaksokError[] {
-        const functionCountByName = new Map<string, number>()
-
-        for (const child of this.body.children) {
-            if (!(child instanceof DeclareFunction)) continue
-            if (isConstructorDeclaration(child)) continue
-
-            functionCountByName.set(
-                child.name,
-                (functionCountByName.get(child.name) ?? 0) + 1,
-            )
-        }
-
-        const duplicatedNames = [...functionCountByName.entries()]
-            .filter(([, count]) => count > 1)
-            .map(([name]) => name)
-
-        return duplicatedNames.map(
-            (functionName) =>
-                new AlreadyDefinedMemberFunctionError({
-                    resource: {
-                        className: this.name,
-                        functionName,
-                    },
-                    tokens: this.tokens,
-                }),
-        )
     }
 }
 
@@ -308,11 +263,12 @@ export class NewInstance extends Evaluable {
         }
         instance.scope = finalScope
 
-        const initFunc = this.pickConstructorByArity(
+        const initFunc = pickConstructorByArity({
             layerScopes,
-            this.arguments_.length,
-            classValue.name,
-        )
+            arity: this.arguments_.length,
+            className: classValue.name,
+            tokens: this.tokens,
+        })
 
         if (initFunc) {
             const args: Record<string, ValueType> = {}
@@ -346,9 +302,10 @@ export class NewInstance extends Evaluable {
                 )
             } else {
                 errors.push(
-                    ...this.validateConstructorByArity(
+                    ...validateConstructorByArity(
                         classValue,
                         this.arguments_.length,
+                        this.tokens,
                     ),
                 )
             }
@@ -369,111 +326,6 @@ export class NewInstance extends Evaluable {
     override toPrint(): string {
         return `새 ${this.className}`
     }
-
-    private pickConstructorByArity(
-        layerScopes: { klass: ClassValue; scope: Scope }[],
-        arity: number,
-        className: string,
-    ): RunnableObject | undefined {
-        const resolution = resolveConstructorByArity(
-            layerScopes.map(({ klass }) => ({
-                className: klass.name,
-                arities: getDeclaredConstructorsInClass(klass).map(
-                    (constructor) => constructor.arity,
-                ),
-            })),
-            arity,
-        )
-
-        if (resolution.kind === 'ambiguous') {
-            throw new ConstructorArityAmbiguousError({
-                resource: {
-                    className: resolution.className,
-                    arity,
-                },
-                tokens: this.tokens,
-            })
-        }
-
-        for (let i = layerScopes.length - 1; i >= 0; i--) {
-            const { klass, scope } = layerScopes[i]
-            const declaredConstructors = getDeclaredConstructorsInClass(klass)
-            const matchingDeclaredConstructors = declaredConstructors.filter(
-                (constructor) => constructor.arity === arity,
-            )
-
-            for (const constructor of matchingDeclaredConstructors) {
-                const func = scope.functions.get(constructor.name)
-                if (func) {
-                    return func
-                }
-            }
-        }
-
-        if (resolution.kind === 'none') {
-            return undefined
-        }
-
-        const expectedArities = resolution.kind === 'mismatch'
-            ? resolution.expectedArities
-            : [arity]
-        throw new ConstructorArityMismatchError({
-            resource: {
-                className,
-                expected: expectedArities,
-                received: arity,
-            },
-            tokens: this.tokens,
-        })
-    }
-
-    private validateConstructorByArity(
-        classValue: ClassValue,
-        arity: number,
-    ): YaksokError[] {
-        const resolution = resolveConstructorByArity(
-            createClassChainConstructorLayers(classValue),
-            arity,
-        )
-        if (
-            resolution.kind === 'matched' ||
-            resolution.kind === 'none' ||
-            resolution.kind === 'ambiguous'
-        ) {
-            return []
-        }
-
-        return [
-            new ConstructorArityMismatchError({
-                resource: {
-                    className: classValue.name,
-                    expected: resolution.expectedArities,
-                    received: arity,
-                },
-                tokens: this.tokens,
-            }),
-        ]
-    }
-}
-
-function createClassChainConstructorLayers(classValue: ClassValue): {
-    className: string
-    arities: number[]
-}[] {
-    const layers: { className: string; arities: number[] }[] = []
-    let cursor: ClassValue | undefined = classValue
-
-    while (cursor) {
-        layers.unshift({
-            className: cursor.name,
-            arities: getDeclaredConstructorsInClass(cursor).map(
-                (constructor) => constructor.arity,
-            ),
-        })
-        cursor = cursor.parentClass
-    }
-
-    return layers
 }
 
 export class MemberFunctionInvoke extends Evaluable {
