@@ -33,5 +33,3 @@ Deno.test({
         assert(0 <= parsed && parsed <= 10)
     },
 })
-
-

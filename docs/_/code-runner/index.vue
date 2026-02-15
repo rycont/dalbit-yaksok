@@ -39,9 +39,8 @@ const ansiCode = new AnsiCode()
 async function initializeMonaco() {
     const editorElement = editorRef.value!
 
-    const { DalbitYaksokApplier, LANG_ID } = await import(
-        '@dalbit-yaksok/monaco-language-provider'
-    )
+    const { DalbitYaksokApplier, LANG_ID } =
+        await import('@dalbit-yaksok/monaco-language-provider')
 
     monaco = await loadMonaco()
 

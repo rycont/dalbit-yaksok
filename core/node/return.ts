@@ -8,7 +8,10 @@ import type { Scope } from '../executer/scope.ts'
 export class ReturnStatement extends Executable {
     static override friendlyName = '반환하기'
 
-    constructor(public override tokens: Token[], public value?: Evaluable) {
+    constructor(
+        public override tokens: Token[],
+        public value?: Evaluable,
+    ) {
         super()
     }
 

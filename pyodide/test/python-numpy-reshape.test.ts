@@ -34,7 +34,10 @@ mat.reshape(4, 3) 보여주기`,
         const result = results.get('main')!
         assertEquals(result.reason, 'finish')
 
-        const lines = output.split('\n').map((l) => l.trim()).filter((l) => l.length > 0)
+        const lines = output
+            .split('\n')
+            .map((l) => l.trim())
+            .filter((l) => l.length > 0)
         // 숫자만 있는 줄만 추출 (리스트 출력은 여러 줄이므로 제외)
         const numericLines = lines.filter((l) => /^-?\d+(?:\.\d+)?$/.test(l))
         // 최소 합계/평균 2줄이 있어야 함
@@ -48,5 +51,3 @@ mat.reshape(4, 3) 보여주기`,
         assertEquals(Math.round(meanVal * 12), Math.round(sumVal))
     },
 })
-
-

@@ -30,7 +30,10 @@ s.mean() 보여주기`,
         const result = results.get('main')!
         assertEquals(result.reason, 'finish')
 
-        const lines = output.split('\n').map((l) => l.trim()).filter((l) => l.length > 0)
+        const lines = output
+            .split('\n')
+            .map((l) => l.trim())
+            .filter((l) => l.length > 0)
         // 숫자만 추출 (pandas Series 문자열 출력 라인 제외)
         const numericLines = lines.filter((l) => /^-?\d+(?:\.\d+)?$/.test(l))
         assertEquals(numericLines.length >= 2, true)
@@ -41,5 +44,3 @@ s.mean() 보여주기`,
         assertEquals(meanVal, 2)
     },
 })
-
-

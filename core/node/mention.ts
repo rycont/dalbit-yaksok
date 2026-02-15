@@ -11,7 +11,10 @@ import type { Token } from '../prepare/tokenize/token.ts'
 export class Mention extends Node {
     static override friendlyName = '불러올 파일 이름'
 
-    constructor(public value: string, public override tokens: Token[]) {
+    constructor(
+        public value: string,
+        public override tokens: Token[],
+    ) {
         super()
     }
 

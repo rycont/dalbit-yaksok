@@ -9,7 +9,10 @@ import type { Position } from '../type/position.ts'
 export class FFIBody extends Node {
     static override friendlyName = '번역할 내용'
 
-    constructor(public code: string, public override tokens: Token[]) {
+    constructor(
+        public code: string,
+        public override tokens: Token[],
+    ) {
         super()
     }
 

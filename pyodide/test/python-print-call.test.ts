@@ -32,5 +32,3 @@ randint(0, 10) 보여주기`,
         assert(0 <= parsed && parsed <= 10)
     },
 })
-
-

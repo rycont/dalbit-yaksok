@@ -37,7 +37,7 @@ export function tokensToEventSubscribeRule(templateTokens: Token[]): Rule[] {
 
                     return new SubscribeEvent({ eventId, body, params }, tokens)
                 },
-            } as Rule),
+            }) as Rule,
     )
 
     return templates

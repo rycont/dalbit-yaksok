@@ -1,21 +1,21 @@
 {
-	"name": "mcp-server",
-	"type": "module",
-	"scripts": {
-		"dev": "wrangler dev",
-		"deploy": "wrangler deploy --minify",
-		"cf-typegen": "wrangler types --env-interface CloudflareBindings"
-	},
-	"dependencies": {
-		"@dalbit-yaksok/core": "npm:@jsr/dalbit-yaksok__core@^3.9.0-RC.2",
-		"@hono/mcp": "^0.1.5",
-		"hono": "^4.10.6",
-		"zod": "^3.23.8"
-	},
-	"devDependencies": {
-		"wrangler": "^4.50.0"
-	},
-	"peerDependencies": {
-		"zod": "^3.23.8"
-	}
+    "name": "mcp-server",
+    "type": "module",
+    "scripts": {
+        "dev": "wrangler dev",
+        "deploy": "wrangler deploy --minify",
+        "cf-typegen": "wrangler types --env-interface CloudflareBindings"
+    },
+    "dependencies": {
+        "@dalbit-yaksok/core": "npm:@jsr/dalbit-yaksok__core@^3.9.0-RC.2",
+        "@hono/mcp": "^0.1.5",
+        "hono": "^4.10.6",
+        "zod": "^3.23.8"
+    },
+    "devDependencies": {
+        "wrangler": "^4.50.0"
+    },
+    "peerDependencies": {
+        "zod": "^3.23.8"
+    }
 }

@@ -15,7 +15,10 @@ interface Case {
 export class IfStatement extends Executable {
     static override friendlyName = '조건문(만약)'
 
-    constructor(public cases: Case[], public override tokens: Token[]) {
+    constructor(
+        public cases: Case[],
+        public override tokens: Token[],
+    ) {
         super()
     }
 
@@ -59,7 +62,10 @@ export class IfStatement extends Executable {
 export class ElseStatement extends Executable {
     static override friendlyName = '조건문(아니면)'
 
-    constructor(public body: Block, public override tokens: Token[]) {
+    constructor(
+        public body: Block,
+        public override tokens: Token[],
+    ) {
         super()
     }
 
@@ -71,7 +77,10 @@ export class ElseStatement extends Executable {
 export class ElseIfStatement extends Executable {
     static override friendlyName = '조건문(아니면 만약)'
 
-    constructor(public elseIfCase: Case, public override tokens: Token[]) {
+    constructor(
+        public elseIfCase: Case,
+        public override tokens: Token[],
+    ) {
         super()
     }
 

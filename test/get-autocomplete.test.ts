@@ -68,41 +68,44 @@ Deno.test('getAutocomplete returns mentioned module identifiers', () => {
 
     // 로컬 변수
     assertEquals(result.includes('결과'), true)
-    
+
     // 멘션된 모듈의 변수와 함수
     assertEquals(result.includes('@수학 파이'), true)
     assertEquals(result.includes('@수학 (숫자) 제곱하기'), true)
 })
 
-Deno.test('getAutocomplete excludes base context identifiers from mentioned modules', async () => {
-    const session = new YaksokSession()
+Deno.test(
+    'getAutocomplete excludes base context identifiers from mentioned modules',
+    async () => {
+        const session = new YaksokSession()
 
-    await session.setBaseContext(
-        `약속, 공통 (A)
+        await session.setBaseContext(
+            `약속, 공통 (A)
     A 반환하기`,
-    )
+        )
 
-    session.addModule(
-        'utils',
-        `약속, 유틸 (B)
+        session.addModule(
+            'utils',
+            `약속, 유틸 (B)
     B 반환하기`,
-    )
+        )
 
-    const mainCodeFile = session.addModule(
-        'main',
-        `
+        const mainCodeFile = session.addModule(
+            'main',
+            `
 값 = 0
 `,
-    )
+        )
 
-    mainCodeFile.validate()
+        mainCodeFile.validate()
 
-    const result = getAutocomplete(mainCodeFile, { line: 2, column: 1 })
+        const result = getAutocomplete(mainCodeFile, { line: 2, column: 1 })
 
-    assertEquals(result.includes('공통 (A)'), true)
-    assertEquals(result.includes('@utils 공통 (A)'), false)
-    assertEquals(result.includes('@utils 유틸 (B)'), true)
-})
+        assertEquals(result.includes('공통 (A)'), true)
+        assertEquals(result.includes('@utils 공통 (A)'), false)
+        assertEquals(result.includes('@utils 유틸 (B)'), true)
+    },
+)
 
 Deno.test('getAutocomplete excludes current file from mentions', () => {
     const session = new YaksokSession()
@@ -120,7 +123,7 @@ Deno.test('getAutocomplete excludes current file from mentions', () => {
 
     // 현재 파일의 변수는 로컬로 포함
     assertEquals(result.includes('내변수'), true)
-    
+
     // 현재 파일은 멘션 형태로 포함되지 않음
     assertEquals(result.includes('@main 내변수'), false)
 })
@@ -159,11 +162,11 @@ Deno.test('getAutocomplete handles multiple modules', () => {
 
     // 로컬 변수
     assertEquals(result.includes('메인변수'), true)
-    
+
     // 모듈A의 식별자들
     assertEquals(result.includes('@모듈A 변수A'), true)
     assertEquals(result.includes('@모듈A 함수A'), true)
-    
+
     // 모듈B의 식별자들
     assertEquals(result.includes('@모듈B 변수B'), true)
     assertEquals(result.includes('@모듈B 함수B'), true)
@@ -213,7 +216,7 @@ Deno.test('getAutocomplete ignores modules with validation errors', () => {
 
     // 정상 모듈의 식별자는 포함
     assertEquals(result.includes('@정상모듈 정상변수'), true)
-    
+
     // 잘못된 모듈의 함수도 포함 (validate가 에러를 던지지 않고 에러 리스트를 반환하므로)
     assertEquals(result.includes('@잘못된모듈 잘못된함수'), true)
 })
@@ -236,7 +239,7 @@ Deno.test('getAutocomplete expands function name branches', () => {
     // 분기된 함수 이름이 모두 포함되어야 함
     assertEquals(result.includes('(대상)이여 지금 내게 나타나거라'), true)
     assertEquals(result.includes('(대상)여 지금 내게 나타나거라'), true)
-    
+
     // 원본 이름(분기 포함)은 포함되지 않아야 함
     assertEquals(result.includes('(대상)이여/여 지금 내게 나타나거라'), false)
 })
@@ -286,31 +289,34 @@ Deno.test('getAutocomplete handles function without branches normally', () => {
     assertEquals(result.includes('(숫자) 제곱하기'), true)
 })
 
-Deno.test('getAutocomplete expands branches in mentioned module functions', () => {
-    const session = new YaksokSession()
+Deno.test(
+    'getAutocomplete expands branches in mentioned module functions',
+    () => {
+        const session = new YaksokSession()
 
-    session.addModule(
-        '도우미',
-        `약속, (대상)이/가 나타나기
+        session.addModule(
+            '도우미',
+            `약속, (대상)이/가 나타나기
     대상 + " 등장" 보여주기
 `,
-    )
+        )
 
-    const mainCodeFile = session.addModule(
-        'main',
-        `
+        const mainCodeFile = session.addModule(
+            'main',
+            `
 메인 = 0
 `,
-    )
+        )
 
-    mainCodeFile.validate()
+        mainCodeFile.validate()
 
-    const result = getAutocomplete(mainCodeFile, { line: 2, column: 1 })
+        const result = getAutocomplete(mainCodeFile, { line: 2, column: 1 })
 
-    // 멘션된 모듈의 함수도 분기가 확장되어야 함
-    assertEquals(result.includes('@도우미 (대상)이 나타나기'), true)
-    assertEquals(result.includes('@도우미 (대상)가 나타나기'), true)
-    
-    // 원본 이름은 포함되지 않아야 함
-    assertEquals(result.includes('@도우미 (대상)이/가 나타나기'), false)
-})
+        // 멘션된 모듈의 함수도 분기가 확장되어야 함
+        assertEquals(result.includes('@도우미 (대상)이 나타나기'), true)
+        assertEquals(result.includes('@도우미 (대상)가 나타나기'), true)
+
+        // 원본 이름은 포함되지 않아야 함
+        assertEquals(result.includes('@도우미 (대상)이/가 나타나기'), false)
+    },
+)

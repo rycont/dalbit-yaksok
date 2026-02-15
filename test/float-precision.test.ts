@@ -1,5 +1,8 @@
 import { assertEquals } from '@std/assert'
-import { cleanFloatingPointError, roundToPrecision } from '../core/util/float-precision.ts'
+import {
+    cleanFloatingPointError,
+    roundToPrecision,
+} from '../core/util/float-precision.ts'
 
 Deno.test('cleanFloatingPointError - 기본 부동소수점 오류 수정', () => {
     // 0.3 - 0.2 케이스 (실제로 부동소수점 오류가 발생하는 케이스)

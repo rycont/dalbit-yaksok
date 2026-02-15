@@ -29,5 +29,3 @@ sqrt(9) 보여주기`,
         assertEquals(output.trim(), '3')
     },
 })
-
-

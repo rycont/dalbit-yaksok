@@ -21,7 +21,10 @@ export class EOL extends Node {
 export class Indent extends Node {
     static override friendlyName = '들여쓰기'
 
-    constructor(public size: number, public override tokens: Token[]) {
+    constructor(
+        public size: number,
+        public override tokens: Token[],
+    ) {
         super()
     }
 
@@ -33,7 +36,10 @@ export class Indent extends Node {
 export class Print extends Executable {
     static override friendlyName = '보여주기'
 
-    constructor(public value: Evaluable, public override tokens: Token[]) {
+    constructor(
+        public value: Evaluable,
+        public override tokens: Token[],
+    ) {
         super()
     }
 
@@ -52,7 +58,10 @@ export class Print extends Executable {
 export class TypeOf extends Evaluable {
     static override friendlyName = '값 종류'
 
-    constructor(public value: Evaluable, public override tokens: Token[]) {
+    constructor(
+        public value: Evaluable,
+        public override tokens: Token[],
+    ) {
         super()
     }
 

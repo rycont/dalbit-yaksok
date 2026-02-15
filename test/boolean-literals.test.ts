@@ -15,7 +15,9 @@ for (const literal of TRUE_LITERALS) {
 `,
         )
         await session.runModule('main')
-        const result = session.getCodeFile('main').ranScope?.getVariable('결과') as BooleanValue
+        const result = session
+            .getCodeFile('main')
+            .ranScope?.getVariable('결과') as BooleanValue
         assertEquals(result.value, true)
     })
 }
@@ -30,7 +32,9 @@ for (const literal of FALSE_LITERALS) {
 `,
         )
         await session.runModule('main')
-        const result = session.getCodeFile('main').ranScope?.getVariable('결과') as BooleanValue
+        const result = session
+            .getCodeFile('main')
+            .ranScope?.getVariable('결과') as BooleanValue
         assertEquals(result.value, false)
     })
 }
@@ -45,7 +49,9 @@ Deno.test('Store boolean in variable', async () => {
 `,
     )
     await session.runModule('main')
-    const result = session.getCodeFile('main').ranScope?.getVariable('결과') as BooleanValue
+    const result = session
+        .getCodeFile('main')
+        .ranScope?.getVariable('결과') as BooleanValue
     assertEquals(result.value, true)
 })
 

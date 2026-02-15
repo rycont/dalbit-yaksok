@@ -337,9 +337,15 @@ export const RULES: {
                     const lastPart = code.substring(partStart, i)
                     if (tokens.length === 0) {
                         // No interpolation was actually found (shouldn't happen given our check)
-                        return { value: code.substring(index, i + 1), newIndex: i + 1 }
+                        return {
+                            value: code.substring(index, i + 1),
+                            newIndex: i + 1,
+                        }
                     }
-                    tokens.push({ type: TOKEN_TYPE.TEMPLATE_STRING_END, value: lastPart + quote })
+                    tokens.push({
+                        type: TOKEN_TYPE.TEMPLATE_STRING_END,
+                        value: lastPart + quote,
+                    })
                     return { tokens, newIndex: i + 1 }
                 }
 
@@ -347,9 +353,15 @@ export const RULES: {
                     // Start of interpolation
                     const part = code.substring(partStart, i)
                     if (tokens.length === 0) {
-                        tokens.push({ type: TOKEN_TYPE.TEMPLATE_STRING_START, value: quote + part })
+                        tokens.push({
+                            type: TOKEN_TYPE.TEMPLATE_STRING_START,
+                            value: quote + part,
+                        })
                     } else {
-                        tokens.push({ type: TOKEN_TYPE.TEMPLATE_STRING_PART, value: part })
+                        tokens.push({
+                            type: TOKEN_TYPE.TEMPLATE_STRING_PART,
+                            value: part,
+                        })
                     }
                     tokens.push({ type: TOKEN_TYPE.OPENING_BRACE, value: '{' })
                     braceDepth++
@@ -375,7 +387,10 @@ export const RULES: {
                                 tokens.push(token)
                             }
                         }
-                        tokens.push({ type: TOKEN_TYPE.CLOSING_BRACE, value: '}' })
+                        tokens.push({
+                            type: TOKEN_TYPE.CLOSING_BRACE,
+                            value: '}',
+                        })
                         i++
                         partStart = i
                         continue
@@ -458,7 +473,9 @@ function isNegativeNumber(tokens: Token[]) {
  * Tokenize an expression string (used inside template literal interpolation).
  * This is a simplified tokenizer that handles the subset of tokens valid in expressions.
  */
-function tokenizeExpression(expr: string): { type: TOKEN_TYPE; value: string }[] {
+function tokenizeExpression(
+    expr: string,
+): { type: TOKEN_TYPE; value: string }[] {
     const tokens: { type: TOKEN_TYPE; value: string }[] = []
     let i = 0
 

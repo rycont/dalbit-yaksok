@@ -25,34 +25,39 @@ dalbit-yaksok/
 
 ## WHERE TO LOOK
 
-| Task | Location | Notes |
-|------|----------|-------|
-| Add language feature | `core/node/`, `core/prepare/parse/` | New AST node + parsing rule |
-| Fix parsing bug | `core/prepare/parse/rule/index.ts` | 900-line rule definitions |
-| Add error type | `core/error/` | Extend YaksokError |
-| Add FFI runtime | `core/extension/extension.ts` | Implement Extension interface |
-| Write tests | `test/codes/*.yak` + `*.yak.out` | Fixture pairs auto-run |
-| Editor features | `monaco-language-provider/` | AST-based colorization |
+| Task                 | Location                            | Notes                         |
+| -------------------- | ----------------------------------- | ----------------------------- |
+| Add language feature | `core/node/`, `core/prepare/parse/` | New AST node + parsing rule   |
+| Fix parsing bug      | `core/prepare/parse/rule/index.ts`  | 900-line rule definitions     |
+| Add error type       | `core/error/`                       | Extend YaksokError            |
+| Add FFI runtime      | `core/extension/extension.ts`       | Implement Extension interface |
+| Write tests          | `test/codes/*.yak` + `*.yak.out`    | Fixture pairs auto-run        |
+| Editor features      | `monaco-language-provider/`         | AST-based colorization        |
 
 ## CONVENTIONS
 
 ### Code Style (Prettier enforced)
+
+- Use Prettier as the canonical formatter for this repository.
 - No semicolons
 - Single quotes
 - 4-space indentation
 - Trailing commas everywhere
 
 ### Deno Workspace
+
 - Each subdir has own `deno.json` with version
 - `mod.ts` = entry point (Deno convention)
 - `index.ts` = submodule aggregation
 - JSR publishing, NOT npm (except mcp-server, react-demo)
 
 ### Circular Dependencies
+
 - Enforced via Madge in CI
 - Type-only imports skipped in analysis (`.madgerc`)
 
 ### Testing Convention
+
 - `.yak` file + `.yak.out` = integration test pair
 - `*.test.ts` = unit tests with `Deno.test()`
 - Korean test names acceptable
@@ -76,7 +81,7 @@ deno task test              # in subdir
 deno task check-circular-dependencies
 
 # Format
-deno fmt
+npx prettier --write .
 
 # Lint
 deno lint
@@ -88,11 +93,16 @@ deno task publish
 ## EXTENSION SYSTEM
 
 FFI via `번역` (translation) keyword:
+
 ```typescript
 interface Extension {
-    manifest: ExtensionManifest  // { ffiRunner: { runtimeName: "..." } }
+    manifest: ExtensionManifest // { ffiRunner: { runtimeName: "..." } }
     init?(): Promise<void>
-    executeFFI(code: string, args: FunctionInvokingParams, scope: Scope): ValueType
+    executeFFI(
+        code: string,
+        args: FunctionInvokingParams,
+        scope: Scope,
+    ): ValueType
 }
 ```
 

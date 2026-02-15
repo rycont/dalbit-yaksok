@@ -29,5 +29,3 @@ pow(2, 3) 보여주기`,
         assertEquals(output.trim(), '8')
     },
 })
-
-

@@ -11,7 +11,10 @@ export class Block extends Executable {
 
     children: Node[]
 
-    constructor(content: Node[], public override tokens: Token[]) {
+    constructor(
+        content: Node[],
+        public override tokens: Token[],
+    ) {
         super()
         this.children = content
     }

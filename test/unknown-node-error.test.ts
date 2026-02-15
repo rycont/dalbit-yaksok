@@ -1,9 +1,5 @@
 import { assertEquals } from '@std/assert'
-import {
-    Token,
-    TOKEN_TYPE,
-    Identifier,
-} from '@dalbit-yaksok/core'
+import { Token, TOKEN_TYPE, Identifier } from '@dalbit-yaksok/core'
 import {
     NotExecutableNodeError,
     UnknownNodeError,
@@ -20,7 +16,10 @@ Deno.test('UnknownNodeError', () => {
     ]
 
     const error = new UnknownNodeError({ tokens })
-    assertEquals(error.message, '올바르지 않은 코드에요. 문법을 다시 확인해주세요.')
+    assertEquals(
+        error.message,
+        '올바르지 않은 코드에요. 문법을 다시 확인해주세요.',
+    )
 })
 
 Deno.test('NotExecutableNodeError with message', () => {
@@ -90,4 +89,3 @@ Deno.test('IncompleteMentionError', () => {
     assertEquals(error.message.includes('@module'), true)
     assertEquals(error.message.includes('실행할 수 없어요'), true)
 })
-

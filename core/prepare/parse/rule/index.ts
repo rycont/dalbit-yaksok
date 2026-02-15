@@ -1,1055 +1,1055 @@
 import {
-  Formula,
-  NotExpression,
-  ValueWithParenthesis,
-} from "../../../node/calculation.ts";
-import { TupleLiteral } from "../../../node/list.ts";
+    Formula,
+    NotExpression,
+    ValueWithParenthesis,
+} from '../../../node/calculation.ts'
+import { TupleLiteral } from '../../../node/list.ts'
 import {
-  AndOperator,
-  Block,
-  BooleanLiteral,
-  Break,
-  DivideOperator,
-  ElseIfStatement,
-  ElseStatement,
-  EOL,
-  EqualOperator,
-  Evaluable,
-  Expression,
-  FetchMember,
-  FunctionInvoke,
-  GreaterThanOperator,
-  GreaterThanOrEqualOperator,
-  Identifier,
-  IfStatement,
-  IndexFetch,
-  IntegerDivideOperator,
-  LessThanOperator,
-  LessThanOrEqualOperator,
-  ListLiteral,
-  Loop,
-  MemberFunctionInvoke,
-  MinusOperator,
-  ModularOperator,
-  MultiplyOperator,
-  NewInstance,
-  Operator,
-  OrOperator,
-  Pause,
-  PlusOperator,
-  PowerOperator,
-  Print,
-  RangeOperator,
-  Sequence,
-  SetMember,
-  SetToIndex,
-  SetVariable,
-  TypeCast,
-  TypeOf,
-} from "../../../node/index.ts";
-import type { TypeCastTarget } from "../../../node/typecast.ts";
-import { NotEqualOperator } from "../../../node/operator.ts";
+    AndOperator,
+    Block,
+    BooleanLiteral,
+    Break,
+    DivideOperator,
+    ElseIfStatement,
+    ElseStatement,
+    EOL,
+    EqualOperator,
+    Evaluable,
+    Expression,
+    FetchMember,
+    FunctionInvoke,
+    GreaterThanOperator,
+    GreaterThanOrEqualOperator,
+    Identifier,
+    IfStatement,
+    IndexFetch,
+    IntegerDivideOperator,
+    LessThanOperator,
+    LessThanOrEqualOperator,
+    ListLiteral,
+    Loop,
+    MemberFunctionInvoke,
+    MinusOperator,
+    ModularOperator,
+    MultiplyOperator,
+    NewInstance,
+    Operator,
+    OrOperator,
+    Pause,
+    PlusOperator,
+    PowerOperator,
+    Print,
+    RangeOperator,
+    Sequence,
+    SetMember,
+    SetToIndex,
+    SetVariable,
+    TypeCast,
+    TypeOf,
+} from '../../../node/index.ts'
+import type { TypeCastTarget } from '../../../node/typecast.ts'
+import { NotEqualOperator } from '../../../node/operator.ts'
 import {
-  TemplateLiteral,
-  TemplateStringPart,
-} from "../../../node/primitive-literal.ts";
-import { ReturnStatement } from "../../../node/return.ts";
-import { IndexedValue } from "../../../value/indexed.ts";
-import { NumberValue, StringValue } from "../../../value/primitive.ts";
-import { ASSIGNERS } from "../../tokenize/rules.ts";
-import type { Rule } from "../type.ts";
-import { RULE_FLAGS } from "../type.ts";
-import { COUNT_LOOP_RULES } from "./count-loop.ts";
-import { DICT_RULES } from "./dict.ts";
-import { LIST_LOOP_RULES } from "./list-loop.ts";
-import { PYTHON_COMPAT_RULES } from "./python-compat.ts";
+    TemplateLiteral,
+    TemplateStringPart,
+} from '../../../node/primitive-literal.ts'
+import { ReturnStatement } from '../../../node/return.ts'
+import { IndexedValue } from '../../../value/indexed.ts'
+import { NumberValue, StringValue } from '../../../value/primitive.ts'
+import { ASSIGNERS } from '../../tokenize/rules.ts'
+import type { Rule } from '../type.ts'
+import { RULE_FLAGS } from '../type.ts'
+import { COUNT_LOOP_RULES } from './count-loop.ts'
+import { DICT_RULES } from './dict.ts'
+import { LIST_LOOP_RULES } from './list-loop.ts'
+import { PYTHON_COMPAT_RULES } from './python-compat.ts'
 
-export type { Rule };
+export type { Rule }
 export const BASIC_RULES: Rule[][] = [
-  [
-    // Template literal rules - must be processed early
-    {
-      pattern: [
-        { type: TemplateStringPart },
-        { type: Expression, value: "{" },
-        { type: Evaluable },
-        { type: Expression, value: "}" },
-        { type: TemplateStringPart },
-      ],
-      factory: (nodes, tokens) => {
-        const startPart = nodes[0] as TemplateStringPart;
-        const expr = nodes[2] as Evaluable;
-        const endPart = nodes[4] as TemplateStringPart;
-        return new TemplateLiteral([startPart, expr, endPart], tokens);
-      },
-    },
-    {
-      pattern: [
-        { type: TemplateLiteral },
-        { type: Expression, value: "{" },
-        { type: Evaluable },
-        { type: Expression, value: "}" },
-        { type: TemplateStringPart },
-      ],
-      factory: (nodes, tokens) => {
-        const template = nodes[0] as TemplateLiteral;
-        const expr = nodes[2] as Evaluable;
-        const endPart = nodes[4] as TemplateStringPart;
-        return new TemplateLiteral(
-          [...template.parts, expr, endPart],
-          tokens,
-        );
-      },
-    },
-    ...["참", "맞음", "True", "true"].map(
-      (keyword) =>
-        ({
-          pattern: [
-            {
-              type: Identifier,
-              value: keyword,
+    [
+        // Template literal rules - must be processed early
+        {
+            pattern: [
+                { type: TemplateStringPart },
+                { type: Expression, value: '{' },
+                { type: Evaluable },
+                { type: Expression, value: '}' },
+                { type: TemplateStringPart },
+            ],
+            factory: (nodes, tokens) => {
+                const startPart = nodes[0] as TemplateStringPart
+                const expr = nodes[2] as Evaluable
+                const endPart = nodes[4] as TemplateStringPart
+                return new TemplateLiteral([startPart, expr, endPart], tokens)
             },
-          ],
-          factory: (_nodes, tokens) => {
-            return new BooleanLiteral(true, tokens);
-          },
-        }) as Rule,
-    ),
-    ...["거짓", "아님", "False", "false"].map(
-      (keyword) =>
-        ({
-          pattern: [
-            {
-              type: Identifier,
-              value: keyword,
+        },
+        {
+            pattern: [
+                { type: TemplateLiteral },
+                { type: Expression, value: '{' },
+                { type: Evaluable },
+                { type: Expression, value: '}' },
+                { type: TemplateStringPart },
+            ],
+            factory: (nodes, tokens) => {
+                const template = nodes[0] as TemplateLiteral
+                const expr = nodes[2] as Evaluable
+                const endPart = nodes[4] as TemplateStringPart
+                return new TemplateLiteral(
+                    [...template.parts, expr, endPart],
+                    tokens,
+                )
             },
-          ],
-          factory: (_nodes, tokens) => {
-            return new BooleanLiteral(false, tokens);
-          },
-        }) as Rule,
-    ),
-    {
-      pattern: [
+        },
+        ...['참', '맞음', 'True', 'true'].map(
+            (keyword) =>
+                ({
+                    pattern: [
+                        {
+                            type: Identifier,
+                            value: keyword,
+                        },
+                    ],
+                    factory: (_nodes, tokens) => {
+                        return new BooleanLiteral(true, tokens)
+                    },
+                }) as Rule,
+        ),
+        ...['거짓', '아님', 'False', 'false'].map(
+            (keyword) =>
+                ({
+                    pattern: [
+                        {
+                            type: Identifier,
+                            value: keyword,
+                        },
+                    ],
+                    factory: (_nodes, tokens) => {
+                        return new BooleanLiteral(false, tokens)
+                    },
+                }) as Rule,
+        ),
         {
-          type: EOL,
+            pattern: [
+                {
+                    type: EOL,
+                },
+                {
+                    type: EOL,
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const eol = nodes[0] as EOL
+                eol.tokens = tokens
+                return eol
+            },
         },
         {
-          type: EOL,
-        },
-      ],
-      factory: (nodes, tokens) => {
-        const eol = nodes[0] as EOL;
-        eol.tokens = tokens;
-        return eol;
-      },
-    },
-    {
-      pattern: [
-        {
-          type: Expression,
-          value: ",",
-        },
-        {
-          type: EOL,
-        },
-      ],
-      factory: (nodes, tokens) => {
-        const comma = nodes[0] as Expression;
+            pattern: [
+                {
+                    type: Expression,
+                    value: ',',
+                },
+                {
+                    type: EOL,
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const comma = nodes[0] as Expression
 
-        comma.tokens = tokens;
-        return comma;
-      },
-    },
-    {
-      pattern: [
-        {
-          type: Evaluable,
+                comma.tokens = tokens
+                return comma
+            },
         },
         {
-          type: Expression,
-          value: "[",
-        },
-        {
-          type: Evaluable,
-        },
-        {
-          type: Expression,
-          value: "]",
-        },
-      ],
-      factory: (nodes, tokens) => {
-        const target = nodes[0] as Evaluable<IndexedValue | StringValue>;
-        const index = nodes[2] as Evaluable<StringValue | NumberValue>;
+            pattern: [
+                {
+                    type: Evaluable,
+                },
+                {
+                    type: Expression,
+                    value: '[',
+                },
+                {
+                    type: Evaluable,
+                },
+                {
+                    type: Expression,
+                    value: ']',
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const target = nodes[0] as Evaluable<IndexedValue | StringValue>
+                const index = nodes[2] as Evaluable<StringValue | NumberValue>
 
-        return new IndexFetch(target, index, tokens);
-      },
-    },
-  ],
-  [
-    {
-      pattern: [
+                return new IndexFetch(target, index, tokens)
+            },
+        },
+    ],
+    [
         {
-          type: Expression,
-          value: "(",
+            pattern: [
+                {
+                    type: Expression,
+                    value: '(',
+                },
+                {
+                    type: Expression,
+                    value: ')',
+                },
+            ],
+            factory: (_nodes, tokens) => new TupleLiteral([], tokens),
         },
         {
-          type: Expression,
-          value: ")",
-        },
-      ],
-      factory: (_nodes, tokens) => new TupleLiteral([], tokens),
-    },
-    {
-      pattern: [
-        {
-          type: Expression,
-          value: "(",
-        },
-        {
-          type: Sequence,
-        },
-        {
-          type: Expression,
-          value: ")",
-        },
-      ],
-      factory: (nodes, tokens) => {
-        const sequence = nodes[1] as Sequence;
-        return new TupleLiteral(sequence.items, tokens);
-      },
-    },
-    {
-      pattern: [
-        {
-          type: Expression,
-          value: "(",
+            pattern: [
+                {
+                    type: Expression,
+                    value: '(',
+                },
+                {
+                    type: Sequence,
+                },
+                {
+                    type: Expression,
+                    value: ')',
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const sequence = nodes[1] as Sequence
+                return new TupleLiteral(sequence.items, tokens)
+            },
         },
         {
-          type: Evaluable,
+            pattern: [
+                {
+                    type: Expression,
+                    value: '(',
+                },
+                {
+                    type: Evaluable,
+                },
+                {
+                    type: Expression,
+                    value: ',',
+                },
+                {
+                    type: Expression,
+                    value: ')',
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const item = nodes[1] as Evaluable
+                return new TupleLiteral([item], tokens)
+            },
         },
         {
-          type: Expression,
-          value: ",",
-        },
-        {
-          type: Expression,
-          value: ")",
-        },
-      ],
-      factory: (nodes, tokens) => {
-        const item = nodes[1] as Evaluable;
-        return new TupleLiteral([item], tokens);
-      },
-    },
-    {
-      pattern: [
-        {
-          type: Expression,
-          value: "(",
-        },
-        {
-          type: Evaluable,
-        },
-        {
-          type: Expression,
-          value: ")",
-        },
-      ],
-      factory: (nodes, tokens) => {
-        const newNode = new ValueWithParenthesis(
-          nodes[1] as Evaluable,
-          tokens,
-        );
-        newNode.position = nodes[0].position;
+            pattern: [
+                {
+                    type: Expression,
+                    value: '(',
+                },
+                {
+                    type: Evaluable,
+                },
+                {
+                    type: Expression,
+                    value: ')',
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const newNode = new ValueWithParenthesis(
+                    nodes[1] as Evaluable,
+                    tokens,
+                )
+                newNode.position = nodes[0].position
 
-        return newNode;
-      },
-    },
-    {
-      pattern: [
-        {
-          type: Expression,
-          value: "[",
+                return newNode
+            },
         },
         {
-          type: Sequence,
+            pattern: [
+                {
+                    type: Expression,
+                    value: '[',
+                },
+                {
+                    type: Sequence,
+                },
+                {
+                    type: Expression,
+                    value: ']',
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const sequence = nodes[1] as Sequence
+                return new ListLiteral(sequence.items, tokens)
+            },
         },
         {
-          type: Expression,
-          value: "]",
-        },
-      ],
-      factory: (nodes, tokens) => {
-        const sequence = nodes[1] as Sequence;
-        return new ListLiteral(sequence.items, tokens);
-      },
-    },
-    {
-      pattern: [
-        {
-          type: Evaluable,
-        },
-        {
-          type: Operator,
-        },
-        {
-          type: Evaluable,
-        },
-      ],
-      factory: (nodes, tokens) => {
-        const left = nodes[0] as Evaluable;
-        const operator = nodes[1] as Operator;
-        const right = nodes[2] as Evaluable;
+            pattern: [
+                {
+                    type: Evaluable,
+                },
+                {
+                    type: Operator,
+                },
+                {
+                    type: Evaluable,
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const left = nodes[0] as Evaluable
+                const operator = nodes[1] as Operator
+                const right = nodes[2] as Evaluable
 
-        if (left instanceof Formula) {
-          return new Formula([...left.terms, operator, right], tokens);
-        }
+                if (left instanceof Formula) {
+                    return new Formula([...left.terms, operator, right], tokens)
+                }
 
-        return new Formula([left, operator, right], tokens);
-      },
-    },
-    {
-      pattern: [
-        {
-          type: Operator,
-          value: "!=",
-        },
-      ],
-      factory: (_nodes, tokens) => new NotEqualOperator(tokens),
-    },
-    {
-      pattern: [
-        {
-          type: Operator,
-          value: "==",
-        },
-      ],
-      factory: (_nodes, tokens) => new EqualOperator(tokens),
-    },
-    {
-      pattern: [
-        {
-          type: Operator,
-          value: ">",
-        },
-      ],
-      factory: (_nodes, tokens) => new GreaterThanOperator(tokens),
-    },
-    {
-      pattern: [
-        {
-          type: Operator,
-          value: "<",
-        },
-      ],
-      factory: (_nodes, tokens) => new LessThanOperator(tokens),
-    },
-    {
-      pattern: [
-        {
-          type: Operator,
-          value: ">=",
-        },
-      ],
-      factory: (_nodes, tokens) => new GreaterThanOrEqualOperator(tokens),
-    },
-    {
-      pattern: [
-        {
-          type: Operator,
-          value: "<=",
-        },
-      ],
-      factory: (_nodes, tokens) => new LessThanOrEqualOperator(tokens),
-    },
-    {
-      pattern: [
-        {
-          type: Operator,
-          value: "//",
-        },
-      ],
-      factory: (_nodes, tokens) => new IntegerDivideOperator(tokens),
-    },
-    {
-      pattern: [
-        {
-          type: Operator,
-          value: "%",
-        },
-      ],
-      factory: (_nodes, tokens) => new ModularOperator(tokens),
-    },
-    {
-      pattern: [
-        {
-          type: Operator,
-          value: "**",
-        },
-      ],
-      factory: (_nodes, tokens) => new PowerOperator(tokens),
-    },
-    {
-      pattern: [
-        {
-          type: Operator,
-          value: "/",
-        },
-      ],
-      factory: (_nodes, tokens) => new DivideOperator(tokens),
-    },
-    {
-      pattern: [
-        {
-          type: Operator,
-          value: "*",
-        },
-      ],
-      factory: (_nodes, tokens) => new MultiplyOperator(tokens),
-    },
-    {
-      pattern: [
-        {
-          type: Operator,
-          value: "+",
-        },
-      ],
-      factory: (nodes, tokens) => new PlusOperator(tokens),
-    },
-    {
-      pattern: [
-        {
-          type: Operator,
-          value: "-",
-        },
-      ],
-      factory: (nodes, tokens) => new MinusOperator(tokens),
-    },
-    {
-      pattern: [
-        {
-          type: Identifier,
-          value: "이고",
-        },
-      ],
-      factory: (_nodes, tokens) => new AndOperator(tokens),
-    },
-    {
-      pattern: [
-        {
-          type: Identifier,
-          value: "고",
-        },
-      ],
-      factory: (_nodes, tokens) => new AndOperator(tokens),
-    },
-    {
-      pattern: [
-        {
-          type: Identifier,
-          value: "이거나",
-        },
-      ],
-      factory: (_nodes, tokens) => new OrOperator(tokens),
-    },
-    {
-      pattern: [
-        {
-          type: Identifier,
-          value: "거나",
-        },
-      ],
-      factory: (_nodes, tokens) => new OrOperator(tokens),
-    },
-    {
-      pattern: [
-        {
-          type: Operator,
-          value: "~",
-        },
-      ],
-      factory: (_nodes, tokens) => new RangeOperator(tokens),
-    },
-    {
-      pattern: [
-        {
-          type: Expression,
-          value: "!",
+                return new Formula([left, operator, right], tokens)
+            },
         },
         {
-          type: Evaluable,
-        },
-      ],
-      factory: (nodes, tokens) => {
-        const evaluable = nodes[1] as Evaluable;
-        return new NotExpression(evaluable, tokens);
-      },
-    },
-    {
-      pattern: [
-        {
-          type: Evaluable,
+            pattern: [
+                {
+                    type: Operator,
+                    value: '!=',
+                },
+            ],
+            factory: (_nodes, tokens) => new NotEqualOperator(tokens),
         },
         {
-          type: Identifier,
-          value: "아니다",
+            pattern: [
+                {
+                    type: Operator,
+                    value: '==',
+                },
+            ],
+            factory: (_nodes, tokens) => new EqualOperator(tokens),
         },
-      ],
-      factory: (nodes, tokens) => {
-        const evaluable = nodes[0] as Evaluable;
-        return new NotExpression(evaluable, tokens);
-      },
-    },
-  ],
-];
+        {
+            pattern: [
+                {
+                    type: Operator,
+                    value: '>',
+                },
+            ],
+            factory: (_nodes, tokens) => new GreaterThanOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Operator,
+                    value: '<',
+                },
+            ],
+            factory: (_nodes, tokens) => new LessThanOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Operator,
+                    value: '>=',
+                },
+            ],
+            factory: (_nodes, tokens) => new GreaterThanOrEqualOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Operator,
+                    value: '<=',
+                },
+            ],
+            factory: (_nodes, tokens) => new LessThanOrEqualOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Operator,
+                    value: '//',
+                },
+            ],
+            factory: (_nodes, tokens) => new IntegerDivideOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Operator,
+                    value: '%',
+                },
+            ],
+            factory: (_nodes, tokens) => new ModularOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Operator,
+                    value: '**',
+                },
+            ],
+            factory: (_nodes, tokens) => new PowerOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Operator,
+                    value: '/',
+                },
+            ],
+            factory: (_nodes, tokens) => new DivideOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Operator,
+                    value: '*',
+                },
+            ],
+            factory: (_nodes, tokens) => new MultiplyOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Operator,
+                    value: '+',
+                },
+            ],
+            factory: (nodes, tokens) => new PlusOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Operator,
+                    value: '-',
+                },
+            ],
+            factory: (nodes, tokens) => new MinusOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Identifier,
+                    value: '이고',
+                },
+            ],
+            factory: (_nodes, tokens) => new AndOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Identifier,
+                    value: '고',
+                },
+            ],
+            factory: (_nodes, tokens) => new AndOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Identifier,
+                    value: '이거나',
+                },
+            ],
+            factory: (_nodes, tokens) => new OrOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Identifier,
+                    value: '거나',
+                },
+            ],
+            factory: (_nodes, tokens) => new OrOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Operator,
+                    value: '~',
+                },
+            ],
+            factory: (_nodes, tokens) => new RangeOperator(tokens),
+        },
+        {
+            pattern: [
+                {
+                    type: Expression,
+                    value: '!',
+                },
+                {
+                    type: Evaluable,
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const evaluable = nodes[1] as Evaluable
+                return new NotExpression(evaluable, tokens)
+            },
+        },
+        {
+            pattern: [
+                {
+                    type: Evaluable,
+                },
+                {
+                    type: Identifier,
+                    value: '아니다',
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const evaluable = nodes[0] as Evaluable
+                return new NotExpression(evaluable, tokens)
+            },
+        },
+    ],
+]
 
 export const DOT_ACCESS_RULES: Rule[] = [
-  {
-    pattern: [
-      { type: Evaluable },
-      { type: Expression, value: "." },
-      { type: FunctionInvoke },
-    ],
-    factory: (nodes, tokens) => {
-      return new MemberFunctionInvoke(
-        nodes[0] as Evaluable,
-        nodes[2] as FunctionInvoke,
-        tokens,
-      );
+    {
+        pattern: [
+            { type: Evaluable },
+            { type: Expression, value: '.' },
+            { type: FunctionInvoke },
+        ],
+        factory: (nodes, tokens) => {
+            return new MemberFunctionInvoke(
+                nodes[0] as Evaluable,
+                nodes[2] as FunctionInvoke,
+                tokens,
+            )
+        },
     },
-  },
-  {
-    pattern: [
-      { type: Evaluable },
-      { type: Expression, value: "." },
-      { type: ValueWithParenthesis },
-    ],
-    factory: (nodes, tokens) => {
-      const wrapped = nodes[2] as ValueWithParenthesis;
-      if (!(wrapped.value instanceof FunctionInvoke)) {
-        return null;
-      }
-      return new MemberFunctionInvoke(
-        nodes[0] as Evaluable,
-        wrapped.value,
-        tokens,
-      );
+    {
+        pattern: [
+            { type: Evaluable },
+            { type: Expression, value: '.' },
+            { type: ValueWithParenthesis },
+        ],
+        factory: (nodes, tokens) => {
+            const wrapped = nodes[2] as ValueWithParenthesis
+            if (!(wrapped.value instanceof FunctionInvoke)) {
+                return null
+            }
+            return new MemberFunctionInvoke(
+                nodes[0] as Evaluable,
+                wrapped.value,
+                tokens,
+            )
+        },
     },
-  },
-  {
-    pattern: [
-      { type: Evaluable },
-      { type: Expression, value: "." },
-      { type: Identifier },
-    ],
-    factory: (nodes, tokens) => {
-      return new FetchMember(
-        nodes[0] as Evaluable,
-        (nodes[2] as Identifier).value,
-        tokens,
-      );
+    {
+        pattern: [
+            { type: Evaluable },
+            { type: Expression, value: '.' },
+            { type: Identifier },
+        ],
+        factory: (nodes, tokens) => {
+            return new FetchMember(
+                nodes[0] as Evaluable,
+                (nodes[2] as Identifier).value,
+                tokens,
+            )
+        },
     },
-  },
-];
+]
 
 export const ADVANCED_RULES: Rule[] = [
-  {
-    pattern: [
-      {
-        type: Identifier,
-        value: "잠깐",
-      },
-      {
-        type: Identifier,
-        value: "멈추기",
-      },
-    ],
-    factory: (_nodes, tokens) => new Pause(tokens),
-    flags: [RULE_FLAGS.IS_STATEMENT],
-  },
-  {
-    pattern: [{ type: NewInstance }, { type: TupleLiteral }],
-    factory: (nodes, tokens) => {
-      const ni = nodes[0] as NewInstance;
-      const tuple = nodes[1] as TupleLiteral;
-      return new NewInstance(ni.className, tuple.items, tokens);
+    {
+        pattern: [
+            {
+                type: Identifier,
+                value: '잠깐',
+            },
+            {
+                type: Identifier,
+                value: '멈추기',
+            },
+        ],
+        factory: (_nodes, tokens) => new Pause(tokens),
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
-  },
-  {
-    pattern: [{ type: NewInstance }, { type: ValueWithParenthesis }],
-    factory: (nodes, tokens) => {
-      const ni = nodes[0] as NewInstance;
-      const vwp = nodes[1] as ValueWithParenthesis;
-      let args: Evaluable[] = [];
-      if (vwp.value instanceof Sequence) {
-        args = vwp.value.items as Evaluable[];
-      } else {
-        args = [vwp.value];
-      }
-      return new NewInstance(ni.className, args, tokens);
+    {
+        pattern: [{ type: NewInstance }, { type: TupleLiteral }],
+        factory: (nodes, tokens) => {
+            const ni = nodes[0] as NewInstance
+            const tuple = nodes[1] as TupleLiteral
+            return new NewInstance(ni.className, tuple.items, tokens)
+        },
     },
-  },
-  {
-    pattern: [{ type: Identifier, value: "새" }, { type: Identifier }],
-    factory: (nodes, tokens) => {
-      const className = (nodes[1] as Identifier).value;
-      return new NewInstance(className, [], tokens);
+    {
+        pattern: [{ type: NewInstance }, { type: ValueWithParenthesis }],
+        factory: (nodes, tokens) => {
+            const ni = nodes[0] as NewInstance
+            const vwp = nodes[1] as ValueWithParenthesis
+            let args: Evaluable[] = []
+            if (vwp.value instanceof Sequence) {
+                args = vwp.value.items as Evaluable[]
+            } else {
+                args = [vwp.value]
+            }
+            return new NewInstance(ni.className, args, tokens)
+        },
     },
-  },
-  ...PYTHON_COMPAT_RULES,
-  {
-    pattern: [
-      {
-        type: Evaluable,
-      },
-      {
-        type: Expression,
-        value: ",",
-      },
-      {
-        type: Evaluable,
-      },
-    ],
-    factory: (nodes, tokens) => {
-      const a = nodes[0] as Evaluable;
-      const b = nodes[2] as Evaluable;
+    {
+        pattern: [{ type: Identifier, value: '새' }, { type: Identifier }],
+        factory: (nodes, tokens) => {
+            const className = (nodes[1] as Identifier).value
+            return new NewInstance(className, [], tokens)
+        },
+    },
+    ...PYTHON_COMPAT_RULES,
+    {
+        pattern: [
+            {
+                type: Evaluable,
+            },
+            {
+                type: Expression,
+                value: ',',
+            },
+            {
+                type: Evaluable,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const a = nodes[0] as Evaluable
+            const b = nodes[2] as Evaluable
 
-      if (
-        a instanceof Identifier &&
-        (a.value === "클래스" || a.value === "약속")
-      ) {
-        return null as any;
-      }
+            if (
+                a instanceof Identifier &&
+                (a.value === '클래스' || a.value === '약속')
+            ) {
+                return null as any
+            }
 
-      return new Sequence([a, b], tokens);
+            return new Sequence([a, b], tokens)
+        },
     },
-  },
-  {
-    pattern: [
-      {
-        type: Sequence,
-      },
-      {
-        type: Expression,
-        value: ",",
-      },
-      {
-        type: Evaluable,
-      },
-    ],
-    factory: (nodes, tokens) => {
-      const a = nodes[0] as Sequence;
-      const b = nodes[2] as Evaluable;
+    {
+        pattern: [
+            {
+                type: Sequence,
+            },
+            {
+                type: Expression,
+                value: ',',
+            },
+            {
+                type: Evaluable,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const a = nodes[0] as Sequence
+            const b = nodes[2] as Evaluable
 
-      return new Sequence([...a.items, b], tokens);
+            return new Sequence([...a.items, b], tokens)
+        },
     },
-  },
-  {
-    pattern: [
-      {
-        type: Expression,
-        value: "[",
-      },
-      {
-        type: Expression,
-        value: "]",
-      },
-    ],
-    factory: (_nodes, tokens) => new ListLiteral([], tokens),
-  },
-  ...ASSIGNERS.map<Rule>((assigner) => ({
-    pattern: [
-      {
-        type: FetchMember,
-      },
-      {
-        type: Expression,
-        value: assigner,
-      },
-      {
-        type: Evaluable,
-      },
-    ],
-    factory: (nodes, tokens) => {
-      const fetchMember = nodes[0] as FetchMember;
-      const operator = nodes[1] as Expression;
-      const value = nodes[2] as Evaluable;
+    {
+        pattern: [
+            {
+                type: Expression,
+                value: '[',
+            },
+            {
+                type: Expression,
+                value: ']',
+            },
+        ],
+        factory: (_nodes, tokens) => new ListLiteral([], tokens),
+    },
+    ...ASSIGNERS.map<Rule>((assigner) => ({
+        pattern: [
+            {
+                type: FetchMember,
+            },
+            {
+                type: Expression,
+                value: assigner,
+            },
+            {
+                type: Evaluable,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const fetchMember = nodes[0] as FetchMember
+            const operator = nodes[1] as Expression
+            const value = nodes[2] as Evaluable
 
-      return new SetMember(
-        fetchMember.target,
-        fetchMember.memberName,
-        value,
-        operator.value,
-        tokens,
-      );
-    },
-    flags: [RULE_FLAGS.IS_STATEMENT],
-  })),
-  ...ASSIGNERS.map<Rule>((assigner) => ({
-    pattern: [
-      {
-        type: IndexFetch,
-      },
-      {
-        type: Expression,
-        value: assigner,
-      },
-      {
-        type: Evaluable,
-      },
-    ],
-    factory: (nodes, tokens) => {
-      const target = nodes[0] as IndexFetch;
-      const operator = nodes[1] as Expression;
-      const value = nodes[2] as Evaluable;
+            return new SetMember(
+                fetchMember.target,
+                fetchMember.memberName,
+                value,
+                operator.value,
+                tokens,
+            )
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    })),
+    ...ASSIGNERS.map<Rule>((assigner) => ({
+        pattern: [
+            {
+                type: IndexFetch,
+            },
+            {
+                type: Expression,
+                value: assigner,
+            },
+            {
+                type: Evaluable,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const target = nodes[0] as IndexFetch
+            const operator = nodes[1] as Expression
+            const value = nodes[2] as Evaluable
 
-      return new SetToIndex(target, value, operator.value, tokens);
-    },
-    flags: [RULE_FLAGS.IS_STATEMENT],
-  })),
-  ...ASSIGNERS.map<Rule>((assigner) => ({
-    pattern: [
-      {
-        type: Identifier,
-      },
-      {
-        type: Expression,
-        value: assigner,
-      },
-      {
-        type: Evaluable,
-      },
-    ],
-    factory: (nodes, tokens) => {
-      const name = (nodes[0] as Identifier).value;
-      const operator = nodes[1] as Expression;
-      const value = nodes[2] as Evaluable;
+            return new SetToIndex(target, value, operator.value, tokens)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    })),
+    ...ASSIGNERS.map<Rule>((assigner) => ({
+        pattern: [
+            {
+                type: Identifier,
+            },
+            {
+                type: Expression,
+                value: assigner,
+            },
+            {
+                type: Evaluable,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const name = (nodes[0] as Identifier).value
+            const operator = nodes[1] as Expression
+            const value = nodes[2] as Evaluable
 
-      return new SetVariable(name, value, tokens, operator.value);
-    },
-    flags: [RULE_FLAGS.IS_STATEMENT],
-  })),
-  {
-    pattern: [
-      {
-        type: IfStatement,
-      },
-      {
-        type: EOL,
-      },
-      {
-        type: ElseIfStatement,
-      },
-    ],
-    factory: (nodes, tokens) => {
-      const [ifStatement, _, elseIfStatement] = nodes as [
-        IfStatement,
-        EOL,
-        ElseIfStatement,
-      ];
+            return new SetVariable(name, value, tokens, operator.value)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    })),
+    {
+        pattern: [
+            {
+                type: IfStatement,
+            },
+            {
+                type: EOL,
+            },
+            {
+                type: ElseIfStatement,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const [ifStatement, _, elseIfStatement] = nodes as [
+                IfStatement,
+                EOL,
+                ElseIfStatement,
+            ]
 
-      const elseIfCase = elseIfStatement.elseIfCase;
-      ifStatement.cases.push(elseIfCase);
+            const elseIfCase = elseIfStatement.elseIfCase
+            ifStatement.cases.push(elseIfCase)
 
-      ifStatement.tokens = tokens;
+            ifStatement.tokens = tokens
 
-      return ifStatement;
+            return ifStatement
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
-    flags: [RULE_FLAGS.IS_STATEMENT],
-  },
-  {
-    pattern: [
-      {
-        type: IfStatement,
-      },
-      {
-        type: EOL,
-      },
-      {
-        type: ElseStatement,
-      },
-    ],
-    factory: (nodes, tokens) => {
-      const [ifStatement, _, elseStatement] = nodes as [
-        IfStatement,
-        EOL,
-        ElseStatement,
-      ];
+    {
+        pattern: [
+            {
+                type: IfStatement,
+            },
+            {
+                type: EOL,
+            },
+            {
+                type: ElseStatement,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const [ifStatement, _, elseStatement] = nodes as [
+                IfStatement,
+                EOL,
+                ElseStatement,
+            ]
 
-      const elseCase = {
-        body: elseStatement.body,
-      };
+            const elseCase = {
+                body: elseStatement.body,
+            }
 
-      ifStatement.cases.push(elseCase);
-      ifStatement.tokens = tokens;
+            ifStatement.cases.push(elseCase)
+            ifStatement.tokens = tokens
 
-      return ifStatement;
+            return ifStatement
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
-    flags: [RULE_FLAGS.IS_STATEMENT],
-  },
-  {
-    pattern: [
-      {
-        type: Identifier,
-        value: "아니면",
-      },
-      {
-        type: Identifier,
-        value: "만약",
-      },
-      {
-        type: Evaluable,
-      },
-      {
-        type: Identifier,
-        value: "이면",
-      },
-      {
-        type: EOL,
-      },
-      {
-        type: Block,
-      },
-    ],
-    factory: (nodes, tokens) => {
-      const condition = nodes[2] as Evaluable;
-      const body = nodes[5] as Block;
+    {
+        pattern: [
+            {
+                type: Identifier,
+                value: '아니면',
+            },
+            {
+                type: Identifier,
+                value: '만약',
+            },
+            {
+                type: Evaluable,
+            },
+            {
+                type: Identifier,
+                value: '이면',
+            },
+            {
+                type: EOL,
+            },
+            {
+                type: Block,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const condition = nodes[2] as Evaluable
+            const body = nodes[5] as Block
 
-      return new ElseIfStatement({ condition, body }, tokens);
+            return new ElseIfStatement({ condition, body }, tokens)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
-    flags: [RULE_FLAGS.IS_STATEMENT],
-  },
-  {
-    pattern: [
-      {
-        type: Identifier,
-        value: "아니면",
-      },
-      {
-        type: EOL,
-      },
-      {
-        type: Block,
-      },
-    ],
-    factory: (nodes, tokens) => {
-      const body = nodes[2] as Block;
+    {
+        pattern: [
+            {
+                type: Identifier,
+                value: '아니면',
+            },
+            {
+                type: EOL,
+            },
+            {
+                type: Block,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const body = nodes[2] as Block
 
-      return new ElseStatement(body, tokens);
+            return new ElseStatement(body, tokens)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
-    flags: [RULE_FLAGS.IS_STATEMENT],
-  },
-  {
-    pattern: [
-      {
-        type: Identifier,
-        value: "만약",
-      },
-      {
-        type: Evaluable,
-      },
-      {
-        type: Identifier,
-        value: "이면",
-      },
-      {
-        type: EOL,
-      },
-      {
-        type: Block,
-      },
-    ],
-    factory: (nodes, tokens) => {
-      const condition = nodes[1] as Evaluable;
-      const body = nodes[4] as Block;
+    {
+        pattern: [
+            {
+                type: Identifier,
+                value: '만약',
+            },
+            {
+                type: Evaluable,
+            },
+            {
+                type: Identifier,
+                value: '이면',
+            },
+            {
+                type: EOL,
+            },
+            {
+                type: Block,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const condition = nodes[1] as Evaluable
+            const body = nodes[4] as Block
 
-      return new IfStatement([{ condition, body }], tokens);
+            return new IfStatement([{ condition, body }], tokens)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
-    flags: [RULE_FLAGS.IS_STATEMENT],
-  },
-  {
-    pattern: [
-      {
-        type: Evaluable,
-      },
-      {
-        type: Identifier,
-        value: "의",
-      },
-      {
-        type: Identifier,
-        value: "값",
-      },
-      {
-        type: Identifier,
-        value: "종류",
-      },
-    ],
-    factory: (nodes, tokens) => {
-      const value = nodes[0] as Evaluable;
-      return new TypeOf(value, tokens);
+    {
+        pattern: [
+            {
+                type: Evaluable,
+            },
+            {
+                type: Identifier,
+                value: '의',
+            },
+            {
+                type: Identifier,
+                value: '값',
+            },
+            {
+                type: Identifier,
+                value: '종류',
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const value = nodes[0] as Evaluable
+            return new TypeOf(value, tokens)
+        },
     },
-  },
-  ...createTypeCastRules(),
-  {
-    pattern: [
-      {
-        type: Evaluable,
-      },
-      {
-        type: Identifier,
-        value: "보여주기",
-      },
-    ],
-    factory: (nodes, tokens) => {
-      const value = nodes[0] as Evaluable;
-      return new Print(value, tokens);
+    ...createTypeCastRules(),
+    {
+        pattern: [
+            {
+                type: Evaluable,
+            },
+            {
+                type: Identifier,
+                value: '보여주기',
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const value = nodes[0] as Evaluable
+            return new Print(value, tokens)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
-    flags: [RULE_FLAGS.IS_STATEMENT],
-  },
-  {
-    pattern: [
-      {
-        type: Evaluable,
-      },
-      {
-        type: Identifier,
-        value: "반환하기",
-      },
-    ],
-    factory: (nodes, tokens) => {
-      const value = nodes[0] as Evaluable;
-      return new ReturnStatement(tokens, value);
+    {
+        pattern: [
+            {
+                type: Evaluable,
+            },
+            {
+                type: Identifier,
+                value: '반환하기',
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const value = nodes[0] as Evaluable
+            return new ReturnStatement(tokens, value)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
-    flags: [RULE_FLAGS.IS_STATEMENT],
-  },
-  {
-    pattern: [
-      {
-        type: Identifier,
-        value: "반환하기",
-      },
-    ],
-    factory: (_nodes, tokens) => {
-      return new ReturnStatement(tokens);
+    {
+        pattern: [
+            {
+                type: Identifier,
+                value: '반환하기',
+            },
+        ],
+        factory: (_nodes, tokens) => {
+            return new ReturnStatement(tokens)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
-    flags: [RULE_FLAGS.IS_STATEMENT],
-  },
-  {
-    pattern: [
-      {
-        type: Identifier,
-        value: "약속",
-      },
-      {
-        type: Identifier,
-        value: "그만",
-      },
-    ],
-    factory: (_nodes, tokens) => {
-      return new ReturnStatement(tokens);
+    {
+        pattern: [
+            {
+                type: Identifier,
+                value: '약속',
+            },
+            {
+                type: Identifier,
+                value: '그만',
+            },
+        ],
+        factory: (_nodes, tokens) => {
+            return new ReturnStatement(tokens)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
-    flags: [RULE_FLAGS.IS_STATEMENT],
-  },
-  {
-    pattern: [
-      {
-        type: Identifier,
-        value: "반복",
-      },
-      {
-        type: EOL,
-      },
-      {
-        type: Block,
-      },
-    ],
-    factory: (nodes, tokens) => new Loop(nodes[2] as Block, tokens),
-    flags: [RULE_FLAGS.IS_STATEMENT],
-  },
-  {
-    pattern: [
-      {
-        type: Identifier,
-        value: "반복하기",
-      },
-      {
-        type: EOL,
-      },
-      {
-        type: Block,
-      },
-    ],
-    factory: (nodes, tokens) => new Loop(nodes[2] as Block, tokens),
-    flags: [RULE_FLAGS.IS_STATEMENT],
-  },
-  {
-    pattern: [
-      {
-        type: Identifier,
-        value: "반복",
-      },
-      {
-        type: Identifier,
-        value: "그만",
-      },
-    ],
-    factory: (_nodes, tokens) => new Break(tokens),
-    flags: [RULE_FLAGS.IS_STATEMENT],
-  },
-  ...LIST_LOOP_RULES,
-  ...COUNT_LOOP_RULES,
-  {
-    pattern: [
-      {
-        type: Expression,
-        value: "[",
-      },
-      {
-        type: Evaluable,
-      },
-      {
-        type: Expression,
-        value: "]",
-      },
-    ],
-    factory: (nodes, tokens) => {
-      const item = nodes[1] as Evaluable;
-      return new ListLiteral([item], tokens);
+    {
+        pattern: [
+            {
+                type: Identifier,
+                value: '반복',
+            },
+            {
+                type: EOL,
+            },
+            {
+                type: Block,
+            },
+        ],
+        factory: (nodes, tokens) => new Loop(nodes[2] as Block, tokens),
+        flags: [RULE_FLAGS.IS_STATEMENT],
     },
-  },
-  ...DICT_RULES,
-];
+    {
+        pattern: [
+            {
+                type: Identifier,
+                value: '반복하기',
+            },
+            {
+                type: EOL,
+            },
+            {
+                type: Block,
+            },
+        ],
+        factory: (nodes, tokens) => new Loop(nodes[2] as Block, tokens),
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    },
+    {
+        pattern: [
+            {
+                type: Identifier,
+                value: '반복',
+            },
+            {
+                type: Identifier,
+                value: '그만',
+            },
+        ],
+        factory: (_nodes, tokens) => new Break(tokens),
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    },
+    ...LIST_LOOP_RULES,
+    ...COUNT_LOOP_RULES,
+    {
+        pattern: [
+            {
+                type: Expression,
+                value: '[',
+            },
+            {
+                type: Evaluable,
+            },
+            {
+                type: Expression,
+                value: ']',
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const item = nodes[1] as Evaluable
+            return new ListLiteral([item], tokens)
+        },
+    },
+    ...DICT_RULES,
+]
 
 function createTypeCastRules(): Rule[] {
-  const particles = ["을", "를"];
-  const targetTypes: { keywords: string[]; target: TypeCastTarget }[] = [
-    { keywords: ["숫자로"], target: "숫자" },
-    { keywords: ["문자열로", "문자로"], target: "문자열" },
-    { keywords: ["참거짓으로", "불리언으로"], target: "참거짓" },
-  ];
+    const particles = ['을', '를']
+    const targetTypes: { keywords: string[]; target: TypeCastTarget }[] = [
+        { keywords: ['숫자로'], target: '숫자' },
+        { keywords: ['문자열로', '문자로'], target: '문자열' },
+        { keywords: ['참거짓으로', '불리언으로'], target: '참거짓' },
+    ]
 
-  const rules: Rule[] = [];
+    const rules: Rule[] = []
 
-  for (const particle of particles) {
-    for (const { keywords, target } of targetTypes) {
-      for (const keyword of keywords) {
-        rules.push({
-          pattern: [
-            { type: Evaluable },
-            { type: Identifier, value: particle },
-            { type: Identifier, value: keyword },
-            { type: Identifier, value: "바꾸기" },
-          ],
-          factory: (nodes, tokens) => {
-            const value = nodes[0] as Evaluable;
-            return new TypeCast(value, target, tokens);
-          },
-        });
-      }
+    for (const particle of particles) {
+        for (const { keywords, target } of targetTypes) {
+            for (const keyword of keywords) {
+                rules.push({
+                    pattern: [
+                        { type: Evaluable },
+                        { type: Identifier, value: particle },
+                        { type: Identifier, value: keyword },
+                        { type: Identifier, value: '바꾸기' },
+                    ],
+                    factory: (nodes, tokens) => {
+                        const value = nodes[0] as Evaluable
+                        return new TypeCast(value, target, tokens)
+                    },
+                })
+            }
+        }
     }
-  }
 
-  return rules;
+    return rules
 }

@@ -3,7 +3,9 @@ import { RULES, RuleParseResult, MultiTokenParseResult } from './rules.ts'
 import { YaksokError } from '../../error/common.ts'
 import { TOKEN_TYPE, type Token } from './token.ts'
 
-function isMultiTokenResult(result: RuleParseResult | MultiTokenParseResult): result is MultiTokenParseResult {
+function isMultiTokenResult(
+    result: RuleParseResult | MultiTokenParseResult,
+): result is MultiTokenParseResult {
     return 'tokens' in result
 }
 
@@ -49,7 +51,10 @@ class Tokenizer {
                     // Handle multi-token results (template strings)
                     if (isMultiTokenResult(result)) {
                         const { tokens: multiTokens, newIndex } = result
-                        const consumed = this.code.substring(this.index, newIndex)
+                        const consumed = this.code.substring(
+                            this.index,
+                            newIndex,
+                        )
 
                         let currentColumn = initialColumnForToken
                         let currentLine = initialLineForToken

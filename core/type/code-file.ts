@@ -33,7 +33,10 @@ export class CodeFile {
     public session: YaksokSession | null = null
     public executionDelay: number | null = null
 
-    constructor(public text: string, public fileName: string | symbol) {}
+    constructor(
+        public text: string,
+        public fileName: string | symbol,
+    ) {}
 
     /**
      * `CodeFile`을 `YaksokSession`에 마운트합니다.

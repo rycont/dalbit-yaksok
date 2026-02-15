@@ -25,7 +25,7 @@ sum(array([1, 2, 3, 4])) 보여주기`,
         const results = await session.runModule('main')
         const result = results.get('main')!
 
-        if(result.reason === 'error') {
+        if (result.reason === 'error') {
             console.error(result.error)
         }
 
@@ -33,5 +33,3 @@ sum(array([1, 2, 3, 4])) 보여주기`,
         assertEquals(output.trim(), '10')
     },
 })
-
-
