@@ -1,18 +1,19 @@
 import {
     Executable,
     Evaluable,
+    Identifier,
+    NotDefinedIdentifierError,
     YaksokError,
     Token,
     Scope,
     ValueType,
 } from '@dalbit-yaksok/core'
 
-export class PythonImport extends Executable {
-    static override friendlyName = '파이썬 불러오기'
+export class PythonStatement extends Executable {
+    static override friendlyName = '파이썬 구문 실행'
 
     constructor(
-        public module: string,
-        public names: string[],
+        public statement: string,
         public override tokens: Token[],
     ) {
         super()
@@ -22,18 +23,16 @@ export class PythonImport extends Executable {
         const session = scope.codeFile?.session
         if (!session) return
 
-        const namesPart = this.names.join(', ')
-        await session.runFFI(
-            'Python',
-            `from ${this.module} import ${namesPart}`,
-            {},
-            scope,
-        )
+        await session.runFFI('Python', this.statement, {}, scope)
     }
 
     override validate(_scope: Scope): YaksokError[] {
         return []
     }
+}
+
+export class PythonImport extends PythonStatement {
+    static override friendlyName = '파이썬 불러오기'
 }
 
 export class PythonCall extends Evaluable {
@@ -55,7 +54,7 @@ export class PythonCall extends Evaluable {
 
         console.debug('[PythonCall.execute] this.args', this.args)
         const evaluatedArgs = await Promise.all(
-            this.args.map((a) => a.execute(scope)),
+            this.args.map((a) => this.executeArg(a, scope)),
         )
         const argsMap: Record<string, ValueType> = Object.fromEntries(
             evaluatedArgs.map((v, i) => [String(i), v]),
@@ -71,9 +70,58 @@ export class PythonCall extends Evaluable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        return this.args
-            .flatMap((a) => a.validate(scope))
-            .filter((e): e is YaksokError => !!e)
+        return this.args.flatMap((a) => this.validateArg(a, scope))
+    }
+
+    private async executeArg(arg: Evaluable, scope: Scope): Promise<ValueType> {
+        try {
+            return await arg.execute(scope)
+        } catch (error) {
+            if (!this.canFallbackToPythonGlobal(arg, error)) {
+                throw error
+            }
+
+            const session = scope.codeFile?.session
+            if (!session) {
+                throw error
+            }
+
+            return await session.runFFI(
+                'Python',
+                `GET_GLOBAL ${arg.value}`,
+                {},
+                scope,
+            )
+        }
+    }
+
+    private validateArg(arg: Evaluable, scope: Scope): YaksokError[] {
+        const errors = arg.validate(scope).filter((e): e is YaksokError => !!e)
+
+        if (!errors.length) {
+            return []
+        }
+
+        if (
+            arg instanceof Identifier &&
+            isPythonIdentifierName(arg.value) &&
+            errors.every((error) => error instanceof NotDefinedIdentifierError)
+        ) {
+            return []
+        }
+
+        return errors
+    }
+
+    private canFallbackToPythonGlobal(
+        arg: Evaluable,
+        error: unknown,
+    ): arg is Identifier {
+        return (
+            arg instanceof Identifier &&
+            isPythonIdentifierName(arg.value) &&
+            error instanceof NotDefinedIdentifierError
+        )
     }
 }
 
@@ -95,9 +143,9 @@ export class PythonMethodCall extends Evaluable {
             throw new Error('Session not mounted')
         }
 
-        const evaluatedTarget = await this.target.execute(scope)
+        const evaluatedTarget = await this.executeArg(this.target, scope)
         const evaluatedArgs = await Promise.all(
-            this.args.map((a) => a.execute(scope)),
+            this.args.map((a) => this.executeArg(a, scope)),
         )
         const argsMap: Record<string, ValueType> = {
             '0': evaluatedTarget,
@@ -116,10 +164,64 @@ export class PythonMethodCall extends Evaluable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        const errors = [
-            ...this.target.validate(scope),
-            ...this.args.flatMap((a) => a.validate(scope)),
-        ].filter((e): e is YaksokError => !!e)
+        return [
+            ...this.validateArg(this.target, scope),
+            ...this.args.flatMap((a) => this.validateArg(a, scope)),
+        ]
+    }
+
+    private async executeArg(arg: Evaluable, scope: Scope): Promise<ValueType> {
+        try {
+            return await arg.execute(scope)
+        } catch (error) {
+            if (!this.canFallbackToPythonGlobal(arg, error)) {
+                throw error
+            }
+
+            const session = scope.codeFile?.session
+            if (!session) {
+                throw error
+            }
+
+            return await session.runFFI(
+                'Python',
+                `GET_GLOBAL ${arg.value}`,
+                {},
+                scope,
+            )
+        }
+    }
+
+    private validateArg(arg: Evaluable, scope: Scope): YaksokError[] {
+        const errors = arg.validate(scope).filter((e): e is YaksokError => !!e)
+
+        if (!errors.length) {
+            return []
+        }
+
+        if (
+            arg instanceof Identifier &&
+            isPythonIdentifierName(arg.value) &&
+            errors.every((error) => error instanceof NotDefinedIdentifierError)
+        ) {
+            return []
+        }
+
         return errors
     }
+
+    private canFallbackToPythonGlobal(
+        arg: Evaluable,
+        error: unknown,
+    ): arg is Identifier {
+        return (
+            arg instanceof Identifier &&
+            isPythonIdentifierName(arg.value) &&
+            error instanceof NotDefinedIdentifierError
+        )
+    }
+}
+
+function isPythonIdentifierName(name: string): boolean {
+    return /^[A-Za-z_][A-Za-z0-9_]*$/.test(name)
 }

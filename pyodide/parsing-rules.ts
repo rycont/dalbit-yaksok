@@ -1,5 +1,6 @@
 import {
     Evaluable,
+    FetchMember,
     Identifier,
     Expression,
     Sequence,
@@ -9,6 +10,10 @@ import {
     type Rule,
 } from '@dalbit-yaksok/core'
 import { PythonImport, PythonMethodCall, PythonCall } from './python.ts'
+
+function isPythonIdentifierName(name: string): boolean {
+    return /^[A-Za-z_][A-Za-z0-9_]*$/.test(name)
+}
 
 export const PARSING_RULES: Rule[] = [
     // Python: from <module>.<submodule> import <a>,<b>,...
@@ -42,7 +47,10 @@ export const PARSING_RULES: Rule[] = [
             const module = `${base}.${sub}`
             const seq = nodes[5] as Sequence
             const names = seq.items.map((it) => (it as Identifier).value)
-            return new PythonImport(module, names, tokens)
+            return new PythonImport(
+                `from ${module} import ${names.join(', ')}`,
+                tokens,
+            )
         },
         flags: [RULE_FLAGS.IS_STATEMENT],
     },
@@ -76,7 +84,7 @@ export const PARSING_RULES: Rule[] = [
             const sub = (nodes[3] as Identifier).value
             const module = `${base}.${sub}`
             const name = (nodes[5] as Identifier).value
-            return new PythonImport(module, [name], tokens)
+            return new PythonImport(`from ${module} import ${name}`, tokens)
         },
         flags: [RULE_FLAGS.IS_STATEMENT],
     },
@@ -102,7 +110,10 @@ export const PARSING_RULES: Rule[] = [
             const module = (nodes[1] as Identifier).value
             const seq = nodes[3] as Sequence
             const names = seq.items.map((it) => (it as Identifier).value)
-            return new PythonImport(module, names, tokens)
+            return new PythonImport(
+                `from ${module} import ${names.join(', ')}`,
+                tokens,
+            )
         },
         flags: [RULE_FLAGS.IS_STATEMENT],
     },
@@ -127,11 +138,203 @@ export const PARSING_RULES: Rule[] = [
         factory: (nodes, tokens) => {
             const module = (nodes[1] as Identifier).value
             const name = (nodes[3] as Identifier).value
-            return new PythonImport(module, [name], tokens)
+            return new PythonImport(`from ${module} import ${name}`, tokens)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    },
+    // Python: import <module>
+    {
+        pattern: [
+            {
+                type: Identifier,
+                value: 'import',
+            },
+            {
+                type: Identifier,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const module = (nodes[1] as Identifier).value
+            return new PythonImport(`import ${module}`, tokens)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    },
+    // Python: import <module> as <alias>
+    {
+        pattern: [
+            {
+                type: Identifier,
+                value: 'import',
+            },
+            {
+                type: Identifier,
+            },
+            {
+                type: Identifier,
+                value: 'as',
+            },
+            {
+                type: Identifier,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const module = (nodes[1] as Identifier).value
+            const alias = (nodes[3] as Identifier).value
+            return new PythonImport(`import ${module} as ${alias}`, tokens)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    },
+    // Python: import <module>.<submodule>
+    {
+        pattern: [
+            {
+                type: Identifier,
+                value: 'import',
+            },
+            {
+                type: Identifier,
+            },
+            {
+                type: Expression,
+                value: '.',
+            },
+            {
+                type: Identifier,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const base = (nodes[1] as Identifier).value
+            const sub = (nodes[3] as Identifier).value
+            return new PythonImport(`import ${base}.${sub}`, tokens)
+        },
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    },
+    // Python: import <module>.<submodule> as <alias>
+    {
+        pattern: [
+            {
+                type: Identifier,
+                value: 'import',
+            },
+            {
+                type: Identifier,
+            },
+            {
+                type: Expression,
+                value: '.',
+            },
+            {
+                type: Identifier,
+            },
+            {
+                type: Identifier,
+                value: 'as',
+            },
+            {
+                type: Identifier,
+            },
+        ],
+        factory: (nodes, tokens) => {
+            const base = (nodes[1] as Identifier).value
+            const sub = (nodes[3] as Identifier).value
+            const alias = (nodes[5] as Identifier).value
+            return new PythonImport(`import ${base}.${sub} as ${alias}`, tokens)
         },
         flags: [RULE_FLAGS.IS_STATEMENT],
     },
 
+    // Python: <expr> . name() - () becomes TupleLiteral([]) after tuple parsing
+    // Python: <expr> . name(<expr>), ...  (nested inside outer call sequence)
+    {
+        pattern: [
+            { type: Evaluable },
+            { type: Expression, value: '.' },
+            { type: Identifier },
+            { type: Sequence },
+        ],
+        factory: (nodes, tokens) => {
+            const target = nodes[0] as Evaluable
+            const methodName = (nodes[2] as Identifier).value
+            if (!isPythonIdentifierName(methodName)) {
+                return null
+            }
+
+            const sequence = nodes[3] as Sequence
+            const [first, ...rest] = sequence.items
+
+            if (!first) {
+                return null
+            }
+
+            let methodArgs: Evaluable[]
+            if (first instanceof TupleLiteral) {
+                methodArgs = first.items
+            } else if (first instanceof ValueWithParenthesis) {
+                methodArgs = [first.value]
+            } else {
+                return null
+            }
+
+            const methodCallTokens = [
+                ...target.tokens,
+                ...nodes[1].tokens,
+                ...nodes[2].tokens,
+                ...first.tokens,
+            ]
+            const methodCall = new PythonMethodCall(
+                target,
+                methodName,
+                methodArgs,
+                methodCallTokens,
+            )
+
+            if (rest.length === 0) {
+                return methodCall
+            }
+
+            return new Sequence([methodCall, ...rest], tokens)
+        },
+    },
+    // Python: <expr.name>(...), ...  (after dot-fetch reduced first)
+    {
+        pattern: [{ type: FetchMember }, { type: Sequence }],
+        factory: (nodes, tokens) => {
+            const fetched = nodes[0] as FetchMember
+            const methodName = fetched.memberName
+            if (!isPythonIdentifierName(methodName)) {
+                return null
+            }
+
+            const sequence = nodes[1] as Sequence
+            const [first, ...rest] = sequence.items
+
+            if (!first) {
+                return null
+            }
+
+            let methodArgs: Evaluable[]
+            if (first instanceof TupleLiteral) {
+                methodArgs = first.items
+            } else if (first instanceof ValueWithParenthesis) {
+                methodArgs = [first.value]
+            } else {
+                return null
+            }
+
+            const methodCall = new PythonMethodCall(
+                fetched.target,
+                methodName,
+                methodArgs,
+                [...fetched.tokens, ...first.tokens],
+            )
+
+            if (rest.length === 0) {
+                return methodCall
+            }
+
+            return new Sequence([methodCall, ...rest], tokens)
+        },
+    },
     // Python: <expr> . name() - () becomes TupleLiteral([]) after tuple parsing
     {
         pattern: [
@@ -143,6 +346,9 @@ export const PARSING_RULES: Rule[] = [
         factory: (nodes, tokens) => {
             const target = nodes[0] as Evaluable
             const methodName = (nodes[2] as Identifier).value
+            if (!isPythonIdentifierName(methodName)) {
+                return null
+            }
             const tuple = nodes[3] as TupleLiteral
             return new PythonMethodCall(target, methodName, tuple.items, tokens)
         },
@@ -158,6 +364,9 @@ export const PARSING_RULES: Rule[] = [
         factory: (nodes, tokens) => {
             const target = nodes[0] as Evaluable
             const methodName = (nodes[2] as Identifier).value
+            if (!isPythonIdentifierName(methodName)) {
+                return null
+            }
             const wrapped = nodes[3] as ValueWithParenthesis
             return new PythonMethodCall(
                 target,
@@ -173,6 +382,9 @@ export const PARSING_RULES: Rule[] = [
         pattern: [{ type: Identifier }, { type: TupleLiteral }],
         factory: (nodes, tokens) => {
             const name = (nodes[0] as Identifier).value
+            if (!isPythonIdentifierName(name)) {
+                return null
+            }
             const tuple = nodes[1] as TupleLiteral
             return new PythonCall(name, tuple.items, tokens)
         },
@@ -182,6 +394,9 @@ export const PARSING_RULES: Rule[] = [
         pattern: [{ type: Identifier }, { type: ValueWithParenthesis }],
         factory: (nodes, tokens) => {
             const name = (nodes[0] as Identifier).value
+            if (!isPythonIdentifierName(name)) {
+                return null
+            }
             const wrapped = nodes[1] as ValueWithParenthesis
             return new PythonCall(name, [wrapped.value], tokens)
         },

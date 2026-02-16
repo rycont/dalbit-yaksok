@@ -1,4 +1,3 @@
-import { assertEquals } from '@std/assert'
 import { YaksokSession } from '../core/mod.ts'
 import { StandardExtension } from '../standard/mod.ts'
 
