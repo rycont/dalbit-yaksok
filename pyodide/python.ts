@@ -1,6 +1,7 @@
 import {
     Executable,
     Evaluable,
+    FetchMember,
     Identifier,
     NotDefinedIdentifierError,
     YaksokError,
@@ -35,11 +36,13 @@ export class PythonImport extends PythonStatement {
     static override friendlyName = '파이썬 불러오기'
 }
 
+type PythonCallable = Identifier | FetchMember
+
 export class PythonCall extends Evaluable {
     static override friendlyName = '파이썬 호출'
 
     constructor(
-        public funcName: string,
+        public callable: PythonCallable,
         public args: Evaluable[],
         public override tokens: Token[],
     ) {
@@ -52,101 +55,26 @@ export class PythonCall extends Evaluable {
             throw new Error('Session not mounted')
         }
 
-        console.debug('[PythonCall.execute] this.args', this.args)
         const evaluatedArgs = await Promise.all(
             this.args.map((a) => this.executeArg(a, scope)),
         )
-        const argsMap: Record<string, ValueType> = Object.fromEntries(
-            evaluatedArgs.map((v, i) => [String(i), v]),
-        )
-
-        const result = await session.runFFI(
-            'Python',
-            `CALL ${this.funcName}`,
-            argsMap,
-            scope,
-        )
-        return result
-    }
-
-    override validate(scope: Scope): YaksokError[] {
-        return this.args.flatMap((a) => this.validateArg(a, scope))
-    }
-
-    private async executeArg(arg: Evaluable, scope: Scope): Promise<ValueType> {
-        try {
-            return await arg.execute(scope)
-        } catch (error) {
-            if (!this.canFallbackToPythonGlobal(arg, error)) {
-                throw error
-            }
-
-            const session = scope.codeFile?.session
-            if (!session) {
-                throw error
-            }
-
+        if (this.callable instanceof Identifier) {
+            const argsMap: Record<string, ValueType> = Object.fromEntries(
+                evaluatedArgs.map((v, i) => [String(i), v]),
+            )
             return await session.runFFI(
                 'Python',
-                `GET_GLOBAL ${arg.value}`,
-                {},
+                `CALL ${this.callable.value}`,
+                argsMap,
                 scope,
             )
         }
-    }
 
-    private validateArg(arg: Evaluable, scope: Scope): YaksokError[] {
-        const errors = arg.validate(scope).filter((e): e is YaksokError => !!e)
-
-        if (!errors.length) {
-            return []
+        if (!isPythonIdentifierName(this.callable.memberName)) {
+            throw new Error(`Invalid python method name: ${this.callable.memberName}`)
         }
 
-        if (
-            arg instanceof Identifier &&
-            isPythonIdentifierName(arg.value) &&
-            errors.every((error) => error instanceof NotDefinedIdentifierError)
-        ) {
-            return []
-        }
-
-        return errors
-    }
-
-    private canFallbackToPythonGlobal(
-        arg: Evaluable,
-        error: unknown,
-    ): arg is Identifier {
-        return (
-            arg instanceof Identifier &&
-            isPythonIdentifierName(arg.value) &&
-            error instanceof NotDefinedIdentifierError
-        )
-    }
-}
-
-export class PythonMethodCall extends Evaluable {
-    static override friendlyName = '파이썬 메소드 호출'
-
-    constructor(
-        public target: Evaluable,
-        public methodName: string,
-        public args: Evaluable[],
-        public override tokens: Token[],
-    ) {
-        super()
-    }
-
-    override async execute(scope: Scope): Promise<ValueType> {
-        const session = scope.codeFile?.session
-        if (!session) {
-            throw new Error('Session not mounted')
-        }
-
-        const evaluatedTarget = await this.executeArg(this.target, scope)
-        const evaluatedArgs = await Promise.all(
-            this.args.map((a) => this.executeArg(a, scope)),
-        )
+        const evaluatedTarget = await this.executeArg(this.callable.target, scope)
         const argsMap: Record<string, ValueType> = {
             '0': evaluatedTarget,
             ...Object.fromEntries(
@@ -154,18 +82,19 @@ export class PythonMethodCall extends Evaluable {
             ),
         }
 
-        const result = await session.runFFI(
+        return await session.runFFI(
             'Python',
-            `CALL_METHOD ${this.methodName}`,
+            `CALL_METHOD ${this.callable.memberName}`,
             argsMap,
             scope,
         )
-        return result
     }
 
     override validate(scope: Scope): YaksokError[] {
         return [
-            ...this.validateArg(this.target, scope),
+            ...(this.callable instanceof FetchMember
+                ? this.validateArg(this.callable.target, scope)
+                : []),
             ...this.args.flatMap((a) => this.validateArg(a, scope)),
         ]
     }
@@ -174,7 +103,8 @@ export class PythonMethodCall extends Evaluable {
         try {
             return await arg.execute(scope)
         } catch (error) {
-            if (!this.canFallbackToPythonGlobal(arg, error)) {
+            const globalPath = this.resolvePythonGlobalPath(arg, error)
+            if (!globalPath) {
                 throw error
             }
 
@@ -185,7 +115,7 @@ export class PythonMethodCall extends Evaluable {
 
             return await session.runFFI(
                 'Python',
-                `GET_GLOBAL ${arg.value}`,
+                `GET_GLOBAL_PATH ${globalPath}`,
                 {},
                 scope,
             )
@@ -200,8 +130,7 @@ export class PythonMethodCall extends Evaluable {
         }
 
         if (
-            arg instanceof Identifier &&
-            isPythonIdentifierName(arg.value) &&
+            isPythonGlobalPathEvaluable(arg) &&
             errors.every((error) => error instanceof NotDefinedIdentifierError)
         ) {
             return []
@@ -210,18 +139,39 @@ export class PythonMethodCall extends Evaluable {
         return errors
     }
 
-    private canFallbackToPythonGlobal(
+    private resolvePythonGlobalPath(
         arg: Evaluable,
         error: unknown,
-    ): arg is Identifier {
-        return (
-            arg instanceof Identifier &&
-            isPythonIdentifierName(arg.value) &&
-            error instanceof NotDefinedIdentifierError
-        )
+    ): string | null {
+        if (!(error instanceof NotDefinedIdentifierError)) {
+            return null
+        }
+
+        return getPythonGlobalPath(arg)
     }
 }
 
 function isPythonIdentifierName(name: string): boolean {
     return /^[A-Za-z_][A-Za-z0-9_]*$/.test(name)
+}
+
+function getPythonGlobalPath(arg: Evaluable): string | null {
+    if (arg instanceof Identifier) {
+        return isPythonIdentifierName(arg.value) ? arg.value : null
+    }
+
+    if (arg instanceof FetchMember) {
+        const parentPath = getPythonGlobalPath(arg.target)
+        if (!parentPath || !isPythonIdentifierName(arg.memberName)) {
+            return null
+        }
+
+        return `${parentPath}.${arg.memberName}`
+    }
+
+    return null
+}
+
+function isPythonGlobalPathEvaluable(arg: Evaluable): boolean {
+    return getPythonGlobalPath(arg) !== null
 }

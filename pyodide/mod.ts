@@ -118,9 +118,12 @@ export class Pyodide implements Extension {
                     ctor: (result as any)?.constructor?.name,
                 })
                 return convertPythonResultToYaksok(result)
+            } else if (code.startsWith('GET_GLOBAL_PATH ')) {
+                const path = code.slice('GET_GLOBAL_PATH '.length).trim()
+                return await this.getPythonGlobalPath(path, runner)
             } else if (code.startsWith('GET_GLOBAL ')) {
                 const name = code.slice('GET_GLOBAL '.length).trim()
-                return await this.getPythonGlobal(name, runner)
+                return await this.getPythonGlobalPath(name, runner)
             } else if (code.startsWith('CALL_METHOD ')) {
                 const method = code.slice('CALL_METHOD '.length).trim()
                 const orderedKeys = Object.keys(args).sort(
@@ -260,30 +263,50 @@ sys.stderr = __YaksokStdoutWriter()
         )
     }
 
-    private async getPythonGlobal(
-        name: string,
+    private async getPythonGlobalPath(
+        path: string,
         runner: (code: string) => Promise<unknown> | unknown,
     ): Promise<ValueType> {
-        if (!name) {
-            throw new Error('GET_GLOBAL requires a name')
+        if (!path) {
+            throw new Error('GET_GLOBAL_PATH requires a path')
+        }
+
+        const parts = path.split('.').filter((part) => part.length > 0)
+        if (!parts.length) {
+            throw new Error('GET_GLOBAL_PATH requires at least one name')
+        }
+
+        for (const part of parts) {
+            if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(part)) {
+                throw new Error(`GET_GLOBAL_PATH has invalid identifier: ${part}`)
+            }
         }
 
         const globalVar = `__yak_global_${Date.now()}_${this.tempVarCounter++}`
-        const pyName = JSON.stringify(name)
+        const partsVar = `__yak_parts_${Date.now()}_${this.tempVarCounter++}`
+        const valueVar = `__yak_value_${Date.now()}_${this.tempVarCounter++}`
+        const partVar = `__yak_part_${Date.now()}_${this.tempVarCounter++}`
+        const pyParts = JSON.stringify(parts)
         const pyError = JSON.stringify(
-            `파이썬 전역에서 '${name}'을 찾지 못했어요.`,
+            `파이썬 전역에서 '${path}'을 찾지 못했어요.`,
         )
 
         try {
             await runner.call(
                 this.pyodide,
                 `
-if ${pyName} in globals():
-    ${globalVar} = globals()[${pyName}]
-elif hasattr(__import__('builtins'), ${pyName}):
-    ${globalVar} = getattr(__import__('builtins'), ${pyName})
+${partsVar} = ${pyParts}
+if ${partsVar}[0] in globals():
+    ${valueVar} = globals()[${partsVar}[0]]
+elif hasattr(__import__('builtins'), ${partsVar}[0]):
+    ${valueVar} = getattr(__import__('builtins'), ${partsVar}[0])
 else:
     raise NameError(${pyError})
+
+for ${partVar} in ${partsVar}[1:]:
+    ${valueVar} = getattr(${valueVar}, ${partVar})
+
+${globalVar} = ${valueVar}
 `.trim(),
             )
             const result = this.pyodide!.globals.get(globalVar)
@@ -294,6 +317,9 @@ else:
                     this.pyodide,
                     `
 globals().pop(${JSON.stringify(globalVar)}, None)
+globals().pop(${JSON.stringify(partsVar)}, None)
+globals().pop(${JSON.stringify(valueVar)}, None)
+globals().pop(${JSON.stringify(partVar)}, None)
 `.trim(),
                 )
             } catch (_) {
@@ -330,7 +356,19 @@ function convertPythonResultToYaksok(result: any): ValueType {
         typeof result === 'object' &&
         typeof result.toJs === 'function'
     ) {
-        console.debug('[Pyodide.convert] has toJs, returning ReferenceStore')
+        const pyType = String((result as any).type ?? '')
+        if (pyType === 'list' || pyType === 'tuple') {
+            try {
+                const asJs = result.toJs()
+                return convertPythonResultToYaksok(asJs)
+            } catch (_) {
+                // fall through to ReferenceStore
+            }
+        }
+
+        console.debug('[Pyodide.convert] has toJs, returning ReferenceStore', {
+            pyType,
+        })
 
         return new ReferenceStore(result)
     }

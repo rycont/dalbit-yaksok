@@ -175,14 +175,6 @@ function assertValidFunctionHeader(
     }
 
     for (const [index, token] of tokens.entries()) {
-        if (token.type === TOKEN_TYPE.IDENTIFIER) {
-            if (RESERVED_WORDS.has(token.value)) {
-                throw new NotProperIdentifierNameToDefineError({
-                    texts: tokens.map((t) => t.value),
-                })
-            }
-        }
-
         if (token.type !== TOKEN_TYPE.OPENING_PARENTHESIS) {
             continue
         }
@@ -196,6 +188,11 @@ function assertValidFunctionHeader(
                     parts: '약속 인자',
                 },
                 tokens: [nextToken],
+            })
+        }
+        if (RESERVED_WORDS.has(nextToken.value)) {
+            throw new NotProperIdentifierNameToDefineError({
+                texts: tokens.map((t) => t.value),
             })
         }
 

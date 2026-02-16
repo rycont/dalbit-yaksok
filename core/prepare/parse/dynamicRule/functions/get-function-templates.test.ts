@@ -1,4 +1,4 @@
-import { assertEquals } from '@std/assert'
+import { assertEquals, assertThrows } from '@std/assert'
 
 import { convertTokensToFunctionTemplate } from './get-function-templates.ts'
 
@@ -80,3 +80,23 @@ Deno.test(
         )
     },
 )
+
+Deno.test(
+    'allows reserved words in static function-header text outside parameters',
+    () => {
+        const template = getHeaderTemplate(
+            `약속, (중첩목록)에서 상위 (K)개 빈도 찾기\n    [] 반환하기\n`,
+        )
+
+        assertEquals(template.name, '(중첩목록)에서 상위 (K)개 빈도 찾기')
+    },
+)
+
+Deno.test('still rejects reserved words as function parameter names', () => {
+    assertThrows(
+        () =>
+            getHeaderTemplate(
+                `약속, (상위) 값 가져오기\n    상위 반환하기\n`,
+            ),
+    )
+})
