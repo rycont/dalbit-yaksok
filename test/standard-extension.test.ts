@@ -83,3 +83,20 @@ Deno.test('표준 filter - 람다 괄호 있음: 다른 오류를 유지', async
         ),
     )
 })
+
+Deno.test('표준 filter - 문자열 값 기준 필터링', async () => {
+    const output = await runStandard(`
+결과 = "Hello World".(람다 글자: 글자 == "o" 이거나 글자 == "H")로 filter
+결과 보여주기
+`)
+    assertEquals(output, 'Hoo')
+})
+
+Deno.test('표준 filter - 문자열 인덱스 사용', async () => {
+    const output = await runStandard(`
+결과 = "Programming".(람다 글자, 순번: 순번 % 2 == 0)로 거르기
+결과 보여주기
+`)
+    assertEquals(output, 'Pormig')
+})
+

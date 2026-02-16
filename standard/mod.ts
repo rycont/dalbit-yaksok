@@ -63,7 +63,7 @@ INCLUDES
 INCLUDES
 ***
 
-메소드(리스트), 번역(표준), (판별함수)로 filter/거르기
+메소드(문자, 리스트), 번역(표준), (판별함수)로 filter/거르기
 ***
 FILTER
 ***
@@ -241,38 +241,58 @@ SORT_WITH_FUNC
                 const 리스트 = args.리스트 ?? args.자신
                 const 판별함수 = args.판별함수
 
-                if (!(리스트 instanceof ListValue)) {
-                    throw new Error('목록이 아니면 거를 수 없어요.')
-                }
-
                 if (!isRunnableObject(판별함수)) {
                     throw new Error('판별함수는 약속(람다)이어야 해요.')
                 }
 
                 const firstParamName = 판별함수.paramNames[0]
                 const secondParamName = 판별함수.paramNames[1]
-                const filtered: ValueType[] = []
 
-                for (const [index, item] of Array.from(
-                    리스트.enumerate(),
-                ).entries()) {
-                    const runArgs: Record<string, ValueType> = {}
+                if (리스트 instanceof StringValue) {
+                    const filteredChars: string[] = []
+                    for (let i = 0; i < 리스트.value.length; i++) {
+                        const char = 리스트.value[i]
+                        const runArgs: Record<string, ValueType> = {}
 
-                    if (firstParamName) {
-                        runArgs[firstParamName] = item
+                        if (firstParamName) {
+                            runArgs[firstParamName] = new StringValue(char)
+                        }
+                        if (secondParamName) {
+                            runArgs[secondParamName] = new NumberValue(i)
+                        }
+
+                        const result = await 판별함수.run(runArgs, callerScope)
+                        if (isTruthy(result)) {
+                            filteredChars.push(char)
+                        }
+                    }
+                    return new StringValue(filteredChars.join(''))
+                } else if (리스트 instanceof ListValue) {
+                    const filtered: ValueType[] = []
+
+                    for (const [index, item] of Array.from(
+                        리스트.enumerate(),
+                    ).entries()) {
+                        const runArgs: Record<string, ValueType> = {}
+
+                        if (firstParamName) {
+                            runArgs[firstParamName] = item
+                        }
+
+                        if (secondParamName) {
+                            runArgs[secondParamName] = new NumberValue(index)
+                        }
+
+                        const result = await 판별함수.run(runArgs, callerScope)
+                        if (isTruthy(result)) {
+                            filtered.push(item)
+                        }
                     }
 
-                    if (secondParamName) {
-                        runArgs[secondParamName] = new NumberValue(index)
-                    }
-
-                    const result = await 판별함수.run(runArgs, callerScope)
-                    if (isTruthy(result)) {
-                        filtered.push(item)
-                    }
+                    return new ListValue(filtered)
+                } else {
+                    throw new Error('문자열이나 목록이 아니면 거를 수 없어요.')
                 }
-
-                return new ListValue(filtered)
             }
             case 'MAP': {
                 const 리스트 = args.리스트 ?? args.자신
