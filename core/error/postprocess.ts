@@ -20,6 +20,9 @@ const PROCESSORS: ErrorProcessor[] = [
     parseGrammarStructureFailure,
 ]
 
+const LAMBDA_PARENTHESES_ERROR_MESSAGE =
+    '람다는 괄호로 감싸야 해요. 예시: `리스트.(람다 숫자: 숫자 > 0)로 모두확인하기`'
+
 export function postprocessErrors(
     _errors: YaksokError[],
     tokens: Token[],
@@ -36,6 +39,14 @@ export function postprocessErrors(
 
     let errors: YaksokError[] = []
     for (const line of processedLines) {
+        const lambdaParenthesesError = line.find(
+            (error) => error.message === LAMBDA_PARENTHESES_ERROR_MESSAGE,
+        )
+        if (lambdaParenthesesError) {
+            errors.push(lambdaParenthesesError)
+            break
+        }
+
         if (
             line.length === 1 &&
             (line[0].message.includes('조건문') ||
@@ -255,6 +266,12 @@ function parseInvalidDotMethodCall(
         return [line]
     }
 
+    if (hasLambdaWithoutImmediateParenthesis(methodTokens)) {
+        dotError.tokens = methodTokens
+        dotError.message = LAMBDA_PARENTHESES_ERROR_MESSAGE
+        return [[dotError]]
+    }
+
     let methodText = methodTokens.map((token) => token.value).join('').trim()
     methodText = methodText.replace(/\s*보여주기\s*$/, '').trim()
     if (methodText.length === 0) {
@@ -267,6 +284,29 @@ function parseInvalidDotMethodCall(
     )}라는 메소드를 찾을 수 없어요.`
 
     return [[dotError]]
+}
+
+function hasLambdaWithoutImmediateParenthesis(tokens: Token[]): boolean {
+    for (let i = 0; i < tokens.length; i++) {
+        const token = tokens[i]
+        if (token.value !== '람다') {
+            continue
+        }
+
+        let prevNonSpaceToken: Token | undefined
+        for (let j = i - 1; j >= 0; j--) {
+            if (tokens[j].type !== TOKEN_TYPE.SPACE) {
+                prevNonSpaceToken = tokens[j]
+                break
+            }
+        }
+
+        if (prevNonSpaceToken?.type !== TOKEN_TYPE.OPENING_PARENTHESIS) {
+            return true
+        }
+    }
+
+    return false
 }
 
 function splitErrorsByLine(errors: YaksokError[]) {
