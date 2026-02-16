@@ -20,67 +20,47 @@ export class DataAnalyze implements Extension {
         },
         module: {
             분석: `
-번역(분석), (데이터)중 (컬럼)가 (값)인 값들/값/것들/것
+메소드(목록), 번역(분석), (컬럼) 가 (값) 인 것들
 ***
 FIND_COLUMN_EQUAL
 ***
 
-번역(분석), (데이터)중 (컬럼)이/가 (기준) 이상인 것들/값들/것/값
+메소드(목록), 번역(분석), (컬럼) 이 (기준) 이상인 것들
 ***
 FIND_GTE
 ***
 
-번역(분석), (데이터)중 (컬럼)이/가 (기준) 보다 작은 것들/값들/것/값
+메소드(목록), 번역(분석), (컬럼) 이 (기준) 보다 작은 것들
 ***
 FIND_LT
 ***
 
-번역(분석), (데이터)중 (컬럼)이/가 (기준) 미만인 것들/값들/것/값
-***
-FIND_LT
-***
-
-번역(분석), (데이터) (컬럼) 순서로/순으로/오름차순으로 정렬/정렬하기/정렬하고/정렬해서
+메소드(목록), 번역(분석), (컬럼) 순서로 정렬하기
 ***
 SORT_BY_COLUMN_ASC
 ***
 
-번역(분석), (데이터) (컬럼) 역순서로/역순으로/내림차순으로 정렬/정렬하기/정렬하고/정렬해서
+메소드(목록), 번역(분석), (컬럼) 역순으로 정렬하기
 ***
 SORT_BY_COLUMN_DESC
 ***
 
-번역(분석), (데이터) 앞에서 (개수)개 가져오기/뽑기/돌려주기
+메소드(목록), 번역(분석), 앞에서 (개수)개 가져오기
 ***
 TAKE_FIRST_N
 ***
 
-번역(분석), (데이터) 앞에서 (개수)개/개만
-***
-TAKE_FIRST_N
-***
-
-번역(분석), (데이터) 개수/갯수/길이 세기/구하기/알아보기
+메소드(목록), 번역(분석), 항목 개수 구하기
 ***
 COUNT_ROWS
 ***
 
-번역(분석), (데이터)에서/중 (컬럼)에 (값)이/가 포함된 값들/것들/값/것 가져오기/찾기/가져와서/찾아서
+메소드(목록), 번역(분석), (컬럼) 에 (값) 이 포함된 것들 찾기
 ***
 FIND_VALUE_CONTAINS
 ***
 
-번역(분석), (데이터)에서/중 (컬럼)에 (값)이/가 포함된 값/값의/값들/것들/것/것의
-***
-FIND_VALUE_CONTAINS
-***
-
-번역(분석), (데이터)에서/중 (컬럼) 가져오기/가져와서
-***
-GET_COLUMNS
-***
-
-번역(분석), (데이터)에서/중 (컬럼)만 가져오기/가져와서
+메소드(목록), 번역(분석), (컬럼) 필드 가져오기
 ***
 GET_COLUMNS
 ***
@@ -98,64 +78,63 @@ GET_COLUMNS
         args: FunctionInvokingParams,
     ): ValueType | Promise<ValueType> {
         const action = code.trim()
+        const 데이터 = args['자신'] as ListValue
 
         if (action === 'FIND_COLUMN_EQUAL') {
-            const { 데이터, 컬럼, 값 } = args
+            const { 컬럼, 값 } = args
 
             this.assertKey(컬럼)
             this.assertListValue(데이터)
 
             return this.findColumnEqual(데이터, 컬럼, 값)
         } else if (action === 'FIND_GTE') {
-            const { 데이터, 컬럼, 기준 } = args
+            const { 컬럼, 기준 } = args
 
             this.assertKey(컬럼)
             this.assertListValue(데이터)
 
             return this.findGte(데이터, 컬럼, 기준)
         } else if (action === 'FIND_LT') {
-            const { 데이터, 컬럼, 기준 } = args
+            const { 컬럼, 기준 } = args
 
             this.assertKey(컬럼)
             this.assertListValue(데이터)
 
             return this.findLt(데이터, 컬럼, 기준)
         } else if (action === 'SORT_BY_COLUMN_ASC') {
-            const { 데이터, 컬럼 } = args
+            const { 컬럼 } = args
 
             this.assertKey(컬럼)
             this.assertListValue(데이터)
 
             return this.sortByColumn(데이터, 컬럼, 'desc')
         } else if (action === 'SORT_BY_COLUMN_DESC') {
-            const { 데이터, 컬럼 } = args
+            const { 컬럼 } = args
 
             this.assertKey(컬럼)
             this.assertListValue(데이터)
 
             return this.sortByColumn(데이터, 컬럼, 'asc')
         } else if (action === 'TAKE_FIRST_N') {
-            const { 데이터, 개수 } = args
+            const { 개수 } = args
 
             this.assertListValue(데이터)
             this.assertNumber(개수)
 
             return this.takeFirstN(데이터, 개수)
         } else if (action === 'COUNT_ROWS') {
-            const { 데이터 } = args
-
             this.assertListValue(데이터)
 
             return this.countRows(데이터)
         } else if (action === 'FIND_VALUE_CONTAINS') {
-            const { 데이터, 컬럼, 값 } = args
+            const { 컬럼, 값 } = args
 
             this.assertKey(컬럼)
             this.assertListValue(데이터)
 
             return this.findValueContains(데이터, 컬럼, 값)
         } else if (action === 'GET_COLUMNS') {
-            const { 데이터, 컬럼 } = args
+            const { 컬럼 } = args
 
             this.assertListValue(데이터)
 

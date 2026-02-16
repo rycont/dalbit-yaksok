@@ -395,7 +395,6 @@ export class MemberFunctionInvoke extends Evaluable {
     }
 
     override async execute(scope: Scope): Promise<ValueType> {
-        console.log('MemberFunctionInvoke executing:', this.invocation.name)
         const rawTarget = await this.target.execute(scope)
         const args = await evaluateParams(this.invocation.params, scope)
         if (rawTarget instanceof InstanceValue || rawTarget instanceof SuperValue) {
@@ -479,7 +478,6 @@ export class MemberFunctionInvoke extends Evaluable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        console.log('MemberFunctionInvoke validating:', this.invocation.name)
         const targetErrors = this.target.validate(scope)
         const paramErrors = Object.values(this.invocation.params).flatMap(
             (param) => param.validate(scope),
@@ -560,7 +558,7 @@ export class FetchMember extends Evaluable {
         }
 
         const rawTarget = await this.target.execute(scope)
-        
+
         if (rawTarget instanceof InstanceValue || rawTarget instanceof SuperValue) {
             const resolved = resolveMemberAccessTarget(rawTarget, this.tokens)
 
@@ -628,7 +626,6 @@ export class FetchMember extends Evaluable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        console.log('FetchMember validating:', this.memberName)
         const targetErrors = this.target.validate(scope)
         if (targetErrors.length > 0) {
             return targetErrors
@@ -741,7 +738,7 @@ export class SetMember extends Executable {
 
         const operatorNode =
             assignerToOperatorMap[
-                this.operator as keyof typeof assignerToOperatorMap
+            this.operator as keyof typeof assignerToOperatorMap
             ]
 
         const operand = await this.value.execute(scope)
