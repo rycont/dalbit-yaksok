@@ -14,7 +14,9 @@ async function runStandard(code: string): Promise<string> {
         },
     })
 
-    await session.extend(new StandardExtension())
+    const standard = new StandardExtension()
+    await session.extend(standard)
+    await session.setBaseContext(standard.manifest.module!['표준'])
     session.addModule('main', code)
     await session.runModule('main')
 
@@ -27,7 +29,7 @@ async function runStandard(code: string): Promise<string> {
 
 Deno.test('표준 EVERY - 모든 요소 만족 (참)', async () => {
     const output = await runStandard(`
-결과: @표준 ([1, 2, 3])의 모든 요소가 (람다 숫자: 숫자 > 0)를 만족하는지확인
+결과 = [1, 2, 3].(람다 숫자: 숫자 > 0)로 모두확인하기
 결과 보여주기
 `)
     assertEquals(output, '참')
@@ -35,7 +37,7 @@ Deno.test('표준 EVERY - 모든 요소 만족 (참)', async () => {
 
 Deno.test('표준 EVERY - 일부 요소 불만족 (거짓)', async () => {
     const output = await runStandard(`
-결과: @표준 ([1, 2, -1])의 모든 요소가 (람다 숫자: 숫자 > 0)를 만족하는지확인
+결과 = [1, 2, -1].(람다 숫자: 숫자 > 0)로 모두확인하기
 결과 보여주기
 `)
     assertEquals(output, '거짓')
@@ -43,7 +45,7 @@ Deno.test('표준 EVERY - 일부 요소 불만족 (거짓)', async () => {
 
 Deno.test('표준 SOME - 일부 요소 만족 (참)', async () => {
     const output = await runStandard(`
-결과: @표준 ([-1, 0, 1])의 요소 중 하나라도 (람다 숫자: 숫자 > 0)를 만족하는지확인
+결과 = [-1, 0, 1].(람다 숫자: 숫자 > 0)로 하나라도확인하기
 결과 보여주기
 `)
     assertEquals(output, '참')
@@ -51,7 +53,7 @@ Deno.test('표준 SOME - 일부 요소 만족 (참)', async () => {
 
 Deno.test('표준 SOME - 모든 요소 불만족 (거짓)', async () => {
     const output = await runStandard(`
-결과: @표준 ([-1, -2, -3])의 요소 중 하나라도 (람다 숫자: 숫자 > 0)를 만족하는지확인
+결과 = [-1, -2, -3].(람다 숫자: 숫자 > 0)로 하나라도확인하기
 결과 보여주기
 `)
     assertEquals(output, '거짓')
