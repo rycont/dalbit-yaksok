@@ -22,3 +22,13 @@ export const RESERVED_WORDS = new Set([
     '상위',
     '람다',
 ])
+
+// 함수 헤더의 정적 문구에서는 아래 예약어만 예외적으로 허용합니다.
+// 예: `약속, (값)에서 상위 (N)개 찾기`
+export const FUNCTION_HEADER_STATIC_RESERVED_WORDS_ALLOWLIST = new Set([
+    '상위',
+    '고고',
+    '이고',
+    '거나',
+    '잠깐',
+])

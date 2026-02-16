@@ -85,10 +85,13 @@ Deno.test(
     'allows reserved words in static function-header text outside parameters',
     () => {
         const template = getHeaderTemplate(
-            `약속, (중첩목록)에서 상위 (K)개 빈도 찾기\n    [] 반환하기\n`,
+            `약속, (중첩목록)에서 상위 고고 이고 거나 잠깐 (K)개 빈도 찾기\n    [] 반환하기\n`,
         )
 
-        assertEquals(template.name, '(중첩목록)에서 상위 (K)개 빈도 찾기')
+        assertEquals(
+            template.name,
+            '(중첩목록)에서 상위 고고 이고 거나 잠깐 (K)개 빈도 찾기',
+        )
     },
 )
 
@@ -100,3 +103,15 @@ Deno.test('still rejects reserved words as function parameter names', () => {
             ),
     )
 })
+
+Deno.test(
+    'still rejects reserved words in static header text when not allowlisted',
+    () => {
+        assertThrows(
+            () =>
+                getHeaderTemplate(
+                    `약속, (내용) 보여주기\n    내용 반환하기\n`,
+                ),
+        )
+    },
+)

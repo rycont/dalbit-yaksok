@@ -1,4 +1,7 @@
-import { RESERVED_WORDS } from '../../../../constant/reserved-words.ts'
+import {
+    FUNCTION_HEADER_STATIC_RESERVED_WORDS_ALLOWLIST,
+    RESERVED_WORDS,
+} from '../../../../constant/reserved-words.ts'
 import { FunctionMustHaveOneOrMoreStringPartError } from '../../../../error/function.ts'
 import { UnexpectedTokenError } from '../../../../error/prepare.ts'
 import { NotProperIdentifierNameToDefineError } from '../../../../error/variable.ts'
@@ -175,6 +178,33 @@ function assertValidFunctionHeader(
     }
 
     for (const [index, token] of tokens.entries()) {
+        if (token.type !== TOKEN_TYPE.IDENTIFIER) {
+            continue
+        }
+
+        if (!RESERVED_WORDS.has(token.value)) {
+            continue
+        }
+
+        const isParameterIdentifier = isFunctionParameterIdentifierToken(
+            tokens,
+            index,
+        )
+
+        // 함수 헤더의 정적 문구에서는 일부 예약어를 예외적으로 허용한다.
+        if (
+            !isParameterIdentifier &&
+            FUNCTION_HEADER_STATIC_RESERVED_WORDS_ALLOWLIST.has(token.value)
+        ) {
+            continue
+        }
+
+        throw new NotProperIdentifierNameToDefineError({
+            texts: tokens.map((t) => t.value),
+        })
+    }
+
+    for (const [index, token] of tokens.entries()) {
         if (token.type !== TOKEN_TYPE.OPENING_PARENTHESIS) {
             continue
         }
@@ -190,12 +220,6 @@ function assertValidFunctionHeader(
                 tokens: [nextToken],
             })
         }
-        if (RESERVED_WORDS.has(nextToken.value)) {
-            throw new NotProperIdentifierNameToDefineError({
-                texts: tokens.map((t) => t.value),
-            })
-        }
-
         const nextNextToken = tokens[index + 2]
         const isSingleParam =
             nextNextToken?.type === TOKEN_TYPE.CLOSING_PARENTHESIS
@@ -210,4 +234,25 @@ function assertValidFunctionHeader(
             })
         }
     }
+}
+
+function isFunctionParameterIdentifierToken(
+    tokens: Token[],
+    index: number,
+): boolean {
+    const token = tokens[index]
+    if (token?.type !== TOKEN_TYPE.IDENTIFIER) {
+        return false
+    }
+
+    const prevToken = tokens[index - 1]
+    const nextToken = tokens[index + 1]
+    const hasParamPrefix =
+        prevToken?.type === TOKEN_TYPE.OPENING_PARENTHESIS ||
+        prevToken?.type === TOKEN_TYPE.COMMA
+    const hasParamSuffix =
+        nextToken?.type === TOKEN_TYPE.CLOSING_PARENTHESIS ||
+        nextToken?.type === TOKEN_TYPE.COMMA
+
+    return hasParamPrefix && hasParamSuffix
 }
