@@ -64,12 +64,21 @@ FIND_VALUE_CONTAINS
 ***
 GET_COLUMNS
 ***
+
+메소드(목록), 번역(분석), 빈도
+***
+FREQUENCY
+***
 `,
+
+
             데이터_불러오기: `
 약속, 편의점 데이터
     데 = ${편의점}
     데 반환하기
 `,
+
+
         },
     }
 
@@ -145,6 +154,9 @@ GET_COLUMNS
                 this.assertKey(컬럼)
                 return this.getColumn(데이터, 컬럼)
             }
+        } else if (action === 'FREQUENCY') {
+            this.assertListValue(데이터)
+            return this.frequency(데이터)
         }
 
         throw new Error(`Unknown action: ${action}`)
@@ -304,5 +316,28 @@ GET_COLUMNS
         if (!(value instanceof StringValue || value instanceof NumberValue)) {
             throw new Error('Expected StringValue or NumberValue')
         }
+    }
+
+    frequency(data: ListValue): IndexedValue {
+        const counts = new Map<string | number, number>()
+
+        for (const item of data.enumerate()) {
+            let key: string | number
+
+            if (item instanceof StringValue || item instanceof NumberValue) {
+                key = item.value
+            } else {
+                key = item.toPrint()
+            }
+
+            counts.set(key, (counts.get(key) || 0) + 1)
+        }
+
+        const entries = new Map<string | number, ValueType>()
+        for (const [key, count] of counts) {
+            entries.set(key, new NumberValue(count))
+        }
+
+        return new IndexedValue(entries)
     }
 }

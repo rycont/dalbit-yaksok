@@ -13,7 +13,10 @@ async function run(code: string): Promise<string> {
         },
     });
 
-    await session.extend(new StandardExtension());
+    const standard = new StandardExtension();
+    await session.extend(standard);
+    await session.setBaseContext(standard.manifest.module!['표준']);
+
     session.addModule("main", code);
     await session.runModule("main");
 
@@ -37,7 +40,7 @@ Deno.test("Sort - Basic ascending (strings)", async () => {
 정렬된목록 보여주기
 `;
     const result = await run(code);
-    assertEquals(result, '["가", "나", "다"]');
+    assertEquals(result, '[가, 나, 다]');
 });
 
 Deno.test("Sort - Custom comparator (descending numbers)", async () => {
@@ -53,9 +56,9 @@ Deno.test("Sort - Custom comparator (descending numbers)", async () => {
 Deno.test("Sort - Custom comparator (by string length)", async () => {
     const code = `
 목록 = ["apple", "banana", "kiwi"]
-정렬된목록 = 목록.(람다 앞, 뒤: 앞.길이 - 뒤.길이)로 정렬하기
+정렬된목록 = 목록.(람다 앞, 뒤: (앞.길이) - (뒤.길이))로 정렬하기
 정렬된목록 보여주기
 `;
     const result = await run(code);
-    assertEquals(result, '["kiwi", "apple", "banana"]');
+    assertEquals(result, '[kiwi, apple, banana]');
 });

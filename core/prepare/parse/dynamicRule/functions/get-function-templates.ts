@@ -25,6 +25,12 @@ export function convertTokensToFunctionTemplate(
         const token = tokens[i]
 
         if (token.type !== TOKEN_TYPE.IDENTIFIER) {
+            if (token.value === '/' && rawPieces.length > 0) {
+                const last = rawPieces[rawPieces.length - 1]
+                if (last.type === 'static') {
+                    last.value += '/'
+                }
+            }
             continue
         }
 
@@ -44,6 +50,14 @@ export function convertTokensToFunctionTemplate(
             if (destructureNames.length > 0) {
                 rawPieces.push({ type: 'destructure', value: destructureNames })
                 i += destructureNames.length * 2 - 1
+                continue
+            }
+        }
+
+        if (rawPieces.length > 0) {
+            const last = rawPieces[rawPieces.length - 1]
+            if (last.type === 'static' && last.value.endsWith('/')) {
+                last.value += token.value
                 continue
             }
         }

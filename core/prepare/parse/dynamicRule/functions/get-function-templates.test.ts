@@ -26,13 +26,12 @@ Deno.test('adds verb-form variant only to the last static word', () => {
     assertEquals(lastPiece.type, 'static')
     assertEquals(lastPiece.value, ['더하기', '더하고'])
 
-    assertEquals(
-        template.pieces
-            .filter((piece) => piece.type === 'static')
-            .slice(0, -1)
-            .map((piece) => piece.value),
-        [['와'], ['과']],
-    )
+    const firstPieces = template.pieces
+        .filter((piece) => piece.type === 'static')
+        .slice(0, -1)
+
+    assertEquals(firstPieces.length, 1)
+    assertEquals(firstPieces[0].value.sort(), ['과', '와', '와/과'].sort())
 })
 
 Deno.test(
@@ -67,17 +66,21 @@ Deno.test(
         }
 
         assertEquals(lastPiece.type, 'static')
-        assertEquals(
-            new Set(lastPiece.value),
-            new Set([
-                '가져오기',
-                '가져오고',
-                '말하기',
-                '말하고',
-                '가져오기/말하기',
-                '가져오고/말하고',
-            ]),
-        )
+        const expected = [
+            '가져오기',
+            '가져오고',
+            '말하기',
+            '말하고',
+            '가져오기/말하기',
+            '가져오고/말하고',
+        ]
+
+        assertEquals(lastPiece.value.length, expected.length)
+        for (const e of expected) {
+            // @ts-ignore
+            if (lastPiece.value.includes(e)) continue
+            throw new Error(`Missing ${e} in ${lastPiece.value}`)
+        }
     },
 )
 

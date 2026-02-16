@@ -1,5 +1,7 @@
-import { Evaluable, Identifier, type Node } from '../../../../node/base.ts'
+import { Evaluable, Expression, Identifier, type Node } from '../../../../node/base.ts'
 import { FunctionInvoke } from '../../../../node/function.ts'
+import { MemberFunctionInvoke } from '../../../../node/class.ts'
+
 import { IndexFetch } from '../../../../node/list.ts'
 import { NumberLiteral } from '../../../../node/primitive-literal.ts'
 import type { IndexedValue } from '../../../../value/indexed.ts'
@@ -35,6 +37,32 @@ export function createFunctionInvokeRule(
 
     const rules = templatePieces.map((pieces) =>
         createRuleFromFunctionTemplate({
+            ...functionTemplate,
+            pieces,
+        }),
+    )
+
+    return rules
+}
+
+export function createMethodInvokeRule(
+    functionTemplate: FunctionTemplate,
+): Rule[] {
+    const variantParts = [...getVariantParts(functionTemplate.pieces)]
+    const availableCombinations = getCombination(
+        variantParts.map((v) => v.candidates.map((_, i) => i)),
+    )
+
+    const templatePieces = availableCombinations.map((choice) =>
+        createTemplatePieceFromChoices(
+            functionTemplate.pieces,
+            variantParts,
+            choice,
+        ),
+    )
+
+    const rules = templatePieces.map((pieces) =>
+        createRuleFromMethodTemplate({
             ...functionTemplate,
             pieces,
         }),
@@ -109,6 +137,37 @@ function createRuleFromFunctionTemplate(
     }
 }
 
+function createRuleFromMethodTemplate(functionTemplate: FunctionTemplate): Rule {
+    const pattern = createPatternFromMethodTemplatePieces(
+        functionTemplate.pieces,
+    )
+
+    return {
+        pattern,
+        factory(matchedNodes, tokens) {
+            const receiver = matchedNodes[0] as Evaluable
+            const params = parseParameterFromTemplate(
+                functionTemplate,
+                matchedNodes.slice(2),
+            )
+
+            const functionInvoke = new FunctionInvoke(
+                {
+                    name: functionTemplate.name,
+                    params,
+                },
+                tokens,
+            )
+
+            return new MemberFunctionInvoke(receiver, functionInvoke, tokens)
+        },
+        config: {
+            exported: true,
+        },
+        flags: [RULE_FLAGS.IS_FUNCTION_INVOKE],
+    }
+}
+
 function createPatternFromTemplatePieces(
     pieces: FunctionTemplatePiece[],
 ): PatternUnit[] {
@@ -124,6 +183,29 @@ function createPatternFromTemplatePieces(
             type: Evaluable,
         }
     })
+}
+
+function createPatternFromMethodTemplatePieces(
+    pieces: FunctionTemplatePiece[],
+): PatternUnit[] {
+    const methodPattern = pieces.map<PatternUnit>((piece) => {
+        if (piece.type === 'static') {
+            return {
+                type: Identifier,
+                value: piece.value[0],
+            }
+        }
+
+        return {
+            type: Evaluable,
+        }
+    })
+
+    return [
+        { type: Evaluable },
+        { type: Expression, value: '.' },
+        ...methodPattern,
+    ]
 }
 
 export function parseParameterFromTemplate(

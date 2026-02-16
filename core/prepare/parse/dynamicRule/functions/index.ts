@@ -1,6 +1,9 @@
 import { convertTokensToFunctionTemplate } from './get-function-templates.ts'
 import { tokensToFFIDeclareRule } from './declare-rule/ffi-declare-rule.ts'
-import { createFunctionInvokeRule } from './invoke-rule.ts'
+import {
+    createFunctionInvokeRule,
+    createMethodInvokeRule,
+} from './invoke-rule.ts'
 
 import { getFunctionDeclareRanges } from '../../../../util/get-function-declare-ranges.ts'
 import { tokensToYaksokDeclareRule } from './declare-rule/yaksok-declare-rule.ts'
@@ -33,9 +36,14 @@ export function createLocalDynamicRules(
         .filter((d) => d.kind !== 'event')
         .map((d) => d.headerTokens)
 
-    const invokingRules = [...yaksokHeaders, ...ffiHeaders, ...methodHeaders]
+    const invokingRules = [...yaksokHeaders, ...ffiHeaders]
         .map(convertTokensToFunctionTemplate)
         .flatMap(createFunctionInvokeRule)
+        .toSorted((a, b) => b.pattern.length - a.pattern.length)
+
+    const methodInvokingRules = methodHeaders
+        .map(convertTokensToFunctionTemplate)
+        .flatMap(createMethodInvokeRule)
         .toSorted((a, b) => b.pattern.length - a.pattern.length)
 
     const eventSubscribeRules = eventHeaders.flatMap(tokensToEventSubscribeRule)
@@ -79,7 +87,12 @@ export function createLocalDynamicRules(
 
     return [
         [declareRules],
-        [eventSubscribeRules, methodEventSubscribeRules, invokingRules],
+        [
+            eventSubscribeRules,
+            methodEventSubscribeRules,
+            invokingRules,
+            methodInvokingRules,
+        ],
     ]
 }
 
