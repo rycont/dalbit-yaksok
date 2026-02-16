@@ -124,6 +124,11 @@ FLATTEN
 UNIQUE
 ***
 
+메소드(리스트), 번역(표준), 빈도
+***
+FREQUENCY
+***
+
 메소드(리스트), 번역(표준), (비교함수)로 정렬하기
 ***
 SORT_WITH_FUNC
@@ -494,6 +499,22 @@ SORT_WITH_FUNC
                     return new ListValue(unique)
                 }
                 throw new Error('중복을 제거할 수 없는 대상이에요.')
+            }
+            case 'FREQUENCY': {
+                const { 자신 } = args
+                if (!(자신 instanceof ListValue || 자신 instanceof TupleValue)) {
+                    throw new Error('목록이나 튜플이 아니면 빈도를 샐 수 없어요.')
+                }
+                const counts = new Map<string | number, number>()
+                for (const item of Array.from(자신.enumerate())) {
+                    const key = getIndexKeyValue(item)
+                    counts.set(key, (counts.get(key) ?? 0) + 1)
+                }
+                const entries = new Map<string | number, ValueType>()
+                for (const [key, count] of counts.entries()) {
+                    entries.set(key, new NumberValue(count))
+                }
+                return new IndexedValue(entries)
             }
             case 'SORT_DEFAULT': {
                 const 리스트 = args.자신
