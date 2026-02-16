@@ -31,4 +31,5 @@ export const FUNCTION_HEADER_STATIC_RESERVED_WORDS_ALLOWLIST = new Set([
     '이고',
     '거나',
     '잠깐',
+    '보여주기',
 ])

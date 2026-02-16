@@ -12,6 +12,8 @@ import { tokensToMethodFFIDeclareRule } from './declare-rule/method-ffi-declare-
 import { TOKEN_TYPE, type Token } from '../../../tokenize/token.ts'
 import type { Rule } from '../../type.ts'
 import { tokensToEventSubscribeRule } from './tokens-to-event-subscribe-rule.ts'
+import { tokensToMethodEventDeclareRule } from './declare-rule/method-event-declare-rule.ts'
+import { tokensToMethodEventSubscribeRule } from './tokens-to-method-event-subscribe-rule.ts'
 
 export function createLocalDynamicRules(
     tokens: Token[],
@@ -27,7 +29,9 @@ export function createLocalDynamicRules(
     const classHeaders = functionDeclareRanges.class.map(getTokensFromRange)
     const eventHeaders = functionDeclareRanges.event.map(getTokensFromRange)
     const methodDeclarations = collectMethodDeclarations(tokens)
-    const methodHeaders = methodDeclarations.map((d) => d.headerTokens)
+    const methodHeaders = methodDeclarations
+        .filter((d) => d.kind !== 'event')
+        .map((d) => d.headerTokens)
 
     const invokingRules = [...yaksokHeaders, ...ffiHeaders, ...methodHeaders]
         .map(convertTokensToFunctionTemplate)
@@ -35,22 +39,33 @@ export function createLocalDynamicRules(
         .toSorted((a, b) => b.pattern.length - a.pattern.length)
 
     const eventSubscribeRules = eventHeaders.flatMap(tokensToEventSubscribeRule)
+    const methodEventSubscribeRules = methodDeclarations
+        .filter((d) => d.kind === 'event')
+        .flatMap((d) =>
+            tokensToMethodEventSubscribeRule(d.prefixTokens, d.headerTokens),
+        )
 
     const ffiDeclareRules = ffiHeaders.map(tokensToFFIDeclareRule)
     const yaksokDeclareRules = yaksokHeaders.map(tokensToYaksokDeclareRule)
-    const methodDeclareRules = methodDeclarations.flatMap((d) =>
-        d.kind === 'normal'
-            ? tokensToMethodDeclareRule(
-                  d.prefixTokens,
-                  d.headerTokens,
-                  d.receiverTypeNames,
-              )
-            : tokensToMethodFFIDeclareRule(
-                  d.prefixTokens,
-                  d.headerTokens,
-                  d.receiverTypeNames,
-              ),
-    )
+    const methodDeclareRules = methodDeclarations.flatMap((d) => {
+        if (d.kind === 'normal') {
+            return tokensToMethodDeclareRule(
+                d.prefixTokens,
+                d.headerTokens,
+                d.receiverTypeNames,
+            )
+        }
+
+        if (d.kind === 'ffi') {
+            return tokensToMethodFFIDeclareRule(
+                d.prefixTokens,
+                d.headerTokens,
+                d.receiverTypeNames,
+            )
+        }
+
+        return tokensToMethodEventDeclareRule(d.prefixTokens, d.headerTokens)
+    })
     const classDeclareRules = classHeaders.map(tokensToClassDeclareRule)
     const eventDeclareRules = eventHeaders.map(tokensToEventDeclareRule)
 
@@ -62,7 +77,10 @@ export function createLocalDynamicRules(
         ...eventDeclareRules,
     ].toSorted((a, b) => b.pattern.length - a.pattern.length)
 
-    return [[declareRules], [eventSubscribeRules, invokingRules]]
+    return [
+        [declareRules],
+        [eventSubscribeRules, methodEventSubscribeRules, invokingRules],
+    ]
 }
 
 const getTokensFromRangeFactory =
@@ -70,7 +88,7 @@ const getTokensFromRangeFactory =
         tokens.slice(range[0], range[1])
 
 interface MethodDeclarationInfo {
-    kind: 'normal' | 'ffi'
+    kind: 'normal' | 'ffi' | 'event'
     prefixTokens: Token[]
     headerTokens: Token[]
     receiverTypeNames: string[]
@@ -111,10 +129,16 @@ function collectMethodDeclarations(tokens: Token[]): MethodDeclarationInfo[] {
         while (tokens[headerStart]?.type === TOKEN_TYPE.SPACE) headerStart++
 
         let kind: MethodDeclarationInfo['kind'] = 'normal'
-        if (
+
+        const isFFI =
             tokens[headerStart]?.type === TOKEN_TYPE.IDENTIFIER &&
             tokens[headerStart].value === '번역'
-        ) {
+
+        const isEvent =
+            tokens[headerStart]?.type === TOKEN_TYPE.IDENTIFIER &&
+            tokens[headerStart].value === '이벤트'
+
+        if (isFFI) {
             let ffiCursor = headerStart + 1
             while (tokens[ffiCursor]?.type === TOKEN_TYPE.SPACE) ffiCursor++
             if (tokens[ffiCursor]?.type !== TOKEN_TYPE.OPENING_PARENTHESIS) {
@@ -141,6 +165,33 @@ function collectMethodDeclarations(tokens: Token[]): MethodDeclarationInfo[] {
             headerStart = ffiCursor + 1
             while (tokens[headerStart]?.type === TOKEN_TYPE.SPACE) headerStart++
             kind = 'ffi'
+        } else if (isEvent) {
+            let eventCursor = headerStart + 1
+            while (tokens[eventCursor]?.type === TOKEN_TYPE.SPACE) eventCursor++
+            if (tokens[eventCursor]?.type !== TOKEN_TYPE.OPENING_PARENTHESIS) {
+                continue
+            }
+
+            eventCursor++
+            while (
+                eventCursor < tokens.length &&
+                tokens[eventCursor].type !== TOKEN_TYPE.CLOSING_PARENTHESIS
+            ) {
+                eventCursor++
+            }
+            if (tokens[eventCursor]?.type !== TOKEN_TYPE.CLOSING_PARENTHESIS) {
+                continue
+            }
+
+            eventCursor++
+            while (tokens[eventCursor]?.type === TOKEN_TYPE.SPACE) eventCursor++
+            if (tokens[eventCursor]?.type !== TOKEN_TYPE.COMMA) {
+                continue
+            }
+
+            headerStart = eventCursor + 1
+            while (tokens[headerStart]?.type === TOKEN_TYPE.SPACE) headerStart++
+            kind = 'event'
         }
 
         const newLineRelative = tokens
