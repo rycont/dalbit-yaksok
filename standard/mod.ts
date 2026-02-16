@@ -49,6 +49,11 @@ JOIN
 KEYS
 ***
 
+메소드(사전, 리스트), 번역(표준), 값들
+***
+VALUES
+***
+
 메소드(사전, 리스트), 번역(표준), (키)를/을 (기본값)으로/로 가져오기
 ***
 GET
@@ -124,9 +129,19 @@ FLATTEN
 UNIQUE
 ***
 
-메소드(리스트), 번역(표준), 빈도
+메소드(문자, 리스트), 번역(표준), 빈도
 ***
 FREQUENCY
+***
+
+메소드(문자, 리스트, 숫자, 사전), 번역(표준), 종류
+***
+TYPE
+***
+
+메소드(리스트), 번역(표준), (항목) 추가하기
+***
+APPEND
 ***
 
 메소드(리스트), 번역(표준), (비교함수)로 정렬하기
@@ -223,6 +238,16 @@ SORT_WITH_FUNC
                     return new StringValue(String(k))
                 })
                 return new ListValue(keys)
+            }
+            case 'VALUES': {
+                const { 자신 } = args
+                if (!(자신 instanceof IndexedValue)) {
+                    throw new Error(
+                        '사전이나 목록이 아니면 값들을 가져올 수 없어요.',
+                    )
+                }
+                const values = Array.from(자신.getEntries()).map(([, v]) => v)
+                return new ListValue(values)
             }
             case 'GET': {
                 const { 자신, 키, 기본값 } = args
@@ -502,11 +527,15 @@ SORT_WITH_FUNC
             }
             case 'FREQUENCY': {
                 const { 자신 } = args
-                if (!(자신 instanceof ListValue || 자신 instanceof TupleValue)) {
-                    throw new Error('목록이나 튜플이 아니면 빈도를 샐 수 없어요.')
+                if (!(자신 instanceof ListValue || 자신 instanceof TupleValue || 자신 instanceof StringValue)) {
+                    throw new Error('문자열, 목록이나 튜플이 아니면 빈도를 샐 수 없어요.')
                 }
+                const items = 자신 instanceof StringValue 
+                    ? 자신.value.split('').map(c => new StringValue(c))
+                    : Array.from(자신.enumerate())
+
                 const counts = new Map<string | number, number>()
-                for (const item of Array.from(자신.enumerate())) {
+                for (const item of items) {
                     const key = getIndexKeyValue(item)
                     counts.set(key, (counts.get(key) ?? 0) + 1)
                 }
@@ -515,6 +544,22 @@ SORT_WITH_FUNC
                     entries.set(key, new NumberValue(count))
                 }
                 return new IndexedValue(entries)
+            }
+            case 'TYPE': {
+                const { 자신 } = args
+                if (자신 instanceof NumberValue) return new StringValue('숫자')
+                if (자신 instanceof StringValue) return new StringValue('문자')
+                if (자신 instanceof ListValue) return new StringValue('목록')
+                if (자신 instanceof IndexedValue) return new StringValue('사전')
+                return new StringValue('기타')
+            }
+            case 'APPEND': {
+                const { 자신, 항목 } = args
+                if (!(자신 instanceof ListValue)) {
+                    throw new Error('목록이 아니면 항목을 추가할 수 없어요.')
+                }
+                자신.setItem(자신.entries.size, 항목)
+                return 자신
             }
             case 'SORT_DEFAULT': {
                 const 리스트 = args.자신
