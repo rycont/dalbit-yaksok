@@ -4,6 +4,7 @@ import {
     ExtensionManifest,
     NumberValue,
     ListValue,
+    TupleValue,
     StringValue,
     ValueType,
     FunctionInvokingParams,
@@ -113,6 +114,16 @@ MAX
 MIN
 ***
 
+메소드(리스트), 번역(표준), 펼치기
+***
+FLATTEN
+***
+
+메소드(문자, 리스트), 번역(표준), 중복제거
+***
+UNIQUE
+***
+
 메소드(리스트), 번역(표준), (비교함수)로 정렬하기
 ***
 SORT_WITH_FUNC
@@ -133,7 +144,7 @@ SORT_WITH_FUNC
                 if (자신 instanceof StringValue) {
                     return new NumberValue(자신.value.length)
                 }
-                if (자신 instanceof ListValue) {
+                if (자신 instanceof ListValue || 자신 instanceof TupleValue) {
                     const length = Array.from(자신.enumerate()).length
                     return new NumberValue(length)
                 }
@@ -141,7 +152,7 @@ SORT_WITH_FUNC
             }
             case 'SUM': {
                 const { 자신 } = args
-                if (!(자신 instanceof ListValue)) {
+                if (!(자신 instanceof ListValue || 자신 instanceof TupleValue)) {
                     throw new Error('합계를 구할 수 없는 대상이에요.')
                 }
                 const sum = Array.from(자신.enumerate()).reduce(
@@ -157,7 +168,7 @@ SORT_WITH_FUNC
             }
             case 'PRODUCT': {
                 const { 자신 } = args
-                if (!(자신 instanceof ListValue)) {
+                if (!(자신 instanceof ListValue || 자신 instanceof TupleValue)) {
                     throw new Error('곱을 구할 수 없는 대상이에요.')
                 }
                 const product = Array.from(자신.enumerate()).reduce(
@@ -446,6 +457,43 @@ SORT_WITH_FUNC
                         : acc
                 })
                 return min
+            }
+            case 'FLATTEN': {
+                const { 자신 } = args
+                if (!(자신 instanceof ListValue || 자신 instanceof TupleValue)) {
+                    throw new Error('목록이나 튜플이 아니면 펼칠 수 없어요.')
+                }
+                const items = Array.from(자신.enumerate())
+                const flattened: ValueType[] = []
+                for (const item of items) {
+                    if (item instanceof ListValue || item instanceof TupleValue) {
+                        flattened.push(...Array.from(item.enumerate()))
+                    } else {
+                        flattened.push(item)
+                    }
+                }
+                return new ListValue(flattened)
+            }
+            case 'UNIQUE': {
+                const { 자신 } = args
+                if (자신 instanceof StringValue) {
+                    const uniqueChars = Array.from(new Set(자신.value))
+                    return new StringValue(uniqueChars.join(''))
+                }
+                if (자신 instanceof ListValue || 자신 instanceof TupleValue) {
+                    const items = Array.from(자신.enumerate())
+                    const seen = new Set<string>()
+                    const unique: ValueType[] = []
+                    for (const item of items) {
+                        const key = item.toPrint()
+                        if (!seen.has(key)) {
+                            seen.add(key)
+                            unique.push(item)
+                        }
+                    }
+                    return new ListValue(unique)
+                }
+                throw new Error('중복을 제거할 수 없는 대상이에요.')
             }
             case 'SORT_DEFAULT': {
                 const 리스트 = args.자신

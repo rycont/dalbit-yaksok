@@ -92,9 +92,7 @@ export class PythonCall extends Evaluable {
 
     override validate(scope: Scope): YaksokError[] {
         return [
-            ...(this.callable instanceof FetchMember
-                ? this.validateArg(this.callable.target, scope)
-                : []),
+            ...this.validateArg(this.callable, scope),
             ...this.args.flatMap((a) => this.validateArg(a, scope)),
         ]
     }

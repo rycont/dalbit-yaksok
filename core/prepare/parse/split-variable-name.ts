@@ -15,7 +15,10 @@ export function splitVariableName(
     const detectedFunctionHeaderAfterParameter: string[] = [
         ...inheritedFunctionHeaders,
     ]
-    const detectedIdentifierNames: string[] = [...inheritedIdentifiers]
+    const detectedIdentifierNames: string[] = [
+        ...inheritedIdentifiers,
+        ...collectIdentifiersInBlock(nodes),
+    ]
 
     while (cursor < nodes.length) {
         const currentNode = nodes[cursor]
@@ -160,6 +163,24 @@ export function splitVariableName(
             cursor++
             continue
         } else if (
+            currentNode instanceof Identifier &&
+            currentNode.value === '람다'
+        ) {
+            let lambdaCursor = cursor + 1
+            while (
+                lambdaCursor < nodes.length &&
+                (nodes[lambdaCursor] instanceof Identifier ||
+                    (nodes[lambdaCursor] instanceof Expression &&
+                        nodes[lambdaCursor].value === ','))
+            ) {
+                if (nodes[lambdaCursor] instanceof Identifier) {
+                    detectedIdentifierNames.push(
+                        (nodes[lambdaCursor] as Identifier).value,
+                    )
+                }
+                lambdaCursor++
+            }
+        } else if (
             currentNode instanceof Expression &&
             currentNode.value === '='
         ) {
@@ -217,4 +238,40 @@ function getParameterNameFromFunctionDeclaration(
     }
 
     return parameterNames
+}
+
+function collectIdentifiersInBlock(nodes: Node[]): string[] {
+    const identifiers: string[] = []
+
+    for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i]
+
+        if (node instanceof Expression && node.value === '=') {
+            const prevNode = nodes[i - 1]
+            if (prevNode instanceof Identifier) {
+                identifiers.push(prevNode.value)
+            }
+        } else if (node instanceof Identifier && node.value === '람다') {
+            let lambdaCursor = i + 1
+            while (
+                lambdaCursor < nodes.length &&
+                (nodes[lambdaCursor] instanceof Identifier ||
+                    (nodes[lambdaCursor] instanceof Expression &&
+                        nodes[lambdaCursor].value === ','))
+            ) {
+                if (nodes[lambdaCursor] instanceof Identifier) {
+                    identifiers.push((nodes[lambdaCursor] as Identifier).value)
+                }
+                lambdaCursor++
+            }
+        } else if (
+            node instanceof Identifier &&
+            node.value === '새' &&
+            nodes[i + 1] instanceof Identifier
+        ) {
+            identifiers.push((nodes[i + 1] as Identifier).value)
+        }
+    }
+
+    return identifiers
 }

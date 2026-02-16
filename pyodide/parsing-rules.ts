@@ -282,6 +282,30 @@ export const PARSING_RULES: Rule[] = [
             return new Sequence([methodCall, ...rest], tokens)
         },
     },
+    // Python: <expr.name>(<a>, <b>, ...) - (a,b,...) becomes TupleLiteral
+    {
+        pattern: [{ type: FetchMember }, { type: TupleLiteral }],
+        factory: (nodes, tokens) => {
+            const fetched = nodes[0] as FetchMember
+            if (!isPythonIdentifierName(fetched.memberName)) {
+                return null
+            }
+            const tuple = nodes[1] as TupleLiteral
+            return new PythonCall(fetched, tuple.items, tokens)
+        },
+    },
+    // Python: <expr.name>(<expr>) - (expr) becomes ValueWithParenthesis
+    {
+        pattern: [{ type: FetchMember }, { type: ValueWithParenthesis }],
+        factory: (nodes, tokens) => {
+            const fetched = nodes[0] as FetchMember
+            if (!isPythonIdentifierName(fetched.memberName)) {
+                return null
+            }
+            const wrapped = nodes[1] as ValueWithParenthesis
+            return new PythonCall(fetched, [wrapped.value], tokens)
+        },
+    },
     // Python: <expr>.<python-call(...)> where call part was reduced first
     {
         pattern: [

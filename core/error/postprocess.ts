@@ -142,10 +142,13 @@ function parseInvalidVariableName(
     )
 
     const startPosition = thisLineTokens[0].position
-    const tokensBeforeEqualSign = allTokens.slice(
-        tokenThisLineStartIndex + 1,
-        equalSignTokenIndex - 1,
-    )
+    const tokensBeforeEqualSign = allTokens
+        .slice(tokenThisLineStartIndex + 1, equalSignTokenIndex)
+        .filter(
+            (token) =>
+                token.type !== TOKEN_TYPE.SPACE &&
+                token.type !== TOKEN_TYPE.INDENT,
+        )
 
     if (tokensBeforeEqualSign.length === 1) {
         return [line]
