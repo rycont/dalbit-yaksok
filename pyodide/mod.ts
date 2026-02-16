@@ -10,6 +10,7 @@ import {
     type Extension,
     type ExtensionManifest,
     type FunctionInvokingParams,
+    type Scope,
 } from '@dalbit-yaksok/core'
 import { PARSING_RULES } from './parsing-rules.ts'
 
@@ -59,6 +60,7 @@ export class Pyodide implements Extension {
     async executeFFI(
         code: string,
         args: FunctionInvokingParams,
+        callerScope: Scope,
     ): Promise<ValueType> {
         if (!this.pyodide) {
             throw new Error('Pyodide not initialized')
@@ -69,6 +71,8 @@ export class Pyodide implements Extension {
                 code,
                 argsKeys: Object.keys(args),
             })
+            const runner = this.pyodide.runPythonAsync || this.pyodide.runPython
+            await this.ensureStdoutBridge(runner, callerScope)
 
             if (code.startsWith('CALL ')) {
                 const name = code.slice(5).trim()
@@ -93,8 +97,6 @@ export class Pyodide implements Extension {
 
                 const pyArgs = argSnippets.join(', ')
                 const pyCode = `${name}(${pyArgs})`
-                const runner =
-                    this.pyodide.runPythonAsync || this.pyodide.runPython
                 console.debug('[Pyodide.executeFFI] CALL pyCode', pyCode)
                 let result
                 try {
@@ -116,6 +118,9 @@ export class Pyodide implements Extension {
                     ctor: (result as any)?.constructor?.name,
                 })
                 return convertPythonResultToYaksok(result)
+            } else if (code.startsWith('GET_GLOBAL ')) {
+                const name = code.slice('GET_GLOBAL '.length).trim()
+                return await this.getPythonGlobal(name, runner)
             } else if (code.startsWith('CALL_METHOD ')) {
                 const method = code.slice('CALL_METHOD '.length).trim()
                 const orderedKeys = Object.keys(args).sort(
@@ -125,9 +130,6 @@ export class Pyodide implements Extension {
                 if (!targetArg) {
                     throw new Error('CALL_METHOD requires target in args[0]')
                 }
-
-                const runner =
-                    this.pyodide.runPythonAsync || this.pyodide.runPython
 
                 // Prepare target
                 let targetVarName: string | null = null
@@ -188,8 +190,6 @@ export class Pyodide implements Extension {
                     }
                 }
             } else {
-                const runner =
-                    this.pyodide.runPythonAsync || this.pyodide.runPython
                 console.debug('[Pyodide.executeFFI] EVAL code', code.trim())
                 await runner.call(this.pyodide, code)
                 console.debug('[Pyodide.executeFFI] EVAL done')
@@ -206,6 +206,99 @@ export class Pyodide implements Extension {
             throw new ErrorInFFIExecution({
                 message: `Pyodide 실행 중 오류: ${message}`,
             })
+        }
+    }
+
+    private async ensureStdoutBridge(
+        runner: (code: string) => Promise<unknown> | unknown,
+        callerScope: Scope,
+    ): Promise<void> {
+        const sessionStdout = callerScope.codeFile?.session?.stdout
+
+        if (typeof sessionStdout !== 'function') {
+            this.pyodide!.globals.set('yak_stdout_write', (_: unknown) => {})
+        } else {
+            let hasPendingPlainText = false
+            this.pyodide!.globals.set('yak_stdout_write', (text: unknown) => {
+                const rendered = String(text)
+                if (rendered.length === 0) {
+                    return
+                }
+
+                if (rendered === '\n' || rendered === '\r\n') {
+                    if (hasPendingPlainText) {
+                        hasPendingPlainText = false
+                    } else {
+                        sessionStdout('')
+                    }
+                    return
+                }
+
+                const hasTrailingNewline = /\r?\n$/.test(rendered)
+                const normalized = rendered.replace(/\r?\n$/, '')
+                sessionStdout(normalized)
+                hasPendingPlainText = !hasTrailingNewline
+            })
+        }
+
+        await runner.call(
+            this.pyodide,
+            `
+import sys
+
+class __YaksokStdoutWriter:
+    def write(self, s):
+        yak_stdout_write(str(s))
+        return len(s)
+
+    def flush(self):
+        return None
+
+sys.stdout = __YaksokStdoutWriter()
+sys.stderr = __YaksokStdoutWriter()
+`.trim(),
+        )
+    }
+
+    private async getPythonGlobal(
+        name: string,
+        runner: (code: string) => Promise<unknown> | unknown,
+    ): Promise<ValueType> {
+        if (!name) {
+            throw new Error('GET_GLOBAL requires a name')
+        }
+
+        const globalVar = `__yak_global_${Date.now()}_${this.tempVarCounter++}`
+        const pyName = JSON.stringify(name)
+        const pyError = JSON.stringify(
+            `파이썬 전역에서 '${name}'을 찾지 못했어요.`,
+        )
+
+        try {
+            await runner.call(
+                this.pyodide,
+                `
+if ${pyName} in globals():
+    ${globalVar} = globals()[${pyName}]
+elif hasattr(__import__('builtins'), ${pyName}):
+    ${globalVar} = getattr(__import__('builtins'), ${pyName})
+else:
+    raise NameError(${pyError})
+`.trim(),
+            )
+            const result = this.pyodide!.globals.get(globalVar)
+            return convertPythonResultToYaksok(result)
+        } finally {
+            try {
+                await runner.call(
+                    this.pyodide,
+                    `
+globals().pop(${JSON.stringify(globalVar)}, None)
+`.trim(),
+                )
+            } catch (_) {
+                // ignore cleanup errors
+            }
         }
     }
 }
