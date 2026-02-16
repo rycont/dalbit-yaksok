@@ -103,6 +103,16 @@ SOME
 SORT_DEFAULT
 ***
 
+메소드(리스트), 번역(표준), 최댓값
+***
+MAX
+***
+
+메소드(리스트), 번역(표준), 최솟값
+***
+MIN
+***
+
 메소드(리스트), 번역(표준), (비교함수)로 정렬하기
 ***
 SORT_WITH_FUNC
@@ -220,20 +230,18 @@ SORT_WITH_FUNC
                     자신 instanceof StringValue &&
                     대상 instanceof StringValue
                 ) {
-                    return new StringValue(
-                        자신.value.includes(대상.value) ? '참' : '거짓',
-                    )
+                    return new BooleanValue(자신.value.includes(대상.value))
                 }
                 if (자신 instanceof ListValue) {
                     const found = Array.from(자신.enumerate()).some(
                         (item) => item.toPrint() === 대상.toPrint(),
                     )
-                    return new StringValue(found ? '참' : '거짓')
+                    return new BooleanValue(found)
                 }
                 if (자신 instanceof IndexedValue) {
                     const key = getIndexKeyValue(대상)
                     const found = tryGetIndexedItem(자신, key).found
-                    return new StringValue(found ? '참' : '거짓')
+                    return new BooleanValue(found)
                 }
                 throw new Error('포함 여부를 확인할 수 없는 대상이에요.')
             }
@@ -359,11 +367,11 @@ SORT_WITH_FUNC
 
                     const result = await 판별함수.run(runArgs, callerScope)
                     if (!isTruthy(result)) {
-                        return new StringValue('거짓')
+                        return new BooleanValue(false)
                     }
                 }
 
-                return new StringValue('참')
+                return new BooleanValue(true)
             }
             case 'SOME': {
                 const 리스트 = args.리스트 ?? args.자신
@@ -395,11 +403,49 @@ SORT_WITH_FUNC
 
                     const result = await 판별함수.run(runArgs, callerScope)
                     if (isTruthy(result)) {
-                        return new StringValue('참')
+                        return new BooleanValue(true)
                     }
                 }
 
-                return new StringValue('거짓')
+                return new BooleanValue(false)
+            }
+            case 'MAX': {
+                const { 자신 } = args
+                if (!(자신 instanceof ListValue)) {
+                    throw new Error('최댓값을 구할 수 없는 대상이에요.')
+                }
+                const items = Array.from(자신.enumerate())
+                if (items.length === 0) {
+                    throw new Error('빈 목록에서는 최댓값을 구할 수 없어요.')
+                }
+                const max = items.reduce((acc, curr) => {
+                    if (acc instanceof NumberValue && curr instanceof NumberValue) {
+                        return curr.value > acc.value ? curr : acc
+                    }
+                    return curr.toPrint().localeCompare(acc.toPrint()) > 0
+                        ? curr
+                        : acc
+                })
+                return max
+            }
+            case 'MIN': {
+                const { 자신 } = args
+                if (!(자신 instanceof ListValue)) {
+                    throw new Error('최솟값을 구할 수 없는 대상이에요.')
+                }
+                const items = Array.from(자신.enumerate())
+                if (items.length === 0) {
+                    throw new Error('빈 목록에서는 최솟값을 구할 수 없어요.')
+                }
+                const min = items.reduce((acc, curr) => {
+                    if (acc instanceof NumberValue && curr instanceof NumberValue) {
+                        return curr.value < acc.value ? curr : acc
+                    }
+                    return curr.toPrint().localeCompare(acc.toPrint()) < 0
+                        ? curr
+                        : acc
+                })
+                return min
             }
             case 'SORT_DEFAULT': {
                 const 리스트 = args.자신
