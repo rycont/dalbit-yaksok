@@ -357,47 +357,60 @@ function suggestFunctionName(
     scope: Scope,
 ): YaksokError[] {
     const functionNames = Array.from(scope.functions.keys())
+    const variableNames = Array.from(Object.keys(scope.variables))
 
-    if (functionNames.length === 0) {
+    const candidates = [
+        ...functionNames.map((signature) => ({
+            name: signature,
+            search: signature.replace(/\s+/g, '').replace(/\(.*?\)/g, ''),
+        })),
+        ...functionNames.flatMap((signature) =>
+            signature
+                .split(/\(.*?\)/g)
+                .map((part) => part.trim())
+                .filter((part) => part !== '')
+                .map((part) => ({
+                    name: part,
+                    search: part.replace(/\s+/g, ''),
+                })),
+        ),
+        ...variableNames.map((name) => ({
+            name,
+            search: name.replace(/\s+/g, ''),
+        })),
+    ]
+
+    if (candidates.length === 0) {
         return errors
     }
 
-    const functionSignatures = functionNames.map((signature) =>
-        signature
-            .split(/\(.*?\)/g)
-            .map((part) => part.trim())
-            .filter((part) => part !== ''),
-    )
-
     for (let i = 0; i < errors.length; i++) {
-        if (!isLongError(errors[i])) {
-            continue
-        }
+        const error = errors[i]
+        if (!(error instanceof NotDefinedIdentifierError)) continue
 
-        let tokens = errors[i].tokens
-        if (!tokens) {
-            continue
-        }
+        let tokens = error.tokens
+        if (!tokens) continue
 
         tokens = tokens.filter((token) => token.value !== '보여주기')
+        if (tokens.length === 0) continue
 
-        const tokenString = tokens.map((token) => token.value).join('')
-        const closestFunctionSignature = functionSignatures
-            .map((staticParts) =>
-                staticParts.map(
-                    (signature) =>
-                        [
-                            signature,
-                            levenshtein(tokenString, signature),
-                        ] as const,
-                ),
-            )
-            .flat()
-            .sort((a, b) => a[1] - b[1])[0]
+        const tokenString = tokens
+            .map((token) => token.value)
+            .join('')
+            .replace(/\s+/g, '')
 
-        if (closestFunctionSignature[1] < 4) {
-            errors[i].resource = {
-                suggestedFix: closestFunctionSignature[0],
+        const closest = candidates
+            .map((candidate) => ({
+                ...candidate,
+                distance: levenshtein(tokenString, candidate.search),
+            }))
+            .filter((c) => c.distance > 0 && c.distance < 3)
+            .sort((a, b) => a.distance - b.distance)[0]
+
+        if (closest) {
+            error.resource = {
+                ...error.resource,
+                suggestedFix: closest.name,
             }
         }
     }
@@ -405,23 +418,8 @@ function suggestFunctionName(
     return errors
 }
 
-function isLongError(error: YaksokError): boolean {
-    const firstToken = error.tokens?.[0]
-    const lastToken = error.tokens?.[error.tokens.length - 1]
-
-    if (!firstToken || !lastToken) {
-        return false
-    }
-    if (firstToken.position.line !== lastToken.position.line) {
-        return true
-    }
-
-    const length =
-        lastToken.position.column -
-        firstToken.position.column +
-        lastToken.value.length
-
-    return length > 5
+function isLongError(_error: YaksokError): boolean {
+    return true // We want to catch even short typos like '나이이'
 }
 
 function parseGrammarStructureFailure(
