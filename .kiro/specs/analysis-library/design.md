@@ -2,9 +2,12 @@
 
 ## Overview
 
-한국어 자연어 문법을 사용하여 데이터 분석을 수행할 수 있는 라이브러리를 설계합니다. 이 라이브러리는 Dalbit Yaksok의 Extension 시스템을 활용하여 구현되며, 체이닝 방식으로 동작하는 함수들을 제공합니다.
+한국어 자연어 문법을 사용하여 데이터 분석을 수행할 수 있는 라이브러리를
+설계합니다. 이 라이브러리는 Dalbit Yaksok의 Extension 시스템을 활용하여
+구현되며, 체이닝 방식으로 동작하는 함수들을 제공합니다.
 
-핵심 아이디어는 다음과 같은 자연스러운 한국어 문장을 코드로 작성할 수 있게 하는 것입니다:
+핵심 아이디어는 다음과 같은 자연스러운 한국어 문장을 코드로 작성할 수 있게 하는
+것입니다:
 
 ```yak
 결과 = 번역(분석), (거래내역)중 '금액'이 5000보다 큰것 중 가장많이나온 '이름'
@@ -244,7 +247,8 @@ return 데이터중('가장많이나온 ' + 필드명)
 ***
 ```
 
-AnalysisExtension의 executeFFI에서는 JavaScript 코드를 실행하고 적절한 분석 함수를 호출합니다:
+AnalysisExtension의 executeFFI에서는 JavaScript 코드를 실행하고 적절한 분석
+함수를 호출합니다:
 
 ```typescript
 executeFFI(code: string, args: FunctionInvokingParams): ValueType {

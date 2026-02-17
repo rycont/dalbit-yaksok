@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Dalbit Yaksok Web Demo</title>
+        <link rel="stylesheet" href="./src/style.css" />
+    </head>
+
+    <body>
+        <div id="app"></div>
+        <script type="module" src="./src/main.ts"></script>
+
+        <script type="dalbit-yaksok">
+제목 "나의 할 일 목록" 그리기
+
+입력상자 = 박스 그리기
+할일입력 = 문자 입력칸 "새로운 할 일" 그리기
+추가버튼 = 버튼 "추가하기" 그리기
+
+입력상자에 할일입력 넣기
+입력상자에 추가버튼 넣기
+
+목록상자 = 박스 그리기
+
+추가버튼.눌렀을 때
+    할일내용 = 텍스트 할일입력.값 그리기
+    목록상자에 할일내용 넣기
+    할일입력 비우기
+
+    할일내용.눌렀을 때
+        할일내용 지우기
+        </script>
+    </body>
+</html>

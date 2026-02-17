@@ -1,9 +1,9 @@
 import { YaksokSession } from '../core/mod.ts'
-import { assertEquals, assert, assertInstanceOf } from '@std/assert'
+import { assert, assertEquals, assertInstanceOf } from '@std/assert'
 import {
+    BooleanValue,
     NumberValue,
     StringValue,
-    BooleanValue,
 } from '../core/value/primitive.ts'
 import { InvalidTypeCastError } from '../core/error/typecast.ts'
 

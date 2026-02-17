@@ -10,15 +10,21 @@ import { NotDefinedIdentifierError } from '../error/variable.ts'
 import { Scope } from '../executer/scope.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import { ValueType } from '../value/base.ts'
+import { IndexedValue } from '../value/indexed.ts'
+import { ListValue } from '../value/list.ts'
+import { BooleanValue, NumberValue, StringValue } from '../value/primitive.ts'
+import { TupleValue } from '../value/tuple.ts'
 import { Evaluable, Executable, Identifier } from './base.ts'
-import { ValueWithParenthesis } from './calculation.ts'
+import { Formula, ValueWithParenthesis } from './calculation.ts'
 import { Block } from './block.ts'
 import { evaluateParams, FunctionInvoke } from './function.ts'
 import { assignerToOperatorMap } from './operator.ts'
 import { assertValidIdentifierName } from '../util/assert-valid-identifier-name.ts'
 import {
     ClassValue,
+    InstanceValue,
     resolveClassValueFromInstance,
+    SuperValue,
 } from './class/core.ts'
 import {
     findMemberFunction,
@@ -41,6 +47,8 @@ import {
     pickConstructorByArity,
     validateConstructorByArity,
 } from './class/new-instance-constructor.ts'
+import { FunctionObject } from '../value/function.ts'
+import { FFIObject } from '../value/ffi.ts'
 
 export { ClassValue, InstanceValue, SuperValue } from './class/core.ts'
 export { createValidationInstanceFromClass } from './class/validation-instance.ts'
@@ -107,6 +115,63 @@ function resolveValidationTargetValue(
     }
 
     return undefined
+}
+
+function isDotMethodReceiverTypeMatch(
+    value: ValueType,
+    receiverTypeNames: string[],
+): boolean {
+    const normalized = receiverTypeNames.map((name) => name.trim())
+    if (normalized.length === 0) return true
+
+    return normalized.some((typeName) => {
+        if (typeName === '문자' || typeName === '문자열') {
+            return value instanceof StringValue
+        }
+        if (
+            typeName === '리스트' ||
+            typeName === '목록' ||
+            typeName === '배열'
+        ) {
+            return value instanceof ListValue
+        }
+        if (typeName === '딕셔너리' || typeName === '사전') {
+            return (
+                value instanceof IndexedValue && !(value instanceof ListValue)
+            )
+        }
+        if (typeName === '숫자') {
+            return value instanceof NumberValue
+        }
+        if (
+            typeName === '불리언' ||
+            typeName === '논리' ||
+            typeName === '참거짓'
+        ) {
+            return value instanceof BooleanValue
+        }
+        if (typeName === '튜플') {
+            return value instanceof TupleValue
+        }
+
+        return false
+    })
+}
+
+function findFunctionOwnerScope(scope: Scope, name: string): Scope | undefined {
+    let cursor: Scope | undefined = scope
+    while (cursor) {
+        if (cursor.functions.has(name)) {
+            return cursor
+        }
+        cursor = cursor.parent
+    }
+
+    return undefined
+}
+
+function getRuntimeValueTypeName(value: ValueType): string {
+    return (value.constructor as typeof ValueType).friendlyName
 }
 
 export class DeclareClass extends Executable {
@@ -341,26 +406,97 @@ export class MemberFunctionInvoke extends Evaluable {
 
     override async execute(scope: Scope): Promise<ValueType> {
         const rawTarget = await this.target.execute(scope)
-        const resolved = resolveMemberAccessTarget(rawTarget, this.tokens)
-        resolved.scope.setVariable('자신', resolved.instance, this.tokens)
+        const args = await evaluateParams(this.invocation.params, scope)
+        if (
+            rawTarget instanceof InstanceValue ||
+            rawTarget instanceof SuperValue
+        ) {
+            const resolved = resolveMemberAccessTarget(rawTarget, this.tokens)
+            resolved.scope.setVariable('자신', resolved.instance, this.tokens)
 
-        const memberFunction = findMemberFunction(
-            resolved.scope,
-            resolved.instance,
+            const memberFunction = findMemberFunction(
+                resolved.scope,
+                resolved.instance,
+                this.invocation.name,
+            )
+            if (!memberFunction) {
+                throw new MemberFunctionNotFoundError({
+                    resource: {
+                        className: resolved.instance.className,
+                        functionName: this.invocation.name,
+                    },
+                    tokens: this.tokens,
+                })
+            }
+
+            return await memberFunction.run(args, resolved.scope)
+        }
+
+        const functionOwner = findFunctionOwnerScope(
+            scope,
             this.invocation.name,
         )
-        if (!memberFunction) {
+        if (!functionOwner) {
+            return await this.invocation.execute(scope, args)
+        }
+
+        const functionObject = functionOwner.functions.get(this.invocation.name)
+        if (
+            !(functionObject instanceof FunctionObject) &&
+            !(functionObject instanceof FFIObject)
+        ) {
+            return await this.invocation.execute(scope, args)
+        }
+
+        const dotReceiverTypeNames = functionObject.options.dotReceiverTypeNames
+        if (!dotReceiverTypeNames) {
             throw new MemberFunctionNotFoundError({
                 resource: {
-                    className: resolved.instance.className,
+                    className: getRuntimeValueTypeName(rawTarget),
+                    functionName: this.invocation.name,
+                },
+                tokens: this.tokens,
+            })
+        }
+        if (!isDotMethodReceiverTypeMatch(rawTarget, dotReceiverTypeNames)) {
+            throw new MemberFunctionNotFoundError({
+                resource: {
+                    className: getRuntimeValueTypeName(rawTarget),
                     functionName: this.invocation.name,
                 },
                 tokens: this.tokens,
             })
         }
 
-        const args = await evaluateParams(this.invocation.params, scope)
-        return await memberFunction.run(args, resolved.scope)
+        const hasExistingSelf = Object.prototype.hasOwnProperty.call(
+            functionOwner.variables,
+            '자신',
+        )
+        const previousSelf = functionOwner.variables['자신']
+
+        functionOwner.setLocalVariable('자신', rawTarget, this.tokens)
+        try {
+            if (functionObject instanceof FFIObject) {
+                return await functionObject.run(
+                    {
+                        ...args,
+                        자신: rawTarget,
+                    },
+                    scope,
+                )
+            }
+            return await this.invocation.execute(scope, args)
+        } finally {
+            if (hasExistingSelf) {
+                functionOwner.setLocalVariable(
+                    '자신',
+                    previousSelf,
+                    this.tokens,
+                )
+            } else {
+                delete functionOwner.variables['자신']
+            }
+        }
     }
 
     override validate(scope: Scope): YaksokError[] {
@@ -376,6 +512,13 @@ export class MemberFunctionInvoke extends Evaluable {
         try {
             const rawTarget = resolveValidationTargetValue(this.target, scope)
             if (rawTarget) {
+                if (
+                    !(rawTarget instanceof InstanceValue) &&
+                    !(rawTarget instanceof SuperValue)
+                ) {
+                    return allErrors
+                }
+
                 const resolved = resolveMemberAccessTarget(
                     rawTarget,
                     this.tokens,
@@ -425,37 +568,109 @@ export class FetchMember extends Evaluable {
     }
 
     override async execute(scope: Scope): Promise<ValueType> {
-        const rawTarget = await this.target.execute(scope)
-        const resolved = resolveMemberAccessTarget(rawTarget, this.tokens)
-
-        try {
-            return getMemberVariable(
-                resolved.scope,
-                resolved.instance,
+        if (this.target instanceof Formula) {
+            const rewritten = rewriteFormulaTailMemberAccess(
+                this.target,
                 this.memberName,
                 this.tokens,
             )
-        } catch (error) {
-            if (!(error instanceof NotDefinedIdentifierError)) throw error
-
-            const func = findMemberFunction(
-                resolved.scope,
-                resolved.instance,
-                this.memberName,
-            )
-            if (!func) {
-                throw new MemberNotFoundError({
-                    resource: {
-                        className: resolved.instance.className,
-                        memberName: this.memberName,
-                    },
-                    tokens: this.tokens,
-                })
+            if (rewritten) {
+                return await rewritten.execute(scope)
             }
-
-            resolved.scope.setVariable('자신', resolved.instance, this.tokens)
-            return await func.run({}, resolved.scope)
         }
+
+        const rawTarget = await this.target.execute(scope)
+
+        if (
+            rawTarget instanceof InstanceValue ||
+            rawTarget instanceof SuperValue
+        ) {
+            const resolved = resolveMemberAccessTarget(rawTarget, this.tokens)
+
+            try {
+                return getMemberVariable(
+                    resolved.scope,
+                    resolved.instance,
+                    this.memberName,
+                    this.tokens,
+                )
+            } catch (error) {
+                if (!(error instanceof NotDefinedIdentifierError)) throw error
+
+                const func = findMemberFunction(
+                    resolved.scope,
+                    resolved.instance,
+                    this.memberName,
+                )
+                if (!func) {
+                    throw new MemberNotFoundError({
+                        resource: {
+                            className: resolved.instance.className,
+                            memberName: this.memberName,
+                        },
+                        tokens: this.tokens,
+                    })
+                }
+
+                resolved.scope.setVariable(
+                    '자신',
+                    resolved.instance,
+                    this.tokens,
+                )
+                return await func.run({}, resolved.scope)
+            }
+        }
+
+        // 일반 ValueType에 대한 메소드 호출(인자 없음) 지원
+        const functionOwner = findFunctionOwnerScope(scope, this.memberName)
+        if (functionOwner) {
+            const functionObject = functionOwner.functions.get(this.memberName)
+            if (
+                (functionObject instanceof FunctionObject ||
+                    functionObject instanceof FFIObject) &&
+                functionObject.options.dotReceiverTypeNames &&
+                isDotMethodReceiverTypeMatch(
+                    rawTarget,
+                    functionObject.options.dotReceiverTypeNames,
+                )
+            ) {
+                const hasExistingSelf = Object.prototype.hasOwnProperty.call(
+                    functionOwner.variables,
+                    '자신',
+                )
+                const previousSelf = functionOwner.variables['자신']
+
+                functionOwner.setLocalVariable('자신', rawTarget, this.tokens)
+                try {
+                    if (functionObject instanceof FFIObject) {
+                        return await functionObject.run(
+                            { 자신: rawTarget },
+                            scope,
+                        )
+                    }
+                    return await functionObject.run({}, scope)
+                } finally {
+                    if (hasExistingSelf) {
+                        functionOwner.setLocalVariable(
+                            '자신',
+                            previousSelf,
+                            this.tokens,
+                        )
+                    } else {
+                        delete functionOwner.variables['자신']
+                    }
+                }
+            }
+        }
+
+        // 만약 인스턴스가 아니면 resolveMemberAccessTarget이 에러를 던짐
+        const resolved = resolveMemberAccessTarget(rawTarget, this.tokens)
+        return getMemberVariable(
+            resolved.scope,
+            resolved.instance,
+            this.memberName,
+            this.tokens,
+        )
     }
 
     override validate(scope: Scope): YaksokError[] {
@@ -467,6 +682,13 @@ export class FetchMember extends Evaluable {
         try {
             const rawTarget = resolveValidationTargetValue(this.target, scope)
             if (!rawTarget) {
+                return targetErrors
+            }
+
+            if (
+                !(rawTarget instanceof InstanceValue) &&
+                !(rawTarget instanceof SuperValue)
+            ) {
                 return targetErrors
             }
 
@@ -531,6 +753,20 @@ export class FetchMember extends Evaluable {
     override toPrint(): string {
         return `${this.target.toPrint()}.${this.memberName}`
     }
+}
+
+function rewriteFormulaTailMemberAccess(
+    formula: Formula,
+    memberName: string,
+    tokens: Token[],
+): Formula | null {
+    const lastTerm = formula.terms[formula.terms.length - 1]
+    if (!(lastTerm instanceof Evaluable)) {
+        return null
+    }
+
+    const fetchedLast = new FetchMember(lastTerm, memberName, tokens)
+    return new Formula([...formula.terms.slice(0, -1), fetchedLast], tokens)
 }
 
 export class SetMember extends Executable {

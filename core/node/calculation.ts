@@ -195,13 +195,15 @@ export class Formula extends Evaluable {
             operator instanceof DivideOperator ||
             operator instanceof IntegerDivideOperator ||
             operator instanceof ModularOperator
-        )
+        ) {
             return 4
+        }
         if (
             operator instanceof PlusOperator ||
             operator instanceof MinusOperator
-        )
+        ) {
             return 3
+        }
         if (
             operator instanceof GreaterThanOperator ||
             operator instanceof LessThanOperator ||
@@ -210,8 +212,9 @@ export class Formula extends Evaluable {
             operator instanceof EqualOperator ||
             operator instanceof NotEqualOperator ||
             operator instanceof RangeOperator
-        )
+        ) {
             return 2
+        }
         if (operator instanceof AndOperator) return 1
         if (operator instanceof OrOperator) return 0
 

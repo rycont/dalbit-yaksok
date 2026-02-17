@@ -6,6 +6,10 @@ export class StringValue extends PrimitiveValue<string> {
     override toPrint(): string {
         return this.value
     }
+
+    enumerate(): StringValue[] {
+        return this.value.split('').map((char) => new StringValue(char))
+    }
 }
 
 export class NumberValue extends PrimitiveValue<number> {

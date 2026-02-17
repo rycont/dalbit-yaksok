@@ -274,6 +274,10 @@ export class CodeFile {
     public registerScope(scope: Scope, node: Node) {
         this.validationScopes.set(node, scope)
     }
+
+    public set tokens(tokens: Token[]) {
+        this.tokenized = tokens
+    }
 }
 
 /**

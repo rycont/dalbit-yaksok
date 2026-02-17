@@ -2,13 +2,15 @@
 
 ## Workspace Organization
 
-This is a Deno workspace with multiple packages. Each package has its own `deno.json` with independent versioning.
+This is a Deno workspace with multiple packages. Each package has its own
+`deno.json` with independent versioning.
 
 ## Core Directories
 
 ### `/core` - Runtime Package
 
-The heart of the language implementation. Published as `@dalbit-yaksok/core` on JSR.
+The heart of the language implementation. Published as `@dalbit-yaksok/core` on
+JSR.
 
 **Architecture layers:**
 
@@ -30,7 +32,8 @@ The heart of the language implementation. Published as `@dalbit-yaksok/core` on 
 
 ### `/test` - Test Suite
 
-Contains `.yak` source files and `.yak.out` expected output files for integration testing.
+Contains `.yak` source files and `.yak.out` expected output files for
+integration testing.
 
 - `codes/` - Test source files
 - `errors/` - Error handling tests
@@ -48,7 +51,8 @@ VitePress-based documentation in Korean.
 
 ### `/monaco-language-provider` - Editor Integration
 
-Monaco Editor language service provider. Published as `@dalbit-yaksok/monaco-language-provider`.
+Monaco Editor language service provider. Published as
+`@dalbit-yaksok/monaco-language-provider`.
 
 - Syntax highlighting via AST-based tokenization
 - Autocomplete support
@@ -57,7 +61,8 @@ Monaco Editor language service provider. Published as `@dalbit-yaksok/monaco-lan
 
 ### `/quickjs` - JavaScript FFI Bridge
 
-QuickJS integration for safe JavaScript execution. Published as `@dalbit-yaksok/quickjs`.
+QuickJS integration for safe JavaScript execution. Published as
+`@dalbit-yaksok/quickjs`.
 
 ### `/pyodide` - Python FFI Bridge
 

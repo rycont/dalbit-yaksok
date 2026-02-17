@@ -35,12 +35,14 @@ export class SubscribeEvent extends Executable {
     private eventId: string
     private body: Block
     private params: Record<string, Evaluable>
+    private target?: Evaluable
 
     constructor(
         props: {
             eventId: string
             body: Block
             params: Record<string, Evaluable>
+            target?: Evaluable
         },
         public override tokens: Token[],
     ) {
@@ -49,10 +51,15 @@ export class SubscribeEvent extends Executable {
         this.eventId = props.eventId
         this.body = props.body
         this.params = props.params
+        this.target = props.target
     }
 
     override async execute(scope: Scope): Promise<void> {
         const param = await evaluateParams(this.params, scope)
+
+        if (this.target) {
+            param['자신'] = await this.target.execute(scope)
+        }
 
         scope.codeFile?.session?.aliveListeners.push(
             new Promise((resolve) => {
@@ -62,6 +69,7 @@ export class SubscribeEvent extends Executable {
                         const subScope = new Scope({
                             parent: scope,
                             callerNode: this,
+                            initialVariable: param,
                         })
                         this.body.execute(subScope)
                     },
@@ -75,7 +83,11 @@ export class SubscribeEvent extends Executable {
         return Promise.resolve()
     }
 
-    override validate(_scope: Scope): YaksokError[] {
+    override validate(scope: Scope): YaksokError[] {
+        if (this.target) {
+            return this.target.validate(scope)
+        }
+
         return []
     }
 }

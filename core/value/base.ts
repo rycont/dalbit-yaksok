@@ -2,9 +2,9 @@ export class ValueType {
     static friendlyName = '값'
 
     toPrint(): string {
-        return `${
-            (this.constructor as typeof ValueType).friendlyName
-        } (${JSON.stringify(this)})`
+        return `${(this.constructor as typeof ValueType).friendlyName} (${JSON.stringify(
+            this,
+        )})`
     }
 }
 

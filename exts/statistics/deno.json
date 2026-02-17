@@ -1,0 +1,8 @@
+{
+  "version": "5.0.0",
+  "name": "@dalbit-yaksok/statistics",
+  "exports": "./mod.ts",
+  "imports": {
+    "@dalbit-yaksok/core": "../../core/mod.ts"
+  }
+}

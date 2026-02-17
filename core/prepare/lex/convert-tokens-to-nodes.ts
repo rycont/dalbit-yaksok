@@ -54,6 +54,10 @@ function mapTokenToNode(token: Token) {
             return new StringLiteral(unescapeString(token.value.slice(1, -1)), [
                 token,
             ])
+        case TOKEN_TYPE.REGEX:
+            return new StringLiteral(unescapeString(token.value.slice(2, -1)), [
+                token,
+            ])
         case TOKEN_TYPE.TEMPLATE_STRING_START:
             // Remove leading quote, unescape content
             return new TemplateStringPart(

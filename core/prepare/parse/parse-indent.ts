@@ -1,4 +1,4 @@
-import { type Node, Indent, EOL, Block } from '../../node/index.ts'
+import { Block, EOL, Indent, type Node } from '../../node/index.ts'
 import { getTokensFromNodes } from '../../util/merge-tokens.ts'
 
 export function parseIndent(_tokens: Node[], indent = 0) {

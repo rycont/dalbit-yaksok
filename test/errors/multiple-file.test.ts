@@ -3,7 +3,7 @@ import {
     ErrorInModuleError,
     FileForRunNotExistError,
 } from '../../core/error/index.ts'
-import { yaksok } from '../../core/mod.ts'
+import { yaksok, YaksokSession } from '../../core/mod.ts'
 
 Deno.test('Cannot find entry point in files', async () => {
     const result = await yaksok({
@@ -22,12 +22,13 @@ Deno.test('No files to run', async () => {
 })
 
 Deno.test('Error in importing module', async () => {
-    const result = await yaksok({
-        main: '(@아두이노 이름) 보여주기',
-        아두이노: `
-이름 = "아두이노" / 2
-`,
-    })
+    const session = new YaksokSession()
+
+    session.addModule('main', '(@아두이노 이름) 보여주기')
+    session.addModule('아두이노', `이름 = "아두이노" / 2`)
+
+    const result = (await session.runModule('main')).get("main")!
+
     assert(result.reason === 'error')
     assertIsError(result.error, ErrorInModuleError)
 })

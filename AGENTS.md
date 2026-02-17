@@ -1,12 +1,11 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-01-02
-**Commit:** f2c1218
-**Branch:** main
+**Generated:** 2026-01-02 **Commit:** f2c1218 **Branch:** main
 
 ## OVERVIEW
 
-Korean programming language ("약속" fork) interpreter. Deno workspace with JSR publishing. Code reads like natural Korean sentences with particle conjugations.
+Korean programming language ("약속" fork) interpreter. Deno workspace with JSR
+publishing. Code reads like natural Korean sentences with particle conjugations.
 
 ## STRUCTURE
 
@@ -66,7 +65,8 @@ dalbit-yaksok/
 
 - **DO NOT** use npm for core packages (use JSR)
 - **DO NOT** add circular dependencies (CI will fail)
-- **AVOID** modifying `core/prepare/parse/rule/index.ts` without understanding shift-reduce parser
+- **AVOID** modifying `core/prepare/parse/rule/index.ts` without understanding
+  shift-reduce parser
 
 ## COMMANDS
 
@@ -110,7 +110,11 @@ Existing: QuickJS (JS), Pyodide (Python)
 
 ## NOTES
 
-- Version sync: `deno task apply-version` propagates root version to all packages
-- Large files: `rule/index.ts` (900L), `session.ts` (575L), `operator.ts` (587L) - complexity hotspots
-- Korean identifiers: Variables/functions use Korean names (e.g., `보여주기` = print)
-- Particle handling: `이/가`, `을/를`, `와/과` conjugations in function declarations
+- Version sync: `deno task apply-version` propagates root version to all
+  packages
+- Large files: `rule/index.ts` (900L), `session.ts` (575L), `operator.ts`
+  (587L) - complexity hotspots
+- Korean identifiers: Variables/functions use Korean names (e.g., `보여주기` =
+  print)
+- Particle handling: `이/가`, `을/를`, `와/과` conjugations in function
+  declarations

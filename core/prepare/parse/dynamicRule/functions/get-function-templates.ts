@@ -1,4 +1,7 @@
-import { RESERVED_WORDS } from '../../../../constant/reserved-words.ts'
+import {
+    FUNCTION_HEADER_STATIC_RESERVED_WORDS_ALLOWLIST,
+    RESERVED_WORDS,
+} from '../../../../constant/reserved-words.ts'
 import { FunctionMustHaveOneOrMoreStringPartError } from '../../../../error/function.ts'
 import { UnexpectedTokenError } from '../../../../error/prepare.ts'
 import { NotProperIdentifierNameToDefineError } from '../../../../error/variable.ts'
@@ -22,6 +25,12 @@ export function convertTokensToFunctionTemplate(
         const token = tokens[i]
 
         if (token.type !== TOKEN_TYPE.IDENTIFIER) {
+            if (token.value === '/' && rawPieces.length > 0) {
+                const last = rawPieces[rawPieces.length - 1]
+                if (last.type === 'static') {
+                    last.value += '/'
+                }
+            }
             continue
         }
 
@@ -41,6 +50,14 @@ export function convertTokensToFunctionTemplate(
             if (destructureNames.length > 0) {
                 rawPieces.push({ type: 'destructure', value: destructureNames })
                 i += destructureNames.length * 2 - 1
+                continue
+            }
+        }
+
+        if (rawPieces.length > 0) {
+            const last = rawPieces[rawPieces.length - 1]
+            if (last.type === 'static' && last.value.endsWith('/')) {
+                last.value += token.value
                 continue
             }
         }
@@ -175,14 +192,33 @@ function assertValidFunctionHeader(
     }
 
     for (const [index, token] of tokens.entries()) {
-        if (token.type === TOKEN_TYPE.IDENTIFIER) {
-            if (RESERVED_WORDS.has(token.value)) {
-                throw new NotProperIdentifierNameToDefineError({
-                    texts: tokens.map((t) => t.value),
-                })
-            }
+        if (token.type !== TOKEN_TYPE.IDENTIFIER) {
+            continue
         }
 
+        if (!RESERVED_WORDS.has(token.value)) {
+            continue
+        }
+
+        const isParameterIdentifier = isFunctionParameterIdentifierToken(
+            tokens,
+            index,
+        )
+
+        // 함수 헤더의 정적 문구에서는 일부 예약어를 예외적으로 허용한다.
+        if (
+            !isParameterIdentifier &&
+            FUNCTION_HEADER_STATIC_RESERVED_WORDS_ALLOWLIST.has(token.value)
+        ) {
+            continue
+        }
+
+        throw new NotProperIdentifierNameToDefineError({
+            texts: tokens.map((t) => t.value),
+        })
+    }
+
+    for (const [index, token] of tokens.entries()) {
         if (token.type !== TOKEN_TYPE.OPENING_PARENTHESIS) {
             continue
         }
@@ -198,7 +234,6 @@ function assertValidFunctionHeader(
                 tokens: [nextToken],
             })
         }
-
         const nextNextToken = tokens[index + 2]
         const isSingleParam =
             nextNextToken?.type === TOKEN_TYPE.CLOSING_PARENTHESIS
@@ -213,4 +248,25 @@ function assertValidFunctionHeader(
             })
         }
     }
+}
+
+function isFunctionParameterIdentifierToken(
+    tokens: Token[],
+    index: number,
+): boolean {
+    const token = tokens[index]
+    if (token?.type !== TOKEN_TYPE.IDENTIFIER) {
+        return false
+    }
+
+    const prevToken = tokens[index - 1]
+    const nextToken = tokens[index + 1]
+    const hasParamPrefix =
+        prevToken?.type === TOKEN_TYPE.OPENING_PARENTHESIS ||
+        prevToken?.type === TOKEN_TYPE.COMMA
+    const hasParamSuffix =
+        nextToken?.type === TOKEN_TYPE.CLOSING_PARENTHESIS ||
+        nextToken?.type === TOKEN_TYPE.COMMA
+
+    return hasParamPrefix && hasParamSuffix
 }

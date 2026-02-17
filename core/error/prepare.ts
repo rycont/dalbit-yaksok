@@ -3,7 +3,7 @@ import type { Token } from '../prepare/tokenize/token.ts'
 import { DEFAULT_SESSION_CONFIG } from '../session/session-config.ts'
 import type { CodeFile } from '../type/code-file.ts'
 import type { Position } from '../type/position.ts'
-import { YaksokError, blue, bold, dim, tokenToText } from './common.ts'
+import { blue, bold, dim, tokenToText, YaksokError } from './common.ts'
 
 export class CannotParseError extends YaksokError {
     constructor(props: {

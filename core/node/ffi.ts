@@ -27,12 +27,16 @@ export class DeclareFFI extends Executable {
     public name: string
     public body: string
     public runtime: string
+    public paramNames: string[]
+    public dotReceiverTypeNames?: string[]
 
     constructor(
         props: {
             name: string
             body: string
             runtime: string
+            paramNames?: string[]
+            dotReceiverTypeNames?: string[]
             position?: Position
         },
         public override tokens: Token[],
@@ -41,6 +45,8 @@ export class DeclareFFI extends Executable {
         this.name = props.name
         this.body = props.body
         this.runtime = props.runtime
+        this.paramNames = props.paramNames || []
+        this.dotReceiverTypeNames = props.dotReceiverTypeNames
         this.position = props.position
     }
 
@@ -59,14 +65,32 @@ export class DeclareFFI extends Executable {
 
     toFFIObject(scope: Scope): FFIObject {
         const codeFile = scope.codeFile
-        return new FFIObject(this.name, this.body, this.runtime, codeFile)
+        const ffiObject = new FFIObject(
+            this.name,
+            this.body,
+            this.runtime,
+            codeFile,
+            {
+                dotReceiverTypeNames: this.dotReceiverTypeNames,
+            },
+        )
+        ffiObject.paramNames = this.paramNames
+        return ffiObject
     }
 
     override validate(scope: Scope): YaksokError[] {
         try {
-            scope.addFunctionObject(
-                new FFIObject(this.name, 'VALIDATION', 'VALIDATION'),
+            const ffiObject = new FFIObject(
+                this.name,
+                'VALIDATION',
+                'VALIDATION',
+                undefined,
+                {
+                    dotReceiverTypeNames: this.dotReceiverTypeNames,
+                },
             )
+            ffiObject.paramNames = this.paramNames
+            scope.addFunctionObject(ffiObject)
         } catch (error) {
             if (error instanceof YaksokError) {
                 error.tokens = this.tokens

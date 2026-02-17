@@ -1,4 +1,4 @@
-import { TOKEN_TYPE, type Token } from '@dalbit-yaksok/core'
+import { type Token, TOKEN_TYPE } from '@dalbit-yaksok/core'
 import { ColorPart } from '../type.ts'
 import { SCOPE } from './scope.ts'
 

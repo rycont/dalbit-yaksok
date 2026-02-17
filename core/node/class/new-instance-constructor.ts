@@ -59,9 +59,8 @@ export function pickConstructorByArity(props: {
         return undefined
     }
 
-    const expectedArities = resolution.kind === 'mismatch'
-        ? resolution.expectedArities
-        : [arity]
+    const expectedArities =
+        resolution.kind === 'mismatch' ? resolution.expectedArities : [arity]
     throw new ConstructorArityMismatchError({
         resource: {
             className,

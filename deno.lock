@@ -1,6 +1,7 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@std/assert@*": "1.0.15",
     "jsr:@std/assert@^1.0.7": "1.0.15",
     "jsr:@std/assert@^1.0.8": "1.0.15",
     "jsr:@std/internal@^1.0.12": "1.0.12",
@@ -1812,6 +1813,7 @@
         "package-json-from-dist",
         "path-scurry"
       ],
+      "deprecated": true,
       "bin": true
     },
     "glob@7.2.3": {
@@ -3079,20 +3081,20 @@
           "npm:vue@^3.5.12"
         ]
       },
-      "monaco-language-provider": {
-        "dependencies": [
-          "npm:monaco-editor@~0.52.2"
-        ]
-      },
-      "pyodide": {
+      "exts/pyodide": {
         "dependencies": [
           "npm:pyodide@0.24.1"
         ]
       },
-      "quickjs": {
+      "exts/quickjs": {
         "dependencies": [
           "npm:quickjs-emscripten-core@0.31",
           "npm:quickjs-emscripten@0.31"
+        ]
+      },
+      "monaco-language-provider": {
+        "dependencies": [
+          "npm:monaco-editor@~0.52.2"
         ]
       },
       "test": {

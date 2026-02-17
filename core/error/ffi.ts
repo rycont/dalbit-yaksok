@@ -1,6 +1,6 @@
 import type { Token } from '../prepare/tokenize/token.ts'
 
-import { YaksokError, blue, bold, dim } from './common.ts'
+import { blue, bold, dim, YaksokError } from './common.ts'
 
 export class FFIResultTypeIsNotForYaksokError extends YaksokError {
     constructor(props: { value: any; ffiName: string; tokens: Token[] }) {

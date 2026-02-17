@@ -1,4 +1,4 @@
-import { Executable, type Evaluable } from './base.ts'
+import { type Evaluable, Executable } from './base.ts'
 import type { Block } from './block.ts'
 import { YaksokError } from '../error/common.ts'
 

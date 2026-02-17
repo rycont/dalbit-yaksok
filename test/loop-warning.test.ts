@@ -1,4 +1,4 @@
-import { YaksokSession, type WarningEvent } from '@dalbit-yaksok/core'
+import { type WarningEvent, YaksokSession } from '@dalbit-yaksok/core'
 import { assert } from '@std/assert'
 import { assertEquals } from '@std/assert/equals'
 

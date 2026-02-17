@@ -1,6 +1,6 @@
-import { assertEquals, assertAlmostEquals } from '@std/assert'
+import { assertAlmostEquals, assertEquals } from '@std/assert'
 import { YaksokSession } from '../core/mod.ts'
-import { MathExtension } from '../math/mod.ts'
+import { MathExtension } from '../exts/math/mod.ts'
 
 async function runMath(code: string): Promise<string> {
     let output = ''

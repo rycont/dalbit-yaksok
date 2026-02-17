@@ -1,24 +1,52 @@
 import type { CodeFile } from '../../type/code-file.ts'
 import type { Node } from '../../node/base.ts'
-import { Block, Expression, Identifier } from '../../node/index.ts'
+import {
+    Block,
+    EOL,
+    Evaluable,
+    Expression,
+    Identifier,
+    Sequence,
+    SetVariable,
+    ValueWithParenthesis,
+} from '../../node/index.ts'
 import { type Token, TOKEN_TYPE } from '../tokenize/token.ts'
+import type { DynamicRulePattern } from './dynamicRule/index.ts'
 
+/**
+ * 한국어 조사가 붙은 변수명을 변수와 조사로 분리합니다.
+ */
 export function splitVariableName(
     nodes: Node[],
     codeFile?: CodeFile,
     inheritedIdentifiers: string[] = [],
-    inheritedFunctionHeaders: string[] = [],
+    inheritedPatterns: DynamicRulePattern[] = [],
     depth = 0,
 ): Node[] {
+    const resultNodes: Node[] = []
     let cursor = 0
 
-    const detectedFunctionHeaderAfterParameter: string[] = [
-        ...inheritedFunctionHeaders,
+    const detectedPatterns: DynamicRulePattern[] = [...inheritedPatterns]
+    const detectedIdentifierNames: string[] = [
+        ...inheritedIdentifiers,
+        ...collectIdentifiersInBlock(nodes),
     ]
-    const detectedIdentifierNames: string[] = [...inheritedIdentifiers]
 
     while (cursor < nodes.length) {
         const currentNode = nodes[cursor]
+
+        if (currentNode instanceof Block) {
+            currentNode.children = splitVariableName(
+                currentNode.children,
+                codeFile,
+                detectedIdentifierNames,
+                detectedPatterns,
+                depth + 1,
+            )
+            resultNodes.push(currentNode)
+            cursor++
+            continue
+        }
 
         const isIdentifier = currentNode instanceof Identifier
 
@@ -30,191 +58,139 @@ export function splitVariableName(
             const blockIndex = nodes
                 .slice(cursor)
                 .findIndex((node) => node instanceof Block)
-            if (blockIndex === -1) {
-                cursor++
-                continue
-            }
-
-            const yaksokEndIndex = cursor + blockIndex - 1
-
-            const nextNode = nodes[yaksokEndIndex + 1]
-            if (!(nextNode instanceof Block)) {
-                cursor++
-                continue
-            }
-
-            const yaksokDeclaration = nodes.slice(cursor, yaksokEndIndex + 1)
-            const parameterNames =
-                getParameterNameFromFunctionDeclaration(yaksokDeclaration)
-
-            const functionHeaderAfterDeclaration =
-                extractFunctionHeaderAfterParameter(yaksokDeclaration)
-
-            if (currentNode.value === '클래스') {
-                const classNameNode = yaksokDeclaration.find(
+            
+            if (blockIndex !== -1) {
+                const declaration = nodes.slice(cursor, cursor + blockIndex)
+                const nameNode = declaration.find(
                     (node) =>
-                        node instanceof Identifier && node.value !== '클래스',
+                        node instanceof Identifier &&
+                        node.value !== '약속' &&
+                        node.value !== '클래스',
                 ) as Identifier
-                if (classNameNode)
-                    detectedIdentifierNames.push(classNameNode.value)
-            } else {
-                detectedFunctionHeaderAfterParameter.push(
-                    ...functionHeaderAfterDeclaration,
-                )
+                if (nameNode) {
+                    detectedIdentifierNames.push(nameNode.value)
+                }
             }
-
-            splitVariableName(
-                nextNode.children,
-                codeFile,
-                [...detectedIdentifierNames, ...parameterNames],
-                detectedFunctionHeaderAfterParameter,
-                depth + 1,
-            )
-
-            cursor = yaksokEndIndex + 2
-            continue
-        } else if (
-            currentNode instanceof Identifier &&
-            currentNode.value === '새' &&
-            nodes[cursor + 1] instanceof Identifier
-        ) {
-            // "새 클래스이름" -> 클래스 이름을 식별자 목록에 추가 (동적 인식 지원)
-            detectedIdentifierNames.push(
-                (nodes[cursor + 1] as Identifier).value,
-            )
+            
+            resultNodes.push(currentNode)
             cursor++
             continue
-        } else if (isIdentifier) {
-            const trailingFunctionHeaders =
-                detectedFunctionHeaderAfterParameter.filter(
-                    (header) =>
-                        currentNode.value.length > header.length &&
-                        currentNode.value.endsWith(header),
-                )
+        }
 
-            if (trailingFunctionHeaders.length === 0) {
+        if (isIdentifier) {
+            const prevNode = resultNodes[resultNodes.length - 1]
+            if (prevNode instanceof Expression && prevNode.value === '.') {
+                resultNodes.push(currentNode)
                 cursor++
                 continue
             }
 
-            const candidates = trailingFunctionHeaders
-                .map((functionName) => {
-                    const headPart = currentNode.value.slice(
-                        0,
-                        -functionName.length,
-                    )
-                    if (detectedIdentifierNames.includes(headPart)) {
-                        return [headPart, functionName]
+            const candidates = detectedPatterns
+                .filter((p) => currentNode.value.endsWith(p.suffix))
+                .map((pattern) => {
+                    const headPart = currentNode.value.slice(0, -pattern.suffix.length)
+                    if (headPart && detectedIdentifierNames.includes(headPart)) {
+                        return { headPart, pattern }
                     }
                     return null
                 })
-                .filter(
-                    (candidate): candidate is string[] => candidate !== null,
-                )
+                .filter((c): c is { headPart: string; pattern: DynamicRulePattern } => c !== null)
 
-            if (candidates.length === 0) {
-                cursor++
-                continue
+            if (candidates.length > 0) {
+                const validCandidates = candidates.filter(({ pattern }) => {
+                    if (pattern.next === null) return true
+                    
+                    let lookaheadCursor = cursor + 1
+                    while (
+                        lookaheadCursor < nodes.length &&
+                        (nodes[lookaheadCursor] instanceof EOL ||
+                            (nodes[lookaheadCursor] instanceof Expression &&
+                                [' ', ',', '(', ')'].includes(nodes[lookaheadCursor].value as string)))
+                    ) {
+                        lookaheadCursor++
+                    }
+
+                    const nextNode = nodes[lookaheadCursor]
+                    if (!nextNode) return false
+
+                    if (pattern.next === 'parameter') {
+                        return (
+                            nextNode instanceof Evaluable ||
+                            nextNode instanceof Identifier ||
+                            nextNode instanceof ValueWithParenthesis ||
+                            nextNode instanceof Sequence
+                        )
+                    }
+                    return (
+                        (nextNode instanceof Identifier || nextNode instanceof Expression) &&
+                        nextNode.value === pattern.next
+                    )
+                })
+
+                if (validCandidates.length > 0) {
+                    const { headPart: variable, pattern } = validCandidates.toSorted(
+                        (a, b) => b.headPart.length - a.headPart.length,
+                    )[0]
+
+                    const originalToken = currentNode.tokens[0]
+                    const variableToken: Token = { ...originalToken, value: variable }
+                    const functionToken: Token = {
+                        ...originalToken,
+                        value: pattern.suffix,
+                        position: {
+                            ...originalToken.position,
+                            column: originalToken.position.column + variable.length,
+                        },
+                    }
+
+                    resultNodes.push(new Identifier(variable, [variableToken]))
+                    resultNodes.push(new Identifier(pattern.suffix, [functionToken]))
+                    cursor++
+                    continue
+                }
             }
-
-            const [variable, functionName] = candidates.toSorted(
-                (a, b) => b[0].length - a[0].length,
-            )[0]
-
-            const variableToken = {
-                type: TOKEN_TYPE.IDENTIFIER,
-                value: variable,
-                position: currentNode.tokens[0].position,
-            } as Token
-
-            const functionToken = {
-                type: TOKEN_TYPE.IDENTIFIER,
-                value: functionName,
-                position: {
-                    line: currentNode.tokens[0].position.line,
-                    column:
-                        currentNode.tokens[0].position.column + variable.length,
-                },
-            } as Token
-
-            nodes.splice(
-                cursor,
-                1,
-                new Identifier(variable, [variableToken]),
-                new Identifier(functionName, [functionToken]),
-            )
-
-            if (codeFile) {
-                const tokenIndex = codeFile.tokens.indexOf(
-                    currentNode.tokens[0],
-                )
-
-                codeFile.tokens.splice(
-                    tokenIndex,
-                    1,
-                    variableToken,
-                    functionToken,
-                )
-            }
-
-            cursor++
-            continue
-        } else if (
-            currentNode instanceof Expression &&
-            currentNode.value === '='
-        ) {
-            const prevNode = nodes[cursor - 1]
-            if (prevNode instanceof Identifier) {
-                detectedIdentifierNames.push(prevNode.value)
-            }
-        } else if (currentNode instanceof Block) {
-            currentNode.children = splitVariableName(
-                currentNode.children,
-                codeFile,
-                detectedIdentifierNames,
-                detectedFunctionHeaderAfterParameter,
-                depth + 1,
-            )
         }
 
+        resultNodes.push(currentNode)
         cursor++
     }
 
-    return nodes
+    return resultNodes
 }
 
-function extractFunctionHeaderAfterParameter(declaration: Node[]): string[] {
-    const parameterNames: string[] = []
-
-    for (let i = 0; i < declaration.length; i++) {
-        const node = declaration[i]
-
-        if (node instanceof Expression && node.value === ')') {
-            const nextNode = declaration[i + 1]
-            if (nextNode instanceof Identifier) {
-                parameterNames.push(...nextNode.value.split('/'))
+function collectIdentifiersInBlock(nodes: Node[]): string[] {
+    const identifiers: string[] = []
+    for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i]
+        if (node instanceof SetVariable) {
+            identifiers.push(node.name)
+        } else if (node instanceof Expression && node.value === '=') {
+            const prevNode = nodes[i - 1]
+            if (prevNode instanceof Identifier) {
+                const prevPrevNode = nodes[i - 2]
+                if (!(prevPrevNode instanceof Expression && prevPrevNode.value === '.')) {
+                    identifiers.push(prevNode.value)
+                }
             }
+        } else if (node instanceof Identifier && node.value === '람다') {
+            let lambdaCursor = i + 1
+            while (
+                lambdaCursor < nodes.length &&
+                (nodes[lambdaCursor] instanceof Identifier ||
+                    (nodes[lambdaCursor] instanceof Expression && nodes[lambdaCursor].value === ','))
+            ) {
+                if (nodes[lambdaCursor] instanceof Identifier) {
+                    identifiers.push((nodes[lambdaCursor] as Identifier).value)
+                }
+                lambdaCursor++
+            }
+        } else if (
+            node instanceof Identifier &&
+            node.value === '새' &&
+            nodes[i + 1] instanceof Identifier
+        ) {
+            identifiers.push((nodes[i + 1] as Identifier).value)
         }
     }
-
-    return parameterNames
-}
-
-function getParameterNameFromFunctionDeclaration(
-    declaration: Node[],
-): string[] {
-    const parameterNames: string[] = []
-
-    for (let i = 0; i < declaration.length; i++) {
-        const node = declaration[i]
-
-        if (node instanceof Expression && node.value === '(') {
-            const nextNode = declaration[i + 1]
-            if (nextNode instanceof Identifier) {
-                parameterNames.push(nextNode.value)
-            }
-        }
-    }
-
-    return parameterNames
+    return identifiers
 }
