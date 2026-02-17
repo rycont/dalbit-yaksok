@@ -47,12 +47,12 @@ export class NotDefinedIdentifierError extends YaksokError<NotDefinedIdentifierE
         const name =
             this.tokens?.map((token) => token.value).join(' ') ||
             this.resource?.name!
-        return `${bold(blue(`"${name}"`))}이라는 이름의 변수나 약속을 아직 찾지 못했어요.${
+        return `${bold(blue(`"${name}"`))}라는 변수나 약속을 찾을 수 없습니다.${
             this.resource?.suggestedFix
                 ? ` 혹시 ${bold(
                       blue(`"${this.resource.suggestedFix}"`),
-                  )}를 말씀하시려던 걸까요?`
-                : ' 이름을 다시 한번 확인해 주시겠어요?'
+                  )}를 찾으시나요?`
+                : ''
         }`
     }
 }

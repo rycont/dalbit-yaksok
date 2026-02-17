@@ -35,7 +35,7 @@ export class InvalidTypeForCompareError extends YaksokError {
         const leftText = valueTypeToText(props.resource.left)
         const rightText = valueTypeToText(props.resource.right)
 
-        this.message = `${leftText}와 ${rightText}는 서로 비교하기 어려워요. 성격이 같은 값들끼리 비교해 보시겠어요?`
+        this.message = `${leftText}와 ${rightText}는 서로 비교할 수 없습니다. 값의 종류를 일치시켜 주세요.`
     }
 }
 
@@ -55,7 +55,7 @@ export class InvalidTypeForOperatorError extends YaksokError {
             .join('와 ')
         this.message = `${operandsText}로는 ${operatorToText(
             props.resource.operator,
-        )} 작업을 할 수 없어요. 이 작업에 어울리는 다른 값을 사용해 보는 건 어떨까요?`
+        )} 작업을 수행할 수 없습니다.`
     }
 }
 
