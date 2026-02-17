@@ -1,8 +1,6 @@
 {
-  "version": "5.0.0",
-  "name": "@dalbit-yaksok/math",
-  "exports": "./mod.ts",
-  "imports": {
-    "@dalbit-yaksok/core": "../../core/mod.ts"
-  }
+    "version": "5.0.0",
+    "name": "@dalbit-yaksok/math",
+    "exports": "./mod.ts",
+    "imports": {}
 }
