@@ -17,7 +17,7 @@ export class AlreadyDefinedClassError extends YaksokError<AlreadyDefinedClassErr
         super(props)
         this.message = `${bold(
             blue(props.resource.name),
-        )} 클래스는 이미 정의되어 있습니다.`
+        )} 클래스는 이미 정의되어 있어요.`
     }
 }
 
@@ -29,7 +29,7 @@ export class InvalidParentClassError extends YaksokError<InvalidParentClassError
         super(props)
         this.message = `${bold(
             blue(props.resource.name),
-        )}은(는) 부모 클래스로 쓸 수 없습니다.`
+        )}은(는) 부모 클래스로 쓸 수 없어요.`
     }
 }
 
@@ -42,14 +42,14 @@ export class NotAClassError extends YaksokError<NotAClassErrorResource> {
         super(props)
         this.message = `${bold(
             blue(props.resource.className),
-        )}은(는) 클래스가 아닙니다.`
+        )}은(는) 클래스가 아니에요.`
     }
 }
 
 export class DotAccessOnlyOnInstanceError extends YaksokError {
     constructor(props: { tokens?: Token[] }) {
         super(props)
-        this.message = '온점(.)은 인스턴스에만 사용할 수 있습니다.'
+        this.message = '온점(.)은 인스턴스에만 사용할 수 있어요.'
     }
 }
 
@@ -72,7 +72,7 @@ export class ConstructorArityMismatchError extends YaksokError<ConstructorArityM
                 : `${expected.slice(0, -1).join(', ')} 또는 ${expected.at(-1)}개`
         this.message = `${bold(
             blue(className),
-        )}의 __준비__에 인자 ${received}개를 넘겼지만, 정의된 생성자는 ${expectedStr} 인자를 받습니다.`
+        )}의 __준비__에 인자 ${received}개를 넘겼지만, 정의된 생성자는 ${expectedStr} 인자를 받아요.`
     }
 }
 
@@ -90,7 +90,7 @@ export class ConstructorArityAmbiguousError extends YaksokError<ConstructorArity
         const { className, arity } = props.resource
         this.message = `${bold(
             blue(className),
-        )}의 __준비__에 인자 ${arity}개 생성자가 여러 개 있어 모호합니다.`
+        )}의 __준비__에 인자 ${arity}개 생성자가 여러 개 있어 모호해요.`
     }
 }
 
@@ -108,7 +108,7 @@ export class MemberFunctionNotFoundError extends YaksokError<MemberFunctionNotFo
         const { className, functionName } = props.resource
         this.message = `${bold(blue(className))} 인스턴스에서 ${bold(
             blue(functionName),
-        )} 멤버 메서드를 찾을 수 없습니다.`
+        )} 멤버 메서드를 찾을 수 없어요.`
     }
 }
 
@@ -126,7 +126,7 @@ export class MemberNotFoundError extends YaksokError<MemberNotFoundErrorResource
         const { className, memberName } = props.resource
         this.message = `${bold(blue(className))} 인스턴스에서 ${bold(
             blue(memberName),
-        )} 멤버를 찾을 수 없습니다.`
+        )} 멤버를 찾을 수 없어요.`
     }
 }
 
@@ -144,6 +144,6 @@ export class AlreadyDefinedMemberFunctionError extends YaksokError<AlreadyDefine
         const { className, functionName } = props.resource
         this.message = `${bold(blue(className))} 클래스의 ${bold(
             blue(functionName),
-        )} 메서드는 이미 정의되어 있습니다.`
+        )} 메서드는 이미 정의되어 있어요.`
     }
 }
