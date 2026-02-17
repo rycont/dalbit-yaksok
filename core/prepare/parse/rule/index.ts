@@ -67,6 +67,153 @@ import { LIST_LOOP_RULES } from './list-loop.ts'
 import { PYTHON_COMPAT_RULES } from './python-compat.ts'
 
 export type { Rule }
+
+export const DOT_MEMBER_FUNCTION_INVOKE_RULES: Rule[] = [
+    {
+        pattern: [
+            { type: Evaluable },
+            { type: Expression, value: '.' },
+            { type: FunctionInvoke },
+        ],
+        factory: (nodes, tokens) => {
+            return new MemberFunctionInvoke(
+                nodes[0] as Evaluable,
+                nodes[2] as FunctionInvoke,
+                tokens,
+            )
+        },
+    },
+    {
+        pattern: [
+            { type: Evaluable },
+            { type: Expression, value: '.' },
+            { type: ValueWithParenthesis },
+        ],
+        factory: (nodes, tokens) => {
+            const wrapped = nodes[2] as ValueWithParenthesis
+            if (!(wrapped.value instanceof FunctionInvoke)) {
+                return null
+            }
+            return new MemberFunctionInvoke(
+                nodes[0] as Evaluable,
+                wrapped.value,
+                tokens,
+            )
+        },
+    },
+    {
+        pattern: [
+            { type: Evaluable },
+            { type: Expression, value: '.' },
+            { type: IndexFetch },
+        ],
+        factory: (nodes, tokens) => {
+            const indexed = nodes[2] as IndexFetch
+            if (!(indexed.list instanceof FunctionInvoke)) {
+                return null
+            }
+
+            const memberInvoke = new MemberFunctionInvoke(
+                nodes[0] as Evaluable,
+                indexed.list,
+                tokens,
+            )
+            return new IndexFetch(
+                memberInvoke as unknown as Evaluable<
+                    IndexedValue | StringValue
+                >,
+                indexed.index,
+                tokens,
+            )
+        },
+    },
+]
+
+export const DOT_FETCH_MEMBER_RULES: Rule[] = [
+    {
+        pattern: [
+            { type: Formula },
+            { type: Expression, value: '.' },
+            { type: Identifier },
+        ],
+        factory: (nodes, tokens) => {
+            if ((nodes[2] as Identifier).value === '람다') {
+                return null
+            }
+
+            const formula = nodes[0] as Formula
+            const lastTerm = formula.terms[formula.terms.length - 1]
+            if (
+                !lastTerm ||
+                typeof lastTerm !== 'object' ||
+                !Array.isArray((lastTerm as { tokens?: unknown }).tokens)
+            ) {
+                return null
+            }
+
+            const fetched = new FetchMember(
+                lastTerm as Evaluable,
+                (nodes[2] as Identifier).value,
+                [
+                    ...(lastTerm as Evaluable).tokens,
+                    ...nodes[1].tokens,
+                    ...nodes[2].tokens,
+                ],
+            )
+
+            return new Formula([...formula.terms.slice(0, -1), fetched], tokens)
+        },
+    },
+    {
+        pattern: [
+            { type: Evaluable },
+            { type: Expression, value: '.' },
+            { type: Identifier },
+        ],
+        factory: (nodes, tokens) => {
+            if ((nodes[2] as Identifier).value === '람다') {
+                return null
+            }
+
+            const target = nodes[0] as Evaluable
+            const memberName = (nodes[2] as Identifier).value
+
+            const terms =
+                target instanceof Formula
+                    ? target.terms
+                    : (target as { terms?: unknown }).terms
+
+            if (Array.isArray(terms) && terms.length > 0) {
+                const lastTerm = terms[terms.length - 1]
+                if (
+                    lastTerm &&
+                    typeof lastTerm === 'object' &&
+                    Array.isArray((lastTerm as { tokens?: unknown }).tokens)
+                ) {
+                    const fetched = new FetchMember(
+                        lastTerm as Evaluable,
+                        memberName,
+                        [
+                            ...(lastTerm as Evaluable).tokens,
+                            ...nodes[1].tokens,
+                            ...nodes[2].tokens,
+                        ],
+                    )
+
+                    return new Formula([...terms.slice(0, -1), fetched], tokens)
+                }
+            }
+
+            return new FetchMember(target, memberName, tokens)
+        },
+    },
+]
+
+export const DOT_ACCESS_RULES: Rule[] = [
+    ...DOT_MEMBER_FUNCTION_INVOKE_RULES,
+    ...DOT_FETCH_MEMBER_RULES,
+]
+
 export const BASIC_RULES: Rule[][] = [
     [
         // Template literal rules - must be processed early
@@ -578,152 +725,6 @@ export const BASIC_RULES: Rule[][] = [
             },
         },
     ],
-]
-
-export const DOT_MEMBER_FUNCTION_INVOKE_RULES: Rule[] = [
-    {
-        pattern: [
-            { type: Evaluable },
-            { type: Expression, value: '.' },
-            { type: FunctionInvoke },
-        ],
-        factory: (nodes, tokens) => {
-            return new MemberFunctionInvoke(
-                nodes[0] as Evaluable,
-                nodes[2] as FunctionInvoke,
-                tokens,
-            )
-        },
-    },
-    {
-        pattern: [
-            { type: Evaluable },
-            { type: Expression, value: '.' },
-            { type: ValueWithParenthesis },
-        ],
-        factory: (nodes, tokens) => {
-            const wrapped = nodes[2] as ValueWithParenthesis
-            if (!(wrapped.value instanceof FunctionInvoke)) {
-                return null
-            }
-            return new MemberFunctionInvoke(
-                nodes[0] as Evaluable,
-                wrapped.value,
-                tokens,
-            )
-        },
-    },
-    {
-        pattern: [
-            { type: Evaluable },
-            { type: Expression, value: '.' },
-            { type: IndexFetch },
-        ],
-        factory: (nodes, tokens) => {
-            const indexed = nodes[2] as IndexFetch
-            if (!(indexed.list instanceof FunctionInvoke)) {
-                return null
-            }
-
-            const memberInvoke = new MemberFunctionInvoke(
-                nodes[0] as Evaluable,
-                indexed.list,
-                tokens,
-            )
-            return new IndexFetch(
-                memberInvoke as unknown as Evaluable<
-                    IndexedValue | StringValue
-                >,
-                indexed.index,
-                tokens,
-            )
-        },
-    },
-]
-
-export const DOT_FETCH_MEMBER_RULES: Rule[] = [
-    {
-        pattern: [
-            { type: Formula },
-            { type: Expression, value: '.' },
-            { type: Identifier },
-        ],
-        factory: (nodes, tokens) => {
-            if ((nodes[2] as Identifier).value === '람다') {
-                return null
-            }
-
-            const formula = nodes[0] as Formula
-            const lastTerm = formula.terms[formula.terms.length - 1]
-            if (
-                !lastTerm ||
-                typeof lastTerm !== 'object' ||
-                !Array.isArray((lastTerm as { tokens?: unknown }).tokens)
-            ) {
-                return null
-            }
-
-            const fetched = new FetchMember(
-                lastTerm as Evaluable,
-                (nodes[2] as Identifier).value,
-                [
-                    ...(lastTerm as Evaluable).tokens,
-                    ...nodes[1].tokens,
-                    ...nodes[2].tokens,
-                ],
-            )
-
-            return new Formula([...formula.terms.slice(0, -1), fetched], tokens)
-        },
-    },
-    {
-        pattern: [
-            { type: Evaluable },
-            { type: Expression, value: '.' },
-            { type: Identifier },
-        ],
-        factory: (nodes, tokens) => {
-            if ((nodes[2] as Identifier).value === '람다') {
-                return null
-            }
-
-            const target = nodes[0] as Evaluable
-            const memberName = (nodes[2] as Identifier).value
-
-            const terms =
-                target instanceof Formula
-                    ? target.terms
-                    : (target as { terms?: unknown }).terms
-
-            if (Array.isArray(terms) && terms.length > 0) {
-                const lastTerm = terms[terms.length - 1]
-                if (
-                    lastTerm &&
-                    typeof lastTerm === 'object' &&
-                    Array.isArray((lastTerm as { tokens?: unknown }).tokens)
-                ) {
-                    const fetched = new FetchMember(
-                        lastTerm as Evaluable,
-                        memberName,
-                        [
-                            ...(lastTerm as Evaluable).tokens,
-                            ...nodes[1].tokens,
-                            ...nodes[2].tokens,
-                        ],
-                    )
-
-                    return new Formula([...terms.slice(0, -1), fetched], tokens)
-                }
-            }
-
-            return new FetchMember(target, memberName, tokens)
-        },
-    },
-]
-
-export const DOT_ACCESS_RULES: Rule[] = [
-    ...DOT_MEMBER_FUNCTION_INVOKE_RULES,
-    ...DOT_FETCH_MEMBER_RULES,
 ]
 
 export const ADVANCED_RULES: Rule[] = [

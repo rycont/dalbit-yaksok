@@ -10,7 +10,7 @@ import {
     NumberValue,
     StringValue,
     YaksokSession,
-} from '../core/mod.ts'
+} from '../../core/mod.ts'
 import { QuickJS, QuickJSInternalError } from './mod.ts'
 
 Deno.test('Error in QuickJS', async () => {
@@ -171,7 +171,7 @@ Deno.test('JavaScript bridge function passed object', async () => {
 Deno.test('Yaksok Passed List<string>', async () => {
     let buffer = ''
     const session = new YaksokSession({
-        stdout(message) {
+        stdout(message: string) {
             buffer += message + '\n'
         },
     })
@@ -214,7 +214,7 @@ Deno.test('Yaksok Passed List<string>', async () => {
 Deno.test('QuickJS Passed List<string> - 빈 리스트', async () => {
     let output = ''
     const session = new YaksokSession({
-        stdout: (str) => {
+        stdout: (str: string) => {
             output += str
         },
     })
@@ -236,7 +236,7 @@ Deno.test('QuickJS Passed List<string> - 빈 리스트', async () => {
 Deno.test('QuickJS Passed List<string> - 중복 값', async () => {
     let output = ''
     const session = new YaksokSession({
-        stdout: (str) => {
+        stdout: (str: string) => {
             output += str
         },
     })
@@ -258,7 +258,7 @@ Deno.test('QuickJS Passed List<string> - 중복 값', async () => {
 Deno.test('QuickJS Passed List<string> - 특수문자/이모지/빈문자', async () => {
     let output = ''
     const session = new YaksokSession({
-        stdout: (str) => {
+        stdout: (str: string) => {
             output += str
         },
     })
@@ -280,7 +280,7 @@ Deno.test('QuickJS Passed List<string> - 특수문자/이모지/빈문자', asyn
 Deno.test('QuickJS Passed List<string> - 영문 대문자 변환', async () => {
     let output = ''
     const session = new YaksokSession({
-        stdout: (str) => {
+        stdout: (str: string) => {
             output += str
         },
     })
@@ -302,7 +302,7 @@ Deno.test('QuickJS Passed List<string> - 영문 대문자 변환', async () => {
 Deno.test('QuickJS Passed List<string> - 공백/탭/개행', async () => {
     let output = ''
     const session = new YaksokSession({
-        stdout: (str) => {
+        stdout: (str: string) => {
             output += str
         },
     })
@@ -324,7 +324,7 @@ Deno.test('QuickJS Passed List<string> - 공백/탭/개행', async () => {
 Deno.test('QuickJS Passed List<string> - 한글 포함 여부', async () => {
     let output = ''
     const session = new YaksokSession({
-        stdout: (str) => {
+        stdout: (str: string) => {
             output += str
         },
     })
@@ -346,7 +346,7 @@ Deno.test('QuickJS Passed List<string> - 한글 포함 여부', async () => {
 Deno.test('QuickJS Passed List<string> - 숫자 문자열 합치기', async () => {
     let output = ''
     const session = new YaksokSession({
-        stdout: (str) => {
+        stdout: (str: string) => {
             output += str
         },
     })
@@ -368,7 +368,7 @@ Deno.test('QuickJS Passed List<string> - 숫자 문자열 합치기', async () =
 Deno.test('QuickJS Passed List<string> - 2차원 리스트 flat', async () => {
     let output = ''
     const session = new YaksokSession({
-        stdout: (str) => {
+        stdout: (str: string) => {
             output += str
         },
     })

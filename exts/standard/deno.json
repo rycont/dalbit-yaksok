@@ -3,6 +3,6 @@
     "version": "4.5.0",
     "exports": "./mod.ts",
     "imports": {
-        "@dalbit-yaksok/core": "../core/mod.ts"
+        "@dalbit-yaksok/core": "../../core/mod.ts"
     }
 }
