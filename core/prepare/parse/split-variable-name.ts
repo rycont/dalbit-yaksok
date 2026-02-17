@@ -1,6 +1,6 @@
 import type { CodeFile } from '../../type/code-file.ts'
 import type { Node } from '../../node/base.ts'
-import { Block, Evaluable, Expression, Identifier } from '../../node/index.ts'
+import { Block, EOL, Evaluable, Expression, Identifier, Sequence, ValueWithParenthesis } from '../../node/index.ts'
 import { type Token, TOKEN_TYPE } from '../tokenize/token.ts'
 import type { DynamicRulePattern } from './dynamicRule/index.ts'
 
@@ -59,13 +59,6 @@ export function splitVariableName(
                 ) as Identifier
                 if (classNameNode)
                     detectedIdentifierNames.push(classNameNode.value)
-            } else {
-                detectedPatterns.push(
-                    ...functionHeaderAfterDeclaration.map((suffix) => ({
-                        suffix,
-                        next: null,
-                    })),
-                )
             }
 
             splitVariableName(
@@ -118,17 +111,38 @@ export function splitVariableName(
             const validCandidates = candidates.filter(({ pattern }) => {
                 if (pattern.next === null) return true
 
-                const nextNode = nodes[cursor + 1]
+                let lookaheadCursor = cursor + 1
+                while (
+                    lookaheadCursor < nodes.length &&
+                    (nodes[lookaheadCursor] instanceof EOL ||
+                        (nodes[lookaheadCursor] instanceof Expression &&
+                            pattern.next !== nodes[lookaheadCursor].value &&
+                            [' ', ',', '(', ')'].includes(
+                                (nodes[lookaheadCursor] as Expression).value,
+                            )))
+                ) {
+                    lookaheadCursor++
+                }
+
+                const nextNode = nodes[lookaheadCursor]
                 if (!nextNode) return false
 
                 if (pattern.next === 'parameter') {
-                    return nextNode instanceof Evaluable
+                    // If 'parameter' is expected, any evaluable node is valid
+                    return (
+                        nextNode instanceof Evaluable ||
+                        nextNode instanceof Identifier ||
+                        nextNode instanceof ValueWithParenthesis ||
+                        nextNode instanceof Sequence
+                    )
+                } else {
+                    // Otherwise, expect a specific string marker
+                    return (
+                        (nextNode instanceof Identifier ||
+                            nextNode instanceof Expression) &&
+                        nextNode.value === pattern.next
+                    )
                 }
-
-                return (
-                    nextNode instanceof Identifier &&
-                    nextNode.value === pattern.next
-                )
             })
 
             if (validCandidates.length === 0) {

@@ -1,10 +1,11 @@
-import { Evaluable, Identifier } from '../../../node/base.ts'
+import { Evaluable, Identifier, Expression } from '../../../node/base.ts'
 import { createLocalDynamicRules } from './functions/index.ts'
 import { getRulesFromMentioningFile } from './mention/index.ts'
 
 import type { CodeFile } from '../../../type/code-file.ts'
 import type { Rule } from '../type.ts'
 import { RULE_FLAGS } from '../type.ts'
+import { BASIC_RULES } from '../rule/index.ts'
 
 export interface DynamicRulePattern {
     suffix: string
@@ -38,8 +39,11 @@ export function createDynamicRule(codeFile: CodeFile): DynamicRuleSet {
         [...localRules[1], mentioningRules, baseContextRules],
     ]
 
-    const patterns = extractFunctionPatterns([...rules[0], ...rules[1]])
-
+    const patterns = extractFunctionPatterns([
+        ...rules[0],
+        ...rules[1],
+        ...BASIC_RULES,
+    ])
     return {
         rules,
         patterns,
@@ -55,7 +59,10 @@ function extractFunctionPatterns(ruleGroups: Rule[][]): DynamicRulePattern[] {
         if (!rules) continue
 
         for (const rule of rules) {
-            if (!rule?.flags?.includes(RULE_FLAGS.IS_FUNCTION_INVOKE)) {
+            if (
+                !rule?.flags?.includes(RULE_FLAGS.IS_FUNCTION_INVOKE) &&
+                !rule?.flags?.includes(RULE_FLAGS.IS_STATEMENT)
+            ) {
                 continue
             }
 
@@ -78,7 +85,8 @@ function extractFunctionPatterns(ruleGroups: Rule[][]): DynamicRulePattern[] {
 
                     if (nextPattern) {
                         if (
-                            nextPattern.type === Identifier &&
+                            (nextPattern.type === Identifier ||
+                                nextPattern.type === Expression) &&
                             typeof nextPattern.value === 'string'
                         ) {
                             next = nextPattern.value
@@ -86,7 +94,6 @@ function extractFunctionPatterns(ruleGroups: Rule[][]): DynamicRulePattern[] {
                             next = 'parameter'
                         }
                     }
-
                     patterns.push({
                         suffix: currentPattern.value,
                         next,
