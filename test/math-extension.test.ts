@@ -1,4 +1,4 @@
-import { assertEquals, assertAlmostEquals } from '@std/assert'
+import { assertAlmostEquals, assertEquals } from '@std/assert'
 import { YaksokSession } from '../core/mod.ts'
 import { MathExtension } from '../math/mod.ts'
 

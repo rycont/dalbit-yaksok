@@ -20,11 +20,12 @@
         "pyodide",
         "data-analyze",
         "math",
-        "statistics"
+        "statistics",
+        "standard"
     ],
     "version": "4.5.0",
     "tasks": {
-        "apply-version": "deno run --allow-read --allow-write apply-version.ts",
+        "apply-version": "deno run --allow-read --allow-write scripts/apply-version.ts",
         "publish": "deno task apply-version && deno task --recursive test && deno publish --allow-dirty",
         "nested-test": "deno task --recursive test && deno publish --dry-run --allow-dirty",
         "test:pyodide": "deno test pyodide/ --allow-net --allow-read --allow-write --parallel"

@@ -1,4 +1,4 @@
-import { YaksokSession, type MachineReadableError } from '@dalbit-yaksok/core'
+import { type MachineReadableError, YaksokSession } from '@dalbit-yaksok/core'
 import { assertEquals } from 'assert/equals'
 
 Deno.test('Merge identifier name errors', async () => {

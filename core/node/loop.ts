@@ -4,11 +4,11 @@ import { Executable } from './base.ts'
 import { YaksokError } from '../error/common.ts'
 import { LoopWithoutBodyError, NoBreakOrReturnError } from '../error/loop.ts'
 import type { Scope } from '../executer/scope.ts'
-import { TOKEN_TYPE, type Token } from '../prepare/tokenize/token.ts'
+import { type Token, TOKEN_TYPE } from '../prepare/tokenize/token.ts'
 import type { Block } from './block.ts'
 import {
-    LOOP_WARNING_THRESHOLD,
     emitLoopIterationWarning,
+    LOOP_WARNING_THRESHOLD,
 } from '../util/loop-warning.ts'
 
 export class Loop extends Executable {

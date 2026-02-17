@@ -99,22 +99,16 @@ Deno.test(
 )
 
 Deno.test('still rejects reserved words as function parameter names', () => {
-    assertThrows(
-        () =>
-            getHeaderTemplate(
-                `약속, (상위) 값 가져오기\n    상위 반환하기\n`,
-            ),
+    assertThrows(() =>
+        getHeaderTemplate(`약속, (상위) 값 가져오기\n    상위 반환하기\n`),
     )
 })
 
 Deno.test(
     'still rejects reserved words in static header text when not allowlisted',
     () => {
-        assertThrows(
-            () =>
-                getHeaderTemplate(
-                    `약속, (내용) 보여주기\n    내용 반환하기\n`,
-                ),
+        assertThrows(() =>
+            getHeaderTemplate(`약속, (내용) 보여주기\n    내용 반환하기\n`),
         )
     },
 )

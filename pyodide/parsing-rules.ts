@@ -1,15 +1,15 @@
 import {
     Evaluable,
+    Expression,
     FetchMember,
     Identifier,
-    Expression,
+    type Rule,
+    RULE_FLAGS,
     Sequence,
     TupleLiteral,
     ValueWithParenthesis,
-    RULE_FLAGS,
-    type Rule,
 } from '@dalbit-yaksok/core'
-import { PythonImport, PythonCall } from './python.ts'
+import { PythonCall, PythonImport } from './python.ts'
 
 function isPythonIdentifierName(name: string): boolean {
     return /^[A-Za-z_][A-Za-z0-9_]*$/.test(name)
@@ -269,11 +269,10 @@ export const PARSING_RULES: Rule[] = [
                 return null
             }
 
-            const methodCall = new PythonCall(
-                fetched,
-                methodArgs,
-                [...fetched.tokens, ...first.tokens],
-            )
+            const methodCall = new PythonCall(fetched, methodArgs, [
+                ...fetched.tokens,
+                ...first.tokens,
+            ])
 
             if (rest.length === 0) {
                 return methodCall
@@ -364,11 +363,10 @@ function prependTarget(
             return null
         }
 
-        return new FetchMember(
-            base,
-            callable.value,
-            [...base.tokens, ...callable.tokens],
-        )
+        return new FetchMember(base, callable.value, [
+            ...base.tokens,
+            ...callable.tokens,
+        ])
     }
 
     const callableTarget = callable.target
@@ -384,9 +382,8 @@ function prependTarget(
         return null
     }
 
-    return new FetchMember(
-        mergedParent,
-        callable.memberName,
-        [...mergedParent.tokens, ...callable.tokens],
-    )
+    return new FetchMember(mergedParent, callable.memberName, [
+        ...mergedParent.tokens,
+        ...callable.tokens,
+    ])
 }

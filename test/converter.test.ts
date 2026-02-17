@@ -1,13 +1,13 @@
 import { assertEquals } from '@std/assert'
 import {
-    StringValue,
-    NumberValue,
     BooleanValue,
-    ListValue,
-    IndexedValue,
-    ValueType,
-    ReferenceStore,
     dalbitToJS,
+    IndexedValue,
+    ListValue,
+    NumberValue,
+    ReferenceStore,
+    StringValue,
+    ValueType,
 } from '@dalbit-yaksok/core'
 
 Deno.test('dalbitToJS', async (t) => {

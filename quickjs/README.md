@@ -1,1 +1,3 @@
-달빛약속에서 QuickJS 번역 기능을 사용하기 위한 라이브러리입니다. 자세한 내용은 https://dalbit-yaksok.postica.app/library/4.1.%20%EB%B2%88%EC%97%AD:%20QuickJS%EB%A5%BC%20%EC%82%AC%EC%9A%A9%ED%95%B4%20%EC%9E%90%EB%B0%94%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8%EB%A1%9C%20%EC%95%88%EC%A0%84%ED%95%98%EA%B2%8C%20%EB%B2%88%EC%97%AD%ED%95%98%EA%B8%B0.html 에서 확인할 수 있습니다.
+달빛약속에서 QuickJS 번역 기능을 사용하기 위한 라이브러리입니다. 자세한 내용은
+https://dalbit-yaksok.postica.app/library/4.1.%20%EB%B2%88%EC%97%AD:%20QuickJS%EB%A5%BC%20%EC%82%AC%EC%9A%A9%ED%95%B4%20%EC%9E%90%EB%B0%94%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8%EB%A1%9C%20%EC%95%88%EC%A0%84%ED%95%98%EA%B2%8C%20%EB%B2%88%EC%97%AD%ED%95%98%EA%B8%B0.html
+에서 확인할 수 있습니다.

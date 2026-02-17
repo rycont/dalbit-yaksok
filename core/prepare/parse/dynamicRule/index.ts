@@ -1,4 +1,4 @@
-import { Evaluable, Identifier, Expression } from '../../../node/base.ts'
+import { Evaluable, Expression, Identifier } from '../../../node/base.ts'
 import { createLocalDynamicRules } from './functions/index.ts'
 import { getRulesFromMentioningFile } from './mention/index.ts'
 

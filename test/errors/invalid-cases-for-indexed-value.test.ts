@@ -1,7 +1,7 @@
 import {
-    yaksok,
     ListIndexTypeError,
     TupleNotMutableError,
+    yaksok,
 } from '../../core/mod.ts'
 import { assert, assertIsError } from '@std/assert'
 

@@ -1,7 +1,7 @@
 import { Evaluable, Expression, Identifier } from '../../../../../node/base.ts'
 import { DeclareFFI, FFIBody } from '../../../../../node/ffi.ts'
 import { EOL } from '../../../../../node/misc.ts'
-import { TOKEN_TYPE, Token } from '../../../../tokenize/token.ts'
+import { Token, TOKEN_TYPE } from '../../../../tokenize/token.ts'
 import { PatternUnit, Rule } from '../../../type.ts'
 import { functionHeaderToPattern } from './common.ts'
 
@@ -60,8 +60,7 @@ export function tokensToMethodFFIDeclareRule(
         pattern: [...prefixPattern, ...headerPattern, ...SUFFIX],
         factory: (nodes, matchedTokens) => {
             const translateIndex = nodes.findIndex(
-                (node) =>
-                    node instanceof Identifier && node.value === '번역',
+                (node) => node instanceof Identifier && node.value === '번역',
             )
             const runtimeNode = nodes[translateIndex + 2]
             if (!(runtimeNode instanceof Identifier)) {

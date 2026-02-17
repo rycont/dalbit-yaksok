@@ -1,6 +1,6 @@
 import { Evaluable, Expression, Identifier } from '../../../../../node/base.ts'
 import { DeclareEvent } from '../../../../../node/event.ts'
-import { TOKEN_TYPE, Token } from '../../../../tokenize/token.ts'
+import { Token, TOKEN_TYPE } from '../../../../tokenize/token.ts'
 import { PatternUnit, Rule } from '../../../type.ts'
 import { functionHeaderToPattern } from './common.ts'
 
@@ -49,8 +49,7 @@ export function tokensToMethodEventDeclareRule(
         pattern: [...prefixPattern, ...headerPattern],
         factory: (nodes, matchedTokens) => {
             const eventIndex = nodes.findIndex(
-                (node) =>
-                    node instanceof Identifier && node.value === '이벤트',
+                (node) => node instanceof Identifier && node.value === '이벤트',
             )
             const eventIdNode = nodes[eventIndex + 2]
 
@@ -90,7 +89,10 @@ export function tokensToMethodEventDeclareRule(
 
 function findEventIdFromPrefixTokens(tokens: Token[]): string {
     for (let i = 0; i < tokens.length; i++) {
-        if (tokens[i].type === TOKEN_TYPE.IDENTIFIER && tokens[i].value === '이벤트') {
+        if (
+            tokens[i].type === TOKEN_TYPE.IDENTIFIER &&
+            tokens[i].value === '이벤트'
+        ) {
             // 이벤트, (, ID
             let cursor = i + 1
             while (tokens[cursor]?.type === TOKEN_TYPE.SPACE) cursor++

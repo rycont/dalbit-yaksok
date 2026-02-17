@@ -80,8 +80,9 @@ export class ListLoop extends Executable {
     assertRepeatTargetIsList(
         target: ValueType,
     ): asserts target is IndexedValue | StringValue {
-        if (target instanceof IndexedValue || target instanceof StringValue)
+        if (target instanceof IndexedValue || target instanceof StringValue) {
             return
+        }
 
         throw new NotEnumerableValueForListLoopError({
             resource: {

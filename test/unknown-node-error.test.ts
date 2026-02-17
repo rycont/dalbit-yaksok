@@ -1,9 +1,9 @@
 import { assertEquals } from '@std/assert'
-import { Token, TOKEN_TYPE, Identifier } from '@dalbit-yaksok/core'
+import { Identifier, Token, TOKEN_TYPE } from '@dalbit-yaksok/core'
 import {
+    IncompleteMentionError,
     NotExecutableNodeError,
     UnknownNodeError,
-    IncompleteMentionError,
 } from '../core/error/unknown-node.ts'
 
 Deno.test('UnknownNodeError', () => {

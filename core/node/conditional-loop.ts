@@ -1,5 +1,5 @@
 import { BreakSignal } from '../executer/signals.ts'
-import { Executable, Evaluable } from './base.ts'
+import { Evaluable, Executable } from './base.ts'
 import { YaksokError } from '../error/common.ts'
 import { LoopWithoutBodyError } from '../error/loop.ts'
 import type { Scope } from '../executer/scope.ts'
@@ -7,8 +7,8 @@ import { BooleanValue } from '../value/primitive.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { Block } from './block.ts'
 import {
-    LOOP_WARNING_THRESHOLD,
     emitLoopIterationWarning,
+    LOOP_WARNING_THRESHOLD,
 } from '../util/loop-warning.ts'
 
 export class ConditionalLoop extends Executable {
@@ -33,7 +33,10 @@ export class ConditionalLoop extends Executable {
         try {
             while (true) {
                 const conditionValue = await this.condition.execute(scope)
-                if (!(conditionValue instanceof BooleanValue) || !conditionValue.value) {
+                if (
+                    !(conditionValue instanceof BooleanValue) ||
+                    !conditionValue.value
+                ) {
                     break
                 }
 

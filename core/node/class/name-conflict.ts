@@ -31,7 +31,10 @@ function resolveExistingFunctionObject(
     }
 }
 
-export function hasExistingClassNameConflict(scope: Scope, name: string): boolean {
+export function hasExistingClassNameConflict(
+    scope: Scope,
+    name: string,
+): boolean {
     return (
         resolveExistingIdentifierValue(scope, name) !== undefined ||
         resolveExistingFunctionObject(scope, name) !== undefined

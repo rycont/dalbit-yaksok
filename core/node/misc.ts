@@ -1,5 +1,5 @@
 import { YaksokError } from '../error/common.ts'
-import { Executable, Node, Evaluable } from './base.ts'
+import { Evaluable, Executable, Node } from './base.ts'
 
 import type { Scope } from '../executer/scope.ts'
 import type { Token } from '../prepare/tokenize/token.ts'

@@ -23,8 +23,8 @@ import { assertValidIdentifierName } from '../util/assert-valid-identifier-name.
 import {
     ClassValue,
     InstanceValue,
-    SuperValue,
     resolveClassValueFromInstance,
+    SuperValue,
 } from './class/core.ts'
 import {
     findMemberFunction,
@@ -128,16 +128,26 @@ function isDotMethodReceiverTypeMatch(
         if (typeName === '문자' || typeName === '문자열') {
             return value instanceof StringValue
         }
-        if (typeName === '리스트' || typeName === '목록' || typeName === '배열') {
+        if (
+            typeName === '리스트' ||
+            typeName === '목록' ||
+            typeName === '배열'
+        ) {
             return value instanceof ListValue
         }
         if (typeName === '딕셔너리' || typeName === '사전') {
-            return value instanceof IndexedValue && !(value instanceof ListValue)
+            return (
+                value instanceof IndexedValue && !(value instanceof ListValue)
+            )
         }
         if (typeName === '숫자') {
             return value instanceof NumberValue
         }
-        if (typeName === '불리언' || typeName === '논리' || typeName === '참거짓') {
+        if (
+            typeName === '불리언' ||
+            typeName === '논리' ||
+            typeName === '참거짓'
+        ) {
             return value instanceof BooleanValue
         }
         if (typeName === '튜플') {
@@ -397,7 +407,10 @@ export class MemberFunctionInvoke extends Evaluable {
     override async execute(scope: Scope): Promise<ValueType> {
         const rawTarget = await this.target.execute(scope)
         const args = await evaluateParams(this.invocation.params, scope)
-        if (rawTarget instanceof InstanceValue || rawTarget instanceof SuperValue) {
+        if (
+            rawTarget instanceof InstanceValue ||
+            rawTarget instanceof SuperValue
+        ) {
             const resolved = resolveMemberAccessTarget(rawTarget, this.tokens)
             resolved.scope.setVariable('자신', resolved.instance, this.tokens)
 
@@ -419,7 +432,10 @@ export class MemberFunctionInvoke extends Evaluable {
             return await memberFunction.run(args, resolved.scope)
         }
 
-        const functionOwner = findFunctionOwnerScope(scope, this.invocation.name)
+        const functionOwner = findFunctionOwnerScope(
+            scope,
+            this.invocation.name,
+        )
         if (!functionOwner) {
             return await this.invocation.execute(scope, args)
         }
@@ -452,8 +468,10 @@ export class MemberFunctionInvoke extends Evaluable {
             })
         }
 
-        const hasExistingSelf =
-            Object.prototype.hasOwnProperty.call(functionOwner.variables, '자신')
+        const hasExistingSelf = Object.prototype.hasOwnProperty.call(
+            functionOwner.variables,
+            '자신',
+        )
         const previousSelf = functionOwner.variables['자신']
 
         functionOwner.setLocalVariable('자신', rawTarget, this.tokens)
@@ -470,7 +488,11 @@ export class MemberFunctionInvoke extends Evaluable {
             return await this.invocation.execute(scope, args)
         } finally {
             if (hasExistingSelf) {
-                functionOwner.setLocalVariable('자신', previousSelf, this.tokens)
+                functionOwner.setLocalVariable(
+                    '자신',
+                    previousSelf,
+                    this.tokens,
+                )
             } else {
                 delete functionOwner.variables['자신']
             }
@@ -559,7 +581,10 @@ export class FetchMember extends Evaluable {
 
         const rawTarget = await this.target.execute(scope)
 
-        if (rawTarget instanceof InstanceValue || rawTarget instanceof SuperValue) {
+        if (
+            rawTarget instanceof InstanceValue ||
+            rawTarget instanceof SuperValue
+        ) {
             const resolved = resolveMemberAccessTarget(rawTarget, this.tokens)
 
             try {
@@ -587,7 +612,11 @@ export class FetchMember extends Evaluable {
                     })
                 }
 
-                resolved.scope.setVariable('자신', resolved.instance, this.tokens)
+                resolved.scope.setVariable(
+                    '자신',
+                    resolved.instance,
+                    this.tokens,
+                )
                 return await func.run({}, resolved.scope)
             }
         }
@@ -597,22 +626,36 @@ export class FetchMember extends Evaluable {
         if (functionOwner) {
             const functionObject = functionOwner.functions.get(this.memberName)
             if (
-                (functionObject instanceof FunctionObject || functionObject instanceof FFIObject) &&
+                (functionObject instanceof FunctionObject ||
+                    functionObject instanceof FFIObject) &&
                 functionObject.options.dotReceiverTypeNames &&
-                isDotMethodReceiverTypeMatch(rawTarget, functionObject.options.dotReceiverTypeNames)
+                isDotMethodReceiverTypeMatch(
+                    rawTarget,
+                    functionObject.options.dotReceiverTypeNames,
+                )
             ) {
-                const hasExistingSelf = Object.prototype.hasOwnProperty.call(functionOwner.variables, '자신')
+                const hasExistingSelf = Object.prototype.hasOwnProperty.call(
+                    functionOwner.variables,
+                    '자신',
+                )
                 const previousSelf = functionOwner.variables['자신']
 
                 functionOwner.setLocalVariable('자신', rawTarget, this.tokens)
                 try {
                     if (functionObject instanceof FFIObject) {
-                        return await functionObject.run({ 자신: rawTarget }, scope)
+                        return await functionObject.run(
+                            { 자신: rawTarget },
+                            scope,
+                        )
                     }
                     return await functionObject.run({}, scope)
                 } finally {
                     if (hasExistingSelf) {
-                        functionOwner.setLocalVariable('자신', previousSelf, this.tokens)
+                        functionOwner.setLocalVariable(
+                            '자신',
+                            previousSelf,
+                            this.tokens,
+                        )
                     } else {
                         delete functionOwner.variables['자신']
                     }
@@ -622,7 +665,12 @@ export class FetchMember extends Evaluable {
 
         // 만약 인스턴스가 아니면 resolveMemberAccessTarget이 에러를 던짐
         const resolved = resolveMemberAccessTarget(rawTarget, this.tokens)
-        return getMemberVariable(resolved.scope, resolved.instance, this.memberName, this.tokens)
+        return getMemberVariable(
+            resolved.scope,
+            resolved.instance,
+            this.memberName,
+            this.tokens,
+        )
     }
 
     override validate(scope: Scope): YaksokError[] {
@@ -637,7 +685,10 @@ export class FetchMember extends Evaluable {
                 return targetErrors
             }
 
-            if (!(rawTarget instanceof InstanceValue) && !(rawTarget instanceof SuperValue)) {
+            if (
+                !(rawTarget instanceof InstanceValue) &&
+                !(rawTarget instanceof SuperValue)
+            ) {
                 return targetErrors
             }
 
@@ -738,7 +789,7 @@ export class SetMember extends Executable {
 
         const operatorNode =
             assignerToOperatorMap[
-            this.operator as keyof typeof assignerToOperatorMap
+                this.operator as keyof typeof assignerToOperatorMap
             ]
 
         const operand = await this.value.execute(scope)

@@ -66,8 +66,7 @@ interface ParseResult {
  */
 export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
     try {
-        const { rules: dynamicRules, patterns } =
-            createDynamicRule(codeFile)
+        const { rules: dynamicRules, patterns } = createDynamicRule(codeFile)
         const nodes = convertTokensToNodes(codeFile.tokens)
         const indentedNodes = parseIndent(nodes)
 
@@ -76,11 +75,11 @@ export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
         ]
             ? indentedNodes
             : parseBracket(
-                indentedNodes,
-                codeFile.tokens,
-                dynamicRules,
-                optimistic,
-            )
+                  indentedNodes,
+                  codeFile.tokens,
+                  dynamicRules,
+                  optimistic,
+              )
 
         const variableNameSplitNodes = splitVariableName(
             priorityParsedNodes,

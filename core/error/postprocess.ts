@@ -32,11 +32,11 @@ export function postprocessErrors(
 ): YaksokError[] {
     const lines = splitErrorsByLine(_errors)
 
-    const processedLines = lines.map((line) =>
-        PROCESSORS.reduce(
-            ([line], processor) => processor(line, tokens),
-            [line] as [YaksokError[]],
-        )[0],
+    const processedLines = lines.map(
+        (line) =>
+            PROCESSORS.reduce(([line], processor) => processor(line, tokens), [
+                line,
+            ] as [YaksokError[]])[0],
     )
 
     let errors: YaksokError[] = []
@@ -277,16 +277,17 @@ function parseInvalidDotMethodCall(
         return [[dotError]]
     }
 
-    let methodText = methodTokens.map((token) => token.value).join('').trim()
+    let methodText = methodTokens
+        .map((token) => token.value)
+        .join('')
+        .trim()
     methodText = methodText.replace(/\s*보여주기\s*$/, '').trim()
     if (methodText.length === 0) {
         return [line]
     }
 
     dotError.tokens = methodTokens
-    dotError.message = `${blue(
-        bold(methodText),
-    )}라는 메소드를 찾을 수 없어요.`
+    dotError.message = `${blue(bold(methodText))}라는 메소드를 찾을 수 없어요.`
 
     return [[dotError]]
 }

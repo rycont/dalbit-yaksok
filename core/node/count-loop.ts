@@ -7,8 +7,8 @@ import { NumberValue } from '../value/primitive.ts'
 import { Evaluable, Executable } from './base.ts'
 import { Block } from './block.ts'
 import {
-    LOOP_WARNING_THRESHOLD,
     emitLoopIterationWarning,
+    LOOP_WARNING_THRESHOLD,
 } from '../util/loop-warning.ts'
 
 export class CountLoop extends Executable {

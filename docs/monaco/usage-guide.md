@@ -4,7 +4,10 @@ title: 'Monaco Editor에서 달빛약속 사용하기'
 
 # Monaco Editor에서 달빛약속 사용하기
 
-[Monaco Editor](https://microsoft.github.io/monaco-editor/)는 Microsoft에서 개발한 코드 에디터 컴포넌트입니다. `jsr:@dalbit-yaksok/monaco-language-provider` 패키지는 Monaco Editor에서 문법 강조, 키워드 자동 완성 등의 편의 기능을 제공합니다.
+[Monaco Editor](https://microsoft.github.io/monaco-editor/)는 Microsoft에서
+개발한 코드 에디터 컴포넌트입니다. `jsr:@dalbit-yaksok/monaco-language-provider`
+패키지는 Monaco Editor에서 문법 강조, 키워드 자동 완성 등의 편의 기능을
+제공합니다.
 
 | 기능                              | 상태 |
 | --------------------------------- | ---- |
@@ -36,7 +39,8 @@ bunx jsr add @dalbit-yaksok/monaco-language-provider
 
 ## 사용하기
 
-`@dalbit-yaksok/monaco-language-provider` 패키지를 불러와 Monaco Editor에 적용합니다.
+`@dalbit-yaksok/monaco-language-provider` 패키지를 불러와 Monaco Editor에
+적용합니다.
 
 Monaco Editor에서 불러온 languages 객체, editor의 인스턴스가 필요합니다.
 

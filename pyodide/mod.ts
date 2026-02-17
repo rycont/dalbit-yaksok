@@ -1,16 +1,16 @@
 import {
-    ErrorInFFIExecution,
-    ListValue,
-    NumberValue,
-    PrimitiveValue,
-    StringValue,
     BooleanValue,
-    ValueType,
-    ReferenceStore,
+    ErrorInFFIExecution,
     type Extension,
     type ExtensionManifest,
     type FunctionInvokingParams,
+    ListValue,
+    NumberValue,
+    PrimitiveValue,
+    ReferenceStore,
     type Scope,
+    StringValue,
+    ValueType,
 } from '@dalbit-yaksok/core'
 import { PARSING_RULES } from './parsing-rules.ts'
 
@@ -194,10 +194,10 @@ export class Pyodide implements Extension {
                 }
             } else {
                 console.debug('[Pyodide.executeFFI] EVAL code', code.trim())
-                
+
                 const argNames = Object.keys(args)
-                const argValues = argNames.map(k => args[k])
-                
+                const argValues = argNames.map((k) => args[k])
+
                 for (let i = 0; i < argNames.length; i++) {
                     const name = argNames[i]
                     const val = argValues[i]
@@ -213,11 +213,13 @@ export class Pyodide implements Extension {
                     ? `def __yak_ffi_func(${argNames.join(', ')}):\n${code
                           .split('\n')
                           .map((line) => '    ' + line)
-                          .join('\n')}\n__yak_result = __yak_ffi_func(${argNames.join(', ')})`
+                          .join(
+                              '\n',
+                          )}\n__yak_result = __yak_ffi_func(${argNames.join(', ')})`
                     : code
-                
+
                 await runner.call(this.pyodide, pyCode)
-                
+
                 if (code.includes('return ')) {
                     const result = this.pyodide!.globals.get('__yak_result')
                     this.pyodide!.globals.delete('__yak_result')
@@ -307,7 +309,9 @@ sys.stderr = __YaksokStdoutWriter()
 
         for (const part of parts) {
             if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(part)) {
-                throw new Error(`GET_GLOBAL_PATH has invalid identifier: ${part}`)
+                throw new Error(
+                    `GET_GLOBAL_PATH has invalid identifier: ${part}`,
+                )
             }
         }
 

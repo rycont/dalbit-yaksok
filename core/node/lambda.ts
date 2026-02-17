@@ -1,4 +1,4 @@
-import { YaksokError } from "../error/common.ts";
+import { YaksokError } from '../error/common.ts'
 import { Scope } from '../executer/scope.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import { ValueType } from '../value/base.ts'

@@ -1,4 +1,9 @@
-import { Evaluable, Expression, Identifier, type Node } from '../../../../node/base.ts'
+import {
+    Evaluable,
+    Expression,
+    Identifier,
+    type Node,
+} from '../../../../node/base.ts'
 import { FunctionInvoke } from '../../../../node/function.ts'
 import { MemberFunctionInvoke } from '../../../../node/class.ts'
 
@@ -11,7 +16,7 @@ import type {
     FunctionTemplate,
     FunctionTemplatePiece,
 } from '../../../../type/function-template.ts'
-import type { Rule, PatternUnit } from '../../type.ts'
+import type { PatternUnit, Rule } from '../../type.ts'
 import { RULE_FLAGS } from '../../type.ts'
 
 interface VariantedPart {
@@ -137,7 +142,9 @@ function createRuleFromFunctionTemplate(
     }
 }
 
-function createRuleFromMethodTemplate(functionTemplate: FunctionTemplate): Rule {
+function createRuleFromMethodTemplate(
+    functionTemplate: FunctionTemplate,
+): Rule {
     const pattern = createPatternFromMethodTemplatePieces(
         functionTemplate.pieces,
     )

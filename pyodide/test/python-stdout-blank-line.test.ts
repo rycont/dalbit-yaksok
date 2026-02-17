@@ -16,8 +16,11 @@ Deno.test({
         })
 
         await session.extend(new Pyodide())
-        session.addModule('main', `print()
-print("x")`)
+        session.addModule(
+            'main',
+            `print()
+print("x")`,
+        )
 
         const results = await session.runModule('main')
         const result = results.get('main')!

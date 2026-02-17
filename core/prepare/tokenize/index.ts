@@ -1,7 +1,7 @@
-import { RULES, RuleParseResult, MultiTokenParseResult } from './rules.ts'
+import { MultiTokenParseResult, RuleParseResult, RULES } from './rules.ts'
 
 import { YaksokError } from '../../error/common.ts'
-import { TOKEN_TYPE, type Token } from './token.ts'
+import { type Token, TOKEN_TYPE } from './token.ts'
 
 function isMultiTokenResult(
     result: RuleParseResult | MultiTokenParseResult,

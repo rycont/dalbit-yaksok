@@ -1,7 +1,7 @@
 import {
+    isClassStartingPattern,
     isFfiStartingPattern,
     isYaksokStartingPattern,
-    isClassStartingPattern,
 } from './is-function-starting.ts'
 import { TOKEN_TYPE } from '../prepare/tokenize/token.ts'
 import { Token } from '../prepare/tokenize/token.ts'

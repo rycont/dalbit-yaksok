@@ -3,7 +3,7 @@ import { Block } from '../../../../../node/block.ts'
 import { DeclareFunction } from '../../../../../node/function.ts'
 import { EOL } from '../../../../../node/misc.ts'
 import { extractParamNamesFromHeaderTokens } from '../../../../../util/extract-param-names-from-header-tokens.ts'
-import { TOKEN_TYPE, Token } from '../../../../tokenize/token.ts'
+import { Token, TOKEN_TYPE } from '../../../../tokenize/token.ts'
 import { PatternUnit, Rule } from '../../../type.ts'
 import { functionHeaderToPattern } from './common.ts'
 

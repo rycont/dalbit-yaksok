@@ -140,7 +140,10 @@ export class YaksokSession {
         }
     }
 
-    async extend(extension: Extension, options: ExtendOptions = {}): Promise<void> {
+    async extend(
+        extension: Extension,
+        options: ExtendOptions = {},
+    ): Promise<void> {
         this.extensions.push(extension)
         if (extension.manifest.module) {
             const { module } = extension.manifest

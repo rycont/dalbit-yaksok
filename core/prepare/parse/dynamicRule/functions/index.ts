@@ -12,7 +12,7 @@ import { tokensToClassDeclareRule } from './declare-rule/class-declare-rule.ts'
 import { tokensToMethodDeclareRule } from './declare-rule/method-declare-rule.ts'
 import { tokensToMethodFFIDeclareRule } from './declare-rule/method-ffi-declare-rule.ts'
 
-import { TOKEN_TYPE, type Token } from '../../../tokenize/token.ts'
+import { type Token, TOKEN_TYPE } from '../../../tokenize/token.ts'
 import type { Rule } from '../../type.ts'
 import { tokensToEventSubscribeRule } from './tokens-to-event-subscribe-rule.ts'
 import { tokensToMethodEventDeclareRule } from './declare-rule/method-event-declare-rule.ts'

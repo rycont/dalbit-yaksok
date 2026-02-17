@@ -1,13 +1,13 @@
 import {
-    Executable,
     Evaluable,
+    Executable,
     FetchMember,
     Identifier,
     NotDefinedIdentifierError,
-    YaksokError,
-    Token,
     Scope,
+    Token,
     ValueType,
+    YaksokError,
 } from '@dalbit-yaksok/core'
 
 export class PythonStatement extends Executable {
@@ -71,10 +71,15 @@ export class PythonCall extends Evaluable {
         }
 
         if (!isPythonIdentifierName(this.callable.memberName)) {
-            throw new Error(`Invalid python method name: ${this.callable.memberName}`)
+            throw new Error(
+                `Invalid python method name: ${this.callable.memberName}`,
+            )
         }
 
-        const evaluatedTarget = await this.executeArg(this.callable.target, scope)
+        const evaluatedTarget = await this.executeArg(
+            this.callable.target,
+            scope,
+        )
         const argsMap: Record<string, ValueType> = {
             '0': evaluatedTarget,
             ...Object.fromEntries(

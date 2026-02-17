@@ -175,11 +175,7 @@ export class IndexFetch extends Evaluable {
         }
     }
 
-    public async setValue(
-        scope: Scope,
-
-        value: ValueType,
-    ) {
+    public async setValue(scope: Scope, value: ValueType) {
         const list = await this.list.execute(scope)
         const index = await this.index.execute(scope)
 

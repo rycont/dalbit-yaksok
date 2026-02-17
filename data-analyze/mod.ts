@@ -1,6 +1,7 @@
 import {
     type Extension,
     ExtensionManifest,
+    FunctionInvokingParams,
     GreaterThanOrEqualOperator,
     IndexedValue,
     LessThanOperator,
@@ -9,7 +10,6 @@ import {
     NumberValue,
     StringValue,
     ValueType,
-    FunctionInvokingParams,
 } from '@dalbit-yaksok/core'
 import { 편의점 } from './virtual-data/cvs.ts'
 
@@ -71,14 +71,11 @@ FREQUENCY
 ***
 `,
 
-
             데이터_불러오기: `
 약속, 편의점 데이터
     데 = ${편의점}
     데 반환하기
 `,
-
-
         },
     }
 

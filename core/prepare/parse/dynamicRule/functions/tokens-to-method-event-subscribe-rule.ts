@@ -15,7 +15,8 @@ export function tokensToMethodEventSubscribeRule(
     headerTokens: Token[],
 ): Rule[] {
     const eventId = findEventIdFromPrefixTokens(prefixTokens)
-    const functionSignatureTokens = convertTokensToFunctionTemplate(headerTokens)
+    const functionSignatureTokens =
+        convertTokensToFunctionTemplate(headerTokens)
 
     // 이벤트를 구독하는 메소드 호출 패턴 생성
     // 패턴: Evaluable . HeaderPattern EOL Block

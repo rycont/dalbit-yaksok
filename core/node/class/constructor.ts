@@ -128,9 +128,8 @@ function hasConstructorHeaderSignature(allTokens: Token[]): boolean {
     const newlineIndex = allTokens.findIndex(
         (token) => token.type === TOKEN_TYPE.NEW_LINE,
     )
-    const headerTokens = newlineIndex === -1
-        ? allTokens
-        : allTokens.slice(0, newlineIndex)
+    const headerTokens =
+        newlineIndex === -1 ? allTokens : allTokens.slice(0, newlineIndex)
     const compactHeaderTokens = headerTokens.filter(
         (token) =>
             token.type !== TOKEN_TYPE.SPACE &&

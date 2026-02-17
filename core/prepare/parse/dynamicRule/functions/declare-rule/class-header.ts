@@ -2,7 +2,7 @@ import {
     UnexpectedEndOfCodeError,
     UnexpectedTokenError,
 } from '../../../../../error/prepare.ts'
-import { TOKEN_TYPE, type Token } from '../../../../tokenize/token.ts'
+import { type Token, TOKEN_TYPE } from '../../../../tokenize/token.ts'
 
 type InheritanceStyle = 'none' | 'comma' | 'parenthesis'
 
@@ -20,7 +20,9 @@ function meaningfulTokens(headerTokens: Token[]): Token[] {
     )
 }
 
-export function parseClassHeaderTokens(headerTokens: Token[]): ParsedClassHeader {
+export function parseClassHeaderTokens(
+    headerTokens: Token[],
+): ParsedClassHeader {
     const tokens = meaningfulTokens(headerTokens)
     const lastToken = tokens[tokens.length - 1]
 

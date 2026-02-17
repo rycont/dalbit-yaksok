@@ -1,4 +1,4 @@
-import { YaksokSession, Scope, Pause } from '../core/mod.ts'
+import { Pause, Scope, YaksokSession } from '../core/mod.ts'
 import { assertEquals } from 'assert/equals'
 import { assert } from 'assert/assert'
 

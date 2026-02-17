@@ -94,4 +94,3 @@ Deno.test('표준 filter - 문자열 인덱스 사용', async () => {
 `)
     assertEquals(output, 'Pormig')
 })
-

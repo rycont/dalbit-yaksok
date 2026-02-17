@@ -25,6 +25,7 @@ import {
     IfStatement,
     IndexFetch,
     IntegerDivideOperator,
+    LambdaLiteral,
     LessThanOperator,
     LessThanOrEqualOperator,
     ListLiteral,
@@ -34,7 +35,6 @@ import {
     ModularOperator,
     MultiplyOperator,
     NewInstance,
-    LambdaLiteral,
     Operator,
     OrOperator,
     Pause,
@@ -631,7 +631,9 @@ export const DOT_MEMBER_FUNCTION_INVOKE_RULES: Rule[] = [
                 tokens,
             )
             return new IndexFetch(
-                memberInvoke as unknown as Evaluable<IndexedValue | StringValue>,
+                memberInvoke as unknown as Evaluable<
+                    IndexedValue | StringValue
+                >,
                 indexed.index,
                 tokens,
             )
@@ -671,10 +673,7 @@ export const DOT_FETCH_MEMBER_RULES: Rule[] = [
                 ],
             )
 
-            return new Formula(
-                [...formula.terms.slice(0, -1), fetched],
-                tokens,
-            )
+            return new Formula([...formula.terms.slice(0, -1), fetched], tokens)
         },
     },
     {
@@ -717,11 +716,7 @@ export const DOT_FETCH_MEMBER_RULES: Rule[] = [
                 }
             }
 
-            return new FetchMember(
-                target,
-                memberName,
-                tokens,
-            )
+            return new FetchMember(target, memberName, tokens)
         },
     },
 ]
@@ -1281,28 +1276,28 @@ function createTypeCastRules(): Rule[] {
         target: TypeCastTarget
         split?: [string, string][]
     }[] = [
-            {
-                keywords: ['숫자로'],
-                target: '숫자',
-                split: [['숫자', '로']],
-            },
-            {
-                keywords: ['문자열로', '문자로'],
-                target: '문자열',
-                split: [
-                    ['문자열', '로'],
-                    ['문자', '로'],
-                ],
-            },
-            {
-                keywords: ['참거짓으로', '불리언으로'],
-                target: '참거짓',
-                split: [
-                    ['참거짓', '으로'],
-                    ['불리언', '으로'],
-                ],
-            },
-        ]
+        {
+            keywords: ['숫자로'],
+            target: '숫자',
+            split: [['숫자', '로']],
+        },
+        {
+            keywords: ['문자열로', '문자로'],
+            target: '문자열',
+            split: [
+                ['문자열', '로'],
+                ['문자', '로'],
+            ],
+        },
+        {
+            keywords: ['참거짓으로', '불리언으로'],
+            target: '참거짓',
+            split: [
+                ['참거짓', '으로'],
+                ['불리언', '으로'],
+            ],
+        },
+    ]
 
     const rules: Rule[] = []
 

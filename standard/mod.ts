@@ -2,14 +2,14 @@ import {
     BooleanValue,
     type Extension,
     ExtensionManifest,
-    NumberValue,
-    ListValue,
-    TupleValue,
-    StringValue,
-    ValueType,
     FunctionInvokingParams,
     IndexedValue,
+    ListValue,
+    NumberValue,
     Scope,
+    StringValue,
+    TupleValue,
+    ValueType,
 } from '@dalbit-yaksok/core'
 
 export class StandardExtension implements Extension {
@@ -177,13 +177,17 @@ SORT_WITH_FUNC
             }
             case 'SUM': {
                 const { 자신 } = args
-                if (!(자신 instanceof ListValue || 자신 instanceof TupleValue)) {
+                if (
+                    !(자신 instanceof ListValue || 자신 instanceof TupleValue)
+                ) {
                     throw new Error('합계를 구할 수 없는 대상이에요.')
                 }
                 const sum = Array.from(자신.enumerate()).reduce(
                     (acc: number, curr: ValueType) => {
                         if (!(curr instanceof NumberValue)) {
-                            throw new Error('목록에 숫자가 아닌 값이 들어있어요.')
+                            throw new Error(
+                                '목록에 숫자가 아닌 값이 들어있어요.',
+                            )
                         }
                         return acc + curr.value
                     },
@@ -193,13 +197,17 @@ SORT_WITH_FUNC
             }
             case 'PRODUCT': {
                 const { 자신 } = args
-                if (!(자신 instanceof ListValue || 자신 instanceof TupleValue)) {
+                if (
+                    !(자신 instanceof ListValue || 자신 instanceof TupleValue)
+                ) {
                     throw new Error('곱을 구할 수 없는 대상이에요.')
                 }
                 const product = Array.from(자신.enumerate()).reduce(
                     (acc: number, curr: ValueType) => {
                         if (!(curr instanceof NumberValue)) {
-                            throw new Error('목록에 숫자가 아닌 값이 들어있어요.')
+                            throw new Error(
+                                '목록에 숫자가 아닌 값이 들어있어요.',
+                            )
                         }
                         return acc * curr.value
                     },
@@ -465,7 +473,10 @@ SORT_WITH_FUNC
                     throw new Error('빈 목록에서는 최댓값을 구할 수 없어요.')
                 }
                 const max = items.reduce((acc, curr) => {
-                    if (acc instanceof NumberValue && curr instanceof NumberValue) {
+                    if (
+                        acc instanceof NumberValue &&
+                        curr instanceof NumberValue
+                    ) {
                         return curr.value > acc.value ? curr : acc
                     }
                     return curr.toPrint().localeCompare(acc.toPrint()) > 0
@@ -484,7 +495,10 @@ SORT_WITH_FUNC
                     throw new Error('빈 목록에서는 최솟값을 구할 수 없어요.')
                 }
                 const min = items.reduce((acc, curr) => {
-                    if (acc instanceof NumberValue && curr instanceof NumberValue) {
+                    if (
+                        acc instanceof NumberValue &&
+                        curr instanceof NumberValue
+                    ) {
                         return curr.value < acc.value ? curr : acc
                     }
                     return curr.toPrint().localeCompare(acc.toPrint()) < 0
@@ -495,13 +509,18 @@ SORT_WITH_FUNC
             }
             case 'FLATTEN': {
                 const { 자신 } = args
-                if (!(자신 instanceof ListValue || 자신 instanceof TupleValue)) {
+                if (
+                    !(자신 instanceof ListValue || 자신 instanceof TupleValue)
+                ) {
                     throw new Error('목록이나 튜플이 아니면 펼칠 수 없어요.')
                 }
                 const items = Array.from(자신.enumerate())
                 const flattened: ValueType[] = []
                 for (const item of items) {
-                    if (item instanceof ListValue || item instanceof TupleValue) {
+                    if (
+                        item instanceof ListValue ||
+                        item instanceof TupleValue
+                    ) {
                         flattened.push(...Array.from(item.enumerate()))
                     } else {
                         flattened.push(item)
@@ -532,12 +551,21 @@ SORT_WITH_FUNC
             }
             case 'FREQUENCY': {
                 const { 자신 } = args
-                if (!(자신 instanceof ListValue || 자신 instanceof TupleValue || 자신 instanceof StringValue)) {
-                    throw new Error('문자열, 목록이나 튜플이 아니면 빈도를 샐 수 없어요.')
+                if (
+                    !(
+                        자신 instanceof ListValue ||
+                        자신 instanceof TupleValue ||
+                        자신 instanceof StringValue
+                    )
+                ) {
+                    throw new Error(
+                        '문자열, 목록이나 튜플이 아니면 빈도를 샐 수 없어요.',
+                    )
                 }
-                const items = 자신 instanceof StringValue 
-                    ? 자신.value.split('').map(c => new StringValue(c))
-                    : Array.from(자신.enumerate())
+                const items =
+                    자신 instanceof StringValue
+                        ? 자신.value.split('').map((c) => new StringValue(c))
+                        : Array.from(자신.enumerate())
 
                 const counts = new Map<string | number, number>()
                 for (const item of items) {
@@ -610,20 +638,19 @@ SORT_WITH_FUNC
                     return await merge(left, right)
                 }
 
-                const merge = async (
-                    left: ValueType[],
-                    right: ValueType[],
-                ) => {
+                const merge = async (left: ValueType[], right: ValueType[]) => {
                     const sorted: ValueType[] = []
                     let i = 0
                     let j = 0
 
                     while (i < left.length && j < right.length) {
                         const runArgs: Record<string, ValueType> = {}
-                        if (비교함수.paramNames[0])
+                        if (비교함수.paramNames[0]) {
                             runArgs[비교함수.paramNames[0]] = left[i]
-                        if (비교함수.paramNames[1])
+                        }
+                        if (비교함수.paramNames[1]) {
                             runArgs[비교함수.paramNames[1]] = right[j]
+                        }
 
                         const result = await 비교함수.run(runArgs, callerScope)
 
@@ -671,14 +698,15 @@ SORT_WITH_FUNC
                 if (!(자신 instanceof StringValue)) {
                     throw new Error('문자열이 아니면 찾을 수 없어요.')
                 }
-                
-                const regex = 패턴 instanceof StringValue 
-                    ? new RegExp(패턴.value, 'g')
-                    : 패턴 as any // Handle RegexValue if integrated or just use native match
+
+                const regex =
+                    패턴 instanceof StringValue
+                        ? new RegExp(패턴.value, 'g')
+                        : (패턴 as any) // Handle RegexValue if integrated or just use native match
 
                 const matches = 자신.value.match(regex)
                 if (!matches) return new ListValue([])
-                return new ListValue(matches.map(m => new StringValue(m)))
+                return new ListValue(matches.map((m) => new StringValue(m)))
             }
             default:
                 throw new Error(`알 수 없는 표준 동작: ${action}`)
@@ -686,13 +714,8 @@ SORT_WITH_FUNC
     }
 }
 
-function isRunnableObject(
-    value: ValueType | undefined,
-): value is ValueType & {
-    run(
-        args: Record<string, ValueType>,
-        fileScope?: Scope,
-    ): Promise<ValueType>
+function isRunnableObject(value: ValueType | undefined): value is ValueType & {
+    run(args: Record<string, ValueType>, fileScope?: Scope): Promise<ValueType>
     paramNames: string[]
 } {
     if (!value || !('run' in value) || typeof value.run !== 'function') {

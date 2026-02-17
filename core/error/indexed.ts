@@ -4,11 +4,11 @@ import type { Position } from '../type/position.ts'
 import type { ValueType } from '../value/base.ts'
 import { StringValue } from '../value/primitive.ts'
 import {
-    YaksokError,
     bold,
     dim,
     evaluableToText,
     valueTypeToText,
+    YaksokError,
 } from './common.ts'
 
 export class IndexKeyNotFoundError extends YaksokError {
@@ -24,9 +24,7 @@ export class IndexKeyNotFoundError extends YaksokError {
         this.message = `${valueTypeToText(props.resource.target)}에는 ${
             bold(props.resource.index) +
             dim(
-                `(${
-                    typeof props.resource.index === 'number' ? '숫자' : '문자'
-                })`,
+                `(${typeof props.resource.index === 'number' ? '숫자' : '문자'})`,
             )
         }라는 값이 없어요. `
     }

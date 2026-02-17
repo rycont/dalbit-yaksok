@@ -1,5 +1,6 @@
 import {
     Block,
+    CountLoop,
     DeclareFunction,
     EOL,
     Formula,
@@ -20,7 +21,6 @@ import {
     StringLiteral,
     TOKEN_TYPE,
     ValueWithParenthesis,
-    CountLoop,
 } from '@dalbit-yaksok/core'
 import { ColorPart } from '../type.ts'
 import { parseFunctionDeclareHeader } from './declare-function.ts'

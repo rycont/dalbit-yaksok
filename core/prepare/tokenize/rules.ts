@@ -155,10 +155,13 @@ export const RULES: {
 
             const closingTag = '\n' + lineLeadingWhitespace + '***'
             const endIndex = code.indexOf(closingTag, index + starter.length)
-            
+
             if (endIndex === -1) {
                 // Fallback to column 1 closing tag just in case
-                const fallbackEndIndex = code.indexOf('\n***', index + starter.length)
+                const fallbackEndIndex = code.indexOf(
+                    '\n***',
+                    index + starter.length,
+                )
                 if (fallbackEndIndex === -1) {
                     throw new UnexpectedEndOfCodeError({
                         resource: {
@@ -166,7 +169,10 @@ export const RULES: {
                         },
                     })
                 }
-                const value = code.substring(index, fallbackEndIndex + '\n***'.length)
+                const value = code.substring(
+                    index,
+                    fallbackEndIndex + '\n***'.length,
+                )
                 return { value, newIndex: fallbackEndIndex + '\n***'.length }
             }
 

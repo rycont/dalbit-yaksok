@@ -7,14 +7,14 @@ import type { QuickJSContext, QuickJSWASMModule } from 'quickjs-emscripten-core'
 
 import {
     ErrorInFFIExecution,
+    type Extension,
+    type ExtensionManifest,
+    type FunctionInvokingParams,
     ListValue,
     NumberValue,
     PrimitiveValue,
     StringValue,
     ValueType,
-    type Extension,
-    type ExtensionManifest,
-    type FunctionInvokingParams,
 } from '@dalbit-yaksok/core'
 import { dim } from './util.ts'
 

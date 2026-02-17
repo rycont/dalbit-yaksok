@@ -61,10 +61,11 @@ export function renderErrorString(error: YaksokError) {
             fileName ? dim(` (${fileName.toString()} 파일)`) : ''
         } 🚨` + '\n'
 
-    if (error.position)
+    if (error.position) {
         output +=
             `${error.position.line}번째 줄의 ${error.position.column}번째 글자\n` +
             '\n'
+    }
 
     output += '> ' + error.message + '\n\n'
 
