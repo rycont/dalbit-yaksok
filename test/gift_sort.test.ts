@@ -18,8 +18,8 @@ async function runStandard(code: string): Promise<string> {
 
 Deno.test('표준 정렬 - 숫자 정렬', async () => {
     const output = await runStandard(`
-결과 = [10, 5, 30, 1] (람다 숫자: 숫자) 정렬하기
+결과 = [10, 5, 30, 1].(람다 a, b: a - b)로 정렬하기
 결과 보여주기
 `)
-    console.log('OUTPUT:', output)
+    assertEquals(output, '[1, 5, 10, 30]')
 })
