@@ -18,6 +18,7 @@ const PROCESSORS: ErrorProcessor[] = [
     parseInvalidVariableName,
     parseVariableAssigningValueParsingError,
     parseGrammarStructureFailure,
+    collapseParenthesesErrors,
 ]
 
 const LAMBDA_PARENTHESES_ERROR_MESSAGE =
@@ -522,6 +523,52 @@ function parseGrammarStructureFailure(
 
             return [[error]]
         }
+    }
+
+    return [line]
+}
+
+function collapseParenthesesErrors(
+    line: YaksokError[],
+    allTokens: Token[],
+): [YaksokError[]] {
+    const openingParenErrorIndex = line.findIndex(
+        (error) =>
+            error instanceof NotExecutableNodeError &&
+            error.tokens?.length === 1 &&
+            error.tokens[0].value === '(',
+    )
+
+    const closingParenErrorIndex = line.findLastIndex(
+        (error) =>
+            error instanceof NotExecutableNodeError &&
+            error.tokens?.length === 1 &&
+            error.tokens[0].value === ')',
+    )
+
+    if (
+        openingParenErrorIndex !== -1 &&
+        closingParenErrorIndex !== -1 &&
+        openingParenErrorIndex < closingParenErrorIndex
+    ) {
+        const firstToken = line[openingParenErrorIndex].tokens![0]
+        const lastToken = line[closingParenErrorIndex].tokens![0]
+
+        // Find all tokens between these two in the same line
+        const tokensInLine = allTokens.filter(
+            (t) => t.position.line === firstToken.position.line,
+        )
+        const startIndex = tokensInLine.indexOf(firstToken)
+        const endIndex = tokensInLine.indexOf(lastToken)
+
+        const errorTokens = tokensInLine.slice(startIndex, endIndex + 1)
+
+        const newError = new YaksokError({ resource: {} })
+        newError.message = '코드를 이해하지 못했어요.'
+        newError.tokens = errorTokens
+        newError.position = firstToken.position
+
+        return [[newError]]
     }
 
     return [line]
