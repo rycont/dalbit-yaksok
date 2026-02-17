@@ -84,6 +84,11 @@ MAP
 REPLACE
 ***
 
+메소드(문자), 번역(표준), (패턴) 찾기
+***
+FIND
+***
+
 메소드(리스트), 번역(표준), 모두 (판별함수) 인지
 ***
 EVERY
@@ -660,6 +665,20 @@ SORT_WITH_FUNC
                     바꿀문자.value,
                 )
                 return new StringValue(replaced)
+            }
+            case 'FIND': {
+                const { 자신, 패턴 } = args
+                if (!(자신 instanceof StringValue)) {
+                    throw new Error('문자열이 아니면 찾을 수 없어요.')
+                }
+                
+                const regex = 패턴 instanceof StringValue 
+                    ? new RegExp(패턴.value, 'g')
+                    : 패턴 as any // Handle RegexValue if integrated or just use native match
+
+                const matches = 자신.value.match(regex)
+                if (!matches) return new ListValue([])
+                return new ListValue(matches.map(m => new StringValue(m)))
             }
             default:
                 throw new Error(`알 수 없는 표준 동작: ${action}`)

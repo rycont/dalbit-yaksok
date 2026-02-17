@@ -146,16 +146,31 @@ export const RULES: {
                 return null
             }
 
-            const endIndex = code.indexOf('\n***', index + starter.length)
+            // Find the indentation of the line containing the opening ***
+            let lineStartIndex = index
+            while (lineStartIndex > 0 && code[lineStartIndex - 1] !== '\n') {
+                lineStartIndex--
+            }
+            const lineLeadingWhitespace = code.substring(lineStartIndex, index)
+
+            const closingTag = '\n' + lineLeadingWhitespace + '***'
+            const endIndex = code.indexOf(closingTag, index + starter.length)
+            
             if (endIndex === -1) {
-                throw new UnexpectedEndOfCodeError({
-                    resource: {
-                        expected: 'FFI 닫는 구분자 (***)',
-                    },
-                })
+                // Fallback to column 1 closing tag just in case
+                const fallbackEndIndex = code.indexOf('\n***', index + starter.length)
+                if (fallbackEndIndex === -1) {
+                    throw new UnexpectedEndOfCodeError({
+                        resource: {
+                            expected: 'FFI 닫는 구분자 (***)',
+                        },
+                    })
+                }
+                const value = code.substring(index, fallbackEndIndex + '\n***'.length)
+                return { value, newIndex: fallbackEndIndex + '\n***'.length }
             }
 
-            const newIndex = endIndex + '\n***'.length
+            const newIndex = endIndex + closingTag.length
             const value = code.substring(index, newIndex)
             return { value, newIndex }
         },
@@ -194,6 +209,31 @@ export const RULES: {
 
             if (bestMatch) {
                 return { value: bestMatch, newIndex: index + bestMatch.length }
+            }
+
+            return null
+        },
+    },
+    {
+        type: TOKEN_TYPE.REGEX,
+        starter: ['r'],
+        parse: (code, index) => {
+            if (code[index] !== 'r') return null
+            if (code[index + 1] !== '"' && code[index + 1] !== "'") return null
+
+            const quote = code[index + 1]
+            let i = index + 2
+            while (i < code.length && code[i] !== quote) {
+                if (code[i] === '\\' && i + 1 < code.length) {
+                    i += 2
+                    continue
+                }
+                i++
+            }
+
+            if (i < code.length) {
+                const newIndex = i + 1
+                return { value: code.substring(index, newIndex), newIndex }
             }
 
             return null
@@ -417,6 +457,31 @@ export const RULES: {
                 i++
             }
             return { value: code.substring(index, i), newIndex: i }
+        },
+    },
+    {
+        type: TOKEN_TYPE.REGEX,
+        starter: ['r'],
+        parse: (code, index) => {
+            if (code[index] !== 'r') return null
+            if (code[index + 1] !== '"' && code[index + 1] !== "'") return null
+
+            const quote = code[index + 1]
+            let i = index + 2
+            while (i < code.length && code[i] !== quote) {
+                if (code[i] === '\\' && i + 1 < code.length) {
+                    i += 2
+                    continue
+                }
+                i++
+            }
+
+            if (i < code.length) {
+                const newIndex = i + 1
+                return { value: code.substring(index, newIndex), newIndex }
+            }
+
+            return null
         },
     },
     {

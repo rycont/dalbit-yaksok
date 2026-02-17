@@ -564,9 +564,14 @@ function collapseParenthesesErrors(
 
         const errorTokens = tokensInLine.slice(startIndex, endIndex + 1)
 
-        const newError = new YaksokError({ resource: {} })
-        newError.message = '코드를 이해하지 못했어요.'
-        newError.tokens = errorTokens
+        const newError = new NotExecutableNodeError({
+            tokens: errorTokens,
+            resource: {
+                node: (line[openingParenErrorIndex] as NotExecutableNodeError)
+                    .resource!.node,
+                message: '코드를 이해하지 못했어요.',
+            },
+        })
         newError.position = firstToken.position
 
         return [[newError]]

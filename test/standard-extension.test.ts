@@ -55,17 +55,12 @@ Deno.test('표준 filter - 판별함수 타입 검사', async () => {
     )
 })
 
-Deno.test('표준 filter - 람다 괄호 누락 안내', async () => {
-    const error = await assertRejects(
-        () =>
-            runStandard(`
+Deno.test('표준 filter - 괄호 없는 람다 메소드 호출', async () => {
+    const result = await runStandard(`
 결과 = [1, 2, 3].람다 숫자: 숫자 > 0로 모두확인하기
 결과 보여주기
-`),
-        Error,
-        '람다는 괄호로 감싸야 해요. 예시: `리스트.(람다 숫자: 숫자 > 0)로 모두확인하기`',
-    )
-    assert(!error.message.includes('라는 변수나 약속을 찾을 수 없어요.'))
+`)
+    assertEquals(result.trim(), '참')
 })
 
 Deno.test('표준 filter - 람다 괄호 있음: 다른 오류를 유지', async () => {

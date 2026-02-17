@@ -3,6 +3,7 @@ import { DeclareFFI, FFIBody } from '../../../../../node/ffi.ts'
 import { EOL } from '../../../../../node/misc.ts'
 import { Token } from '../../../../tokenize/token.ts'
 import { PatternUnit, Rule } from '../../../type.ts'
+import { extractParamNamesFromHeaderTokens } from '../../../../../util/extract-param-names-from-header-tokens.ts'
 import { functionHeaderToPattern } from './common.ts'
 
 const PREFIX: PatternUnit[] = [
@@ -50,11 +51,14 @@ export function tokensToFFIDeclareRule(headerTokens: Token[]): Rule {
                 .join('')
                 .trim()
 
+            const paramNames = extractParamNamesFromHeaderTokens(headerTokens)
+
             return new DeclareFFI(
                 {
                     name,
                     runtime,
                     body,
+                    paramNames,
                 },
                 matchedTokens,
             )

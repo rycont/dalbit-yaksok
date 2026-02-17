@@ -194,7 +194,36 @@ export class Pyodide implements Extension {
                 }
             } else {
                 console.debug('[Pyodide.executeFFI] EVAL code', code.trim())
-                await runner.call(this.pyodide, code)
+                
+                const argNames = Object.keys(args)
+                const argValues = argNames.map(k => args[k])
+                
+                for (let i = 0; i < argNames.length; i++) {
+                    const name = argNames[i]
+                    const val = argValues[i]
+                    if (val instanceof ReferenceStore) {
+                        this.pyodide!.globals.set(name, val.ref)
+                    } else {
+                        const pyVal = convertYaksokToPythonLiteral(val)
+                        await runner.call(this.pyodide, `${name} = ${pyVal}`)
+                    }
+                }
+
+                const pyCode = code.includes('return ')
+                    ? `def __yak_ffi_func(${argNames.join(', ')}):\n${code
+                          .split('\n')
+                          .map((line) => '    ' + line)
+                          .join('\n')}\n__yak_result = __yak_ffi_func(${argNames.join(', ')})`
+                    : code
+                
+                await runner.call(this.pyodide, pyCode)
+                
+                if (code.includes('return ')) {
+                    const result = this.pyodide!.globals.get('__yak_result')
+                    this.pyodide!.globals.delete('__yak_result')
+                    return convertPythonResultToYaksok(result)
+                }
+
                 console.debug('[Pyodide.executeFFI] EVAL done')
                 return new NumberValue(0)
             }
