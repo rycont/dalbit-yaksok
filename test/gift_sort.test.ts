@@ -1,5 +1,5 @@
 import { YaksokSession } from '../core/mod.ts'
-import { StandardExtension } from '../standard/mod.ts'
+import { StandardExtension } from '../exts/standard/mod.ts'
 
 async function runStandard(code: string): Promise<string> {
     let output = ''

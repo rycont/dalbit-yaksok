@@ -15,7 +15,7 @@ export class NotProperIdentifierNameToDefineError extends YaksokError<{
 
         if (matchedReservedWords.length) {
             this.message = `${bold(
-                blue(props.texts.join('').trim()),
+                blue(props.texts.join(' ').trim()),
             )}에서 ${matchedReservedWords
                 .map((e) => `'${e}'`)
                 .map(bold)
@@ -25,7 +25,7 @@ export class NotProperIdentifierNameToDefineError extends YaksokError<{
         }
 
         this.message = `${bold(
-            blue(props.texts.join('')),
+            blue(props.texts.join(' ')),
         )}는 변수나 약속의 이름으로 사용할 수 없어요.`
     }
 }
@@ -45,7 +45,7 @@ export class NotDefinedIdentifierError extends YaksokError<NotDefinedIdentifierE
 
     override get message(): string {
         const name =
-            this.tokens?.map((token) => token.value).join('') ||
+            this.tokens?.map((token) => token.value).join(' ') ||
             this.resource?.name!
         return `${bold(blue(`"${name}"`))}라는 변수나 약속을 찾을 수 없어요.${
             this.resource?.suggestedFix

@@ -6,7 +6,7 @@ import { createDynamicRule } from './dynamicRule/index.ts'
 import { parseIndent } from './parse-indent.ts'
 import { callParseRecursively } from './srParse.ts'
 
-import { Node } from '../../node/base.ts'
+import { Identifier, Node } from '../../node/base.ts'
 import { SetVariable } from '../../node/variable.ts'
 import type { CodeFile } from '../../type/code-file.ts'
 import { parseBracket } from './parse-bracket.ts'
@@ -85,12 +85,12 @@ function extractExportedVariables(nodes: Node[]): Rule[] {
                 ({
                     pattern: [
                         {
-                            type: (node as any).constructor,
-                            value: (node as any).name,
+                            type: Identifier,
+                            value: node.name,
                         },
                     ],
                     factory(nodes) {
-                        return nodes[0] as any
+                        return nodes[0]
                     },
                     config: {
                         exported: true,

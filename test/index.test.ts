@@ -9,7 +9,7 @@ for (const file of Deno.readDirSync(codesDir)) {
             let printed = ''
 
             const filePath = `${codesDir}/${file.name}`
-            let code = await Deno.readTextFile(filePath)
+            const code = await Deno.readTextFile(filePath)
 
             const expectedFilePath = filePath + '.out'
             let expected = await Deno.readTextFile(expectedFilePath)

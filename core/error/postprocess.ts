@@ -23,7 +23,7 @@ const PROCESSORS: ErrorProcessor[] = [
 ]
 
 const LAMBDA_PARENTHESES_ERROR_MESSAGE =
-    '람다는 괄호로 감싸야 해요. 예시: `리스트.(람다 숫자: 숫자 > 0)로 모두확인하기`'
+    '람다 문법이 잘못되었어요. 람다 예시: `리스트.모두 (람다 숫자: 숫자 > 0)인지'
 
 export function postprocessErrors(
     _errors: YaksokError[],
@@ -127,15 +127,24 @@ function parseInvalidVariableName(
 
     const errorLine = equalSignTokens[0].position.line
 
-    const tokenThisLineStartIndex = allTokens.findLastIndex(
+    let lastLineEndIndex = allTokens.findLastIndex(
         (token) => token.position.line < errorLine,
     )
-    const tokenThisLineEndIndex = allTokens.findIndex(
-        (token) => token.position.line > errorLine,
+
+    if (lastLineEndIndex === -1) {
+        lastLineEndIndex = -1
+    }
+
+    let tokenThisLineEndIndex = allTokens.findIndex(
+        (token) => errorLine < token.position.line,
     )
 
+    if (tokenThisLineEndIndex === -1) {
+        tokenThisLineEndIndex = allTokens.length
+    }
+
     const thisLineTokens = allTokens.slice(
-        tokenThisLineStartIndex + 1,
+        lastLineEndIndex + 1,
         tokenThisLineEndIndex,
     )
 
@@ -147,9 +156,16 @@ function parseInvalidVariableName(
         return [line]
     }
 
+    if (
+        equalSignTokenIndex < lastLineEndIndex ||
+        equalSignTokenIndex > tokenThisLineEndIndex
+    ) {
+        return [line]
+    }
+
     const startPosition = thisLineTokens[0].position
     const tokensBeforeEqualSign = allTokens
-        .slice(tokenThisLineStartIndex + 1, equalSignTokenIndex)
+        .slice(lastLineEndIndex + 1, equalSignTokenIndex)
         .filter(
             (token) =>
                 token.type !== TOKEN_TYPE.SPACE &&
@@ -168,8 +184,7 @@ function parseInvalidVariableName(
             .trim(),
         position: startPosition,
     }
-
-    allTokens.splice(tokenThisLineStartIndex, tokenThisLineEndIndex, newToken)
+    allTokens.splice(lastLineEndIndex, tokenThisLineEndIndex, newToken)
 
     const newError = new NotProperIdentifierNameToDefineError({
         texts: [newToken.value],

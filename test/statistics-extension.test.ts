@@ -1,6 +1,6 @@
 import { assertAlmostEquals, assertEquals, assertRejects } from '@std/assert'
 import { YaksokSession } from '../core/mod.ts'
-import { StatisticsExtension } from '../statistics/mod.ts'
+import { StatisticsExtension } from '../exts/statistics/mod.ts'
 
 async function runStats(code: string): Promise<string> {
     let output = ''
