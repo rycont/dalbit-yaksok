@@ -6,9 +6,14 @@ import type { CodeFile } from '../../../type/code-file.ts'
 import type { Rule } from '../type.ts'
 import { RULE_FLAGS } from '../type.ts'
 
+export interface DynamicRulePattern {
+    suffix: string
+    next: string | 'parameter' | null
+}
+
 export interface DynamicRuleSet {
     rules: [Rule[][], Rule[][]]
-    functionHeaderSuffixes: string[]
+    patterns: DynamicRulePattern[]
 }
 
 export function createDynamicRule(codeFile: CodeFile): DynamicRuleSet {
@@ -33,33 +38,23 @@ export function createDynamicRule(codeFile: CodeFile): DynamicRuleSet {
         [...localRules[1], mentioningRules, baseContextRules],
     ]
 
-    // 함수 헤더 접미사는 함수 호출 규칙에서만 추출합니다.
-    // rules[0]에는 확장 규칙(extensionRules)과 함수 선언 규칙(localRules[0])이 포함되어 있습니다.
-    // rules[1]에는 함수 호출 규칙(invokingRules)과 외부에서 가져온 규칙들(mentioningRules, baseContextRules)이 포함되어 있습니다.
-    // 이 중에서 함수 호출 규칙만 필터링하여 접미사를 추출합니다.
-    const functionHeaderSuffixes = extractFunctionHeaderSuffixes([
-        ...rules[0],
-        ...rules[1],
-    ])
+    const patterns = extractFunctionPatterns([...rules[0], ...rules[1]])
 
     return {
         rules,
-        functionHeaderSuffixes,
+        patterns,
     }
 }
 
-function extractFunctionHeaderSuffixes(ruleGroups: Rule[][]): string[] {
-    const suffixes = new Set<string>()
+function extractFunctionPatterns(ruleGroups: Rule[][]): DynamicRulePattern[] {
+    const patterns: DynamicRulePattern[] = []
 
-    if (!ruleGroups) {
-        return []
-    }
+    if (!ruleGroups) return []
 
     for (const rules of ruleGroups) {
         if (!rules) continue
 
         for (const rule of rules) {
-            // 함수 호출 규칙만 처리 (플래그로 확인)
             if (!rule?.flags?.includes(RULE_FLAGS.IS_FUNCTION_INVOKE)) {
                 continue
             }
@@ -70,6 +65,7 @@ function extractFunctionHeaderSuffixes(ruleGroups: Rule[][]): string[] {
                 const currentPattern = rule.pattern[index]
                 const prevPattern = rule.pattern[index - 1]
 
+                // 매개변수 바로 뒤에 오는 식별자를 찾습니다. (접미사 후보)
                 if (
                     currentPattern &&
                     prevPattern &&
@@ -77,11 +73,28 @@ function extractFunctionHeaderSuffixes(ruleGroups: Rule[][]): string[] {
                     typeof currentPattern.value === 'string' &&
                     prevPattern.type === Evaluable
                 ) {
-                    suffixes.add(currentPattern.value)
+                    const nextPattern = rule.pattern[index + 1]
+                    let next: string | 'parameter' | null = null
+
+                    if (nextPattern) {
+                        if (
+                            nextPattern.type === Identifier &&
+                            typeof nextPattern.value === 'string'
+                        ) {
+                            next = nextPattern.value
+                        } else if (nextPattern.type === Evaluable) {
+                            next = 'parameter'
+                        }
+                    }
+
+                    patterns.push({
+                        suffix: currentPattern.value,
+                        next,
+                    })
                 }
             }
         }
     }
 
-    return [...suffixes]
+    return patterns
 }

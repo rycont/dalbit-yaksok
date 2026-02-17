@@ -52,3 +52,56 @@ Deno.test(
         assertEquals(output, '영희 최고야\n')
     },
 )
+
+Deno.test(
+    'prevents splitting when lookahead markers do not match',
+    async () => {
+        let output = ''
+        const session = new YaksokSession({
+            stdout(message) {
+                output += message + '\n'
+            },
+        })
+
+        await session.setBaseContext(
+            `약속, (사람)을 칭찬하기
+    사람 + " 최고야" 보여주기`.trim(),
+        )
+
+        session.addModule(
+            'main',
+            `사람 = "철수"
+사람은 = "영희"
+사람은 보여주기`.trim(),
+        )
+
+        await session.runModule('main')
+        assertEquals(output, '영희\n')
+    },
+)
+
+Deno.test(
+    'correctly splits even with lookahead when markers match',
+    async () => {
+        let output = ''
+        const session = new YaksokSession({
+            stdout(message) {
+                output += message + '\n'
+            },
+        })
+
+        await session.setBaseContext(
+            `약속, (대상)를/을 (이름)으로 바꾸기
+    이름 + " 최고야" 보여주기`.trim(),
+        )
+
+        session.addModule(
+            'main',
+            `이름 = "철수"
+"영희"를 이름으로 바꾸기`.trim(),
+        )
+
+        await session.runModule('main')
+        assertEquals(output, '철수 최고야\n')
+    },
+)

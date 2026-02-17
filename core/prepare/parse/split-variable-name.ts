@@ -1,20 +1,19 @@
 import type { CodeFile } from '../../type/code-file.ts'
 import type { Node } from '../../node/base.ts'
-import { Block, Expression, Identifier } from '../../node/index.ts'
+import { Block, Evaluable, Expression, Identifier } from '../../node/index.ts'
 import { type Token, TOKEN_TYPE } from '../tokenize/token.ts'
+import type { DynamicRulePattern } from './dynamicRule/index.ts'
 
 export function splitVariableName(
     nodes: Node[],
     codeFile?: CodeFile,
     inheritedIdentifiers: string[] = [],
-    inheritedFunctionHeaders: string[] = [],
+    inheritedPatterns: DynamicRulePattern[] = [],
     depth = 0,
 ): Node[] {
     let cursor = 0
 
-    const detectedFunctionHeaderAfterParameter: string[] = [
-        ...inheritedFunctionHeaders,
-    ]
+    const detectedPatterns: DynamicRulePattern[] = [...inheritedPatterns]
     const detectedIdentifierNames: string[] = [
         ...inheritedIdentifiers,
         ...collectIdentifiersInBlock(nodes),
@@ -61,8 +60,11 @@ export function splitVariableName(
                 if (classNameNode)
                     detectedIdentifierNames.push(classNameNode.value)
             } else {
-                detectedFunctionHeaderAfterParameter.push(
-                    ...functionHeaderAfterDeclaration,
+                detectedPatterns.push(
+                    ...functionHeaderAfterDeclaration.map((suffix) => ({
+                        suffix,
+                        next: null,
+                    })),
                 )
             }
 
@@ -70,7 +72,7 @@ export function splitVariableName(
                 nextNode.children,
                 codeFile,
                 [...detectedIdentifierNames, ...parameterNames],
-                detectedFunctionHeaderAfterParameter,
+                detectedPatterns,
                 depth + 1,
             )
 
@@ -81,38 +83,31 @@ export function splitVariableName(
             currentNode.value === '새' &&
             nodes[cursor + 1] instanceof Identifier
         ) {
-            // "새 클래스이름" -> 클래스 이름을 식별자 목록에 추가 (동적 인식 지원)
             detectedIdentifierNames.push(
                 (nodes[cursor + 1] as Identifier).value,
             )
             cursor++
             continue
         } else if (isIdentifier) {
-            const trailingFunctionHeaders =
-                detectedFunctionHeaderAfterParameter.filter(
-                    (header) =>
-                        currentNode.value.length > header.length &&
-                        currentNode.value.endsWith(header),
+            const candidates = detectedPatterns
+                .filter(
+                    (p) =>
+                        currentNode.value.length > p.suffix.length &&
+                        currentNode.value.endsWith(p.suffix),
                 )
-
-            if (trailingFunctionHeaders.length === 0) {
-                cursor++
-                continue
-            }
-
-            const candidates = trailingFunctionHeaders
-                .map((functionName) => {
+                .map((pattern) => {
                     const headPart = currentNode.value.slice(
                         0,
-                        -functionName.length,
+                        -pattern.suffix.length,
                     )
                     if (detectedIdentifierNames.includes(headPart)) {
-                        return [headPart, functionName]
+                        return { headPart, pattern }
                     }
                     return null
                 })
                 .filter(
-                    (candidate): candidate is string[] => candidate !== null,
+                    (candidate): candidate is { headPart: string; pattern: DynamicRulePattern } =>
+                        candidate !== null,
                 )
 
             if (candidates.length === 0) {
@@ -120,9 +115,32 @@ export function splitVariableName(
                 continue
             }
 
-            const [variable, functionName] = candidates.toSorted(
-                (a, b) => b[0].length - a[0].length,
+            const validCandidates = candidates.filter(({ pattern }) => {
+                if (pattern.next === null) return true
+
+                const nextNode = nodes[cursor + 1]
+                if (!nextNode) return false
+
+                if (pattern.next === 'parameter') {
+                    return nextNode instanceof Evaluable
+                }
+
+                return (
+                    nextNode instanceof Identifier &&
+                    nextNode.value === pattern.next
+                )
+            })
+
+            if (validCandidates.length === 0) {
+                cursor++
+                continue
+            }
+
+            const { headPart: variable, pattern } = validCandidates.toSorted(
+                (a, b) => b.headPart.length - a.headPart.length,
             )[0]
+
+            const functionName = pattern.suffix
 
             const variableToken = {
                 type: TOKEN_TYPE.IDENTIFIER,
@@ -193,7 +211,7 @@ export function splitVariableName(
                 currentNode.children,
                 codeFile,
                 detectedIdentifierNames,
-                detectedFunctionHeaderAfterParameter,
+                detectedPatterns,
                 depth + 1,
             )
         }

@@ -1276,16 +1276,38 @@ export const ADVANCED_RULES: Rule[] = [
 
 function createTypeCastRules(): Rule[] {
     const particles = ['을', '를']
-    const targetTypes: { keywords: string[]; target: TypeCastTarget }[] = [
-        { keywords: ['숫자로'], target: '숫자' },
-        { keywords: ['문자열로', '문자로'], target: '문자열' },
-        { keywords: ['참거짓으로', '불리언으로'], target: '참거짓' },
-    ]
+    const targetTypes: {
+        keywords: string[]
+        target: TypeCastTarget
+        split?: [string, string][]
+    }[] = [
+            {
+                keywords: ['숫자로'],
+                target: '숫자',
+                split: [['숫자', '로']],
+            },
+            {
+                keywords: ['문자열로', '문자로'],
+                target: '문자열',
+                split: [
+                    ['문자열', '로'],
+                    ['문자', '로'],
+                ],
+            },
+            {
+                keywords: ['참거짓으로', '불리언으로'],
+                target: '참거짓',
+                split: [
+                    ['참거짓', '으로'],
+                    ['불리언', '으로'],
+                ],
+            },
+        ]
 
     const rules: Rule[] = []
 
     for (const particle of particles) {
-        for (const { keywords, target } of targetTypes) {
+        for (const { keywords, target, split } of targetTypes) {
             for (const keyword of keywords) {
                 rules.push({
                     pattern: [
@@ -1299,6 +1321,24 @@ function createTypeCastRules(): Rule[] {
                         return new TypeCast(value, target, tokens)
                     },
                 })
+            }
+
+            if (split) {
+                for (const [head, tail] of split) {
+                    rules.push({
+                        pattern: [
+                            { type: Evaluable },
+                            { type: Identifier, value: particle },
+                            { type: Identifier, value: head },
+                            { type: Identifier, value: tail },
+                            { type: Identifier, value: '바꾸기' },
+                        ],
+                        factory: (nodes, tokens) => {
+                            const value = nodes[0] as Evaluable
+                            return new TypeCast(value, target, tokens)
+                        },
+                    })
+                }
             }
         }
     }
