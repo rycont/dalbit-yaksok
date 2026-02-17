@@ -113,7 +113,7 @@ export class WebExtension implements Extension {
 { "type": "input-number" }
 ***
 
-번역(Web), (내용) 화면에 보여주기
+번역(Web), (내용) 화면에 그리기
 ***
 { "type": "print" }
 ***
@@ -128,7 +128,7 @@ export class WebExtension implements Extension {
 { "type": "create-text" }
 ***
 
-번역(Web), (개체)에 (내용) 보여주기
+번역(Web), (개체)에 (내용) 그리기
 ***
 { "type": "set-text" }
 ***
