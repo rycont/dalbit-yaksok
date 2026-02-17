@@ -19,6 +19,7 @@ const PROCESSORS: ErrorProcessor[] = [
     parseVariableAssigningValueParsingError,
     parseGrammarStructureFailure,
     collapseParenthesesErrors,
+    suppressAssignmentLhsError,
 ]
 
 const LAMBDA_PARENTHESES_ERROR_MESSAGE =
@@ -569,6 +570,36 @@ function collapseParenthesesErrors(
         newError.position = firstToken.position
 
         return [[newError]]
+    }
+
+    return [line]
+}
+
+function suppressAssignmentLhsError(
+    line: YaksokError[],
+    allTokens: Token[],
+): [YaksokError[]] {
+    const firstError = line[0]
+    if (!firstError || !firstError.tokens) return [line]
+
+    const errorLine = firstError.tokens[0].position.line
+    const tokensInLine = allTokens.filter((t) => t.position.line === errorLine)
+
+    const assignerToken = tokensInLine.find((t) => t.value === '=')
+    if (!assignerToken) return [line]
+
+    const lhsNotDefinedErrorIndex = line.findIndex((error) => {
+        if (!(error instanceof NotDefinedIdentifierError)) return false
+        if (!error.tokens || error.tokens.length === 0) return false
+
+        return error.tokens[0].position.column < assignerToken.position.column
+    })
+
+    // If there's an error on the LHS of '=', and at least one other error on the same line
+    if (lhsNotDefinedErrorIndex !== -1 && line.length > 1) {
+        const newLine = [...line]
+        newLine.splice(lhsNotDefinedErrorIndex, 1)
+        return [newLine]
     }
 
     return [line]
