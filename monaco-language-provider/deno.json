@@ -1,8 +1,8 @@
 {
-    "imports": {
-        "monaco-editor": "npm:monaco-editor@^0.52.2"
-    },
-    "name": "@dalbit-yaksok/monaco-language-provider",
-    "exports": "./mod.ts",
-    "version": "4.5.0"
+  "imports": {
+    "monaco-editor": "npm:monaco-editor@^0.52.2"
+  },
+  "name": "@dalbit-yaksok/monaco-language-provider",
+  "exports": "./mod.ts",
+  "version": "5.0.0"
 }

@@ -1,8 +1,8 @@
 {
-    "name": "@dalbit-yaksok/standard",
-    "version": "4.5.0",
-    "exports": "./mod.ts",
-    "imports": {
-        "@dalbit-yaksok/core": "../../core/mod.ts"
-    }
+  "name": "@dalbit-yaksok/standard",
+  "version": "5.0.0",
+  "exports": "./mod.ts",
+  "imports": {
+    "@dalbit-yaksok/core": "../../core/mod.ts"
+  }
 }

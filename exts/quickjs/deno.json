@@ -1,14 +1,14 @@
 {
-    "name": "@dalbit-yaksok/quickjs",
-    "exports": "./mod.ts",
-    "imports": {
-        "@dalbit-yaksok/core": "../../core/mod.ts",
-        "quickjs-emscripten": "npm:quickjs-emscripten@^0.31.0",
-        "quickjs-emscripten-core": "npm:quickjs-emscripten-core@^0.31.0"
-    },
-    "tasks": {
-        "check-deploy": "deno publish --dry-run --allow-dirty",
-        "test": "deno test --quiet --allow-net --allow-read --parallel & deno lint & deno task check-deploy"
-    },
-    "version": "4.5.0"
+  "name": "@dalbit-yaksok/quickjs",
+  "exports": "./mod.ts",
+  "imports": {
+    "@dalbit-yaksok/core": "../../core/mod.ts",
+    "quickjs-emscripten": "npm:quickjs-emscripten@^0.31.0",
+    "quickjs-emscripten-core": "npm:quickjs-emscripten-core@^0.31.0"
+  },
+  "tasks": {
+    "check-deploy": "deno publish --dry-run --allow-dirty",
+    "test": "deno test --quiet --allow-net --allow-read --parallel & deno lint & deno task check-deploy"
+  },
+  "version": "5.0.0"
 }
