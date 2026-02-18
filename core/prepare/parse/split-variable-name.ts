@@ -26,14 +26,7 @@ export function splitVariableName(
     const resultNodes: Node[] = []
     let cursor = 0
 
-    const detectedPatterns: DynamicRulePattern[] = [
-    ...inheritedPatterns,
-    { suffix: '의', next: 'parameter' },
-    { suffix: '마다', next: ':' },
-    { suffix: '마다', next: '반복' },
-    { suffix: '마다', next: '반복하기' },
-    { suffix: '마다', next: null },
-]
+    const detectedPatterns: DynamicRulePattern[] = [...inheritedPatterns]
     const detectedIdentifierNames: string[] = [
         ...inheritedIdentifiers,
         ...collectIdentifiersInBlock(nodes),
@@ -96,7 +89,7 @@ export function splitVariableName(
                 .filter((p) => currentNode.value.endsWith(p.suffix))
                 .map((pattern) => {
                     const headPart = currentNode.value.slice(0, -pattern.suffix.length)
-                    if (headPart && (detectedIdentifierNames.includes(headPart) || pattern.suffix === '의' || pattern.suffix === '마다')) {
+                    if (headPart && detectedIdentifierNames.includes(headPart)) {
                         return { headPart, pattern }
                     }
                     return null
