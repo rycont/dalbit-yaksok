@@ -455,14 +455,14 @@ Deno.test('상속: 부모 클래스가 아니면 오류가 난다', async () => 
             .flat()
             .map((e) => e.message)
             .join('\n')
-        assertStringIncludes(allMessages, '부모 클래스로 쓸 수 없어요')
+        assertStringIncludes(allMessages, '부모 클래스로 쓸 수 없습니다')
         return
     }
 
     if (result.reason === 'error') {
         assertStringIncludes(
             result.error.message,
-            '부모 클래스로 쓸 수 없어요',
+            '부모 클래스로 쓸 수 없습니다',
         )
         return
     }
@@ -805,7 +805,7 @@ o = 새 없는클래스
                 .flat()
                 .map((e) => e.message)
                 .join('\n')
-            assertStringIncludes(allMessages, '클래스가 아니에요')
+            assertStringIncludes(allMessages, '클래스가 아닙니다')
             return
         }
 
