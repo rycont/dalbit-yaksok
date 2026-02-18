@@ -16,4 +16,6 @@ export class ReturnSignal extends Signal {
 
 export class BreakSignal extends Signal {}
 
+export class ContinueSignal extends Signal {}
+
 export class AbortedSessionSignal extends Signal {}

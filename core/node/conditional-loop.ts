@@ -1,4 +1,4 @@
-import { BreakSignal } from '../executer/signals.ts'
+import { BreakSignal, ContinueSignal } from '../executer/signals.ts'
 import { Evaluable, Executable } from './base.ts'
 import { YaksokError } from '../error/common.ts'
 import { LoopWithoutBodyError } from '../error/loop.ts'
@@ -56,7 +56,14 @@ export class ConditionalLoop extends Executable {
                     childTokens: this.body.tokens,
                     skipReport: true,
                 })
-                await this.body.execute(scope)
+                try {
+                    await this.body.execute(scope)
+                } catch (e) {
+                    if (e instanceof ContinueSignal) {
+                        continue
+                    }
+                    throw e
+                }
             }
         } catch (e) {
             if (!(e instanceof BreakSignal)) {
