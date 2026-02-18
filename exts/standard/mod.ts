@@ -79,11 +79,6 @@ MAP
 REPLACE
 ***
 
-메소드(문자), 번역(표준), 양쪽 공백 지우기
-***
-TRIM
-***
-
 메소드(문자), 번역(표준), (패턴) 찾기
 ***
 FIND
@@ -682,13 +677,6 @@ SORT_WITH_FUNC
                     바꿀문자.value,
                 )
                 return new StringValue(replaced)
-            }
-            case 'TRIM': {
-                const { 자신 } = args
-                if (!(자신 instanceof StringValue)) {
-                    throw new Error('문자열이 아니면 공백을 지울 수 없어요.')
-                }
-                return new StringValue(자신.value.trim())
             }
             case 'FIND': {
                 const { 자신, 패턴 } = args

@@ -1,7 +1,7 @@
 import { YaksokError } from '../error/common.ts'
 import { LoopCountIsNotNumberError } from '../error/loop.ts'
 import { Scope } from '../executer/scope.ts'
-import { BreakSignal, ContinueSignal } from '../executer/signals.ts'
+import { BreakSignal } from '../executer/signals.ts'
 import { Token } from '../prepare/tokenize/token.ts'
 import { NumberValue } from '../value/primitive.ts'
 import { Evaluable, Executable } from './base.ts'
@@ -70,14 +70,7 @@ export class CountLoop extends Executable {
                     childTokens: this.body.tokens,
                     skipReport: true,
                 })
-                try {
-                    await this.body.execute(scope)
-                } catch (e) {
-                    if (e instanceof ContinueSignal) {
-                        continue
-                    }
-                    throw e
-                }
+                await this.body.execute(scope)
             }
         } catch (e) {
             if (!(e instanceof BreakSignal)) throw e

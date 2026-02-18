@@ -1,6 +1,6 @@
 import { YaksokError } from '../error/common.ts'
 import { NotEnumerableValueForListLoopError } from '../error/index.ts'
-import { BreakSignal, ContinueSignal } from '../executer/signals.ts'
+import { BreakSignal } from '../executer/signals.ts'
 import { type Evaluable, Executable } from './base.ts'
 
 import { Scope } from '../executer/scope.ts'
@@ -64,20 +64,13 @@ export class ListLoop extends Executable {
                     warned = true
                 }
 
-                scope.setVariable(this.variableName, value, this.tokens)
                 await this.onRunChild({
                     scope,
                     childTokens: this.body.tokens,
                     skipReport: true,
                 })
-                try {
-                    await this.body.execute(scope)
-                } catch (e) {
-                    if (e instanceof ContinueSignal) {
-                        continue
-                    }
-                    throw e
-                }
+                scope.setVariable(this.variableName, value, this.tokens)
+                await this.body.execute(scope)
             }
         } catch (e) {
             if (!(e instanceof BreakSignal)) throw e

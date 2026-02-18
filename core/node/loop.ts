@@ -1,4 +1,4 @@
-import { BreakSignal, ContinueSignal } from '../executer/signals.ts'
+import { BreakSignal } from '../executer/signals.ts'
 import { Executable } from './base.ts'
 
 import { YaksokError } from '../error/common.ts'
@@ -58,14 +58,7 @@ export class Loop extends Executable {
                     childTokens: this.body.tokens,
                     skipReport: true,
                 })
-                try {
-                    await this.body.execute(scope)
-                } catch (e) {
-                    if (e instanceof ContinueSignal) {
-                        continue
-                    }
-                    throw e
-                }
+                await this.body.execute(scope)
             }
         } catch (e) {
             if (!(e instanceof BreakSignal)) {
@@ -107,22 +100,6 @@ export class Break extends Executable {
 
     override execute(_scope: Scope): Promise<never> {
         throw new BreakSignal(this.tokens)
-    }
-
-    override validate(): YaksokError[] {
-        return []
-    }
-}
-
-export class Continue extends Executable {
-    static override friendlyName = '다음'
-
-    constructor(public override tokens: Token[]) {
-        super()
-    }
-
-    override execute(_scope: Scope): Promise<never> {
-        throw new ContinueSignal(this.tokens)
     }
 
     override validate(): YaksokError[] {
