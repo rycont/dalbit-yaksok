@@ -145,7 +145,7 @@ function convertJSDataIntoQuickJSData(data: unknown, context: QuickJSContext): Q
     } else if (typeof data === 'number') {
         return context.newNumber(data)
     } else if (typeof data === 'boolean') {
-        return context.newNumber(+data)
+        return data ? context.true : context.false
     } else if (Array.isArray(data)) {
         const arrayData = [...data]
 
