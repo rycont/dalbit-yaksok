@@ -18,6 +18,7 @@ import {
     NumberValue,
     PrimitiveValue,
     StringValue,
+    BooleanValue,
     ValueType,
 } from '@dalbit-yaksok/core'
 import { dim } from './util.ts'
@@ -143,6 +144,8 @@ function convertJSDataIntoQuickJSData(data: unknown, context: QuickJSContext): Q
         return context.newString(data)
     } else if (typeof data === 'number') {
         return context.newNumber(data)
+    } else if (typeof data === 'boolean') {
+        return data ? context.true : context.false
     } else if (Array.isArray(data)) {
         const arrayData = [...data]
 
@@ -178,6 +181,8 @@ function convertJSDataIntoYaksok(data: unknown): ValueType {
         return new StringValue(data)
     } else if (typeof data === 'number') {
         return new NumberValue(data)
+    } else if (typeof data === 'boolean') {
+        return new BooleanValue(data)
     } else if (Array.isArray(data)) {
         return new ListValue(data.map(convertJSDataIntoYaksok))
     }

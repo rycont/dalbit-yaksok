@@ -5,6 +5,7 @@ import {
     assertIsError,
 } from '@std/assert'
 import {
+    BooleanValue,
     ErrorOccurredWhileRunningFFIExecution,
     ListValue,
     NumberValue,
@@ -386,4 +387,31 @@ B flat 보여주기`,
     )
     await session.runModule('main')
     assertEquals(output, 'xyzr')
+})
+
+Deno.test('QuickJS passed boolean', async () => {
+    const session = new YaksokSession()
+    await session.extend(new QuickJS())
+
+    session.addModule(
+        'main',
+        `
+번역(QuickJS), (par)에 (target)이 포함
+***
+    return par.includes(target)
+***
+
+결과 = "안녕하세요"에 "안녕"이 포함
+결과 보여주기
+`,
+    )
+
+    const results = await session.runModule('main')
+    const result = results.get('main')!
+
+    assert(result.reason === 'finish')
+    const 결과 = result.codeFile!.ranScope!.getVariable('결과')
+    assertInstanceOf(결과, BooleanValue)
+    assertEquals(결과.value, true)
+    assertEquals(결과.toPrint(), '참')
 })
