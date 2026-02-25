@@ -1,6 +1,6 @@
 {
-    "version": "5.0.0",
-    "name": "@dalbit-yaksok/dala-analyze",
-    "exports": "./mod.ts",
-    "imports": {}
+  "version": "5.0.1",
+  "name": "@dalbit-yaksok/dala-analyze",
+  "exports": "./mod.ts",
+  "imports": {}
 }
