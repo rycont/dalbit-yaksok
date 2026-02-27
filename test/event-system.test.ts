@@ -163,14 +163,12 @@ Deno.test('이벤트 안에서 외부 변수를 조건문에 사용하기 (단�
 `,
     )
 
-    session.eventCreation.sub('TEST_EVENT', (_, callback, terminate) => {
-        callback()
+    session.eventCreation.sub('TEST_EVENT', async (_, callback, terminate) => {
+        await callback()
         terminate()
     })
 
     await session.runModule('main')
-
-    await new Promise((r) => setTimeout(r, 100))
 
     assertEquals(output, '출발\n')
 })
