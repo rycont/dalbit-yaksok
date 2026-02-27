@@ -2,6 +2,7 @@ import { YaksokError } from '../error/common.ts'
 import { ErrorInModuleError } from '../error/index.ts'
 import { ValueType } from '../value/base.ts'
 import { Evaluable, Identifier, Node } from './base.ts'
+import { SubscribeEvent } from './event.ts'
 import { evaluateParams, FunctionInvoke } from './function.ts'
 
 import { IncompleteMentionError } from '../error/unknown-node.ts'
@@ -65,6 +66,12 @@ export class MentionScope extends Evaluable {
                     moduleFileScope,
                     evaluatedParams,
                 )
+            }
+
+            if (this.child instanceof SubscribeEvent) {
+                this.child.callerScope = scope
+                await this.child.execute(moduleFileScope)
+                return undefined as unknown as ValueType
             }
 
             return await this.child.execute(moduleFileScope)

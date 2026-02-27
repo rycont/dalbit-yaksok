@@ -36,6 +36,7 @@ export class SubscribeEvent extends Executable {
     private body: Block
     private params: Record<string, Evaluable>
     private target?: Evaluable
+    public callerScope?: Scope
 
     constructor(
         props: {
@@ -61,17 +62,19 @@ export class SubscribeEvent extends Executable {
             param['자신'] = await this.target.execute(scope)
         }
 
+        const bodyParentScope = this.callerScope ?? scope
+
         scope.codeFile?.session?.aliveListeners.push(
             new Promise((resolve) => {
                 scope.codeFile?.session?.eventCreation.pub(this.eventId, [
                     param,
                     () => {
                         const subScope = new Scope({
-                            parent: scope,
+                            parent: bodyParentScope,
                             callerNode: this,
                             initialVariable: param,
                         })
-                        this.body.execute(subScope)
+                        return this.body.execute(subScope)
                     },
                     () => {
                         resolve()
