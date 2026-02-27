@@ -71,7 +71,7 @@ export class SubscribeEvent extends Executable {
                             callerNode: this,
                             initialVariable: param,
                         })
-                        this.body.execute(subScope)
+                        return this.body.execute(subScope)
                     },
                     () => {
                         resolve()
