@@ -128,8 +128,8 @@ Deno.test('이벤트 밖에서 선언된 변수를 이벤트 안에서 읽기', 
 `,
     )
 
-    session.eventCreation.sub('TEST_EVENT', (_, callback, terminate) => {
-        callback()
+    session.eventCreation.sub('TEST_EVENT', async (_, callback, terminate) => {
+        await callback()
         terminate()
     })
 
