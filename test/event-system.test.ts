@@ -197,15 +197,12 @@ Deno.test('이벤트 안에서 외부 변수 수정하기', async () => {
 `,
     )
 
-    session.eventCreation.sub('TEST_EVENT', (_, callback, terminate) => {
-        callback()
+    session.eventCreation.sub('TEST_EVENT', async (_, callback, terminate) => {
+        await callback()
         terminate()
     })
 
     await session.runModule('main')
-
-    // 비동기 실행이 완료될 때까지 대기
-    await new Promise((r) => setTimeout(r, 100))
 
     assertEquals(output, '정지 중\n가는 중\n')
 })
