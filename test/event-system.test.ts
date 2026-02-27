@@ -173,6 +173,50 @@ Deno.test('이벤트 안에서 외부 변수를 조건문에 사용하기 (단�
     assertEquals(output, '출발\n')
 })
 
+Deno.test('@mention 이벤트에서 외부 변수를 조건문에 사용하기', async () => {
+    let output = ''
+    const session = new YaksokSession({
+        stdout(value) {
+            output += value + '\n'
+        },
+    })
+
+    session.addModule(
+        'device',
+        `
+이벤트(BUTTON_PRESSED), 버튼 눌렀을 때
+`,
+    )
+
+    session.addModule(
+        'main',
+        `
+상태 = "정지 중"
+
+@device 버튼 눌렀을 때
+    만약 상태 == "정지 중" 이면
+        "출발" 보여주기
+        상태 = "가는 중"
+    아니면
+        "정지" 보여주기
+        상태 = "정지 중"
+`,
+    )
+
+    session.eventCreation.sub(
+        'BUTTON_PRESSED',
+        async (_, callback, terminate) => {
+            await callback()
+            await callback()
+            terminate()
+        },
+    )
+
+    await session.runModule('main')
+
+    assertEquals(output, '출발\n정지\n')
+})
+
 Deno.test('이벤트 안에서 외부 변수 수정하기', async () => {
     let output = ''
     const session = new YaksokSession({
