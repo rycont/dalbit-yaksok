@@ -9,6 +9,7 @@ import type { Node } from '../node/base.ts'
 
 import type { CodeFile } from '../type/code-file.ts'
 import type { RunnableObject } from '../value/function.ts'
+import { levenshtein } from '../util/levelshtein.ts'
 
 /**
  * 실행 컨텍스트(Execution Context)를 관리하는 클래스입니다.
@@ -134,6 +135,7 @@ export class Scope {
         const errorInstance = new NotDefinedIdentifierError({
             resource: {
                 name,
+                suggestedFix: this.suggestIdentifier(name),
             },
         })
 
@@ -180,11 +182,44 @@ export class Scope {
         const errorInstance = new NotDefinedIdentifierError({
             resource: {
                 name,
+                suggestedFix: this.suggestIdentifier(name),
             },
         })
 
         errorInstance.codeFile = this.codeFile
         throw errorInstance
+    }
+
+    private suggestIdentifier(name: string): string | undefined {
+        const availableIdentifiers = this.getAvailableIdentifiers()
+        let minDistance = Infinity
+        let suggestion: string | undefined
+
+        for (const identifier of availableIdentifiers) {
+            const distance = levenshtein(name, identifier)
+            if (distance < minDistance) {
+                minDistance = distance
+                suggestion = identifier
+            }
+        }
+
+        if (minDistance > 2) return undefined
+        return suggestion
+    }
+
+    private getAvailableIdentifiers(): string[] {
+        const identifiers = new Set<string>([
+            ...Object.keys(this.variables),
+            ...this.functions.keys(),
+        ])
+
+        if (this.parent) {
+            for (const identifier of this.parent.getAvailableIdentifiers()) {
+                identifiers.add(identifier)
+            }
+        }
+
+        return [...identifiers]
     }
 
     private emitVariableSetEvent(

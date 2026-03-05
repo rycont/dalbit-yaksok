@@ -49,9 +49,9 @@ export class NotDefinedIdentifierError extends YaksokError<NotDefinedIdentifierE
             this.resource?.name!
         return `${bold(blue(`"${name}"`))}라는 변수나 약속을 찾을 수 없어요.${
             this.resource?.suggestedFix
-                ? ` 아마도 ${bold(
+                ? ` 혹시 ${bold(
                       blue(`"${this.resource.suggestedFix}"`),
-                  )} 일 수 있어요.`
+                  )}를 찾으시나요?`
                 : ''
         }`
     }
