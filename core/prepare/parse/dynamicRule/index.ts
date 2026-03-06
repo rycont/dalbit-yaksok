@@ -15,6 +15,8 @@ export interface DynamicRulePattern {
 export interface DynamicRuleSet {
     rules: [Rule[][], Rule[][]]
     patterns: DynamicRulePattern[]
+    /** 이 파일에서 직접 선언된 함수 규칙만 포함. mentioning/baseContext 규칙 제외 */
+    localRules: [Rule[][], Rule[][]]
 }
 
 export function createDynamicRule(codeFile: CodeFile): DynamicRuleSet {
@@ -47,6 +49,7 @@ export function createDynamicRule(codeFile: CodeFile): DynamicRuleSet {
     return {
         rules,
         patterns,
+        localRules,
     }
 }
 

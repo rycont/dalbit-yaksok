@@ -40,7 +40,7 @@ export interface SuccessRunModuleResult extends RunModuleResultBase {
  * const controller = new AbortController();
  * const session = new YaksokSession({ signal: controller.signal });
  *
- * session.addModule('main', /* Some codes that take a long time *\/);
+ * session.addModule('main', '오래 걸리는 코드');
  *
  * (setTimeout)(() => {
  *   controller.abort(); // 3초 후 실행 중단
