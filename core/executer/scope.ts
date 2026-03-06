@@ -208,15 +208,17 @@ export class Scope {
     }
 
     private getAvailableIdentifiers(): string[] {
-        const identifiers = new Set<string>([
-            ...Object.keys(this.variables),
-            ...this.functions.keys(),
-        ])
+        const identifiers = new Set<string>()
+        let currentScope: Scope | undefined = this
 
-        if (this.parent) {
-            for (const identifier of this.parent.getAvailableIdentifiers()) {
-                identifiers.add(identifier)
+        while (currentScope) {
+            for (const key of Object.keys(currentScope.variables)) {
+                identifiers.add(key)
             }
+            for (const key of currentScope.functions.keys()) {
+                identifiers.add(key)
+            }
+            currentScope = currentScope.parent
         }
 
         return [...identifiers]
