@@ -26,7 +26,8 @@ interface ParseResult {
  */
 export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
     try {
-        const { rules: dynamicRules, patterns } = createDynamicRule(codeFile)
+        const { rules: dynamicRules, patterns, localRules } =
+            createDynamicRule(codeFile)
         const nodes = convertTokensToNodes(codeFile.tokens)
         const indentedNodes = parseIndent(nodes)
 
@@ -41,11 +42,33 @@ export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
                   optimistic,
               )
 
-        // 조사 분리 (lookahead)
+        // 조사 분리 (lookahead) — base context의 변수명도 포함
+        const baseContextIdentifiers = (
+            codeFile.session?.baseContexts || []
+        ).flatMap((ctx) => {
+            // base context는 이미 파싱/실행 완료된 CodeFile이므로 실패 가능성이 낮으나,
+            // 오류 시 조사 분리를 건너뛰는 것이 파싱 전체 실패보다 나은 선택
+            try {
+                return ctx.exportedRules.flatMap((r) => {
+                    if (
+                        r.config?.exported &&
+                        r.pattern?.length === 1 &&
+                        r.pattern[0].type === Identifier &&
+                        typeof r.pattern[0].value === 'string'
+                    ) {
+                        return [r.pattern[0].value]
+                    }
+                    return []
+                })
+            } catch {
+                return []
+            }
+        })
+
         const variableNameSplitNodes = splitVariableName(
             priorityParsedNodes,
             codeFile,
-            [],
+            baseContextIdentifiers,
             patterns,
         )
 
@@ -60,7 +83,10 @@ export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
 
         const ast = new Block(childNodes, updatedTokens)
 
-        const exportedDynamicRules = dynamicRules.flat(2)
+        const exportedDynamicRules = [
+            ...localRules[0].flat(),
+            ...localRules[1].flat(),
+        ]
         const exportedRules: Rule[] = [
             ...exportedDynamicRules,
             ...extractExportedVariables(childNodes),
