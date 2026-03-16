@@ -23,7 +23,6 @@ import {
     ErrorRunModuleResult,
     FunctionInvokingParams,
     RunModuleResult,
-    SubscriberTarget,
     SuccessRunModuleResult,
     ValidationRunModuleResult,
 } from '../constant/type.ts'
@@ -90,7 +89,7 @@ export class YaksokSession {
             args: FunctionInvokingParams,
             callback: () => void,
             terminate: () => void,
-            target: SubscriberTarget,
+            scope: Scope,
         ) => void
     }> = new PubSub()
 
