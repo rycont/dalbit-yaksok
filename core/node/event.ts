@@ -76,6 +76,11 @@ export class SubscribeEvent extends Executable {
                     () => {
                         resolve()
                     },
+                    {
+                        scope,
+                        codeFile: scope.codeFile,
+                        fileName: scope.codeFile?.fileName,
+                    },
                 ])
             }),
         )

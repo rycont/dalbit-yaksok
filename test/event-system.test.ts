@@ -1,5 +1,6 @@
-import { dalbitToJS, YaksokSession } from '../core/mod.ts'
-import { assertEquals } from '@std/assert'
+import { dalbitToJS, Scope, YaksokSession } from '../core/mod.ts'
+import type { SubscriberTarget } from '../core/mod.ts'
+import { assertEquals, assertInstanceOf } from '@std/assert'
 
 Deno.test('이벤트 구독 및 실행', async () => {
     let output = ''
@@ -74,4 +75,35 @@ Deno.test('여러 이벤트 구독 및 실행', async () => {
     await session.runModule('main')
 
     assertEquals(output, '이벤트 1 실행됨\n이벤트 2 실행됨\n')
+})
+
+Deno.test('이벤트 구독 시 subscriber target 정보 전달', async () => {
+    const session = new YaksokSession()
+
+    session.addModule(
+        'main',
+        `
+이벤트(TEST_EVENT), 테스트 이벤트
+
+테스트 이벤트
+    "실행" 보여주기
+`,
+    )
+
+    let receivedTarget: SubscriberTarget | null = null
+
+    session.eventCreation.sub(
+        'TEST_EVENT',
+        (_args, callback, terminate, target) => {
+            receivedTarget = target
+            callback()
+            terminate()
+        },
+    )
+
+    await session.runModule('main')
+
+    assertInstanceOf(receivedTarget!.scope, Scope)
+    assertEquals(receivedTarget!.fileName, 'main')
+    assertEquals(receivedTarget!.codeFile, session.getCodeFile('main'))
 })

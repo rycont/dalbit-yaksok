@@ -1,10 +1,20 @@
 import { YaksokError } from '../error/common.ts'
 import { ErrorGroups } from '../error/validation.ts'
 import { CodeFile } from '../type/code-file.ts'
+import { Scope } from '../executer/scope.ts'
 import { ValueType } from '../value/base.ts'
 
 export interface FunctionInvokingParams {
     [key: string]: ValueType
+}
+
+/**
+ * 이벤트 구독이 시작된 스코프와 파일에 대한 정보입니다.
+ */
+export interface SubscriberTarget {
+    scope: Scope
+    codeFile: CodeFile | undefined
+    fileName: string | symbol | undefined
 }
 
 /**
