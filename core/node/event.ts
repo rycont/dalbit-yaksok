@@ -2,7 +2,7 @@ import { Scope, YaksokError } from '@dalbit-yaksok/core'
 import { Token } from '../prepare/tokenize/token.ts'
 import { Evaluable, Executable } from './base.ts'
 import { Block } from './block.ts'
-import { evaluateParams } from './index.ts'
+import { evaluateParams } from './function.ts'
 
 export class DeclareEvent extends Executable {
     static override friendlyName = '새 이벤트 만들기'
@@ -36,6 +36,7 @@ export class SubscribeEvent extends Executable {
     private body: Block
     private params: Record<string, Evaluable>
     private target?: Evaluable
+    public callerScope?: Scope
 
     constructor(
         props: {
@@ -61,17 +62,19 @@ export class SubscribeEvent extends Executable {
             param['자신'] = await this.target.execute(scope)
         }
 
+        const bodyParentScope = this.callerScope ?? scope
+
         scope.codeFile?.session?.aliveListeners.push(
             new Promise((resolve) => {
                 scope.codeFile?.session?.eventCreation.pub(this.eventId, [
                     param,
                     () => {
                         const subScope = new Scope({
-                            parent: scope,
+                            parent: bodyParentScope,
                             callerNode: this,
                             initialVariable: param,
                         })
-                        this.body.execute(subScope)
+                        return this.body.execute(subScope)
                     },
                     () => {
                         resolve()
