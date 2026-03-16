@@ -2,7 +2,7 @@ import { Scope, YaksokError } from '@dalbit-yaksok/core'
 import { Token } from '../prepare/tokenize/token.ts'
 import { Evaluable, Executable } from './base.ts'
 import { Block } from './block.ts'
-import { evaluateParams } from './index.ts'
+import { evaluateParams } from './function.ts'
 
 export class DeclareEvent extends Executable {
     static override friendlyName = '새 이벤트 만들기'
