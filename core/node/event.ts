@@ -76,6 +76,7 @@ export class SubscribeEvent extends Executable {
                     () => {
                         resolve()
                     },
+                    scope,
                 ])
             }),
         )

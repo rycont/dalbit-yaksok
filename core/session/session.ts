@@ -89,6 +89,7 @@ export class YaksokSession {
             args: FunctionInvokingParams,
             callback: () => void,
             terminate: () => void,
+            scope: Scope,
         ) => void
     }> = new PubSub()
 
