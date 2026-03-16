@@ -14,7 +14,6 @@ export interface FunctionInvokingParams {
 export interface SubscriberTarget {
     scope: Scope
     codeFile: CodeFile | undefined
-    fileName: string | symbol | undefined
 }
 
 /**

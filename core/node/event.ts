@@ -79,7 +79,6 @@ export class SubscribeEvent extends Executable {
                     {
                         scope,
                         codeFile: scope.codeFile,
-                        fileName: scope.codeFile?.fileName,
                     },
                 ])
             }),

@@ -104,6 +104,6 @@ Deno.test('이벤트 구독 시 subscriber target 정보 전달', async () => {
     await session.runModule('main')
 
     assertInstanceOf(receivedTarget!.scope, Scope)
-    assertEquals(receivedTarget!.fileName, 'main')
+    assertEquals(receivedTarget!.codeFile?.fileName, 'main')
     assertEquals(receivedTarget!.codeFile, session.getCodeFile('main'))
 })
