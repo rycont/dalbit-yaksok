@@ -1,4 +1,8 @@
 import { Scope, YaksokError } from '@dalbit-yaksok/core'
+import {
+    errorToMachineReadable,
+    renderErrorString,
+} from '../error/render-error-string.ts'
 import { Token } from '../prepare/tokenize/token.ts'
 import { Evaluable, Executable } from './base.ts'
 import { Block } from './block.ts'
@@ -64,9 +68,11 @@ export class SubscribeEvent extends Executable {
 
         const bodyParentScope = this.callerScope ?? scope
 
-        scope.codeFile?.session?.aliveListeners.push(
+        const session = scope.codeFile?.session
+
+        session?.aliveListeners.push(
             new Promise((resolve) => {
-                scope.codeFile?.session?.eventCreation.pub(this.eventId, [
+                session?.eventCreation.pub(this.eventId, [
                     param,
                     () => {
                         const subScope = new Scope({
@@ -74,7 +80,18 @@ export class SubscribeEvent extends Executable {
                             callerNode: this,
                             initialVariable: param,
                         })
-                        return this.body.execute(subScope)
+                        return this.body.execute(subScope).catch((e) => {
+                            if (e instanceof YaksokError) {
+                                if (!e.codeFile) {
+                                    e.codeFile = scope.codeFile!
+                                }
+                                session?.stderr(
+                                    renderErrorString(e),
+                                    errorToMachineReadable(e),
+                                )
+                            }
+                            resolve()
+                        })
                     },
                     () => {
                         resolve()
