@@ -254,7 +254,7 @@ export class DeclareClass extends Executable {
             scope,
             parentClass,
         )
-        scope.setVariable(this.name, dummyClass)
+        scope.setLocalVariable(this.name, dummyClass)
 
         const dummyInstance = createValidationInstanceFromClass(dummyClass)
         const validationErrors = this.body.validate(dummyInstance.scope)
