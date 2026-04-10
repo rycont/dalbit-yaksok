@@ -235,7 +235,12 @@ function parseVariableAssigningValueParsingError(
         return [[error]]
     }
 
-    return [line.slice(2)]
+    const remaining = line.slice(2)
+    if (remaining.length === 0) {
+        return [line]
+    }
+
+    return [remaining]
 }
 
 function parseNotParsablePrintError(
