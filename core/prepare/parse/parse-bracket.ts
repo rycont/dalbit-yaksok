@@ -1,7 +1,9 @@
 import { UnexpectedEndOfCodeError } from '../../error/prepare.ts'
 import { Expression, Node } from '../../node/base.ts'
+import { Block } from '../../node/block.ts'
 import { ListLiteral, Sequence, TupleLiteral } from '../../node/list.ts'
 import { Token } from '../tokenize/token.ts'
+import { getTokensFromNodes } from '../../util/merge-tokens.ts'
 import type { Rule } from './rule/index.ts'
 import { callParseRecursively } from './srParse.ts'
 
@@ -18,6 +20,17 @@ export function parseBracket(
     dynamicRules: [Rule[][], Rule[][]],
     optimistic = false,
 ) {
+    for (const node of nodes) {
+        if (node instanceof Block) {
+            node.children = parseBracket(
+                node.children,
+                tokens,
+                dynamicRules,
+                optimistic,
+            )
+        }
+    }
+
     let openingBracketIndex = nodes.length - 1
     let closingPosition = -1
 
@@ -122,7 +135,7 @@ export function parseBracket(
     ) {
         const listLiteral = new ListLiteral(
             mergedNode[0].items,
-            nodes[openingBracketIndex].tokens,
+            getTokensFromNodes(nodes.slice(openingBracketIndex, closingPosition + 1)),
         )
 
         const newNodes = [
@@ -140,7 +153,7 @@ export function parseBracket(
     ) {
         const tupleLiteral = new TupleLiteral(
             mergedNode.length === 1 ? (mergedNode[0] as Sequence).items : [],
-            nodes[openingBracketIndex].tokens,
+            getTokensFromNodes(nodes.slice(openingBracketIndex, closingPosition + 1)),
         )
 
         const newNodes = [

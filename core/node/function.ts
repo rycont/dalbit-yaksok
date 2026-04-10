@@ -51,7 +51,7 @@ export class DeclareFunction extends Executable {
      * @param scope - 함수가 선언되는 현재의 스코프입니다.
      */
     override execute(scope: Scope): Promise<void> {
-        const paramNames = extractParamsFromTokens(this.tokens)
+        const paramNames = this.paramNames ?? extractParamsFromTokens(this.tokens)
         const functionObject = new FunctionObject(
             this.name,
             this.body,

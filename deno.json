@@ -23,7 +23,7 @@
         "exts/statistics",
         "exts/standard"
     ],
-    "version": "5.1.1",
+    "version": "5.2.0",
     "tasks": {
         "apply-version": "deno run --allow-read --allow-write scripts/apply-version.ts",
         "publish": "deno task apply-version && deno task --recursive test && deno publish --allow-dirty",
