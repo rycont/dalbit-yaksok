@@ -456,19 +456,33 @@ function parseGrammarStructureFailure(
                     t.position.column < 이면Token.position.column,
             )
 
-            const middleText =
-                middleTokens.length > 0
-                    ? middleTokens
-                          .map((t) => t.value)
-                          .join('')
-                          .trim()
-                    : ''
+            const 중간Error = line.find(
+                (e) => e !== 만약Error && e !== 이면Error,
+            )
 
             const error = new YaksokError({ resource: {} })
-            error.message = `조건문(${blue(
-                bold(`"만약"`),
-            )})에서 ${blue(bold(`"${middleText}"`))} 부분을 이해할 수 없어요.`
-            error.tokens = middleTokens.length > 0 ? middleTokens : [만약Token]
+
+            if (중간Error) {
+                const middleText =
+                    middleTokens.length > 0
+                        ? middleTokens
+                              .map((t) => t.value)
+                              .join('')
+                              .trim()
+                        : ''
+
+                error.message = `조건문(${blue(
+                    bold(`"만약"`),
+                )})에서 ${blue(bold(`"${middleText}"`))} 부분을 이해할 수 없어요.`
+                error.tokens =
+                    middleTokens.length > 0 ? middleTokens : [만약Token]
+            } else if (middleTokens.length > 0) {
+                error.message = `${blue(bold(`"만약"`))} 조건문의 본문이 없어요. 조건 다음 줄에 들여쓰기된 코드 블록이 필요해요.`
+                error.tokens = [만약Token]
+            } else {
+                error.message = `${blue(bold(`"만약"`))} 조건문의 실행 조건이 올바르지 않아요.`
+                error.tokens = [만약Token]
+            }
 
             return [[error]]
         }

@@ -7,6 +7,20 @@ import { isTruthy } from '../executer/internal/isTruthy.ts'
 import type { Scope } from '../executer/scope.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 
+class StandaloneElseError extends YaksokError {
+    constructor(props: { tokens: Token[] }) {
+        super(props)
+        this.message = `"아니면"은 "만약" 조건문의 본문이 있어야 사용할 수 있어요.`
+    }
+}
+
+class StandaloneElseIfError extends YaksokError {
+    constructor(props: { tokens: Token[] }) {
+        super(props)
+        this.message = `"아니면 만약"은 "만약" 조건문의 본문이 있어야 사용할 수 있어요.`
+    }
+}
+
 interface Case {
     condition?: Evaluable
     body: Block
@@ -70,7 +84,10 @@ export class ElseStatement extends Executable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        return this.body.validate(scope)
+        return [
+            new StandaloneElseError({ tokens: this.tokens }),
+            ...this.body.validate(scope),
+        ]
     }
 }
 
@@ -86,6 +103,7 @@ export class ElseIfStatement extends Executable {
 
     override validate(scope: Scope): YaksokError[] {
         return [
+            new StandaloneElseIfError({ tokens: this.tokens }),
             ...(this.elseIfCase.condition?.validate(scope) || []),
             ...this.elseIfCase.body.validate(scope),
         ]

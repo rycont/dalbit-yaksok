@@ -3,9 +3,9 @@ import { Evaluable, Executable } from './base.ts'
 import { YaksokError } from '../error/common.ts'
 import { LoopWithoutBodyError } from '../error/loop.ts'
 import type { Scope } from '../executer/scope.ts'
-import { BooleanValue } from '../value/primitive.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { Block } from './block.ts'
+import { isTruthy } from '../executer/internal/isTruthy.ts'
 import {
     emitLoopIterationWarning,
     LOOP_WARNING_THRESHOLD,
@@ -33,10 +33,7 @@ export class ConditionalLoop extends Executable {
         try {
             while (true) {
                 const conditionValue = await this.condition.execute(scope)
-                if (
-                    !(conditionValue instanceof BooleanValue) ||
-                    !conditionValue.value
-                ) {
+                if (!isTruthy(conditionValue)) {
                     break
                 }
 
