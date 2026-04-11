@@ -99,7 +99,22 @@ export function splitVariableName(
             if (candidates.length > 0) {
                 const validCandidates = candidates.filter(({ pattern }) => {
                     if (pattern.next === null) return true
-                    
+
+                    if (pattern.next === 'EOL') {
+                        let eolCursor = cursor + 1
+                        while (
+                            eolCursor < nodes.length &&
+                            nodes[eolCursor] instanceof Expression &&
+                            nodes[eolCursor].value === ' '
+                        ) {
+                            eolCursor++
+                        }
+                        return (
+                            eolCursor >= nodes.length ||
+                            nodes[eolCursor] instanceof EOL
+                        )
+                    }
+
                     let lookaheadCursor = cursor + 1
                     while (
                         lookaheadCursor < nodes.length &&

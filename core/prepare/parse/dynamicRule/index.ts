@@ -1,15 +1,16 @@
 import { Evaluable, Expression, Identifier } from '../../../node/base.ts'
+import { EOL } from '../../../node/misc.ts'
 import { createLocalDynamicRules } from './functions/index.ts'
 import { getRulesFromMentioningFile } from './mention/index.ts'
 
 import type { CodeFile } from '../../../type/code-file.ts'
 import type { Rule } from '../type.ts'
 import { RULE_FLAGS } from '../type.ts'
-import { BASIC_RULES } from '../rule/index.ts'
+import { ADVANCED_RULES, BASIC_RULES } from '../rule/index.ts'
 
 export interface DynamicRulePattern {
     suffix: string
-    next: string | 'parameter' | null
+    next: string | 'parameter' | 'EOL' | null
 }
 
 export interface DynamicRuleSet {
@@ -45,6 +46,7 @@ export function createDynamicRule(codeFile: CodeFile): DynamicRuleSet {
         ...rules[0],
         ...rules[1],
         ...BASIC_RULES,
+        ADVANCED_RULES,
     ])
     return {
         rules,
@@ -95,6 +97,11 @@ function extractFunctionPatterns(ruleGroups: Rule[][]): DynamicRulePattern[] {
                             next = nextPattern.value
                         } else if (nextPattern.type === Evaluable) {
                             next = 'parameter'
+                        } else if (nextPattern.type === Identifier) {
+                            // 특정 값 없이 Identifier만 명시된 경우 (예: 반복 변수명)
+                            next = 'parameter'
+                        } else if (nextPattern.type === EOL) {
+                            next = 'EOL'
                         }
                     }
                     patterns.push({
