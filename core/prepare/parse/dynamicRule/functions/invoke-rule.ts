@@ -4,6 +4,7 @@ import {
     Identifier,
     type Node,
 } from '../../../../node/base.ts'
+import { Formula } from '../../../../node/calculation.ts'
 import { FunctionInvoke } from '../../../../node/function.ts'
 import { MemberFunctionInvoke } from '../../../../node/class.ts'
 
@@ -152,7 +153,7 @@ function createRuleFromMethodTemplate(
     return {
         pattern,
         factory(matchedNodes, tokens) {
-            const receiver = matchedNodes[0] as Evaluable
+            let receiver = matchedNodes[0] as Evaluable
             const params = parseParameterFromTemplate(
                 functionTemplate,
                 matchedNodes.slice(2),
@@ -165,6 +166,36 @@ function createRuleFromMethodTemplate(
                 },
                 tokens,
             )
+
+            // When the parser eagerly reduces `a op b` into Formula(a, op, b)
+            // before seeing `.method`, the whole Formula becomes the receiver.
+            // The actual receiver should be only the last term (`b`).
+            // e.g. `i < 리스트.길이` parses as MFI(Formula(i,<,리스트), 길이)
+            //      but should be Formula(i, <, MFI(리스트, 길이))
+            if (receiver instanceof Formula) {
+                const lastTerm = receiver.terms[receiver.terms.length - 1]
+                if (
+                    lastTerm &&
+                    typeof lastTerm === 'object' &&
+                    Array.isArray(
+                        (lastTerm as { tokens?: unknown }).tokens,
+                    )
+                ) {
+                    const trueReceiver = lastTerm as Evaluable
+                    const memberFuncInvoke = new MemberFunctionInvoke(
+                        trueReceiver,
+                        functionInvoke,
+                        tokens,
+                    )
+                    return new Formula(
+                        [
+                            ...receiver.terms.slice(0, -1),
+                            memberFuncInvoke,
+                        ],
+                        tokens,
+                    )
+                }
+            }
 
             return new MemberFunctionInvoke(receiver, functionInvoke, tokens)
         },
