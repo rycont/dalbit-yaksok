@@ -9,6 +9,7 @@ import {
     Block,
     BooleanLiteral,
     Break,
+    Continue,
     ConditionalLoop,
     DivideOperator,
     ElseIfStatement,
@@ -1217,6 +1218,20 @@ export const ADVANCED_RULES: Rule[] = [
             },
         ],
         factory: (_nodes, tokens) => new Break(tokens),
+        flags: [RULE_FLAGS.IS_STATEMENT],
+    },
+    {
+        pattern: [
+            {
+                type: Identifier,
+                value: '다음',
+            },
+            {
+                type: Identifier,
+                value: '반복',
+            },
+        ],
+        factory: (_nodes, tokens) => new Continue(tokens),
         flags: [RULE_FLAGS.IS_STATEMENT],
     },
     ...LIST_LOOP_RULES,
