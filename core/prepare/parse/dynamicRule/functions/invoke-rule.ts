@@ -19,6 +19,7 @@ import type {
 } from '../../../../type/function-template.ts'
 import type { PatternUnit, Rule } from '../../type.ts'
 import { RULE_FLAGS } from '../../type.ts'
+import type { Token } from '../../../tokenize/token.ts'
 
 interface VariantedPart {
     index: number
@@ -153,7 +154,7 @@ function createRuleFromMethodTemplate(
     return {
         pattern,
         factory(matchedNodes, tokens) {
-            let receiver = matchedNodes[0] as Evaluable
+            const receiver = matchedNodes[0] as Evaluable
             const params = parseParameterFromTemplate(
                 functionTemplate,
                 matchedNodes.slice(2),
@@ -167,37 +168,27 @@ function createRuleFromMethodTemplate(
                 tokens,
             )
 
+            const memberFuncInvoke = new MemberFunctionInvoke(
+                receiver,
+                functionInvoke,
+                tokens,
+            )
+
             // When the parser eagerly reduces `a op b` into Formula(a, op, b)
             // before seeing `.method`, the whole Formula becomes the receiver.
-            // The actual receiver should be only the last term (`b`).
-            // e.g. `i < 리스트.길이` parses as MFI(Formula(i,<,리스트), 길이)
-            //      but should be Formula(i, <, MFI(리스트, 길이))
-            if (receiver instanceof Formula) {
-                const lastTerm = receiver.terms[receiver.terms.length - 1]
-                if (
-                    lastTerm &&
-                    typeof lastTerm === 'object' &&
-                    Array.isArray(
-                        (lastTerm as { tokens?: unknown }).tokens,
-                    )
-                ) {
-                    const trueReceiver = lastTerm as Evaluable
-                    const memberFuncInvoke = new MemberFunctionInvoke(
-                        trueReceiver,
-                        functionInvoke,
-                        tokens,
-                    )
-                    return new Formula(
-                        [
-                            ...receiver.terms.slice(0, -1),
-                            memberFuncInvoke,
-                        ],
-                        tokens,
-                    )
-                }
-            }
-
-            return new MemberFunctionInvoke(receiver, functionInvoke, tokens)
+            // The actual receiver should be only the deepest last term.
+            //
+            // e.g. `i < 리스트.길이`
+            //   → Formula(i, <, MFI(리스트, 길이))
+            //
+            // Compound: `i < a.길이 이고 j < b.길이`
+            //   formula flattening produces: Formula(i,<,MFI(a,길이),이고, Formula(j,<,b))
+            //   → Formula(i,<,MFI(a,길이),이고, Formula(j,<,MFI(b,길이)))
+            return resolveFormulaReceiver(
+                receiver,
+                (r) => new MemberFunctionInvoke(r, functionInvoke, tokens),
+                tokens,
+            ) ?? memberFuncInvoke
         },
         config: {
             exported: true,
@@ -278,4 +269,42 @@ export function parseParameterFromTemplate(
     }
 
     return Object.fromEntries(parameters)
+}
+
+/**
+ * Recursively unwraps a Formula to find the true dot-method receiver.
+ *
+ * The SR parser eagerly reduces `a op b` to Formula before it can see `.method`,
+ * so Formula(a, op, b) ends up as the receiver. This function walks into nested
+ * Formulas (produced by formula-flattening of compound `이고`/`이거나` chains) and
+ * replaces the deepest last-term with the MemberFunctionInvoke, rewrapping each
+ * Formula layer on the way back up.
+ *
+ * Returns null if the receiver is not a Formula that needs correction.
+ */
+function resolveFormulaReceiver(
+    receiver: Evaluable,
+    createMFI: (trueReceiver: Evaluable) => MemberFunctionInvoke,
+    tokens: Token[],
+): Evaluable | null {
+    if (!(receiver instanceof Formula)) {
+        return null
+    }
+
+    const lastTerm = receiver.terms[receiver.terms.length - 1]
+    if (
+        !lastTerm ||
+        typeof lastTerm !== 'object' ||
+        !Array.isArray((lastTerm as { tokens?: unknown }).tokens)
+    ) {
+        return null
+    }
+
+    const inner = lastTerm as Evaluable
+
+    // Recurse if the last term is itself a Formula (compound conditions like 이고/이거나)
+    const fixedInner =
+        resolveFormulaReceiver(inner, createMFI, tokens) ?? createMFI(inner)
+
+    return new Formula([...receiver.terms.slice(0, -1), fixedInner], tokens)
 }
