@@ -133,7 +133,8 @@ export function splitVariableName(
                             nextNode instanceof Evaluable ||
                             nextNode instanceof Identifier ||
                             nextNode instanceof ValueWithParenthesis ||
-                            nextNode instanceof Sequence
+                            nextNode instanceof Sequence ||
+                            (nextNode instanceof Expression && nextNode.value === '{')
                         )
                     }
                     return (
