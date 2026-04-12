@@ -479,7 +479,7 @@ function parseGrammarStructureFailure(
 
             const error = new YaksokError({ resource: {} })
 
-            if (middleTokens.length > 0) {
+            if (중간Error) {
                 const middleText = middleTokens
                     .map((t) => t.value)
                     .join('')
@@ -489,6 +489,9 @@ function parseGrammarStructureFailure(
                     bold(`"만약"`),
                 )})에서 ${blue(bold(`"${middleText}"`))} 부분을 이해할 수 없어요. 함수 호출 결과를 조건식에 바로 쓰려면 괄호로 감싸거나 별도 변수에 담은 뒤 사용하세요. 예: ${blue(bold(`(${middleText})`))} 또는 ${blue(bold(`결과 = ${middleText}`))}`
                 error.tokens = middleTokens
+            } else if (middleTokens.length > 0) {
+                error.message = `${blue(bold(`"만약"`))} 조건문의 본문이 없어요. 조건 다음 줄에 들여쓰기된 코드 블록이 필요해요.`
+                error.tokens = [만약Token]
             } else {
                 error.message = `${blue(bold(`"만약"`))} 조건문의 실행 조건이 올바르지 않아요.`
                 error.tokens = [만약Token]
