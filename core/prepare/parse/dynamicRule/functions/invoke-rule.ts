@@ -4,7 +4,7 @@ import {
     Identifier,
     type Node,
 } from '../../../../node/base.ts'
-import { Formula, ValueWithParenthesis } from '../../../../node/calculation.ts'
+import { Formula } from '../../../../node/calculation.ts'
 import { FunctionInvoke } from '../../../../node/function.ts'
 import { MemberFunctionInvoke } from '../../../../node/class.ts'
 import { FunctionCallOperatorAmbiguityError } from '../../../../error/prepare.ts'
@@ -134,10 +134,7 @@ function createRuleFromFunctionTemplate(
             // BASIC_RULES가 `1 <= 배열` → Formula로 먼저 reduce한 뒤
             // Formula 전체가 함수의 첫 번째 인자로 들어오는 경우를 감지
             const firstParam = Object.values(params)[0]
-            if (
-                firstParam instanceof Formula &&
-                !(firstParam instanceof ValueWithParenthesis)
-            ) {
+            if (firstParam instanceof Formula) {
                 throw new FunctionCallOperatorAmbiguityError({ tokens })
             }
 
