@@ -8,10 +8,13 @@ import { satisfiesPattern } from './satisfiesPattern.ts'
 
 import { Block } from '../../node/block.ts'
 
-import type { Node } from '../../node/base.ts'
+import { Identifier, type Node } from '../../node/base.ts'
+import { Formula } from '../../node/calculation.ts'
 import { EOL } from '../../node/misc.ts'
 import { getTokensFromNodes } from '../../util/merge-tokens.ts'
 import { Rule, RULE_FLAGS } from './type.ts'
+import { FunctionCallOperatorAmbiguityError } from '../../error/prepare.ts'
+import { RESERVED_WORDS } from '../../constant/reserved-words.ts'
 
 export function SRParse(_nodes: Node[], rules: Rule[]) {
     const leftNodes = [..._nodes]
@@ -46,6 +49,24 @@ export function SRParse(_nodes: Node[], rules: Rule[]) {
                 reduced.constructor === stackSlice[0].constructor
             ) {
                 continue
+            }
+
+            // 패턴 1: `Identifier(receiver) Identifier(funcArg) op X`에서
+            // BASIC_RULES가 `funcArg op X` → Formula를 먼저 reduce할 때
+            // receiver Identifier가 고아로 남는 경우를 감지
+            //
+            // 단, 앞에 있는 Identifier가 예약어(`만약`, `반복` 등)인 경우는
+            // 함수 인자가 아니라 키워드이므로 제외한다.
+            const prevNode = buffer[buffer.length - rule.pattern.length - 1]
+            if (
+                reduced instanceof Formula &&
+                stackSlice[0] instanceof Identifier &&
+                prevNode instanceof Identifier &&
+                !RESERVED_WORDS.has((prevNode as Identifier).value)
+            ) {
+                throw new FunctionCallOperatorAmbiguityError({
+                    tokens: getTokensFromNodes([prevNode, ...stackSlice]),
+                })
             }
 
             buffer.splice(-rule.pattern.length, rule.pattern.length, reduced)

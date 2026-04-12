@@ -4,9 +4,10 @@ import {
     Identifier,
     type Node,
 } from '../../../../node/base.ts'
-import { Formula } from '../../../../node/calculation.ts'
+import { Formula, ValueWithParenthesis } from '../../../../node/calculation.ts'
 import { FunctionInvoke } from '../../../../node/function.ts'
 import { MemberFunctionInvoke } from '../../../../node/class.ts'
+import { FunctionCallOperatorAmbiguityError } from '../../../../error/prepare.ts'
 
 import { IndexFetch } from '../../../../node/list.ts'
 import { NumberLiteral } from '../../../../node/primitive-literal.ts'
@@ -128,6 +129,17 @@ function createRuleFromFunctionTemplate(
                 functionTemplate,
                 matchedNodes,
             )
+
+            // 패턴 2: `1 <= 배열 길이` 같이 operator가 앞에 올 때
+            // BASIC_RULES가 `1 <= 배열` → Formula로 먼저 reduce한 뒤
+            // Formula 전체가 함수의 첫 번째 인자로 들어오는 경우를 감지
+            const firstParam = Object.values(params)[0]
+            if (
+                firstParam instanceof Formula &&
+                !(firstParam instanceof ValueWithParenthesis)
+            ) {
+                throw new FunctionCallOperatorAmbiguityError({ tokens })
+            }
 
             return new FunctionInvoke(
                 {
