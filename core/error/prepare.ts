@@ -108,6 +108,13 @@ export class UnexpectedEndOfCodeError extends YaksokError {
     }
 }
 
+export class FunctionCallOperatorAmbiguityError extends YaksokError {
+    constructor(props: { tokens: Token[] }) {
+        super(props)
+        this.message = `함수 호출 결과를 연산식에 바로 쓸 수 없어요. 괄호로 감싸거나 별도 변수에 담은 뒤 사용하세요.`
+    }
+}
+
 export class UnexpectedTokenError extends YaksokError {
     constructor(props: {
         resource: {

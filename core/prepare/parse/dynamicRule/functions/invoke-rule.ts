@@ -7,6 +7,7 @@ import {
 import { Formula } from '../../../../node/calculation.ts'
 import { FunctionInvoke } from '../../../../node/function.ts'
 import { MemberFunctionInvoke } from '../../../../node/class.ts'
+import { FunctionCallOperatorAmbiguityError } from '../../../../error/prepare.ts'
 
 import { IndexFetch } from '../../../../node/list.ts'
 import { NumberLiteral } from '../../../../node/primitive-literal.ts'
@@ -128,6 +129,15 @@ function createRuleFromFunctionTemplate(
                 functionTemplate,
                 matchedNodes,
             )
+
+            // 어떤 인자든 괄호 없는 Formula가 들어오면 연산자 우선순위 모호성이다.
+            // 예) `1 <= 배열 길이`  → 첫 인자가 Formula(1,<=,배열)
+            //     `구매하기 '칫솔' '치약' == '성공'`  → 마지막 인자가 Formula('치약',==,'성공')
+            for (const param of Object.values(params)) {
+                if (param instanceof Formula) {
+                    throw new FunctionCallOperatorAmbiguityError({ tokens })
+                }
+            }
 
             return new FunctionInvoke(
                 {
