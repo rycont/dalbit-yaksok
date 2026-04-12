@@ -130,12 +130,13 @@ function createRuleFromFunctionTemplate(
                 matchedNodes,
             )
 
-            // 패턴 2: `1 <= 배열 길이` 같이 operator가 앞에 올 때
-            // BASIC_RULES가 `1 <= 배열` → Formula로 먼저 reduce한 뒤
-            // Formula 전체가 함수의 첫 번째 인자로 들어오는 경우를 감지
-            const firstParam = Object.values(params)[0]
-            if (firstParam instanceof Formula) {
-                throw new FunctionCallOperatorAmbiguityError({ tokens })
+            // 어떤 인자든 괄호 없는 Formula가 들어오면 연산자 우선순위 모호성이다.
+            // 예) `1 <= 배열 길이`  → 첫 인자가 Formula(1,<=,배열)
+            //     `구매하기 '칫솔' '치약' == '성공'`  → 마지막 인자가 Formula('치약',==,'성공')
+            for (const param of Object.values(params)) {
+                if (param instanceof Formula) {
+                    throw new FunctionCallOperatorAmbiguityError({ tokens })
+                }
             }
 
             return new FunctionInvoke(
