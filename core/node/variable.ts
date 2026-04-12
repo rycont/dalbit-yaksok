@@ -43,7 +43,10 @@ export class SetVariable extends Evaluable {
             const oldValue = scope.getVariable(name, this.tokens)
             const tempOperator = new operatorNode(this.tokens)
             try {
-                newValue = tempOperator.call(oldValue, operand)
+                newValue = await tempOperator.call(
+                    () => Promise.resolve(oldValue),
+                    () => Promise.resolve(operand),
+                )
             } catch (error) {
                 if (error instanceof YaksokError) {
                     if (!error.tokens) {

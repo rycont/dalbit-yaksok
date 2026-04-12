@@ -2,10 +2,7 @@ import {
     type Extension,
     ExtensionManifest,
     FunctionInvokingParams,
-    GreaterThanOrEqualOperator,
     IndexedValue,
-    LessThanOperator,
-    LessThanOrEqualOperator,
     ListValue,
     NumberValue,
     StringValue,
@@ -199,13 +196,15 @@ FREQUENCY
         column: StringValue | NumberValue,
         criteria: ValueType,
     ): ListValue {
-        const lt = new LessThanOperator([])
+        if (!(criteria instanceof NumberValue)) throw 'Criteria must be a number'
 
         const newData = [...data.enumerate()].filter((item) => {
             if (!(item instanceof IndexedValue)) {
                 throw 'Not IndexedValue'
             }
-            return lt.call(item.getItem(column.value), criteria).value
+            const val = item.getItem(column.value)
+            if (!(val instanceof NumberValue)) throw 'Column value must be a number'
+            return val.value < criteria.value
         })
         return new ListValue(newData)
     }
@@ -215,14 +214,15 @@ FREQUENCY
         column: StringValue | NumberValue,
         criteria: ValueType,
     ): ListValue {
-        const lte = new GreaterThanOrEqualOperator([])
+        if (!(criteria instanceof NumberValue)) throw 'Criteria must be a number'
 
         const newData = [...data.enumerate()].filter((item) => {
             if (!(item instanceof IndexedValue)) {
                 throw 'Not IndexedValue'
             }
-
-            return lte.call(item.getItem(column.value), criteria).value
+            const val = item.getItem(column.value)
+            if (!(val instanceof NumberValue)) throw 'Column value must be a number'
+            return val.value >= criteria.value
         })
 
         return new ListValue(newData)
@@ -244,22 +244,21 @@ FREQUENCY
         column: StringValue | NumberValue,
         type: 'asc' | 'desc',
     ): ListValue {
-        const operator =
-            type === 'desc'
-                ? new LessThanOrEqualOperator([])
-                : new GreaterThanOrEqualOperator([])
-
         const newData = [...data.enumerate()].toSorted((a, b) => {
             if (!(a instanceof IndexedValue) || !(b instanceof IndexedValue)) {
                 throw 'Not IndexedValue'
             }
 
-            return operator.call(
-                a.getItem(column.value),
-                b.getItem(column.value),
-            ).value
-                ? -1
-                : 1
+            const aVal = a.getItem(column.value)
+            const bVal = b.getItem(column.value)
+
+            if (!(aVal instanceof NumberValue) || !(bVal instanceof NumberValue)) {
+                throw 'Column values must be numbers'
+            }
+
+            return type === 'desc'
+                ? (aVal.value <= bVal.value ? -1 : 1)
+                : (aVal.value >= bVal.value ? -1 : 1)
         })
 
         return new ListValue(newData)

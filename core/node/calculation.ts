@@ -5,7 +5,6 @@ import { ValueType } from '../value/base.ts'
 import { BooleanValue } from '../value/primitive.ts'
 import { Evaluable, Operator } from './base.ts'
 import {
-    AndOperator,
     DivideOperator,
     EqualOperator,
     GreaterThanOperator,
@@ -17,6 +16,7 @@ import {
     ModularOperator,
     MultiplyOperator,
     NotEqualOperator,
+    AndOperator,
     OrOperator,
     PlusOperator,
     PowerOperator,
@@ -89,7 +89,8 @@ export class Formula extends Evaluable {
 
     override async execute(scope: Scope): Promise<ValueType> {
         const rpn = this.toRPN()
-        const stack: { value: ValueType; tokens: Token[] }[] = []
+        const stack: { thunk: () => Promise<ValueType>; tokens: Token[] }[] =
+            []
 
         for (const item of rpn) {
             if (item instanceof Operator) {
@@ -98,9 +99,7 @@ export class Formula extends Evaluable {
 
                 if (!left || !right) {
                     throw new FormulaStackUnderflowError({
-                        resource: {
-                            formula: this,
-                        },
+                        resource: { formula: this },
                         tokens: this.tokens,
                     })
                 }
@@ -111,34 +110,42 @@ export class Formula extends Evaluable {
                     ...right.tokens,
                 ]
 
-                await this.onRunChild({
-                    scope,
-                    childTokens: combinedTokens,
+                // 연산자 결과도 thunk로 올림 — 피연산자가 먼저 평가된 후 combined 토큰 리포트
+                const leftThunk = left.thunk
+                const rightThunk = right.thunk
+                stack.push({
+                    thunk: async () => {
+                        const result = await item.call(leftThunk, rightThunk)
+                        await this.onRunChild({
+                            scope,
+                            childTokens: combinedTokens,
+                        })
+                        return result
+                    },
+                    tokens: combinedTokens,
                 })
-
-                const result = item.call(left.value, right.value)
-                stack.push({ value: result, tokens: combinedTokens })
             } else {
-                await this.onRunChild({
-                    scope,
-                    childTokens: item.tokens,
+                stack.push({
+                    thunk: async () => {
+                        await this.onRunChild({
+                            scope,
+                            childTokens: item.tokens,
+                        })
+                        return item.execute(scope)
+                    },
+                    tokens: item.tokens,
                 })
-
-                const result = await item.execute(scope)
-                stack.push({ value: result, tokens: item.tokens })
             }
         }
 
         if (stack.length !== 1) {
             throw new InvalidFormulaError({
-                resource: {
-                    formula: this,
-                },
+                resource: { formula: this },
                 tokens: this.tokens,
             })
         }
 
-        return stack[0].value
+        return stack[0].thunk()
     }
 
     override validate(scope: Scope): YaksokError[] {

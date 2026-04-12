@@ -803,7 +803,10 @@ export class SetMember extends Executable {
                 this.tokens,
             )
             const tempOperator = new operatorNode(this.tokens)
-            newValue = tempOperator.call(oldValue, operand)
+            newValue = await tempOperator.call(
+                () => Promise.resolve(oldValue),
+                () => Promise.resolve(operand),
+            )
         }
 
         setMemberVariable(

@@ -26,33 +26,35 @@ export class PlusOperator extends Operator {
         return '+'
     }
 
-    override call(
-        ...operands: ValueType[]
-    ): NumberValue | StringValue | ListValue {
-        const [left, right] = operands
+    override async call(
+        left: () => Promise<ValueType>,
+        right: () => Promise<ValueType>,
+    ): Promise<NumberValue | StringValue | ListValue> {
+        const leftValue = await left()
+        const rightValue = await right()
 
-        if (left instanceof NumberValue && right instanceof NumberValue) {
+        if (leftValue instanceof NumberValue && rightValue instanceof NumberValue) {
             return new NumberValue(
-                cleanFloatingPointError(left.value + right.value),
+                cleanFloatingPointError(leftValue.value + rightValue.value),
             )
         }
 
-        if (left instanceof StringValue && right instanceof StringValue) {
-            return new StringValue(left.value + right.value)
+        if (leftValue instanceof StringValue && rightValue instanceof StringValue) {
+            return new StringValue(leftValue.value + rightValue.value)
         }
 
-        if (left instanceof StringValue && right instanceof NumberValue) {
-            return new StringValue(left.value + right.value.toString())
+        if (leftValue instanceof StringValue && rightValue instanceof NumberValue) {
+            return new StringValue(leftValue.value + rightValue.value.toString())
         }
 
-        if (left instanceof NumberValue && right instanceof StringValue) {
-            return new StringValue(left.value.toString() + right.value)
+        if (leftValue instanceof NumberValue && rightValue instanceof StringValue) {
+            return new StringValue(leftValue.value.toString() + rightValue.value)
         }
 
-        if (left instanceof ListValue && right instanceof ListValue) {
+        if (leftValue instanceof ListValue && rightValue instanceof ListValue) {
             return new ListValue([
-                ...Array.from(left.enumerate()),
-                ...Array.from(right.enumerate()),
+                ...Array.from(leftValue.enumerate()),
+                ...Array.from(rightValue.enumerate()),
             ])
         }
 
@@ -60,7 +62,7 @@ export class PlusOperator extends Operator {
             position: this.tokens?.[0].position,
             resource: {
                 operator: this,
-                operands,
+                operands: [leftValue, rightValue],
             },
         })
     }
@@ -77,11 +79,16 @@ export class MinusOperator extends Operator {
         return '-'
     }
 
-    override call(...operands: ValueType[]): NumberValue {
-        const [left, right] = operands
-        if (left instanceof NumberValue && right instanceof NumberValue) {
+    override async call(
+        left: () => Promise<ValueType>,
+        right: () => Promise<ValueType>,
+    ): Promise<NumberValue> {
+        const leftValue = await left()
+        const rightValue = await right()
+
+        if (leftValue instanceof NumberValue && rightValue instanceof NumberValue) {
             return new NumberValue(
-                cleanFloatingPointError(left.value - right.value),
+                cleanFloatingPointError(leftValue.value - rightValue.value),
             )
         }
 
@@ -89,7 +96,7 @@ export class MinusOperator extends Operator {
             position: this.tokens?.[0].position,
             resource: {
                 operator: this,
-                operands,
+                operands: [leftValue, rightValue],
             },
         })
     }
@@ -106,10 +113,12 @@ export class MultiplyOperator extends Operator {
         return '*'
     }
 
-    override call(
-        ...operands: ValueType[]
-    ): NumberValue | StringValue | ListValue {
-        const [left, right] = operands
+    override async call(
+        left: () => Promise<ValueType>,
+        right: () => Promise<ValueType>,
+    ): Promise<NumberValue | StringValue | ListValue> {
+        const leftValue = await left()
+        const rightValue = await right()
 
         const ensureValidListMultiplier = (value: number): number => {
             if (!Number.isSafeInteger(value) || value < 0) {
@@ -117,7 +126,7 @@ export class MultiplyOperator extends Operator {
                     position: this.tokens?.[0].position,
                     resource: {
                         operator: this,
-                        operands,
+                        operands: [leftValue, rightValue],
                     },
                 })
             }
@@ -138,35 +147,35 @@ export class MultiplyOperator extends Operator {
             return new ListValue(repeatedElements)
         }
 
-        if (left instanceof NumberValue && right instanceof NumberValue) {
+        if (leftValue instanceof NumberValue && rightValue instanceof NumberValue) {
             return new NumberValue(
-                cleanFloatingPointError(left.value * right.value),
+                cleanFloatingPointError(leftValue.value * rightValue.value),
             )
         }
 
-        if (left instanceof StringValue && right instanceof NumberValue) {
-            return new StringValue(left.value.repeat(right.value))
+        if (leftValue instanceof StringValue && rightValue instanceof NumberValue) {
+            return new StringValue(leftValue.value.repeat(rightValue.value))
         }
 
-        if (left instanceof NumberValue && right instanceof StringValue) {
-            return new StringValue(right.value.repeat(left.value))
+        if (leftValue instanceof NumberValue && rightValue instanceof StringValue) {
+            return new StringValue(rightValue.value.repeat(leftValue.value))
         }
 
-        if (left instanceof ListValue && right instanceof NumberValue) {
-            const multiplier = ensureValidListMultiplier(right.value)
-            return repeatList(left, multiplier)
+        if (leftValue instanceof ListValue && rightValue instanceof NumberValue) {
+            const multiplier = ensureValidListMultiplier(rightValue.value)
+            return repeatList(leftValue, multiplier)
         }
 
-        if (left instanceof NumberValue && right instanceof ListValue) {
-            const multiplier = ensureValidListMultiplier(left.value)
-            return repeatList(right, multiplier)
+        if (leftValue instanceof NumberValue && rightValue instanceof ListValue) {
+            const multiplier = ensureValidListMultiplier(leftValue.value)
+            return repeatList(rightValue, multiplier)
         }
 
         throw new InvalidTypeForOperatorError({
             position: this.tokens?.[0].position,
             resource: {
                 operator: this,
-                operands,
+                operands: [leftValue, rightValue],
             },
         })
     }
@@ -183,12 +192,16 @@ export class DivideOperator extends Operator {
         return '/'
     }
 
-    override call(...operands: ValueType[]): NumberValue {
-        const [left, right] = operands
+    override async call(
+        left: () => Promise<ValueType>,
+        right: () => Promise<ValueType>,
+    ): Promise<NumberValue> {
+        const leftValue = await left()
+        const rightValue = await right()
 
-        if (left instanceof NumberValue && right instanceof NumberValue) {
+        if (leftValue instanceof NumberValue && rightValue instanceof NumberValue) {
             return new NumberValue(
-                cleanFloatingPointError(left.value / right.value),
+                cleanFloatingPointError(leftValue.value / rightValue.value),
             )
         }
 
@@ -196,7 +209,7 @@ export class DivideOperator extends Operator {
             position: this.tokens?.[0].position,
             resource: {
                 operator: this,
-                operands,
+                operands: [leftValue, rightValue],
             },
         })
     }
@@ -213,12 +226,16 @@ export class ModularOperator extends Operator {
         return '%'
     }
 
-    override call(...operands: ValueType[]): NumberValue {
-        const [left, right] = operands
+    override async call(
+        left: () => Promise<ValueType>,
+        right: () => Promise<ValueType>,
+    ): Promise<NumberValue> {
+        const leftValue = await left()
+        const rightValue = await right()
 
-        if (left instanceof NumberValue && right instanceof NumberValue) {
+        if (leftValue instanceof NumberValue && rightValue instanceof NumberValue) {
             return new NumberValue(
-                cleanFloatingPointError(left.value % right.value),
+                cleanFloatingPointError(leftValue.value % rightValue.value),
             )
         }
 
@@ -226,11 +243,12 @@ export class ModularOperator extends Operator {
             position: this.tokens?.[0].position,
             resource: {
                 operator: this,
-                operands,
+                operands: [leftValue, rightValue],
             },
         })
     }
 }
+
 export class PowerOperator extends Operator {
     static override friendlyName = '제곱(**)'
 
@@ -242,12 +260,16 @@ export class PowerOperator extends Operator {
         return '**'
     }
 
-    override call(...operands: ValueType[]): NumberValue {
-        const [left, right] = operands
+    override async call(
+        left: () => Promise<ValueType>,
+        right: () => Promise<ValueType>,
+    ): Promise<NumberValue> {
+        const leftValue = await left()
+        const rightValue = await right()
 
-        if (left instanceof NumberValue && right instanceof NumberValue) {
+        if (leftValue instanceof NumberValue && rightValue instanceof NumberValue) {
             return new NumberValue(
-                cleanFloatingPointError(left.value ** right.value),
+                cleanFloatingPointError(leftValue.value ** rightValue.value),
             )
         }
 
@@ -255,11 +277,12 @@ export class PowerOperator extends Operator {
             position: this.tokens?.[0].position,
             resource: {
                 operator: this,
-                operands,
+                operands: [leftValue, rightValue],
             },
         })
     }
 }
+
 export class IntegerDivideOperator extends Operator {
     static override friendlyName = '정수 나누기(//)'
 
@@ -271,18 +294,22 @@ export class IntegerDivideOperator extends Operator {
         return '//'
     }
 
-    override call(...operands: ValueType[]): NumberValue {
-        const [left, right] = operands
+    override async call(
+        left: () => Promise<ValueType>,
+        right: () => Promise<ValueType>,
+    ): Promise<NumberValue> {
+        const leftValue = await left()
+        const rightValue = await right()
 
-        if (left instanceof NumberValue && right instanceof NumberValue) {
-            return new NumberValue(Math.floor(left.value / right.value))
+        if (leftValue instanceof NumberValue && rightValue instanceof NumberValue) {
+            return new NumberValue(Math.floor(leftValue.value / rightValue.value))
         }
 
         throw new InvalidTypeForOperatorError({
             position: this.tokens?.[0].position,
             resource: {
                 operator: this,
-                operands,
+                operands: [leftValue, rightValue],
             },
         })
     }
@@ -299,24 +326,28 @@ export class EqualOperator extends Operator {
         return '=='
     }
 
-    override call(...operands: ValueType[]): BooleanValue {
-        const [left, right] = operands
+    override async call(
+        left: () => Promise<ValueType>,
+        right: () => Promise<ValueType>,
+    ): Promise<BooleanValue> {
+        const leftValue = await left()
+        const rightValue = await right()
 
-        const isSameType = left.constructor === right.constructor
+        const isSameType = leftValue.constructor === rightValue.constructor
         const isBothPrimitive =
-            left instanceof PrimitiveValue && right instanceof PrimitiveValue
+            leftValue instanceof PrimitiveValue && rightValue instanceof PrimitiveValue
 
         if (!isSameType || !isBothPrimitive) {
             throw new InvalidTypeForCompareError({
                 resource: {
-                    left,
-                    right,
+                    left: leftValue,
+                    right: rightValue,
                 },
                 position: this.tokens?.[0].position,
             })
         }
 
-        return new BooleanValue(left.value === right.value)
+        return new BooleanValue(leftValue.value === rightValue.value)
     }
 }
 
@@ -327,8 +358,11 @@ export class NotEqualOperator extends EqualOperator {
         return '!='
     }
 
-    override call(...operands: ValueType[]): BooleanValue {
-        return new BooleanValue(!super.call(...operands).value)
+    override async call(
+        left: () => Promise<ValueType>,
+        right: () => Promise<ValueType>,
+    ): Promise<BooleanValue> {
+        return new BooleanValue(!(await super.call(left, right)).value)
     }
 }
 
@@ -343,23 +377,37 @@ export class AndOperator extends Operator {
         return '이고'
     }
 
-    override call(...operands: ValueType[]): BooleanValue {
-        const [left, right] = operands
+    override async call(
+        left: () => Promise<ValueType>,
+        right: () => Promise<ValueType>,
+    ): Promise<BooleanValue> {
+        const leftValue = await left()
 
-        if (
-            !(left instanceof BooleanValue) ||
-            !(right instanceof BooleanValue)
-        ) {
+        if (!(leftValue instanceof BooleanValue)) {
             throw new InvalidTypeForOperatorError({
                 position: this.tokens?.[0].position,
                 resource: {
                     operator: this,
-                    operands,
+                    operands: [leftValue],
                 },
             })
         }
 
-        return new BooleanValue(left.value && right.value)
+        if (!leftValue.value) return new BooleanValue(false)
+
+        const rightValue = await right()
+
+        if (!(rightValue instanceof BooleanValue)) {
+            throw new InvalidTypeForOperatorError({
+                position: this.tokens?.[0].position,
+                resource: {
+                    operator: this,
+                    operands: [leftValue, rightValue],
+                },
+            })
+        }
+
+        return new BooleanValue(rightValue.value)
     }
 }
 
@@ -374,23 +422,37 @@ export class OrOperator extends Operator {
         return '이거나(거나)'
     }
 
-    override call(...operands: ValueType[]): BooleanValue {
-        const [left, right] = operands
+    override async call(
+        left: () => Promise<ValueType>,
+        right: () => Promise<ValueType>,
+    ): Promise<BooleanValue> {
+        const leftValue = await left()
 
-        if (
-            !(left instanceof BooleanValue) ||
-            !(right instanceof BooleanValue)
-        ) {
+        if (!(leftValue instanceof BooleanValue)) {
             throw new InvalidTypeForOperatorError({
                 position: this.tokens?.[0].position,
                 resource: {
                     operator: this,
-                    operands,
+                    operands: [leftValue],
                 },
             })
         }
 
-        return new BooleanValue(left.value || right.value)
+        if (leftValue.value) return new BooleanValue(true)
+
+        const rightValue = await right()
+
+        if (!(rightValue instanceof BooleanValue)) {
+            throw new InvalidTypeForOperatorError({
+                position: this.tokens?.[0].position,
+                resource: {
+                    operator: this,
+                    operands: [leftValue, rightValue],
+                },
+            })
+        }
+
+        return new BooleanValue(rightValue.value)
     }
 }
 
@@ -405,18 +467,22 @@ export class GreaterThanOperator extends Operator {
         return '>'
     }
 
-    override call(...operands: ValueType[]): BooleanValue {
-        const [left, right] = operands
+    override async call(
+        left: () => Promise<ValueType>,
+        right: () => Promise<ValueType>,
+    ): Promise<BooleanValue> {
+        const leftValue = await left()
+        const rightValue = await right()
 
-        if (left instanceof NumberValue && right instanceof NumberValue) {
-            return new BooleanValue(left.value > right.value)
+        if (leftValue instanceof NumberValue && rightValue instanceof NumberValue) {
+            return new BooleanValue(leftValue.value > rightValue.value)
         }
 
         throw new InvalidTypeForCompareError({
             position: this.tokens?.[0].position,
             resource: {
-                left,
-                right,
+                left: leftValue,
+                right: rightValue,
             },
         })
     }
@@ -433,18 +499,22 @@ export class LessThanOperator extends Operator {
         return '<'
     }
 
-    override call(...operands: ValueType[]): BooleanValue {
-        const [left, right] = operands
+    override async call(
+        left: () => Promise<ValueType>,
+        right: () => Promise<ValueType>,
+    ): Promise<BooleanValue> {
+        const leftValue = await left()
+        const rightValue = await right()
 
-        if (left instanceof NumberValue && right instanceof NumberValue) {
-            return new BooleanValue(left.value < right.value)
+        if (leftValue instanceof NumberValue && rightValue instanceof NumberValue) {
+            return new BooleanValue(leftValue.value < rightValue.value)
         }
 
         throw new InvalidTypeForCompareError({
             position: this.tokens?.[0].position,
             resource: {
-                left,
-                right,
+                left: leftValue,
+                right: rightValue,
             },
         })
     }
@@ -461,18 +531,22 @@ export class GreaterThanOrEqualOperator extends Operator {
         return '>='
     }
 
-    override call(...operands: ValueType[]): BooleanValue {
-        const [left, right] = operands
+    override async call(
+        left: () => Promise<ValueType>,
+        right: () => Promise<ValueType>,
+    ): Promise<BooleanValue> {
+        const leftValue = await left()
+        const rightValue = await right()
 
-        if (left instanceof NumberValue && right instanceof NumberValue) {
-            return new BooleanValue(left.value >= right.value)
+        if (leftValue instanceof NumberValue && rightValue instanceof NumberValue) {
+            return new BooleanValue(leftValue.value >= rightValue.value)
         }
 
         throw new InvalidTypeForCompareError({
             position: this.tokens?.[0].position,
             resource: {
-                left,
-                right,
+                left: leftValue,
+                right: rightValue,
             },
         })
     }
@@ -489,18 +563,22 @@ export class LessThanOrEqualOperator extends Operator {
         return '<='
     }
 
-    override call(...operands: ValueType[]): BooleanValue {
-        const [left, right] = operands
+    override async call(
+        left: () => Promise<ValueType>,
+        right: () => Promise<ValueType>,
+    ): Promise<BooleanValue> {
+        const leftValue = await left()
+        const rightValue = await right()
 
-        if (left instanceof NumberValue && right instanceof NumberValue) {
-            return new BooleanValue(left.value <= right.value)
+        if (leftValue instanceof NumberValue && rightValue instanceof NumberValue) {
+            return new BooleanValue(leftValue.value <= rightValue.value)
         }
 
         throw new InvalidTypeForCompareError({
             position: this.tokens?.[0].position,
             resource: {
-                left,
-                right,
+                left: leftValue,
+                right: rightValue,
             },
         })
     }
@@ -517,10 +595,16 @@ export class RangeOperator extends Operator {
         return '~'
     }
 
-    override call(...operands: ValueType[]): ListValue {
-        this.assertProperOperands(operands)
+    override async call(
+        left: () => Promise<ValueType>,
+        right: () => Promise<ValueType>,
+    ): Promise<ListValue> {
+        const leftValue = await left()
+        const rightValue = await right()
 
-        const [start, end] = operands
+        this.assertProperOperands([leftValue, rightValue])
+
+        const [start, end] = [leftValue, rightValue] as [NumberValue, NumberValue]
         const roundedStart = Math.round(start.value)
         const roundedEnd = Math.round(end.value)
         const items = new Array(roundedEnd - roundedStart + 1)

@@ -202,7 +202,10 @@ export class Operator extends Node implements OperatorNode {
         return this.value ?? '알 수 없음'
     }
 
-    call(..._operands: ValueType[]): ValueType {
+    async call(
+        _left: () => Promise<ValueType>,
+        _right: () => Promise<ValueType>,
+    ): Promise<ValueType> {
         throw new Error(`${this.getNodeTypeName()} has no call method`)
     }
 
@@ -212,7 +215,10 @@ export class Operator extends Node implements OperatorNode {
 }
 
 export interface OperatorNode {
-    call(...operands: ValueType[]): ValueType
+    call(
+        left: () => Promise<ValueType>,
+        right: () => Promise<ValueType>,
+    ): Promise<ValueType>
 }
 
 export type OperatorClass = {
