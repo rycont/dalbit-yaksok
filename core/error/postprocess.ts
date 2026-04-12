@@ -367,18 +367,15 @@ function suggestFunctionName(
         return errors
     }
 
-    const functionSignatures = functionNames.map((signature) =>
-        signature
+    const functionSignatures = functionNames.map((signature) => ({
+        name: signature,
+        staticParts: signature
             .split(/\(.*?\)/g)
             .map((part) => part.trim())
             .filter((part) => part !== ''),
-    )
+    }))
 
     for (let i = 0; i < errors.length; i++) {
-        if (!isLongError(errors[i])) {
-            continue
-        }
-
         let tokens = errors[i].tokens
         if (!tokens) {
             continue
@@ -387,23 +384,43 @@ function suggestFunctionName(
         tokens = tokens.filter((token) => token.value !== '보여주기')
 
         const tokenString = tokens.map((token) => token.value).join('')
-        const closestFunctionSignature = functionSignatures
-            .map((staticParts) =>
-                staticParts.map(
-                    (signature) =>
-                        [
-                            signature,
-                            levenshtein(tokenString, signature),
-                        ] as const,
-                ),
-            )
-            .flat()
-            .sort((a, b) => a[1] - b[1])[0]
 
-        if (closestFunctionSignature[1] < 4) {
-            errors[i].resource = {
-                suggestedFix: closestFunctionSignature[0],
-            }
+        // Check for exact match against any static part of a function signature.
+        // This catches cases like writing `비교하기` when the correct call is `크기 비교하기`.
+        const exactMatches = functionSignatures
+            .filter(({ staticParts }) =>
+                staticParts.some((part) => part === tokenString),
+            )
+            .map(({ name }) => name)
+
+        if (exactMatches.length > 0) {
+            errors[i].resource = { suggestedFixes: exactMatches }
+            continue
+        }
+
+        if (!isLongError(errors[i])) {
+            continue
+        }
+
+        // For longer errors, fall back to Levenshtein distance matching (up to 3).
+        // Use the minimum distance across all static parts of each function,
+        // then deduplicate by function name before slicing.
+        const nearMatches = functionSignatures
+            .map(({ staticParts, name }) => {
+                const minDist = Math.min(
+                    ...staticParts.map((part) =>
+                        levenshtein(tokenString, part),
+                    ),
+                )
+                return [name, minDist] as const
+            })
+            .filter(([, dist]) => dist < 4)
+            .sort((a, b) => a[1] - b[1])
+            .slice(0, 3)
+            .map(([name]) => name)
+
+        if (nearMatches.length > 0) {
+            errors[i].resource = { suggestedFixes: nearMatches }
         }
     }
 

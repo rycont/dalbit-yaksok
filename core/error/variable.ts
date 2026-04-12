@@ -32,7 +32,7 @@ export class NotProperIdentifierNameToDefineError extends YaksokError<{
 
 interface NotDefinedIdentifierErrorResource {
     name: string
-    suggestedFix?: string
+    suggestedFixes?: string[]
 }
 
 export class NotDefinedIdentifierError extends YaksokError<NotDefinedIdentifierErrorResource> {
@@ -47,12 +47,13 @@ export class NotDefinedIdentifierError extends YaksokError<NotDefinedIdentifierE
         const name =
             this.tokens?.map((token) => token.value).join(' ') ||
             this.resource?.name!
-        return `${bold(blue(`"${name}"`))}라는 변수나 약속을 찾을 수 없어요.${
-            this.resource?.suggestedFix
-                ? ` 아마도 ${bold(
-                      blue(`"${this.resource.suggestedFix}"`),
-                  )} 일 수 있어요.`
+        const fixes = this.resource?.suggestedFixes
+        const fixHint =
+            fixes && fixes.length > 0
+                ? ` 아마도 ${fixes
+                      .map((f) => bold(blue(`"${f}"`)))
+                      .join(' 또는 ')} 일 수 있어요.`
                 : ''
-        }`
+        return `${bold(blue(`"${name}"`))}라는 변수나 약속을 찾을 수 없어요.${fixHint}`
     }
 }
