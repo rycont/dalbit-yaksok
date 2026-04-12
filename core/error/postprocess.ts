@@ -12,6 +12,20 @@ interface ErrorProcessor {
     (line: YaksokError[], tokens: Token[]): [YaksokError[]]
 }
 
+const CONJUNCTION_SUFFIXES = ['이고', '이거나', '거나', '이며'] as const
+
+function makeConjunctionHint(tokens: Token[]): string {
+    for (const token of tokens) {
+        for (const suffix of CONJUNCTION_SUFFIXES) {
+            if (token.value.endsWith(suffix) && token.value.length > suffix.length) {
+                const base = token.value.slice(0, -suffix.length)
+                return ` ${blue(bold(`"${base}"`))}와 ${blue(bold(`"${suffix}"`))}는 띄어써야 해요.`
+            }
+        }
+    }
+    return ''
+}
+
 const PROCESSORS: ErrorProcessor[] = [
     parseInvalidDotMethodCall,
     parseNotParsablePrintError,
@@ -530,10 +544,11 @@ function parseGrammarStructureFailure(
                           .trim()
                     : ''
 
+            const conjunctionHint = makeConjunctionHint(middleTokens)
             const error = new YaksokError({ resource: {} })
             error.message = `반복문(${blue(
                 bold(`"반복"`),
-            )})에서 ${blue(bold(`"${middleText}"`))} 부분을 이해할 수 없어요.`
+            )})에서 ${blue(bold(`"${middleText}"`))} 부분을 이해할 수 없어요.${conjunctionHint}`
             error.tokens = middleTokens.length > 0 ? middleTokens : [반복Token]
 
             return [[error]]
@@ -566,10 +581,11 @@ function parseGrammarStructureFailure(
                           .trim()
                     : ''
 
+            const conjunctionHint = makeConjunctionHint(middleTokens)
             const error = new YaksokError({ resource: {} })
             error.message = `반복문(${blue(
                 bold(`"반복 동안"`),
-            )})에서 ${blue(bold(`"${middleText}"`))} 부분을 이해할 수 없어요.`
+            )})에서 ${blue(bold(`"${middleText}"`))} 부분을 이해할 수 없어요.${conjunctionHint}`
             error.tokens = middleTokens.length > 0 ? middleTokens : [반복Token]
 
             return [[error]]

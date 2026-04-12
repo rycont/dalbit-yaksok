@@ -54,6 +54,15 @@ export class NotDefinedIdentifierError extends YaksokError<NotDefinedIdentifierE
                       .map((f) => bold(blue(`"${f}"`)))
                       .join(' 또는 ')} 일 수 있어요.`
                 : ''
-        return `${bold(blue(`"${name}"`))}라는 변수나 약속을 찾을 수 없어요.${fixHint}`
+
+        const conjunctionSuffixes = ['이고', '이거나', '거나', '이며', '이면']
+        const conjunctionHint = conjunctionSuffixes
+            .filter((suffix) => name.endsWith(suffix))
+            .map((suffix) => {
+                const base = name.slice(0, -suffix.length)
+                return ` ${bold(blue(`"${base}"`))}와 ${bold(blue(`"${suffix}"`))}는 띄어써야 해요.`
+            })[0] ?? ''
+
+        return `${bold(blue(`"${name}"`))}라는 변수나 약속을 찾을 수 없어요.${fixHint}${conjunctionHint}`
     }
 }
