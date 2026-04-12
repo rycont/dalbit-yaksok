@@ -5,6 +5,7 @@ import {
     type Node,
 } from '../../../../node/base.ts'
 import { Formula } from '../../../../node/calculation.ts'
+import { RangeOperator } from '../../../../node/operator.ts'
 import { FunctionInvoke } from '../../../../node/function.ts'
 import { MemberFunctionInvoke } from '../../../../node/class.ts'
 import { FunctionCallOperatorAmbiguityError } from '../../../../error/prepare.ts'
@@ -133,8 +134,12 @@ function createRuleFromFunctionTemplate(
             // 어떤 인자든 괄호 없는 Formula가 들어오면 연산자 우선순위 모호성이다.
             // 예) `1 <= 배열 길이`  → 첫 인자가 Formula(1,<=,배열)
             //     `구매하기 '칫솔' '치약' == '성공'`  → 마지막 인자가 Formula('치약',==,'성공')
+            //
+            // 예외: `Evaluable ~ Evaluable` 형태의 범위 Formula는 허용한다.
+            // 예) `1~100 사이 무작위 값 가져오기` → 인자가 RangeFormula(1,~,100)
+            //     범위의 경계가 명확하므로 모호성이 없다.
             for (const param of Object.values(params)) {
-                if (param instanceof Formula) {
+                if (param instanceof Formula && !isRangeFormula(param)) {
                     throw new FunctionCallOperatorAmbiguityError({ tokens })
                 }
             }
@@ -317,4 +322,19 @@ function resolveFormulaReceiver(
         resolveFormulaReceiver(inner, createMFI, tokens) ?? createMFI(inner)
 
     return new Formula([...receiver.terms.slice(0, -1), fixedInner], tokens)
+}
+
+/**
+ * `Evaluable ~ Evaluable` 형태의 범위 Formula인지 확인한다.
+ * 이 경우는 모호성이 없으므로 FunctionCallOperatorAmbiguityError를 던지지 않는다.
+ * 예) `1~100 사이 무작위 값 가져오기` → isRangeFormula(Formula(1, ~, 100)) === true
+ */
+function isRangeFormula(formula: Formula): boolean {
+    const { terms } = formula
+    return (
+        terms.length === 3 &&
+        terms[0] instanceof Evaluable &&
+        terms[1] instanceof RangeOperator &&
+        terms[2] instanceof Evaluable
+    )
 }

@@ -135,6 +135,66 @@ Deno.test('.property 비교식은 모호성 오류 없음 (좌변)', async () =>
     }
 })
 
+// ─── Range Formula 허용 ───────────────────────────────────────────────────────
+
+Deno.test('범위 Formula(Evaluable~Evaluable)를 인자로 전달 - 오류 없음', async () => {
+    // `1~10 사이 무작위 값` — RangeFormula(1,~,10) is the argument.
+    // This should NOT throw because a range has unambiguous boundaries.
+    const result = await run(`
+약속, (범위) 사이 무작위 값
+    1 반환하기
+
+값 = 1~10 사이 무작위 값
+값 보여주기
+`)
+    assert(
+        result.reason !== 'validation' ||
+            !(result.errors?.get('main') ?? []).some(
+                (e) => e instanceof FunctionCallOperatorAmbiguityError,
+            ),
+        'RangeFormula as argument must not trigger FunctionCallOperatorAmbiguityError',
+    )
+})
+
+Deno.test('변수~변수 범위 Formula를 인자로 전달 - 오류 없음', async () => {
+    // `시작~끝 사이 무작위 값` — both sides are Identifiers, still a RangeFormula.
+    const result = await run(`
+약속, (범위) 사이 무작위 값
+    1 반환하기
+
+시작 = 1
+끝 = 100
+값 = 시작~끝 사이 무작위 값
+값 보여주기
+`)
+    assert(
+        result.reason !== 'validation' ||
+            !(result.errors?.get('main') ?? []).some(
+                (e) => e instanceof FunctionCallOperatorAmbiguityError,
+            ),
+        'Variable~Variable RangeFormula as argument must not trigger FunctionCallOperatorAmbiguityError',
+    )
+})
+
+Deno.test('비교 연산자 Formula는 여전히 오류', async () => {
+    // `1 == 10 사이 무작위 값` — Formula(1,==,10) is NOT a range, must throw.
+    const result = await run(`
+약속, (범위) 사이 무작위 값
+    1 반환하기
+
+값 = 1 == 10 사이 무작위 값
+값 보여주기
+`)
+    assert(
+        result.reason === 'validation',
+        `Expected validation error, got ${result.reason}`,
+    )
+    assertIsError(
+        result.errors!.get('main')![0],
+        FunctionCallOperatorAmbiguityError,
+    )
+})
+
 Deno.test('.property 비교식은 모호성 오류 없음 (우변)', async () => {
     // `i < 리스트.길이` — dot-member access on the right side of an operator.
     // The parser must not throw FunctionCallOperatorAmbiguityError here.
