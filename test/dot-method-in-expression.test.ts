@@ -106,6 +106,23 @@ j = 0
     assertEquals(result, '21')
 })
 
+Deno.test('.(함수호출) 추가하기 - 인수 있는 함수 호출 결과를 리스트에 추가', async () => {
+    // `결과.(1~100 사이 무작위 값 가져오기) 추가하기` was failing with
+    // "추가하기 라는 변수나 약속을 찾을 수 없어요" because DOT_MEMBER_FUNCTION_INVOKE_RULES
+    // was consuming `결과.(FI)` before externalPatterns[1] could match the 4-token
+    // `[Ev, '.', Ev, '추가하기']` pattern.
+    const result = await run(`
+약속, (a) 두배
+    a * 2 반환하기
+
+결과 = []
+결과.(3 두배) 추가하기
+결과.(5 두배) 추가하기
+결과 보여주기
+`)
+    assertEquals(result, '[6, 10]')
+})
+
 Deno.test('머지소트 전체 동작', async () => {
     const result = await run(`
 약속, (왼쪽) 과 (오른쪽) 합치기
