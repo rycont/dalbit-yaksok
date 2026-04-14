@@ -64,8 +64,22 @@ export function SRParse(_nodes: Node[], rules: Rule[]) {
                 prevNode instanceof Identifier &&
                 !RESERVED_WORDS.has((prevNode as Identifier).value)
             ) {
+                // 함수 이름이 여러 단어로 이루어진 경우(예: `현재 밀리초 가져오기`)
+                // prevNode 앞에 연속된 Identifier들도 함께 포함한다.
+                const startIdx = buffer.length - rule.pattern.length - 1
+                let funcStart = startIdx
+                while (
+                    funcStart > 0 &&
+                    buffer[funcStart - 1] instanceof Identifier &&
+                    !RESERVED_WORDS.has(
+                        (buffer[funcStart - 1] as Identifier).value,
+                    )
+                ) {
+                    funcStart--
+                }
+                const funcNodes = buffer.slice(funcStart, startIdx + 1)
                 throw new FunctionCallOperatorAmbiguityError({
-                    tokens: getTokensFromNodes([prevNode, ...stackSlice]),
+                    tokens: getTokensFromNodes([...funcNodes, ...stackSlice]),
                 })
             }
 

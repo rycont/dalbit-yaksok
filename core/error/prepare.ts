@@ -111,7 +111,11 @@ export class UnexpectedEndOfCodeError extends YaksokError {
 export class FunctionCallOperatorAmbiguityError extends YaksokError {
     constructor(props: { tokens: Token[] }) {
         super(props)
-        this.message = `함수 호출 결과를 연산식에 바로 쓸 수 없어요. 괄호로 감싸거나 별도 변수에 담은 뒤 사용하세요.`
+        const expr = props.tokens
+            .map((t) => t.value)
+            .filter((v) => v !== '\n')
+            .join(' ')
+        this.message = `함수 호출 결과를 연산식에 바로 쓸 수 없어요: '${expr}'. 연산식에서 사용하려는 함수 호출 전체를 괄호로 감싸세요. 예) (함수이름 인자) + 값`
     }
 }
 
