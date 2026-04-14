@@ -1,5 +1,5 @@
 import type { Node } from '../node/base.ts'
-import type { Token } from '../prepare/tokenize/token.ts'
+import { TOKEN_TYPE, type Token } from '../prepare/tokenize/token.ts'
 import { DEFAULT_SESSION_CONFIG } from '../session/session-config.ts'
 import type { CodeFile } from '../type/code-file.ts'
 import type { Position } from '../type/position.ts'
@@ -111,11 +111,30 @@ export class UnexpectedEndOfCodeError extends YaksokError {
 export class FunctionCallOperatorAmbiguityError extends YaksokError {
     constructor(props: { tokens: Token[] }) {
         super(props)
-        const expr = props.tokens
-            .map((t) => t.value)
-            .filter((v) => v !== '\n')
-            .join(' ')
-        this.message = `함수 호출 결과를 연산식에 바로 쓸 수 없어요: '${expr}'. 연산식에서 사용하려는 함수 호출 전체를 괄호로 감싸세요. 예) (함수이름 인자) + 값`
+        const tokens = props.tokens.filter((t) => t.value !== '\n')
+        const expr = tokens.map((t) => t.value).join(' ')
+
+        const opIdx = tokens.findIndex((t) => t.type === TOKEN_TYPE.OPERATOR)
+        let example: string
+        if (opIdx > 0 && opIdx < tokens.length - 1) {
+            const left = tokens.slice(0, opIdx).map((t) => t.value).join(' ')
+            const op = tokens[opIdx].value
+            const right = tokens.slice(opIdx + 1).map((t) => t.value).join(' ')
+            // 함수 호출이 왼쪽인지 오른쪽인지 판단:
+            // 왼쪽이 식별자로만 이루어져 있으면 함수 호출이 왼쪽에 있는 경우
+            const leftIsCall = tokens
+                .slice(0, opIdx)
+                .every((t) => t.type === TOKEN_TYPE.IDENTIFIER)
+            if (leftIsCall) {
+                example = `(${left}) ${op} ${right}`
+            } else {
+                example = `${left} ${op} (${right})`
+            }
+        } else {
+            example = `(함수이름 인자) + 값`
+        }
+
+        this.message = `함수 호출 결과를 연산식에 바로 쓸 수 없어요: '${expr}'. 연산식에서 사용하려는 함수 호출 전체를 괄호로 감싸세요. 예) ${example}`
     }
 }
 
