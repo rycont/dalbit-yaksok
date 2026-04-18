@@ -97,8 +97,31 @@ export function splitVariableName(
                 .filter((c): c is { headPart: string; pattern: DynamicRulePattern } => c !== null)
 
             if (candidates.length > 0) {
+                if (detectedIdentifierNames.includes(currentNode.value)) {
+                    resultNodes.push(currentNode)
+                    cursor++
+                    continue
+                }
+
                 const validCandidates = candidates.filter(({ pattern }) => {
-                    if (pattern.next === null) return true
+                    if (pattern.next === null) {
+                        let lookaheadCursor = cursor + 1
+                        while (
+                            lookaheadCursor < nodes.length &&
+                            nodes[lookaheadCursor] instanceof Expression &&
+                            nodes[lookaheadCursor].value === ' '
+                        ) {
+                            lookaheadCursor++
+                        }
+                        const nextNode = nodes[lookaheadCursor]
+                        if (
+                            nextNode instanceof Expression &&
+                            nextNode.value === '='
+                        ) {
+                            return false
+                        }
+                        return true
+                    }
 
                     if (pattern.next === 'EOL') {
                         let eolCursor = cursor + 1
