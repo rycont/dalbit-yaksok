@@ -139,6 +139,16 @@ Deno.test('최솟값 - 목록', async () => {
     assertEquals(output, '1')
 })
 
+Deno.test('최댓값 - 목록 (의)', async () => {
+    const output = await runMath(`(@수학 [1, 5, 3, 9, 2]의 최댓값) 보여주기`)
+    assertEquals(output, '9')
+})
+
+Deno.test('최솟값 - 목록 (에서의)', async () => {
+    const output = await runMath(`(@수학 [1, 5, 3, 9, 2]에서의 최솟값) 보여주기`)
+    assertEquals(output, '1')
+})
+
 Deno.test('최댓값 - 두 값', async () => {
     const output = await runMath(`(@수학 (3)과 (7)중 더 큰 값) 보여주기`)
     assertEquals(output, '7')
