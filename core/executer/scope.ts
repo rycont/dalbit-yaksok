@@ -36,7 +36,7 @@ export class Scope {
             allowFunctionOverride?: boolean
         } = {},
     ) {
-        this.variables = config.initialVariable || {}
+        this.variables = config.initialVariable || Object.create(null)
 
         if (config.parent) {
             this.parent = config.parent
