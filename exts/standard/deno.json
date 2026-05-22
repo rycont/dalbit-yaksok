@@ -1,6 +1,6 @@
 {
   "name": "@dalbit-yaksok/standard",
-  "version": "6.0.4",
+  "version": "6.0.6",
   "exports": "./mod.ts",
   "imports": {}
 }
