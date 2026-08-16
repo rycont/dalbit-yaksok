@@ -58,7 +58,7 @@ export class MentionScope extends Evaluable {
 
             if (this.child instanceof FunctionInvoke) {
                 const evaluatedParams = await evaluateParams(
-                    this.child.params,
+                    this.child.argumentEvaluator,
                     scope,
                 )
 
@@ -132,8 +132,8 @@ export class MentionScope extends Evaluable {
         let childErrors: YaksokError[] = []
 
         if (this.child instanceof FunctionInvoke) {
-            for (const paramName in this.child.params) {
-                const param = this.child.params[paramName]
+            for (const paramName in this.child.argumentEvaluator) {
+                const param = this.child.argumentEvaluator[paramName]
                 childErrors = childErrors.concat(param.validate(scope))
             }
         } else {

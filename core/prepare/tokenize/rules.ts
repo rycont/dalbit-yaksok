@@ -491,12 +491,6 @@ export const RULES: {
         },
     },
     {
-        type: TOKEN_TYPE.DOT,
-        starter: ['.'],
-        parse: (code, index) =>
-            code[index] === '.' ? { value: '.', newIndex: index + 1 } : null,
-    },
-    {
         type: TOKEN_TYPE.MENTION,
         starter: ['@'],
         parse: (code, index) => {

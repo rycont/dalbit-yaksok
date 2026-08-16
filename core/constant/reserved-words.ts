@@ -1,7 +1,4 @@
 export const RESERVED_WORDS = new Set([
-    'if',
-    'elif',
-    'else',
     '아니면',
     '만약',
     '이면',
@@ -9,7 +6,6 @@ export const RESERVED_WORDS = new Set([
     '반복',
     '그만',
     '약속',
-    '메소드',
     '마다',
     '이고',
     '고',
@@ -20,7 +16,6 @@ export const RESERVED_WORDS = new Set([
     '멈추기',
     '자신',
     '상위',
-    '람다',
 ])
 
 // 함수 헤더의 정적 문구에서는 아래 예약어만 예외적으로 허용합니다.

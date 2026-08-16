@@ -1,7 +1,7 @@
 import { Application } from 'typedoc'
 
 const app = await Application.bootstrapWithPlugins({
-    entryPoints: ['../core/mod.ts', '../monaco-language-provider/mod.ts'],
+    entryPoints: ['../core/mod.ts'],
     name: '달빛약속',
     categorizeByGroup: true,
     plugin: ['typedoc-plugin-markdown', 'typedoc-vitepress-theme'],
@@ -29,7 +29,7 @@ if (!isWatch) {
 console.log('Waiting for file changes...')
 
 const watcher = Deno.watchFs(
-    ['.\\..\\..\\core', '.\\..\\..\\monaco-language-provider'].map(
+    ['.\\..\\..\\core'].map(
         // (path) => import.meta.dirname + path,
         (path) => new URL(path, import.meta.url).pathname,
     ),

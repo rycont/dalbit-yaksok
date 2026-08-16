@@ -27,7 +27,6 @@ function makeConjunctionHint(tokens: Token[]): string {
 }
 
 const PROCESSORS: ErrorProcessor[] = [
-    parseInvalidDotMethodCall,
     parseNotParsablePrintError,
     parseInvalidVariableName,
     parseVariableAssigningValueParsingError,
@@ -35,9 +34,6 @@ const PROCESSORS: ErrorProcessor[] = [
     collapseParenthesesErrors,
     suppressAssignmentLhsError,
 ]
-
-const LAMBDA_PARENTHESES_ERROR_MESSAGE =
-    '람다 문법이 잘못되었어요. 람다 예시: `리스트.모두 (람다 숫자: 숫자 > 0)인지'
 
 export function postprocessErrors(
     _errors: YaksokError[],
@@ -55,14 +51,6 @@ export function postprocessErrors(
 
     let errors: YaksokError[] = []
     for (const line of processedLines) {
-        const lambdaParenthesesError = line.find(
-            (error) => error.message === LAMBDA_PARENTHESES_ERROR_MESSAGE,
-        )
-        if (lambdaParenthesesError) {
-            errors.push(lambdaParenthesesError)
-            break
-        }
-
         if (
             line.length === 1 &&
             (line[0].message.includes('조건문') ||
@@ -276,81 +264,6 @@ function parseNotParsablePrintError(
     }
 
     return [line.slice(0, -1)]
-}
-
-function parseInvalidDotMethodCall(
-    line: YaksokError[],
-    allTokens: Token[],
-): [YaksokError[]] {
-    const dotError = line.find(
-        (error) =>
-            error instanceof NotExecutableNodeError &&
-            error.tokens?.length === 1 &&
-            error.tokens[0].value === '.',
-    )
-
-    if (!dotError || !dotError.tokens?.[0]) {
-        return [line]
-    }
-
-    const dotToken = dotError.tokens[0]
-    const lineNumber = dotToken.position.line
-    const tokensInLine = allTokens.filter(
-        (token) => token.position.line === lineNumber,
-    )
-    const dotIndex = tokensInLine.indexOf(dotToken)
-
-    if (dotIndex === -1) {
-        return [line]
-    }
-
-    const methodTokens = tokensInLine.slice(dotIndex + 1)
-    if (methodTokens.length === 0) {
-        return [line]
-    }
-
-    if (hasLambdaWithoutImmediateParenthesis(methodTokens)) {
-        dotError.tokens = methodTokens
-        dotError.message = LAMBDA_PARENTHESES_ERROR_MESSAGE
-        return [[dotError]]
-    }
-
-    let methodText = methodTokens
-        .map((token) => token.value)
-        .join('')
-        .trim()
-    methodText = methodText.replace(/\s*보여주기\s*$/, '').trim()
-    if (methodText.length === 0) {
-        return [line]
-    }
-
-    dotError.tokens = methodTokens
-    dotError.message = `${blue(bold(methodText))}라는 메소드를 찾을 수 없어요.`
-
-    return [[dotError]]
-}
-
-function hasLambdaWithoutImmediateParenthesis(tokens: Token[]): boolean {
-    for (let i = 0; i < tokens.length; i++) {
-        const token = tokens[i]
-        if (token.value !== '람다') {
-            continue
-        }
-
-        let prevNonSpaceToken: Token | undefined
-        for (let j = i - 1; j >= 0; j--) {
-            if (tokens[j].type !== TOKEN_TYPE.SPACE) {
-                prevNonSpaceToken = tokens[j]
-                break
-            }
-        }
-
-        if (prevNonSpaceToken?.type !== TOKEN_TYPE.OPENING_PARENTHESIS) {
-            return true
-        }
-    }
-
-    return false
 }
 
 function splitErrorsByLine(errors: YaksokError[]) {

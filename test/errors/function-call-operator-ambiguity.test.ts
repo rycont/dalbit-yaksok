@@ -117,24 +117,6 @@ Deno.test('괄호로 감싼 함수 결과는 오류 없음', async () => {
     )
 })
 
-Deno.test('.property 비교식은 모호성 오류 없음 (좌변)', async () => {
-    // `리스트.길이 > 0` — dot-member access is a FetchMember, not a FunctionInvoke.
-    // The parser must not throw FunctionCallOperatorAmbiguityError here.
-    // (Runtime may fail without StandardExtension, but parse must succeed.)
-    const result = await run(`
-리스트 = [1, 2, 3]
-만약 리스트.길이 > 0 이면
-    "비어있지 않음" 보여주기
-`)
-    if (result.reason === 'validation') {
-        const errors = [...(result.errors?.values() ?? [])].flat()
-        assert(
-            !errors.some((e) => e instanceof FunctionCallOperatorAmbiguityError),
-            `FunctionCallOperatorAmbiguityError must not fire for dot-member access`,
-        )
-    }
-})
-
 // ─── Range Formula 허용 ───────────────────────────────────────────────────────
 
 Deno.test('범위 Formula(Evaluable~Evaluable)를 인자로 전달 - 오류 없음', async () => {

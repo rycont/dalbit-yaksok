@@ -2,8 +2,8 @@ import { YaksokSession } from '../core/mod.ts'
 import { assertEquals } from 'assert/equals'
 import { BooleanValue } from '../core/value/primitive.ts'
 
-const TRUE_LITERALS = ['참', '맞음', 'True', 'true']
-const FALSE_LITERALS = ['거짓', '아님', 'False', 'false']
+const TRUE_LITERALS = ['참', '맞음']
+const FALSE_LITERALS = ['거짓', '아님']
 
 for (const literal of TRUE_LITERALS) {
     Deno.test(literal, async () => {

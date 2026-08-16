@@ -39,13 +39,7 @@ const ansiCode = new AnsiCode()
 async function initializeMonaco() {
     const editorElement = editorRef.value!
 
-    const { DalbitYaksokApplier, LANG_ID } =
-        await import('@dalbit-yaksok/monaco-language-provider')
-
     monaco = await loadMonaco()
-
-    const languageProvider = new DalbitYaksokApplier(code.value)
-    languageProvider.register(monaco.languages)
 
     editorInstance = monaco.editor.create(editorElement, {
         automaticLayout: true,
@@ -54,7 +48,7 @@ async function initializeMonaco() {
         minimap: {
             enabled: false,
         },
-        language: LANG_ID,
+        language: 'plaintext',
         theme: 'vs',
         guides: {
             highlightActiveIndentation: false,
