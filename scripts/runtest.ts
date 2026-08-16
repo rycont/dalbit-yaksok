@@ -5,12 +5,10 @@ const session = new YaksokSession({
 })
 
 session.addModule('main', `
-약속, (x, y) 이동하기
-    (x + 10, y + 10) 반환하기
+약속, 이동하기(가로, 세로)
+    "가로로 {가로} 만큼, 세로로 {세로}만큼 이동해요" 보여주기
 
-현재_위치 = (0, 0)
-다음_위치 = 이동하기(현재_위치[0], 현재_위치[1])
-다음_위치 보여주기`)
+이동하기
+    가로: 10`)
 
 const result = await session.runModule('main')
-// console.log(result.get("main"))

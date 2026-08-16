@@ -77,13 +77,6 @@ export function splitVariableName(
         }
 
         if (isIdentifier) {
-            const prevNode = resultNodes[resultNodes.length - 1]
-            if (prevNode instanceof Expression && prevNode.value === '.') {
-                resultNodes.push(currentNode)
-                cursor++
-                continue
-            }
-
             const candidates = detectedPatterns
                 .filter((p) => currentNode.value.endsWith(p.suffix))
                 .map((pattern) => {

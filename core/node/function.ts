@@ -1,18 +1,19 @@
-import { Scope } from '../executer/scope.ts'
-import { assertValidReturnValue } from '../util/assert-valid-return-value.ts'
-import { ValueType } from '../value/base.ts'
-import { FunctionObject } from '../value/function.ts'
-import { Evaluable, Executable } from './base.ts'
+import { Scope } from "../executer/scope.ts";
+import { assertValidReturnValue } from "../util/assert-valid-return-value.ts";
+import { ValueType } from "../value/base.ts";
+import { FunctionObject } from "../value/function.ts";
+import { Evaluable, Executable } from "./base.ts";
 
-import type { FunctionInvokingParams } from '../constant/type.ts'
-import { YaksokError } from '../error/common.ts'
+import type { FunctionInvokingParams } from "../constant/type.ts";
+import { YaksokError } from "../error/common.ts";
 import {
-    ErrorInFFIExecution,
-    ErrorOccurredWhileRunningFFIExecution,
-} from '../error/ffi.ts'
-import { type Token } from '../prepare/tokenize/token.ts'
-import { extractParamNamesFromHeaderTokens } from '../util/extract-param-names-from-header-tokens.ts'
-import { Block } from './block.ts'
+  ErrorInFFIExecution,
+  ErrorOccurredWhileRunningFFIExecution,
+} from "../error/ffi.ts";
+import { type Token } from "../prepare/tokenize/token.ts";
+import { extractParamNamesFromHeaderTokens } from "../util/extract-param-names-from-header-tokens.ts";
+import { Block } from "./block.ts";
+import { EmptyLiteral } from "./index.ts";
 
 /**
  * `약속` 키워드를 통해 함수(약속)를 선언하는 AST 노드입니다.
@@ -22,108 +23,107 @@ import { Block } from './block.ts'
  * 이때 `FunctionObject`는 함수가 선언된 시점의 스코프를 기억하며, 이는 클로저(Closure)를 구현하는 핵심입니다.
  */
 export class DeclareFunction extends Executable {
-    static override friendlyName = '새 약속 만들기'
+  static override friendlyName = "새 약속 만들기";
 
-    name: string
-    body: Block
-    paramNames?: string[]
-    dotReceiverTypeNames?: string[]
+  name: string;
+  body: Block;
+  paramNames?: string[];
+  dotReceiverTypeNames?: string[];
 
-    constructor(
-        props: {
-            body: Block
-            name: string
-            paramNames?: string[]
-            dotReceiverTypeNames?: string[]
-        },
-        public override tokens: Token[],
-    ) {
-        super()
+  constructor(
+    props: {
+      body: Block;
+      name: string;
+      paramNames?: string[];
+      dotReceiverTypeNames?: string[];
+    },
+    public override tokens: Token[],
+  ) {
+    super();
 
-        this.name = props.name
-        this.body = props.body
-        this.paramNames = props.paramNames
-        this.dotReceiverTypeNames = props.dotReceiverTypeNames
+    this.name = props.name;
+    this.body = props.body;
+    this.paramNames = props.paramNames;
+    this.dotReceiverTypeNames = props.dotReceiverTypeNames;
+  }
+
+  /**
+   * 함수를 나타내는 `FunctionObject`를 생성하고 현재 스코프에 추가합니다.
+   * @param scope - 함수가 선언되는 현재의 스코프입니다.
+   */
+  override execute(scope: Scope): Promise<void> {
+    const paramNames = this.paramNames ?? extractParamsFromTokens(this.tokens);
+    const functionObject = new FunctionObject(
+      this.name,
+      this.body,
+      scope,
+      paramNames,
+      {
+        dotReceiverTypeNames: this.dotReceiverTypeNames,
+      },
+    );
+
+    try {
+      scope.addFunctionObject(functionObject);
+      return Promise.resolve();
+    } catch (e) {
+      if (e instanceof YaksokError && !e.tokens) {
+        e.tokens = this.tokens;
+      }
+
+      throw e;
+    }
+  }
+
+  override validate(scope: Scope): YaksokError[] {
+    const paramNames = this.paramNames ?? extractParamsFromTokens(this.tokens);
+
+    const params: Record<string, ValueType> = Object.fromEntries(
+      paramNames.map((name) => [name, new ValueType()]),
+    );
+    try {
+      scope.getVariable("자신");
+    } catch (error) {
+      if (error instanceof YaksokError) {
+        params["자신"] = new ValueType();
+      } else {
+        throw error;
+      }
     }
 
-    /**
-     * 함수를 나타내는 `FunctionObject`를 생성하고 현재 스코프에 추가합니다.
-     * @param scope - 함수가 선언되는 현재의 스코프입니다.
-     */
-    override execute(scope: Scope): Promise<void> {
-        const paramNames = this.paramNames ?? extractParamsFromTokens(this.tokens)
-        const functionObject = new FunctionObject(
-            this.name,
-            this.body,
-            scope,
-            paramNames,
-            {
-                dotReceiverTypeNames: this.dotReceiverTypeNames,
-            },
-        )
+    const functionScope = new Scope({
+      parent: scope,
+      initialVariable: params,
+      callerNode: this,
+    });
 
-        try {
-            scope.addFunctionObject(functionObject)
-            return Promise.resolve()
-        } catch (e) {
-            if (e instanceof YaksokError && !e.tokens) {
-                e.tokens = this.tokens
-            }
+    const declarationErrors = [];
 
-            throw e
-        }
+    try {
+      scope.addFunctionObject(
+        new FunctionObject(
+          this.name,
+          this.body,
+          functionScope,
+          paramNames,
+          {
+            dotReceiverTypeNames: this.dotReceiverTypeNames,
+          },
+        ),
+      );
+    } catch (error) {
+      if (error instanceof YaksokError) {
+        error.tokens = this.tokens;
+        declarationErrors.push(error);
+      } else {
+        throw error;
+      }
     }
 
-    override validate(scope: Scope): YaksokError[] {
-        const paramNames =
-            this.paramNames ?? extractParamsFromTokens(this.tokens)
+    const bodyErrors = this.body.validate(functionScope);
 
-        const params: Record<string, ValueType> = Object.fromEntries(
-            paramNames.map((name) => [name, new ValueType()]),
-        )
-        try {
-            scope.getVariable('자신')
-        } catch (error) {
-            if (error instanceof YaksokError) {
-                params['자신'] = new ValueType()
-            } else {
-                throw error
-            }
-        }
-
-        const functionScope = new Scope({
-            parent: scope,
-            initialVariable: params,
-            callerNode: this,
-        })
-
-        const declarationErrors = []
-
-        try {
-            scope.addFunctionObject(
-                new FunctionObject(
-                    this.name,
-                    this.body,
-                    functionScope,
-                    paramNames,
-                    {
-                        dotReceiverTypeNames: this.dotReceiverTypeNames,
-                    },
-                ),
-            )
-        } catch (error) {
-            if (error instanceof YaksokError) {
-                error.tokens = this.tokens
-                declarationErrors.push(error)
-            } else {
-                throw error
-            }
-        }
-
-        const bodyErrors = this.body.validate(functionScope)
-
-        return [...declarationErrors, ...bodyErrors]
-    }
+    return [...declarationErrors, ...bodyErrors];
+  }
 }
 
 /**
@@ -138,103 +138,120 @@ export class DeclareFunction extends Executable {
  * ```
  */
 export class FunctionInvoke extends Evaluable {
-    static override friendlyName = '약속 사용하기'
+  static override friendlyName = "약속 사용하기";
 
-    public name: string
-    public params: Record<string, Evaluable>
+  public name: string;
+  public argumentEvaluator: Record<string, Evaluable>;
+  public parameterNames: string[];
 
-    constructor(
-        props: { name: string; params: Record<string, Evaluable> },
-        public override tokens: Token[],
-    ) {
-        super()
+  constructor(
+    props: {
+      name: string;
+      argumentEvaluator: Record<string, Evaluable>;
+      parameterNames: string[];
+    },
+    public override tokens: Token[],
+  ) {
+    super();
 
-        this.name = props.name!
-        this.params = props.params
-    }
+    this.name = props.name;
+    this.argumentEvaluator = props.argumentEvaluator;
+    this.parameterNames = props.parameterNames;
+  }
 
-    /**
-     * 스코프에서 함수를 찾아 실행하고, 그 결과값을 반환합니다.
-     *
-     * 1. `scope.getFunctionObject`를 통해 현재 또는 상위 스코프에서 호출할 함수 객체를 찾습니다.
-     * 2. `functionObject.run`을 호출하여 함수를 실행합니다. 이 때 `FunctionObject`는 자신이 기억하고 있던
-     *    선언 시점의 스코프를 부모로 하는 새로운 실행 스코프를 생성하여 함수 본문을 실행합니다.
-     *
-     * @param scope - 함수가 호출되는 현재의 스코프입니다.
-     * @param args - 함수에 전달될 인자입니다. (선택 사항)
-     * @returns 함수의 실행 결과값 (`ValueType`)을 반환합니다.
-     */
-    override async execute(
-        scope: Scope,
-        args?: FunctionInvokingParams,
-    ): Promise<ValueType> {
-        if (!args) {
-            args = await evaluateParams(this.params, scope)
+  /**
+   * 스코프에서 함수를 찾아 실행하고, 그 결과값을 반환합니다.
+   *
+   * 1. `scope.getFunctionObject`를 통해 현재 또는 상위 스코프에서 호출할 함수 객체를 찾습니다.
+   * 2. `functionObject.run`을 호출하여 함수를 실행합니다. 이 때 `FunctionObject`는 자신이 기억하고 있던
+   *    선언 시점의 스코프를 부모로 하는 새로운 실행 스코프를 생성하여 함수 본문을 실행합니다.
+   *
+   * @param scope - 함수가 호출되는 현재의 스코프입니다.
+   * @param providedArgs - 함수에 전달될 인자입니다. (선택 사항)
+   * @returns 함수의 실행 결과값 (`ValueType`)을 반환합니다.
+   */
+  override async execute(
+    scope: Scope,
+    inScopeArgumentEvaluator?: FunctionInvokingParams,
+  ): Promise<ValueType> {
+    const evaluatedArgument: FunctionInvokingParams =
+      inScopeArgumentEvaluator ??
+        await evaluateParams(this.argumentEvaluator, scope);
+
+    const emptyArgumentPlaceholder = Object.fromEntries(
+      this.parameterNames.filter((name) => !(name in evaluatedArgument)).map((
+        name,
+      ) => [name, new EmptyLiteral()]),
+    );
+
+    const invokingArgument: FunctionInvokingParams = {
+      ...emptyArgumentPlaceholder,
+      ...evaluatedArgument,
+    };
+
+    const functionObject = scope.getFunctionObject(this.name);
+
+    try {
+      const returnValue = await functionObject.run(invokingArgument, scope);
+      assertValidReturnValue(this, returnValue);
+
+      return returnValue;
+    } catch (error) {
+      if (error instanceof ErrorInFFIExecution) {
+        const errorInstance = new ErrorOccurredWhileRunningFFIExecution(
+          {
+            child: error,
+            tokens: this.tokens,
+            ffiName: this.name,
+          },
+        );
+
+        errorInstance.codeFile = scope.codeFile;
+        throw errorInstance;
+      }
+
+      if (error instanceof YaksokError) {
+        if (!error.tokens) {
+          error.tokens = this.tokens;
         }
 
-        const functionObject = scope.getFunctionObject(this.name)
-
-        try {
-            const returnValue = await functionObject.run(args, scope)
-            assertValidReturnValue(this, returnValue)
-
-            return returnValue
-        } catch (error) {
-            if (error instanceof ErrorInFFIExecution) {
-                const errorInstance = new ErrorOccurredWhileRunningFFIExecution(
-                    {
-                        child: error,
-                        tokens: this.tokens,
-                        ffiName: this.name,
-                    },
-                )
-
-                errorInstance.codeFile = scope.codeFile
-                throw errorInstance
-            }
-
-            if (error instanceof YaksokError) {
-                if (!error.tokens) {
-                    error.tokens = this.tokens
-                }
-
-                if (!error.codeFile) {
-                    error.codeFile = scope.codeFile
-                }
-            }
-
-            throw error
+        if (!error.codeFile) {
+          error.codeFile = scope.codeFile;
         }
+      }
+
+      throw error;
+    }
+  }
+
+  get value(): string {
+    return this.name;
+  }
+
+  override validate(scope: Scope): YaksokError[] {
+    const errors: YaksokError[] = [];
+
+    try {
+      scope.getFunctionObject(this.name);
+    } catch (error) {
+      if (error instanceof YaksokError) {
+        errors.push(error);
+      } else {
+        throw error;
+      }
     }
 
-    get value(): string {
-        return this.name
+    const argsError = Object.values(this.argumentEvaluator)
+      .map((param) => param.validate(scope))
+      .flat()
+      .filter((error): error is YaksokError => !!error);
+
+    if (argsError.length > 0) {
+      errors.push(...argsError);
     }
 
-    override validate(scope: Scope): YaksokError[] {
-        const errors: YaksokError[] = []
-
-        try {
-            scope.getFunctionObject(this.name)
-        } catch (error) {
-            if (error instanceof YaksokError) {
-                errors.push(error)
-            } else {
-                throw error
-            }
-        }
-
-        const argsError = Object.values(this.params)
-            .map((param) => param.validate(scope))
-            .flat()
-            .filter((error): error is YaksokError => !!error)
-
-        if (argsError.length > 0) {
-            errors.push(...argsError)
-        }
-
-        return errors
-    }
+    return errors;
+  }
 }
 
 /**
@@ -244,21 +261,21 @@ export class FunctionInvoke extends Evaluable {
  * @returns 평가된 인자들의 맵 (`{ [key: string]: ValueType }`)
  */
 export async function evaluateParams(
-    params: {
-        [key: string]: Evaluable
-    },
-    scope: Scope,
+  params: {
+    [key: string]: Evaluable;
+  },
+  scope: Scope,
 ): Promise<{ [key: string]: ValueType }> {
-    const args: FunctionInvokingParams = {}
+  const args: FunctionInvokingParams = {};
 
-    for (const key in params) {
-        const value = params[key]
-        args[key] = await value.execute(scope)
-    }
+  for (const key in params) {
+    const value = params[key];
+    args[key] = await value.execute(scope);
+  }
 
-    return args
+  return args;
 }
 
 function extractParamsFromTokens(allTokens: Token[]): string[] {
-    return extractParamNamesFromHeaderTokens(allTokens)
+  return extractParamNamesFromHeaderTokens(allTokens);
 }

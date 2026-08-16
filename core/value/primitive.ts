@@ -27,3 +27,15 @@ export class BooleanValue extends PrimitiveValue<boolean> {
         return this.value ? '참' : '거짓'
     }
 }
+
+export class EmptyValue extends PrimitiveValue {
+  static override friendlyName = '비어있음'
+
+  constructor() {
+    super(undefined)
+  }
+
+  override toPrint(): string {
+      return '비어있음'
+  }
+}

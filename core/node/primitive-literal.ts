@@ -1,4 +1,4 @@
-import { BooleanValue, NumberValue, StringValue } from '../value/primitive.ts'
+import { BooleanValue, EmptyValue, NumberValue, StringValue } from '../value/primitive.ts'
 import { Evaluable, Node } from './base.ts'
 import { YaksokError } from '../error/common.ts'
 
@@ -130,5 +130,27 @@ export class TemplateLiteral extends Evaluable {
         return this.parts
             .filter((part) => part instanceof Evaluable)
             .flatMap((part) => (part as Evaluable).validate(scope))
+    }
+}
+
+export class EmptyLiteral extends Evaluable {
+    static override friendlyName = '비어있음'
+
+    constructor(
+        public override tokens: Token[] = [],
+    ) {
+        super()
+    }
+
+    override toPrint(): string {
+        return EmptyLiteral.friendlyName
+    }
+
+    override execute(_scope: Scope): Promise<EmptyValue> {
+        return Promise.resolve(new EmptyValue())
+    }
+
+    override validate(): YaksokError[] {
+        return []
     }
 }

@@ -14,7 +14,7 @@ import { Token, TOKEN_TYPE } from '../../../tokenize/token.ts'
 export function convertTokensToFunctionTemplate(
     _tokens: Token[],
 ): FunctionTemplate {
-    const tokens = _tokens.map((token) => ({ ...token }))
+    const tokens = _tokens.map((token) => ({ ...token })).filter(t => t.type !== TOKEN_TYPE.SPACE)
     const rawPieces: Array<
         | { type: 'value'; value: string[] }
         | { type: 'destructure'; value: string[] }
@@ -36,6 +36,7 @@ export function convertTokensToFunctionTemplate(
 
         const isPrevTokenOpeningParenthesis =
             tokens[i - 1]?.type === TOKEN_TYPE.OPENING_PARENTHESIS
+
         const isNextTokenClosingParenthesis =
             tokens[i + 1]?.type === TOKEN_TYPE.CLOSING_PARENTHESIS
         const isNextTokenComma = tokens[i + 1]?.type === TOKEN_TYPE.COMMA
