@@ -7,11 +7,6 @@ import type { ValueType } from '../value/base.ts'
 import { NumberValue } from '../value/primitive.ts'
 import { assignerToOperatorMap } from './operator.ts'
 import { assertValidIdentifierName } from '../util/assert-valid-identifier-name.ts'
-import {
-    ClassValue,
-    createValidationInstanceFromClass,
-    NewInstance,
-} from './class.ts'
 
 export class SetVariable extends Evaluable {
     static override friendlyName = '변수 정하기'
@@ -68,26 +63,8 @@ export class SetVariable extends Evaluable {
 
     override validate(scope: Scope): YaksokError[] {
         const errors = this.value.validate(scope)
-        scope.setLocalVariable(this.name, inferValidationValue(this.value, scope))
+        scope.setLocalVariable(this.name, new NumberValue(0))
 
         return errors
     }
-}
-
-function inferValidationValue(value: Evaluable, scope: Scope): ValueType {
-    if (value instanceof NewInstance) {
-        try {
-            const classValue = scope.getVariable(value.className, value.tokens)
-            if (classValue instanceof ClassValue) {
-                return createValidationInstanceFromClass(
-                    classValue,
-                    value.arguments_.length,
-                )
-            }
-        } catch {
-            // Ignore lookup errors and fall back to unknown numeric placeholder.
-        }
-    }
-
-    return new NumberValue(0)
 }

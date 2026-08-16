@@ -52,7 +52,7 @@ export function splitVariableName(
 
         if (
             isIdentifier &&
-            (currentNode.value === '약속' || currentNode.value === '클래스') &&
+            currentNode.value === '약속' &&
             currentNode.tokens[0].position.column - 1 === depth * 4
         ) {
             const blockIndex = nodes
@@ -64,8 +64,7 @@ export function splitVariableName(
                 const nameNode = declaration.find(
                     (node) =>
                         node instanceof Identifier &&
-                        node.value !== '약속' &&
-                        node.value !== '클래스',
+                        node.value !== '약속',
                 ) as Identifier
                 if (nameNode) {
                     detectedIdentifierNames.push(nameNode.value)
@@ -206,29 +205,8 @@ function collectIdentifiersInBlock(nodes: Node[]): string[] {
         } else if (node instanceof Expression && node.value === '=') {
             const prevNode = nodes[i - 1]
             if (prevNode instanceof Identifier) {
-                const prevPrevNode = nodes[i - 2]
-                if (!(prevPrevNode instanceof Expression && prevPrevNode.value === '.')) {
-                    identifiers.push(prevNode.value)
-                }
+                identifiers.push(prevNode.value)
             }
-        } else if (node instanceof Identifier && node.value === '람다') {
-            let lambdaCursor = i + 1
-            while (
-                lambdaCursor < nodes.length &&
-                (nodes[lambdaCursor] instanceof Identifier ||
-                    (nodes[lambdaCursor] instanceof Expression && nodes[lambdaCursor].value === ','))
-            ) {
-                if (nodes[lambdaCursor] instanceof Identifier) {
-                    identifiers.push((nodes[lambdaCursor] as Identifier).value)
-                }
-                lambdaCursor++
-            }
-        } else if (
-            node instanceof Identifier &&
-            node.value === '새' &&
-            nodes[i + 1] instanceof Identifier
-        ) {
-            identifiers.push((nodes[i + 1] as Identifier).value)
         }
     }
     return identifiers

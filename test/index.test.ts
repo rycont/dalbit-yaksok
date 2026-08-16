@@ -1,6 +1,5 @@
 import { assertEquals } from '@std/assert'
 import { YaksokSession } from '../core/mod.ts'
-import { StandardExtension } from '../exts/standard/mod.ts'
 
 const codesDir = `${import.meta.dirname}/codes`
 for (const file of Deno.readDirSync(codesDir)) {
@@ -19,20 +18,6 @@ for (const file of Deno.readDirSync(codesDir)) {
                     printed += message + '\n'
                 },
             })
-
-            const standard = new StandardExtension()
-            await session.extend(standard)
-
-            // Make standard modules available for '들여오기'
-            if (standard.manifest.module) {
-                for (const [name, moduleCode] of Object.entries(standard.manifest.module)) {
-                    if (!session.files[name]) session.addModule(name, moduleCode)
-                }
-            }
-
-            // Most tests assume standard library is available globally.
-            // We set it as base context to fulfill this assumption.
-            await session.setBaseContext(standard.manifest.module!.표준)
 
             session.addModule('main', code)
             const results = await session.runModule('main')

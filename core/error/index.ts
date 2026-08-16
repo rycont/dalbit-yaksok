@@ -1,5 +1,4 @@
 export * from './calculation.ts'
-export * from './class.ts'
 export { YaksokError } from './common.ts'
 export * from './ffi.ts'
 export * from './function.ts'

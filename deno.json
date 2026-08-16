@@ -15,15 +15,12 @@
         "docs",
         "core",
         "test",
-        "monaco-language-provider",
         "exts/quickjs",
         "exts/pyodide",
-        "exts/data-analyze",
         "exts/math",
-        "exts/statistics",
-        "exts/standard"
+        "exts/statistics"
     ],
-    "version": "6.0.6",
+    "version": "7.0.0-RC.1",
     "tasks": {
         "apply-version": "deno run --allow-read --allow-write scripts/apply-version.ts",
         "publish": "deno task apply-version && deno task --recursive test && deno publish --allow-dirty",

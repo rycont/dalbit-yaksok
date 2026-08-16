@@ -18,7 +18,6 @@ import {
     EqualOperator,
     Evaluable,
     Expression,
-    FetchMember,
     FunctionInvoke,
     GreaterThanOperator,
     GreaterThanOrEqualOperator,
@@ -26,16 +25,13 @@ import {
     IfStatement,
     IndexFetch,
     IntegerDivideOperator,
-    LambdaLiteral,
     LessThanOperator,
     LessThanOrEqualOperator,
     ListLiteral,
     Loop,
-    MemberFunctionInvoke,
     MinusOperator,
     ModularOperator,
     MultiplyOperator,
-    NewInstance,
     Operator,
     OrOperator,
     Pause,
@@ -44,7 +40,6 @@ import {
     Print,
     RangeOperator,
     Sequence,
-    SetMember,
     SetToIndex,
     SetVariable,
     TypeCast,
@@ -65,155 +60,9 @@ import { RULE_FLAGS } from '../type.ts'
 import { COUNT_LOOP_RULES } from './count-loop.ts'
 import { DICT_RULES } from './dict.ts'
 import { LIST_LOOP_RULES } from './list-loop.ts'
-import { PYTHON_COMPAT_RULES } from './python-compat.ts'
 
 export type { Rule }
 
-export const DOT_MEMBER_FUNCTION_INVOKE_RULES: Rule[] = [
-    {
-        pattern: [
-            { type: Evaluable },
-            { type: Expression, value: '.' },
-            { type: FunctionInvoke },
-        ],
-        factory: (nodes, tokens) => {
-            return new MemberFunctionInvoke(
-                nodes[0] as Evaluable,
-                nodes[2] as FunctionInvoke,
-                tokens,
-            )
-        },
-    },
-    {
-        pattern: [
-            { type: Evaluable },
-            { type: Expression, value: '.' },
-            { type: ValueWithParenthesis },
-        ],
-        factory: (nodes, tokens) => {
-            const wrapped = nodes[2] as ValueWithParenthesis
-            if (!(wrapped.value instanceof FunctionInvoke)) {
-                return null
-            }
-            return new MemberFunctionInvoke(
-                nodes[0] as Evaluable,
-                wrapped.value,
-                tokens,
-            )
-        },
-    },
-    {
-        pattern: [
-            { type: Evaluable },
-            { type: Expression, value: '.' },
-            { type: IndexFetch },
-        ],
-        factory: (nodes, tokens) => {
-            const indexed = nodes[2] as IndexFetch
-            if (!(indexed.list instanceof FunctionInvoke)) {
-                return null
-            }
-
-            const memberInvoke = new MemberFunctionInvoke(
-                nodes[0] as Evaluable,
-                indexed.list,
-                tokens,
-            )
-            return new IndexFetch(
-                memberInvoke as unknown as Evaluable<
-                    IndexedValue | StringValue
-                >,
-                indexed.index,
-                tokens,
-            )
-        },
-    },
-]
-
-export const DOT_FETCH_MEMBER_RULES: Rule[] = [
-    {
-        pattern: [
-            { type: Formula },
-            { type: Expression, value: '.' },
-            { type: Identifier },
-        ],
-        factory: (nodes, tokens) => {
-            if ((nodes[2] as Identifier).value === '람다') {
-                return null
-            }
-
-            const formula = nodes[0] as Formula
-            const lastTerm = formula.terms[formula.terms.length - 1]
-            if (
-                !lastTerm ||
-                typeof lastTerm !== 'object' ||
-                !Array.isArray((lastTerm as { tokens?: unknown }).tokens)
-            ) {
-                return null
-            }
-
-            const fetched = new FetchMember(
-                lastTerm as Evaluable,
-                (nodes[2] as Identifier).value,
-                [
-                    ...(lastTerm as Evaluable).tokens,
-                    ...nodes[1].tokens,
-                    ...nodes[2].tokens,
-                ],
-            )
-
-            return new Formula([...formula.terms.slice(0, -1), fetched], tokens)
-        },
-    },
-    {
-        pattern: [
-            { type: Evaluable },
-            { type: Expression, value: '.' },
-            { type: Identifier },
-        ],
-        factory: (nodes, tokens) => {
-            if ((nodes[2] as Identifier).value === '람다') {
-                return null
-            }
-
-            const target = nodes[0] as Evaluable
-            const memberName = (nodes[2] as Identifier).value
-
-            const terms =
-                target instanceof Formula
-                    ? target.terms
-                    : (target as { terms?: unknown }).terms
-
-            if (Array.isArray(terms) && terms.length > 0) {
-                const lastTerm = terms[terms.length - 1]
-                if (
-                    lastTerm &&
-                    typeof lastTerm === 'object' &&
-                    Array.isArray((lastTerm as { tokens?: unknown }).tokens)
-                ) {
-                    const fetched = new FetchMember(
-                        lastTerm as Evaluable,
-                        memberName,
-                        [
-                            ...(lastTerm as Evaluable).tokens,
-                            ...nodes[1].tokens,
-                            ...nodes[2].tokens,
-                        ],
-                    )
-
-                    return new Formula([...terms.slice(0, -1), fetched], tokens)
-                }
-            }
-
-            return new FetchMember(target, memberName, tokens)
-        },
-    },
-]
-
-export const DOT_ACCESS_RULES: Rule[] = [
-    ...DOT_MEMBER_FUNCTION_INVOKE_RULES,
-    ...DOT_FETCH_MEMBER_RULES,
-]
 
 export const BASIC_RULES: Rule[][] = [
     [
@@ -433,80 +282,6 @@ export const BASIC_RULES: Rule[][] = [
             factory: (nodes, tokens) => {
                 const sequence = nodes[1] as Sequence
                 return new ListLiteral(sequence.items, tokens)
-            },
-        },
-        {
-            pattern: [
-                {
-                    type: Evaluable,
-                },
-                {
-                    type: Expression,
-                    value: '.',
-                },
-                {
-                    type: Identifier,
-                },
-                {
-                    type: Operator,
-                },
-                {
-                    type: Evaluable,
-                },
-            ],
-            factory: (nodes, tokens) => {
-                const left = new FetchMember(
-                    nodes[0] as Evaluable,
-                    (nodes[2] as Identifier).value,
-                    [
-                        ...nodes[0].tokens,
-                        ...nodes[1].tokens,
-                        ...nodes[2].tokens,
-                    ],
-                )
-                const operator = nodes[3] as Operator
-                const right = nodes[4] as Evaluable
-
-                return new Formula([left, operator, right], tokens)
-            },
-        },
-        {
-            pattern: [
-                {
-                    type: Evaluable,
-                },
-                {
-                    type: Operator,
-                },
-                {
-                    type: Evaluable,
-                },
-                {
-                    type: Expression,
-                    value: '.',
-                },
-                {
-                    type: Identifier,
-                },
-            ],
-            factory: (nodes, tokens) => {
-                const left = nodes[0] as Evaluable
-                const operator = nodes[1] as Operator
-                const right = new FetchMember(
-                    nodes[2] as Evaluable,
-                    (nodes[4] as Identifier).value,
-                    [
-                        ...nodes[2].tokens,
-                        ...nodes[3].tokens,
-                        ...nodes[4].tokens,
-                    ],
-                )
-
-                if (left instanceof Formula) {
-                    return new Formula([...left.terms, operator, right], tokens)
-                }
-
-                return new Formula([left, operator, right], tokens)
             },
         },
         {
@@ -744,59 +519,6 @@ export const ADVANCED_RULES: Rule[] = [
         flags: [RULE_FLAGS.IS_STATEMENT],
     },
     {
-        pattern: [{ type: NewInstance }, { type: TupleLiteral }],
-        factory: (nodes, tokens) => {
-            const ni = nodes[0] as NewInstance
-            const tuple = nodes[1] as TupleLiteral
-            return new NewInstance(ni.className, tuple.items, tokens)
-        },
-    },
-    {
-        pattern: [{ type: NewInstance }, { type: ValueWithParenthesis }],
-        factory: (nodes, tokens) => {
-            const ni = nodes[0] as NewInstance
-            const vwp = nodes[1] as ValueWithParenthesis
-            let args: Evaluable[] = []
-            if (vwp.value instanceof Sequence) {
-                args = vwp.value.items as Evaluable[]
-            } else {
-                args = [vwp.value]
-            }
-            return new NewInstance(ni.className, args, tokens)
-        },
-    },
-    {
-        pattern: [{ type: Identifier, value: '새' }, { type: Identifier }],
-        factory: (nodes, tokens) => {
-            const className = (nodes[1] as Identifier).value
-            return new NewInstance(className, [], tokens)
-        },
-    },
-    ...PYTHON_COMPAT_RULES,
-    {
-        pattern: [
-            {
-                type: Identifier,
-                value: '람다',
-            },
-            {
-                type: Identifier,
-            },
-            {
-                type: Expression,
-                value: ':',
-            },
-            {
-                type: Evaluable,
-            },
-        ],
-        factory: (nodes, tokens) => {
-            const paramName = (nodes[1] as Identifier).value
-            const body = nodes[3] as Evaluable
-            return new LambdaLiteral([paramName], body, tokens)
-        },
-    },
-    {
         pattern: [
             {
                 type: Evaluable,
@@ -813,10 +535,7 @@ export const ADVANCED_RULES: Rule[] = [
             const a = nodes[0] as Evaluable
             const b = nodes[2] as Evaluable
 
-            if (
-                a instanceof Identifier &&
-                (a.value === '클래스' || a.value === '약속')
-            ) {
+            if (a instanceof Identifier && a.value === '약속') {
                 return null
             }
 
@@ -846,30 +565,6 @@ export const ADVANCED_RULES: Rule[] = [
     {
         pattern: [
             {
-                type: Identifier,
-                value: '람다',
-            },
-            {
-                type: Sequence,
-            },
-            {
-                type: Expression,
-                value: ':',
-            },
-            {
-                type: Evaluable,
-            },
-        ],
-        factory: (nodes, tokens) => {
-            const params = extractLambdaParamNames(nodes[1] as Sequence)
-            if (!params) return null
-
-            return new LambdaLiteral(params, nodes[3] as Evaluable, tokens)
-        },
-    },
-    {
-        pattern: [
-            {
                 type: Expression,
                 value: '[',
             },
@@ -880,34 +575,6 @@ export const ADVANCED_RULES: Rule[] = [
         ],
         factory: (_nodes, tokens) => new ListLiteral([], tokens),
     },
-    ...ASSIGNERS.map<Rule>((assigner) => ({
-        pattern: [
-            {
-                type: FetchMember,
-            },
-            {
-                type: Expression,
-                value: assigner,
-            },
-            {
-                type: Evaluable,
-            },
-        ],
-        factory: (nodes, tokens) => {
-            const fetchMember = nodes[0] as FetchMember
-            const operator = nodes[1] as Expression
-            const value = nodes[2] as Evaluable
-
-            return new SetMember(
-                fetchMember.target,
-                fetchMember.memberName,
-                value,
-                operator.value,
-                tokens,
-            )
-        },
-        flags: [RULE_FLAGS.IS_STATEMENT],
-    })),
     ...ASSIGNERS.map<Rule>((assigner) => ({
         pattern: [
             {
@@ -1357,19 +1024,3 @@ function createTypeCastRules(): Rule[] {
     return rules
 }
 
-function extractLambdaParamNames(sequence: Sequence): string[] | null {
-    const names: string[] = []
-
-    for (const item of sequence.items) {
-        if (!(item instanceof Identifier)) {
-            return null
-        }
-        names.push(item.value)
-    }
-
-    if (names.length === 0) {
-        return null
-    }
-
-    return names
-}

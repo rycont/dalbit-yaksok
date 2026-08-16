@@ -1,8 +1,6 @@
 import {
     ADVANCED_RULES,
     BASIC_RULES,
-    DOT_FETCH_MEMBER_RULES,
-    DOT_MEMBER_FUNCTION_INVOKE_RULES,
 } from './rule/index.ts'
 import { satisfiesPattern } from './satisfiesPattern.ts'
 
@@ -132,9 +130,7 @@ export function callParseRecursively(
         BASIC_RULES[0],
         ...BASIC_RULES.slice(1),
         ...externalPatterns[1],
-        DOT_MEMBER_FUNCTION_INVOKE_RULES,
-        DOT_FETCH_MEMBER_RULES,
-        ADVANCED_RULES,
+                ADVANCED_RULES,
     ]
 
     loop1: while (true) {
