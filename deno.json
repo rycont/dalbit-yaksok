@@ -16,7 +16,6 @@
         "core",
         "test",
         "exts/quickjs",
-        "exts/pyodide",
         "exts/math",
         "exts/statistics"
     ],
