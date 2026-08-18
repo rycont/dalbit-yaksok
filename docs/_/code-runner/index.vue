@@ -111,8 +111,6 @@ async function initializeMonaco() {
         }
     })
 
-    languageProvider.configEditor(editorInstance)
-
     editorInstance.onDidFocusEditorText(() => {
         editorInstance!.addCommand(
             monaco!.KeyMod.CtrlCmd | monaco!.KeyCode.Enter,
@@ -186,6 +184,7 @@ async function runCode() {
 
         session.addModule('main', editorInstance.getValue(), {
             // executionDelay: 400,
+
         })
 
         console.log(await session.runModule('main'))
