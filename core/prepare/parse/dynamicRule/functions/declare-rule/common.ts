@@ -12,7 +12,7 @@ export function functionHeaderToPattern(tokens: Token[]): PatternUnit[] {
         if (
             token.type === TOKEN_TYPE.OPENING_PARENTHESIS &&
             tokens[i + 1]?.type === TOKEN_TYPE.IDENTIFIER &&
-            tokens[i + 2]?.type === TOKEN_TYPE.COMMA
+            tokens[i + 2]?.type !== TOKEN_TYPE.CLOSING_PARENTHESIS
         ) {
             units.push({ type: Evaluable })
             i = skipDestructureGroup(tokens, i)

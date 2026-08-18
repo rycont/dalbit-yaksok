@@ -57,15 +57,7 @@ export class MentionScope extends Evaluable {
             const moduleFileScope = await moduleCodeFile.run()
 
             if (this.child instanceof FunctionInvoke) {
-                const evaluatedParams = await evaluateParams(
-                    this.child.argumentEvaluator,
-                    scope,
-                )
-
-                return await this.child.execute(
-                    moduleFileScope,
-                    evaluatedParams,
-                )
+                return await this.child.execute(moduleFileScope, scope)
             }
 
             if (this.child instanceof SubscribeEvent) {
@@ -101,13 +93,13 @@ export class MentionScope extends Evaluable {
             this.fileName,
         )
 
-        let validatingScope: Scope | undefined
+        let mentionedModuleScope: Scope | undefined
         let moduleErrors: YaksokError[] = []
 
         try {
             const validationResult = moduleCodeFile.validate()
 
-            validatingScope = validationResult.validatingScope
+            mentionedModuleScope = validationResult.validatingScope
             moduleErrors = validationResult.errors
         } catch (error) {
             if (error instanceof YaksokError) {
@@ -129,22 +121,9 @@ export class MentionScope extends Evaluable {
             throw error
         }
 
-        let childErrors: YaksokError[] = []
-
-        if (this.child instanceof FunctionInvoke) {
-            for (const paramName in this.child.argumentEvaluator) {
-                const param = this.child.argumentEvaluator[paramName]
-                childErrors = childErrors.concat(param.validate(scope))
-            }
-        } else {
-            // validatingScope가 undefined가 아닐 때만 자식 노드의 validate 호출
-            if (validatingScope) {
-                childErrors = childErrors.concat(
-                    this.child.validate(validatingScope),
-                )
-            }
-        }
-
+        const childErrors = mentionedModuleScope
+            ? this.child.validate(mentionedModuleScope, scope)
+            : []
         return [...moduleErrors, ...childErrors]
     }
 }

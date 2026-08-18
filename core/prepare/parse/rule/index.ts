@@ -9,8 +9,8 @@ import {
     Block,
     BooleanLiteral,
     Break,
-    Continue,
     ConditionalLoop,
+    Continue,
     DivideOperator,
     ElseIfStatement,
     ElseStatement,
@@ -48,6 +48,7 @@ import {
 import type { TypeCastTarget } from '../../../node/typecast.ts'
 import { NotEqualOperator } from '../../../node/operator.ts'
 import {
+    EmptyLiteral,
     TemplateLiteral,
     TemplateStringPart,
 } from '../../../node/primitive-literal.ts'
@@ -60,9 +61,9 @@ import { RULE_FLAGS } from '../type.ts'
 import { COUNT_LOOP_RULES } from './count-loop.ts'
 import { DICT_RULES } from './dict.ts'
 import { LIST_LOOP_RULES } from './list-loop.ts'
+import { OptionalParameter } from '../../../node/function.ts'
 
 export type { Rule }
-
 
 export const BASIC_RULES: Rule[][] = [
     [
@@ -98,6 +99,32 @@ export const BASIC_RULES: Rule[][] = [
                     [...template.parts, expr, endPart],
                     tokens,
                 )
+            },
+        },
+        {
+            pattern: [
+                {
+                    type: Identifier,
+                },
+                {
+                    type: Expression,
+                    value: '?',
+                },
+            ],
+            factory: (node, tokens) => {
+                const identifier = node[0] as Identifier
+                return new OptionalParameter(identifier.value, tokens)
+            },
+        },
+        {
+            pattern: [
+                {
+                    type: Identifier,
+                    value: '비어있음',
+                },
+            ],
+            factory: (_, tokens) => {
+                return new EmptyLiteral(tokens)
             },
         },
         ...['참', '맞음'].map(
@@ -1023,4 +1050,3 @@ function createTypeCastRules(): Rule[] {
 
     return rules
 }
-

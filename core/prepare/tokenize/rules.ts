@@ -309,6 +309,12 @@ export const RULES: {
             code[index] === ':' ? { value: ':', newIndex: index + 1 } : null,
     },
     {
+        type: TOKEN_TYPE.QUESTION_MARK,
+        starter: ['?'],
+        parse: (code, index) =>
+            code[index] === '?' ? { value: '?', newIndex: index + 1 } : null,
+    },
+    {
         type: TOKEN_TYPE.STRING,
         starter: ['"', "'"],
         parse: (code, index) => {

@@ -5,21 +5,25 @@ import {
 import { FunctionMustHaveOneOrMoreStringPartError } from '../../../../error/function.ts'
 import { UnexpectedTokenError } from '../../../../error/prepare.ts'
 import { NotProperIdentifierNameToDefineError } from '../../../../error/variable.ts'
+import { ParameterElement } from '@dalbit-yaksok/core'
 import {
     FunctionTemplate,
     FunctionTemplatePiece,
+    PIECE_TYPE,
 } from '../../../../type/function-template.ts'
-import { Token, TOKEN_TYPE } from '../../../tokenize/token.ts'
+import {
+    Token,
+    TOKEN_TYPE,
+    TOKEN_TYPE_TO_TEXT,
+} from '../../../tokenize/token.ts'
 
 export function convertTokensToFunctionTemplate(
     _tokens: Token[],
 ): FunctionTemplate {
-    const tokens = _tokens.map((token) => ({ ...token })).filter(t => t.type !== TOKEN_TYPE.SPACE)
-    const rawPieces: Array<
-        | { type: 'value'; value: string[] }
-        | { type: 'destructure'; value: string[] }
-        | { type: 'static'; value: string }
-    > = []
+    const tokens = _tokens
+        .map((token) => ({ ...token }))
+        .filter((t) => t.type !== TOKEN_TYPE.SPACE)
+    const rawPieces: FunctionTemplatePiece[] = []
 
     for (let i = 0; i < tokens.length; i++) {
         const token = tokens[i]
@@ -27,8 +31,8 @@ export function convertTokensToFunctionTemplate(
         if (token.type !== TOKEN_TYPE.IDENTIFIER) {
             if (token.value === '/' && rawPieces.length > 0) {
                 const last = rawPieces[rawPieces.length - 1]
-                if (last.type === 'static') {
-                    last.value += '/'
+                if (last.type === PIECE_TYPE.STATIC) {
+                    last.variations[0] += '/'
                 }
             }
             continue
@@ -39,17 +43,20 @@ export function convertTokensToFunctionTemplate(
 
         const isNextTokenClosingParenthesis =
             tokens[i + 1]?.type === TOKEN_TYPE.CLOSING_PARENTHESIS
-        const isNextTokenComma = tokens[i + 1]?.type === TOKEN_TYPE.COMMA
 
         if (isPrevTokenOpeningParenthesis && isNextTokenClosingParenthesis) {
-            rawPieces.push({ type: 'value', value: [token.value] })
+            rawPieces.push({ type: PIECE_TYPE.PARAMETER, name: token.value })
             continue
         }
 
-        if (isPrevTokenOpeningParenthesis && isNextTokenComma) {
-            const destructureNames = extractDestructureNames(tokens, i)
+        if (isPrevTokenOpeningParenthesis && !isNextTokenClosingParenthesis) {
+            const destructureNames = extractDestructureParameters(tokens, i)
+
             if (destructureNames.length > 0) {
-                rawPieces.push({ type: 'destructure', value: destructureNames })
+                rawPieces.push({
+                    type: PIECE_TYPE.DESTRUCTURE,
+                    parameterElements: destructureNames,
+                })
                 i += destructureNames.length * 2 - 1
                 continue
             }
@@ -57,29 +64,35 @@ export function convertTokensToFunctionTemplate(
 
         if (rawPieces.length > 0) {
             const last = rawPieces[rawPieces.length - 1]
-            if (last.type === 'static' && last.value.endsWith('/')) {
-                last.value += token.value
+            if (
+                last.type === PIECE_TYPE.STATIC &&
+                last.variations[0].endsWith('/')
+            ) {
+                last.variations[0] += token.value
                 continue
             }
         }
 
-        rawPieces.push({ type: 'static', value: token.value })
+        rawPieces.push({ type: PIECE_TYPE.STATIC, variations: [token.value] })
     }
 
     const lastPiece = rawPieces[rawPieces.length - 1]
     const pieces: FunctionTemplatePiece[] = rawPieces.map((piece, index) => {
-        if (piece.type === 'value' || piece.type === 'destructure') {
+        if (
+            piece.type === PIECE_TYPE.PARAMETER ||
+            piece.type === PIECE_TYPE.DESTRUCTURE
+        ) {
             return piece
         }
 
         const isLastPiece = index === rawPieces.length - 1
         const shouldAddVerbFormVariant =
-            isLastPiece && lastPiece?.type === 'static'
+            isLastPiece && lastPiece?.type === PIECE_TYPE.STATIC
 
         return {
-            type: 'static',
-            value: createStaticPieceCandidates(
-                piece.value,
+            type: PIECE_TYPE.STATIC,
+            variations: createStaticPieceCandidates(
+                piece.variations[0],
                 shouldAddVerbFormVariant,
             ),
         }
@@ -92,9 +105,27 @@ export function convertTokensToFunctionTemplate(
         .join('')
         .trim()
 
+    const parameterScheme = pieces
+        .flatMap((p) => {
+            if (p.type === PIECE_TYPE.DESTRUCTURE) {
+                return p.parameterElements
+            }
+
+            if (p.type === PIECE_TYPE.PARAMETER) {
+                return [
+                    {
+                        name: p.name,
+                        required: true,
+                    },
+                ]
+            }
+        })
+        .filter((e) => !!e)
+
     return {
         name: functionName,
         pieces,
+        parameterScheme,
     }
 }
 
@@ -157,35 +188,67 @@ function convertToVerbForm(word: string): string {
     return word
 }
 
-function extractDestructureNames(
+function extractDestructureParameters(
     tokens: Token[],
     startIndex: number,
-): string[] {
-    const names: string[] = []
-    let i = startIndex
+): ParameterElement[] {
+    const tokensAfterStart = tokens.slice(startIndex)
+    const closingTokenIndex = tokensAfterStart.findIndex(
+        (t) => t.type === TOKEN_TYPE.CLOSING_PARENTHESIS,
+    )
 
-    while (i < tokens.length) {
-        if (tokens[i].type === TOKEN_TYPE.IDENTIFIER) {
-            names.push(tokens[i].value)
-            const next = tokens[i + 1]
-            if (next?.type === TOKEN_TYPE.CLOSING_PARENTHESIS) {
-                return names
+    const destructuringTokens = tokensAfterStart.slice(0, closingTokenIndex)
+
+    const delimiterIndexes = destructuringTokens
+        .map((token, index) => ({
+            token,
+            index,
+        }))
+        .filter(({ token }) => token.type === TOKEN_TYPE.COMMA)
+        .map(({ index }) => index)
+
+    const groupBoundaries = [
+        -1,
+        ...delimiterIndexes,
+        destructuringTokens.length,
+    ]
+
+    const parameterTokenGroups = Array.from(
+        { length: groupBoundaries.length - 1 },
+        (_, i) =>
+            destructuringTokens.slice(
+                groupBoundaries[i] + 1,
+                groupBoundaries[i + 1],
+            ),
+    )
+
+    const parameterElements: ParameterElement[] = parameterTokenGroups
+        .map((tokenGroup) => {
+            const name = tokenGroup.find(
+                (t) => t.type === TOKEN_TYPE.IDENTIFIER,
+            )?.value
+            const hasOptionalMark = tokenGroup.some(
+                (t) => t.type === TOKEN_TYPE.QUESTION_MARK,
+            )
+
+            if (!name) {
+                return null
             }
-            if (next?.type === TOKEN_TYPE.COMMA) {
-                i += 2
-                continue
-            }
-        }
-        return names
-    }
-    return names
+
+            return { name, required: !hasOptionalMark } as ParameterElement
+        })
+        .filter((p) => !!p)
+
+    return parameterElements
 }
 
 function assertValidFunctionHeader(
     pieces: FunctionTemplatePiece[],
     tokens: Token[],
 ) {
-    const hasStaticPiece = pieces.some((piece) => piece.type === 'static')
+    const hasStaticPiece = pieces.some(
+        (piece) => piece.type === PIECE_TYPE.STATIC,
+    )
     if (!hasStaticPiece) {
         throw new FunctionMustHaveOneOrMoreStringPartError({
             tokens,
@@ -238,7 +301,9 @@ function assertValidFunctionHeader(
         const nextNextToken = tokens[index + 2]
         const isSingleParam =
             nextNextToken?.type === TOKEN_TYPE.CLOSING_PARENTHESIS
-        const isDestructureParam = nextNextToken?.type === TOKEN_TYPE.COMMA
+        const isDestructureParam =
+            nextNextToken?.type === TOKEN_TYPE.COMMA ||
+            nextNextToken?.type === TOKEN_TYPE.QUESTION_MARK
 
         if (!isSingleParam && !isDestructureParam) {
             throw new UnexpectedTokenError({

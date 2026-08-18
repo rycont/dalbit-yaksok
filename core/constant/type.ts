@@ -3,6 +3,11 @@ import { ErrorGroups } from '../error/validation.ts'
 import { CodeFile } from '../type/code-file.ts'
 import { ValueType } from '../value/base.ts'
 
+export interface ParameterElement {
+    name: string
+    required: boolean
+}
+
 export interface FunctionInvokingParams {
     [key: string]: ValueType
 }

@@ -37,6 +37,7 @@ function mapTokenToNode(token: Token) {
         case TOKEN_TYPE.LINE_COMMENT:
             return null
         case TOKEN_TYPE.COMMA:
+        case TOKEN_TYPE.QUESTION_MARK:
         case TOKEN_TYPE.OPENING_PARENTHESIS:
         case TOKEN_TYPE.CLOSING_PARENTHESIS:
         case TOKEN_TYPE.OPENING_BRACKET:

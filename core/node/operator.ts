@@ -11,7 +11,12 @@ import { Token } from '../prepare/tokenize/token.ts'
 
 import { PrimitiveValue, ValueType } from '../value/base.ts'
 import { ListValue } from '../value/list.ts'
-import { BooleanValue, NumberValue, StringValue } from '../value/primitive.ts'
+import {
+    BooleanValue,
+    EmptyValue,
+    NumberValue,
+    StringValue,
+} from '../value/primitive.ts'
 import { Operator } from './base.ts'
 import { cleanFloatingPointError } from '../util/float-precision.ts'
 
@@ -33,22 +38,38 @@ export class PlusOperator extends Operator {
         const leftValue = await left()
         const rightValue = await right()
 
-        if (leftValue instanceof NumberValue && rightValue instanceof NumberValue) {
+        if (
+            leftValue instanceof NumberValue &&
+            rightValue instanceof NumberValue
+        ) {
             return new NumberValue(
                 cleanFloatingPointError(leftValue.value + rightValue.value),
             )
         }
 
-        if (leftValue instanceof StringValue && rightValue instanceof StringValue) {
+        if (
+            leftValue instanceof StringValue &&
+            rightValue instanceof StringValue
+        ) {
             return new StringValue(leftValue.value + rightValue.value)
         }
 
-        if (leftValue instanceof StringValue && rightValue instanceof NumberValue) {
-            return new StringValue(leftValue.value + rightValue.value.toString())
+        if (
+            leftValue instanceof StringValue &&
+            rightValue instanceof NumberValue
+        ) {
+            return new StringValue(
+                leftValue.value + rightValue.value.toString(),
+            )
         }
 
-        if (leftValue instanceof NumberValue && rightValue instanceof StringValue) {
-            return new StringValue(leftValue.value.toString() + rightValue.value)
+        if (
+            leftValue instanceof NumberValue &&
+            rightValue instanceof StringValue
+        ) {
+            return new StringValue(
+                leftValue.value.toString() + rightValue.value,
+            )
         }
 
         if (leftValue instanceof ListValue && rightValue instanceof ListValue) {
@@ -86,7 +107,10 @@ export class MinusOperator extends Operator {
         const leftValue = await left()
         const rightValue = await right()
 
-        if (leftValue instanceof NumberValue && rightValue instanceof NumberValue) {
+        if (
+            leftValue instanceof NumberValue &&
+            rightValue instanceof NumberValue
+        ) {
             return new NumberValue(
                 cleanFloatingPointError(leftValue.value - rightValue.value),
             )
@@ -147,26 +171,41 @@ export class MultiplyOperator extends Operator {
             return new ListValue(repeatedElements)
         }
 
-        if (leftValue instanceof NumberValue && rightValue instanceof NumberValue) {
+        if (
+            leftValue instanceof NumberValue &&
+            rightValue instanceof NumberValue
+        ) {
             return new NumberValue(
                 cleanFloatingPointError(leftValue.value * rightValue.value),
             )
         }
 
-        if (leftValue instanceof StringValue && rightValue instanceof NumberValue) {
+        if (
+            leftValue instanceof StringValue &&
+            rightValue instanceof NumberValue
+        ) {
             return new StringValue(leftValue.value.repeat(rightValue.value))
         }
 
-        if (leftValue instanceof NumberValue && rightValue instanceof StringValue) {
+        if (
+            leftValue instanceof NumberValue &&
+            rightValue instanceof StringValue
+        ) {
             return new StringValue(rightValue.value.repeat(leftValue.value))
         }
 
-        if (leftValue instanceof ListValue && rightValue instanceof NumberValue) {
+        if (
+            leftValue instanceof ListValue &&
+            rightValue instanceof NumberValue
+        ) {
             const multiplier = ensureValidListMultiplier(rightValue.value)
             return repeatList(leftValue, multiplier)
         }
 
-        if (leftValue instanceof NumberValue && rightValue instanceof ListValue) {
+        if (
+            leftValue instanceof NumberValue &&
+            rightValue instanceof ListValue
+        ) {
             const multiplier = ensureValidListMultiplier(leftValue.value)
             return repeatList(rightValue, multiplier)
         }
@@ -199,7 +238,10 @@ export class DivideOperator extends Operator {
         const leftValue = await left()
         const rightValue = await right()
 
-        if (leftValue instanceof NumberValue && rightValue instanceof NumberValue) {
+        if (
+            leftValue instanceof NumberValue &&
+            rightValue instanceof NumberValue
+        ) {
             return new NumberValue(
                 cleanFloatingPointError(leftValue.value / rightValue.value),
             )
@@ -233,7 +275,10 @@ export class ModularOperator extends Operator {
         const leftValue = await left()
         const rightValue = await right()
 
-        if (leftValue instanceof NumberValue && rightValue instanceof NumberValue) {
+        if (
+            leftValue instanceof NumberValue &&
+            rightValue instanceof NumberValue
+        ) {
             return new NumberValue(
                 cleanFloatingPointError(leftValue.value % rightValue.value),
             )
@@ -267,7 +312,10 @@ export class PowerOperator extends Operator {
         const leftValue = await left()
         const rightValue = await right()
 
-        if (leftValue instanceof NumberValue && rightValue instanceof NumberValue) {
+        if (
+            leftValue instanceof NumberValue &&
+            rightValue instanceof NumberValue
+        ) {
             return new NumberValue(
                 cleanFloatingPointError(leftValue.value ** rightValue.value),
             )
@@ -301,8 +349,13 @@ export class IntegerDivideOperator extends Operator {
         const leftValue = await left()
         const rightValue = await right()
 
-        if (leftValue instanceof NumberValue && rightValue instanceof NumberValue) {
-            return new NumberValue(Math.floor(leftValue.value / rightValue.value))
+        if (
+            leftValue instanceof NumberValue &&
+            rightValue instanceof NumberValue
+        ) {
+            return new NumberValue(
+                Math.floor(leftValue.value / rightValue.value),
+            )
         }
 
         throw new InvalidTypeForOperatorError({
@@ -335,7 +388,15 @@ export class EqualOperator extends Operator {
 
         const isSameType = leftValue.constructor === rightValue.constructor
         const isBothPrimitive =
-            leftValue instanceof PrimitiveValue && rightValue instanceof PrimitiveValue
+            leftValue instanceof PrimitiveValue &&
+            rightValue instanceof PrimitiveValue
+
+        const isBiasedEmpty =
+            leftValue instanceof EmptyValue !== rightValue instanceof EmptyValue
+
+        if (isBiasedEmpty) {
+            return new BooleanValue(false)
+        }
 
         if (!isSameType || !isBothPrimitive) {
             throw new InvalidTypeForCompareError({
@@ -474,7 +535,10 @@ export class GreaterThanOperator extends Operator {
         const leftValue = await left()
         const rightValue = await right()
 
-        if (leftValue instanceof NumberValue && rightValue instanceof NumberValue) {
+        if (
+            leftValue instanceof NumberValue &&
+            rightValue instanceof NumberValue
+        ) {
             return new BooleanValue(leftValue.value > rightValue.value)
         }
 
@@ -506,7 +570,10 @@ export class LessThanOperator extends Operator {
         const leftValue = await left()
         const rightValue = await right()
 
-        if (leftValue instanceof NumberValue && rightValue instanceof NumberValue) {
+        if (
+            leftValue instanceof NumberValue &&
+            rightValue instanceof NumberValue
+        ) {
             return new BooleanValue(leftValue.value < rightValue.value)
         }
 
@@ -538,7 +605,10 @@ export class GreaterThanOrEqualOperator extends Operator {
         const leftValue = await left()
         const rightValue = await right()
 
-        if (leftValue instanceof NumberValue && rightValue instanceof NumberValue) {
+        if (
+            leftValue instanceof NumberValue &&
+            rightValue instanceof NumberValue
+        ) {
             return new BooleanValue(leftValue.value >= rightValue.value)
         }
 
@@ -570,7 +640,10 @@ export class LessThanOrEqualOperator extends Operator {
         const leftValue = await left()
         const rightValue = await right()
 
-        if (leftValue instanceof NumberValue && rightValue instanceof NumberValue) {
+        if (
+            leftValue instanceof NumberValue &&
+            rightValue instanceof NumberValue
+        ) {
             return new BooleanValue(leftValue.value <= rightValue.value)
         }
 
@@ -604,7 +677,10 @@ export class RangeOperator extends Operator {
 
         this.assertProperOperands([leftValue, rightValue])
 
-        const [start, end] = [leftValue, rightValue] as [NumberValue, NumberValue]
+        const [start, end] = [leftValue, rightValue] as [
+            NumberValue,
+            NumberValue,
+        ]
         const roundedStart = Math.round(start.value)
         const roundedEnd = Math.round(end.value)
         const items = new Array(roundedEnd - roundedStart + 1)
