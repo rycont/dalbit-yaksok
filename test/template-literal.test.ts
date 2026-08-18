@@ -167,21 +167,18 @@ Deno.test('No interpolation (plain string)', async () => {
     assertEquals(result.value, '일반 문자열')
 })
 
-Deno.test(
-    'Nested braces should work as plain text outside interpolation',
-    async () => {
-        const session = new YaksokSession()
-        session.addModule(
-            'main',
-            `
+Deno.test('Nested braces should work as plain text outside interpolation', async () => {
+    const session = new YaksokSession()
+    session.addModule(
+        'main',
+        `
 값 = 10
 결과 = "값: {값}"
 `,
-        )
-        await session.runModule('main')
-        const result = session
-            .getCodeFile('main')
-            .ranScope?.getVariable('결과') as StringValue
-        assertEquals(result.value, '값: 10')
-    },
-)
+    )
+    await session.runModule('main')
+    const result = session
+        .getCodeFile('main')
+        .ranScope?.getVariable('결과') as StringValue
+    assertEquals(result.value, '값: 10')
+})

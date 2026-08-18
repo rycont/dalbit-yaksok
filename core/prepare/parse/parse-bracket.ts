@@ -135,7 +135,9 @@ export function parseBracket(
     ) {
         const listLiteral = new ListLiteral(
             mergedNode[0].items,
-            getTokensFromNodes(nodes.slice(openingBracketIndex, closingPosition + 1)),
+            getTokensFromNodes(
+                nodes.slice(openingBracketIndex, closingPosition + 1),
+            ),
         )
 
         const newNodes = [
@@ -153,7 +155,9 @@ export function parseBracket(
     ) {
         const tupleLiteral = new TupleLiteral(
             mergedNode.length === 1 ? (mergedNode[0] as Sequence).items : [],
-            getTokensFromNodes(nodes.slice(openingBracketIndex, closingPosition + 1)),
+            getTokensFromNodes(
+                nodes.slice(openingBracketIndex, closingPosition + 1),
+            ),
         )
 
         const newNodes = [

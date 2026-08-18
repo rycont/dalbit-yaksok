@@ -1,53 +1,50 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
 import { assertEquals } from 'assert/equals'
 
-Deno.test(
-    'Step-by-step Execution - No runningCode event before resume',
-    async () => {
-        let output = ''
-        const executedLines: string[] = []
+Deno.test('Step-by-step Execution - No runningCode event before resume', async () => {
+    let output = ''
+    const executedLines: string[] = []
 
-        const session = new YaksokSession({
-            stdout(message) {
-                output += message
+    const session = new YaksokSession({
+        stdout(message) {
+            output += message
+        },
+        events: {
+            runningCode(_range, _end, _scope, tokens) {
+                executedLines.push(tokens[0].value)
             },
-            events: {
-                runningCode(_range, _end, _scope, tokens) {
-                    executedLines.push(tokens[0].value)
-                },
-            },
-        })
+        },
+    })
 
-        session.stepByStep = true
+    session.stepByStep = true
 
-        session.addModule(
-            'main',
-            `
+    session.addModule(
+        'main',
+        `
 "X" 보여주기
 "Y" 보여주기
         `,
-        )
+    )
 
-        const runPromise = session.runModule('main')
+    const runPromise = session.runModule('main')
 
-        // 첫 줄에서 일시 중지되었지만, 아직 resume()이 호출되지 않았으므로 runningCode 이벤트는 발생하지 않아야 함
-        await new Promise((resolve) => setTimeout(resolve, 100))
-        assertEquals(executedLines, [])
-        assertEquals(output, '')
+    // 첫 줄에서 일시 중지되었지만, 아직 resume()이 호출되지 않았으므로 runningCode 이벤트는 발생하지 않아야 함
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    assertEquals(executedLines, [])
+    assertEquals(output, '')
 
-        session.resume()
-        await new Promise((resolve) => setTimeout(resolve, 100))
-        assertEquals(executedLines, ['"X"'])
-        assertEquals(output, 'X')
+    session.resume()
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    assertEquals(executedLines, ['"X"'])
+    assertEquals(output, 'X')
 
-        session.resume()
-        await new Promise((resolve) => setTimeout(resolve, 100))
-        assertEquals(executedLines, ['"X"', '"Y"'])
-        assertEquals(output, 'XY')
+    session.resume()
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    assertEquals(executedLines, ['"X"', '"Y"'])
+    assertEquals(output, 'XY')
 
-        await runPromise
-    },
-)
+    await runPromise
+})
 
 Deno.test('Step-by-step Execution - Multiple resume calls', async () => {
     let output = ''

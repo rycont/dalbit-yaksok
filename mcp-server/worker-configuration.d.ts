@@ -99,7 +99,7 @@ declare abstract class WorkerGlobalScope extends EventTarget<WorkerGlobalScopeEv
  * [MDN Reference](https://developer.mozilla.org/docs/Web/API/console)
  */
 interface Console {
-    'assert'(condition?: boolean, ...data: any[]): void
+    assert(condition?: boolean, ...data: any[]): void
     /**
      * The **`console.clear()`** static method clears the console if possible.
      *
@@ -9520,10 +9520,9 @@ declare namespace Rpc {
         T extends object,
         Reserved extends string = never,
     > = MaybeCallableProvider<T> & {
-        [K in Exclude<
-            keyof T,
-            Reserved | symbol | keyof StubBase<never>
-        >]: MethodOrProperty<T[K]>
+        [
+            K in Exclude<keyof T, Reserved | symbol | keyof StubBase<never>>
+        ]: MethodOrProperty<T[K]>
     }
 }
 declare namespace Cloudflare {

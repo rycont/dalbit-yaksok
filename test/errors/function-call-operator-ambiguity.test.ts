@@ -79,10 +79,7 @@ Deno.test('예약어(만약) 뒤 단순 비교식은 오류 없음', async () =>
 
 5 팩토리얼 보여주기
 `)
-    assert(
-        result.reason === 'finish',
-        `Expected finish, got ${result.reason}`,
-    )
+    assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
 })
 
 Deno.test('예약어(반복) 뒤 비교식은 오류 없음', async () => {
@@ -95,10 +92,7 @@ i = 0
     i = i + 1
 합계 보여주기
 `)
-    assert(
-        result.reason === 'finish',
-        `Expected finish, got ${result.reason}`,
-    )
+    assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
 })
 
 Deno.test('괄호로 감싼 함수 결과는 오류 없음', async () => {
@@ -111,10 +105,7 @@ Deno.test('괄호로 감싼 함수 결과는 오류 없음', async () => {
 만약 (배열 개수) <= 5 이면
     "정상" 보여주기
 `)
-    assert(
-        result.reason === 'finish',
-        `Expected finish, got ${result.reason}`,
-    )
+    assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
 })
 
 // ─── Range Formula 허용 ───────────────────────────────────────────────────────
@@ -192,7 +183,9 @@ i = 0
     if (result.reason === 'validation') {
         const errors = [...(result.errors?.values() ?? [])].flat()
         assert(
-            !errors.some((e) => e instanceof FunctionCallOperatorAmbiguityError),
+            !errors.some(
+                (e) => e instanceof FunctionCallOperatorAmbiguityError,
+            ),
             `FunctionCallOperatorAmbiguityError must not fire for dot-member access`,
         )
     }

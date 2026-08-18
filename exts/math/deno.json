@@ -1,6 +1,6 @@
 {
-  "version": "6.0.6",
-  "name": "@dalbit-yaksok/math",
-  "exports": "./mod.ts",
-  "imports": {}
+    "version": "6.0.6",
+    "name": "@dalbit-yaksok/math",
+    "exports": "./mod.ts",
+    "imports": {}
 }

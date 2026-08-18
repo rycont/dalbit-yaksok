@@ -26,8 +26,11 @@ interface ParseResult {
  */
 export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
     try {
-        const { rules: dynamicRules, patterns, localRules } =
-            createDynamicRule(codeFile)
+        const {
+            rules: dynamicRules,
+            patterns,
+            localRules,
+        } = createDynamicRule(codeFile)
         const nodes = convertTokensToNodes(codeFile.tokens)
         const indentedNodes = parseIndent(nodes)
 

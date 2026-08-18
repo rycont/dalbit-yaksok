@@ -1,4 +1,9 @@
-import { BooleanValue, EmptyValue, NumberValue, StringValue } from '../value/primitive.ts'
+import {
+    BooleanValue,
+    EmptyValue,
+    NumberValue,
+    StringValue,
+} from '../value/primitive.ts'
 import { Evaluable, Node } from './base.ts'
 import { YaksokError } from '../error/common.ts'
 
@@ -136,9 +141,7 @@ export class TemplateLiteral extends Evaluable {
 export class EmptyLiteral extends Evaluable {
     static override friendlyName = '비어있음'
 
-    constructor(
-        public override tokens: Token[] = [],
-    ) {
+    constructor(public override tokens: Token[] = []) {
         super()
     }
 

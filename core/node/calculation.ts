@@ -89,8 +89,7 @@ export class Formula extends Evaluable {
 
     override async execute(scope: Scope): Promise<ValueType> {
         const rpn = this.toRPN()
-        const stack: { thunk: () => Promise<ValueType>; tokens: Token[] }[] =
-            []
+        const stack: { thunk: () => Promise<ValueType>; tokens: Token[] }[] = []
 
         for (const item of rpn) {
             if (item instanceof Operator) {

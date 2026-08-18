@@ -12,7 +12,9 @@ async function runCode(code: string) {
 }
 
 Deno.test('만약 - 정상 동작', async () => {
-    const { result, printed } = await runCode(`만약 참 이면\n    "실행됨" 보여주기`)
+    const { result, printed } = await runCode(
+        `만약 참 이면\n    "실행됨" 보여주기`,
+    )
     assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
     assertEquals(printed, '실행됨\n')
 })
@@ -52,7 +54,9 @@ Deno.test('만약 - 조건 없음 오류', async () => {
 })
 
 Deno.test('만약 - 조건 파싱 오류', async () => {
-    const { result } = await runCode(`만약 이상한거 모름 이면\n    "body" 보여주기`)
+    const { result } = await runCode(
+        `만약 이상한거 모름 이면\n    "body" 보여주기`,
+    )
     assert(
         result.reason === 'validation',
         `Expected validation error, got ${result.reason}`,

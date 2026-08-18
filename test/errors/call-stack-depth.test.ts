@@ -21,56 +21,47 @@ Deno.test('call stack depth limit allows 32 levels of recursion', async () => {
     assertEquals(result.reason, 'finish')
 })
 
-Deno.test(
-    'call stack depth limit throws when exceeding 32 levels of recursion',
-    async () => {
-        const result = await yaksok(recursiveProgram(33))
+Deno.test('call stack depth limit throws when exceeding 32 levels of recursion', async () => {
+    const result = await yaksok(recursiveProgram(33))
 
-        assert(
-            result.reason === 'error',
-            `Expected error, but got ${result.reason}`,
-        )
-        assertIsError(result.error, CallStackDepthExceededError)
-    },
-)
+    assert(
+        result.reason === 'error',
+        `Expected error, but got ${result.reason}`,
+    )
+    assertIsError(result.error, CallStackDepthExceededError)
+})
 
 // FEATURE FLAG 테스트 (가장 중요한 기능 테스트)
-Deno.test(
-    'call stack depth limit can be disabled with FEATURE_FLAG',
-    async () => {
-        const session = new YaksokSession({
-            flags: {
-                [FEATURE_FLAG.DISABLE_CALL_STACK_DEPTH_LIMIT]: true,
-            },
-        })
+Deno.test('call stack depth limit can be disabled with FEATURE_FLAG', async () => {
+    const session = new YaksokSession({
+        flags: {
+            [FEATURE_FLAG.DISABLE_CALL_STACK_DEPTH_LIMIT]: true,
+        },
+    })
 
-        session.addModule('main', recursiveProgram(33))
-        const results = await session.runModule('main')
-        const result = results.get('main')!
+    session.addModule('main', recursiveProgram(33))
+    const results = await session.runModule('main')
+    const result = results.get('main')!
 
-        assertEquals(
-            result.reason,
-            'finish',
-            'Expected execution to finish when flag is disabled',
-        )
-    },
-)
+    assertEquals(
+        result.reason,
+        'finish',
+        'Expected execution to finish when flag is disabled',
+    )
+})
 
-Deno.test(
-    'call stack depth limit still works when FEATURE_FLAG is not set',
-    async () => {
-        const session = new YaksokSession({
-            flags: {},
-        })
+Deno.test('call stack depth limit still works when FEATURE_FLAG is not set', async () => {
+    const session = new YaksokSession({
+        flags: {},
+    })
 
-        session.addModule('main', recursiveProgram(33))
-        const results = await session.runModule('main')
-        const result = results.get('main')!
+    session.addModule('main', recursiveProgram(33))
+    const results = await session.runModule('main')
+    const result = results.get('main')!
 
-        assert(
-            result.reason === 'error',
-            `Expected error, but got ${result.reason}`,
-        )
-        assertIsError(result.error, CallStackDepthExceededError)
-    },
-)
+    assert(
+        result.reason === 'error',
+        `Expected error, but got ${result.reason}`,
+    )
+    assertIsError(result.error, CallStackDepthExceededError)
+})

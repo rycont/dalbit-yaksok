@@ -1,7 +1,4 @@
-import {
-    ADVANCED_RULES,
-    BASIC_RULES,
-} from './rule/index.ts'
+import { ADVANCED_RULES, BASIC_RULES } from './rule/index.ts'
 import { satisfiesPattern } from './satisfiesPattern.ts'
 
 import { Block } from '../../node/block.ts'
@@ -130,7 +127,7 @@ export function callParseRecursively(
         BASIC_RULES[0],
         ...BASIC_RULES.slice(1),
         ...externalPatterns[1],
-                ADVANCED_RULES,
+        ADVANCED_RULES,
     ]
 
     loop1: while (true) {

@@ -25,7 +25,7 @@ export const ASSIGNERS = ['=', '+=', '-=', '*=', '/=', '%=']
 
 const IDENTIFIER_STARTER_REGEX = /[a-zA-Z_가-힣ㄱ-ㅎ]/
 const IDENTIFIER_REGEX = /[a-zA-Z_가-힣ㄱ-ㅎ0-9]/
-const NUMBER_CHAR_REGEX = /[0-9\.]/
+const NUMBER_CHAR_REGEX = /[0-9.]/
 
 export interface RuleParseResult {
     value: string
@@ -48,7 +48,7 @@ export const RULES: {
 }[] = [
     {
         type: TOKEN_TYPE.NUMBER,
-        starter: /[0-9\-]/,
+        starter: /[0-9-]/,
         parse: (code, index, lastTokens) => {
             let i = index
             if (code[i] === '-') {

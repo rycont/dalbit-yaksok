@@ -28,7 +28,9 @@ export interface DestructurePiece {
 }
 
 export type FunctionTemplatePiece =
-    StaticPiece | ParameterPiece | DestructurePiece
+    | StaticPiece
+    | ParameterPiece
+    | DestructurePiece
 
 export interface FunctionTemplate {
     name: string

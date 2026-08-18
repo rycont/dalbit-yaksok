@@ -29,13 +29,13 @@ export class BooleanValue extends PrimitiveValue<boolean> {
 }
 
 export class EmptyValue extends PrimitiveValue {
-  static override friendlyName = '비어있음'
+    static override friendlyName = '비어있음'
 
-  constructor() {
-    super(undefined)
-  }
+    constructor() {
+        super(undefined)
+    }
 
-  override toPrint(): string {
-      return '비어있음'
-  }
+    override toPrint(): string {
+        return '비어있음'
+    }
 }

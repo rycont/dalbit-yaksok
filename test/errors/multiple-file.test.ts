@@ -27,7 +27,7 @@ Deno.test('Error in importing module', async () => {
     session.addModule('main', '(@아두이노 이름) 보여주기')
     session.addModule('아두이노', `이름 = "아두이노" / 2`)
 
-    const result = (await session.runModule('main')).get("main")!
+    const result = (await session.runModule('main')).get('main')!
 
     assert(result.reason === 'error')
     assertIsError(result.error, ErrorInModuleError)

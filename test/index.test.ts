@@ -28,7 +28,10 @@ for (const file of Deno.readDirSync(codesDir)) {
             }
 
             if (result.reason === 'validation') {
-                const errorMessages = Array.from(result.errors.values()).flat().map(e => e.message).join('\n')
+                const errorMessages = Array.from(result.errors.values())
+                    .flat()
+                    .map((e) => e.message)
+                    .join('\n')
                 throw new Error('Validation failed:\n' + errorMessages)
             }
 

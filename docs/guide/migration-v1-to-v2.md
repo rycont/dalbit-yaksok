@@ -13,6 +13,7 @@ Dalbit Yaksok v2.0.0은 런타임 아키텍처와 FFI(외부 함수 인터페이
 Yaksok 코드를 실행하는 핵심 클래스의 이름과 설계가 변경되었습니다.
 
 #### v1.x (기존)
+
 ```typescript
 import { yaksok, Runtime } from '@dalbit-yaksok/core'
 
@@ -20,20 +21,18 @@ import { yaksok, Runtime } from '@dalbit-yaksok/core'
 await yaksok(code)
 
 // 고급 사용
-const runtime = new Runtime(
-    { 'main.yak': code },
-    { stdout: console.log }
-)
+const runtime = new Runtime({ 'main.yak': code }, { stdout: console.log })
 await runtime.run()
 ```
 
 #### v2.0 (신규)
+
 ```typescript
 import { YaksokSession } from '@dalbit-yaksok/core'
 
 // 세션 생성
-const session = new YaksokSession({ 
-    stdout: console.log 
+const session = new YaksokSession({
+    stdout: console.log,
 })
 
 // 모듈 추가 및 실행
@@ -42,6 +41,7 @@ await session.runModule('main')
 ```
 
 **마이그레이션:**
+
 - `new Runtime(codeTexts, config)`을 `new YaksokSession(config)` + `session.addModule(name, code)`로 변경하세요.
 - `runtime.run()`을 `session.runModule(moduleName)`로 변경하세요.
 - 코드는 생성자가 아닌 `addModule`을 통해 추가합니다.
@@ -53,34 +53,39 @@ await session.runModule('main')
 설정 타입의 이름과 구조가 변경되었습니다.
 
 #### v1.x (기존)
+
 ```typescript
 import type { RuntimeConfig } from '@dalbit-yaksok/core'
 
 const config: RuntimeConfig = {
     stdout: (text) => console.log(text),
     stderr: (text) => console.error(text),
-    runFFI: (name, code, args) => { /* 커스텀 FFI */ },
+    runFFI: (name, code, args) => {
+        /* 커스텀 FFI */
+    },
     executionDelay: 0,
     entryPoint: 'main.yak',
-    flags: { /* 기능 플래그 */ }
+    flags: {/* 기능 플래그 */},
 }
 ```
 
 #### v2.0 (신규)
+
 ```typescript
 import type { SessionConfig } from '@dalbit-yaksok/core'
 
 const config: SessionConfig = {
     stdout: (text) => console.log(text),
     stderr: (text) => console.error(text),
-    stdin: async () => prompt('입력:'),  // 신규: 입력 핸들러
-    events: { /* 이벤트 핸들러 */ },      // 신규: 이벤트 시스템
-    flags: { /* 기능 플래그 */ },
-    threadYieldInterval: 1000            // 신규: 실행 제어
+    stdin: async () => prompt('입력:'), // 신규: 입력 핸들러
+    events: {/* 이벤트 핸들러 */}, // 신규: 이벤트 시스템
+    flags: {/* 기능 플래그 */},
+    threadYieldInterval: 1000, // 신규: 실행 제어
 }
 ```
 
 **마이그레이션:**
+
 - `RuntimeConfig` → `SessionConfig`로 이름 변경
 - `runFFI`, `executionDelay`, `entryPoint` 제거 (다른 방식으로 처리됨)
 - 필요시 `stdin` 추가
@@ -93,12 +98,13 @@ const config: SessionConfig = {
 외부 함수 인터페이스(FFI) 시스템이 완전히 개편되었습니다.
 
 #### v1.x (기존)
+
 ```typescript
 // runFFI 콜백을 통해 수동으로 통합
 import { QuickJS } from '@dalbit-yaksok/quickjs'
 
 const quickjs = new QuickJS({
-    alert: (msg) => window.alert(msg)
+    alert: (msg) => window.alert(msg),
 })
 await quickjs.init()
 
@@ -109,12 +115,13 @@ const runtime = new Runtime(
             if (name === 'QuickJS') {
                 return quickjs.run(code, args)
             }
-        }
-    }
+        },
+    },
 )
 ```
 
 #### v2.0 (신규)
+
 ```typescript
 // 확장은 Extension 인터페이스를 구현
 import { YaksokSession } from '@dalbit-yaksok/core'
@@ -123,7 +130,7 @@ import { QuickJS } from '@dalbit-yaksok/quickjs'
 const session = new YaksokSession()
 
 const quickjs = new QuickJS({
-    alert: (msg) => window.alert(msg)
+    alert: (msg) => window.alert(msg),
 })
 
 // 확장 패턴: init + extend
@@ -134,19 +141,21 @@ await session.runModule('main')
 ```
 
 **새로운 확장 인터페이스:**
+
 ```typescript
 interface Extension {
-    manifest: ExtensionManifest  // 메타데이터
-    init?(): Promise<void>       // 선택적 초기화
+    manifest: ExtensionManifest // 메타데이터
+    init?(): Promise<void> // 선택적 초기화
     executeFFI(
-        code: string, 
+        code: string,
         args: FunctionInvokingParams,
-        scope: Scope
+        scope: Scope,
     ): ValueType
 }
 ```
 
 **마이그레이션:**
+
 - 커스텀 `runFFI` 콜백을 `Extension` 구현체로 변경하세요.
 - `session.extend(extension)`을 사용하여 확장을 등록하세요.
 - QuickJS 등은 이제 `Extension` 인터페이스를 직접 구현합니다.
@@ -158,6 +167,7 @@ interface Extension {
 v2는 다중 모듈과 베이스 컨텍스트를 일급 객체로 지원합니다.
 
 #### v2.0 신규 기능
+
 ```typescript
 const session = new YaksokSession()
 
@@ -169,11 +179,9 @@ session.addModule('main', `"utils" 사용하기\n[3,1,2]을 정렬하기`)
 await session.runModule('main')
 
 // 베이스 컨텍스트 (모든 모듈에서 공유)
-session.addModule(
-    session.BASE_CONTEXT_SYMBOL, 
-    `약속, 디버그 ...`,
-    { baseContextFileName: ['utils'] }
-)
+session.addModule(session.BASE_CONTEXT_SYMBOL, `약속, 디버그 ...`, {
+    baseContextFileName: ['utils'],
+})
 ```
 
 ---
@@ -183,6 +191,7 @@ session.addModule(
 `FUTURE_FUNCTION_INVOKE_SYNTAX` 기능 플래그가 **제거되었으며**, 이제 괄호 사용이 **필수**입니다.
 
 #### v1.x (기존)
+
 ```yaksok
 # 두 문법 모두 허용됨:
 "치킨" 먹기           # 구식 (v2에서 제거됨)
@@ -190,6 +199,7 @@ session.addModule(
 ```
 
 #### v2.0 (신규)
+
 ```yaksok
 # 괄호 문법만 허용됨:
 ("치킨")먹기          # ✅ 올바름
@@ -197,6 +207,7 @@ session.addModule(
 ```
 
 **마이그레이션:**
+
 - 모든 함수 인자에 괄호를 추가하세요: `값 함수명` → `(값)함수명`
 - 이는 FFI뿐만 아니라 모든 함수 호출에 적용됩니다.
 
@@ -207,8 +218,9 @@ session.addModule(
 실행 결과가 구별된 유니온 타입(Discriminated Union)으로 강력하게 타이핑되었습니다.
 
 #### v2.0 (신규)
+
 ```typescript
-type RunModuleResult = 
+type RunModuleResult =
     | SuccessRunModuleResult
     | ErrorRunModuleResult
     | ValidationRunModuleResult
@@ -239,6 +251,7 @@ for (const result of results) {
 ### 7. 오류 처리: 새로운 오류 타입
 
 #### v2 신규 오류 클래스:
+
 - `ErrorInFFIExecution`: FFI 실행 실패
 - `AlreadyRegisteredModuleError`: 중복 모듈 등록
 - `FFIRuntimeNotFound`: FFI 호출 시 확장 못 찾음
@@ -249,17 +262,19 @@ for (const result of results) {
 ## ✨ 새로운 기능 (Non-Breaking)
 
 ### 1. 이벤트 시스템
+
 ```typescript
 const session = new YaksokSession({
     events: {
         variableSet: (data) => console.log('변수 설정됨:', data),
         functionCall: (data) => console.log('함수 호출됨:', data),
-        loopWarning: (data) => console.warn('반복문 경고:', data)
-    }
+        loopWarning: (data) => console.warn('반복문 경고:', data),
+    },
 })
 ```
 
 ### 2. 중단 시그널 (Abort Signals)
+
 ```typescript
 const controller = new AbortController()
 session.signal = controller.signal
@@ -269,6 +284,7 @@ await session.runModule('main')
 ```
 
 ### 3. 일시 정지 및 재개
+
 ```typescript
 session.paused = true
 // 실행 일시 정지
@@ -278,6 +294,7 @@ session.paused = false
 ```
 
 ### 4. 단계별 디버깅 (Step-by-Step)
+
 ```typescript
 session.stepByStep = true
 session.stepUnit = IfStatement // 각 조건문마다 일시 정지

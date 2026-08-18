@@ -74,38 +74,35 @@ Deno.test('getAutocomplete returns mentioned module identifiers', () => {
     assertEquals(result.includes('@수학 (숫자) 제곱하기'), true)
 })
 
-Deno.test(
-    'getAutocomplete excludes base context identifiers from mentioned modules',
-    async () => {
-        const session = new YaksokSession()
+Deno.test('getAutocomplete excludes base context identifiers from mentioned modules', async () => {
+    const session = new YaksokSession()
 
-        await session.setBaseContext(
-            `약속, 공통 (A)
+    await session.setBaseContext(
+        `약속, 공통 (A)
     A 반환하기`,
-        )
+    )
 
-        session.addModule(
-            'utils',
-            `약속, 유틸 (B)
+    session.addModule(
+        'utils',
+        `약속, 유틸 (B)
     B 반환하기`,
-        )
+    )
 
-        const mainCodeFile = session.addModule(
-            'main',
-            `
+    const mainCodeFile = session.addModule(
+        'main',
+        `
 값 = 0
 `,
-        )
+    )
 
-        mainCodeFile.validate()
+    mainCodeFile.validate()
 
-        const result = getAutocomplete(mainCodeFile, { line: 2, column: 1 })
+    const result = getAutocomplete(mainCodeFile, { line: 2, column: 1 })
 
-        assertEquals(result.includes('공통 (A)'), true)
-        assertEquals(result.includes('@utils 공통 (A)'), false)
-        assertEquals(result.includes('@utils 유틸 (B)'), true)
-    },
-)
+    assertEquals(result.includes('공통 (A)'), true)
+    assertEquals(result.includes('@utils 공통 (A)'), false)
+    assertEquals(result.includes('@utils 유틸 (B)'), true)
+})
 
 Deno.test('getAutocomplete excludes current file from mentions', () => {
     const session = new YaksokSession()
@@ -289,34 +286,31 @@ Deno.test('getAutocomplete handles function without branches normally', () => {
     assertEquals(result.includes('(숫자) 제곱하기'), true)
 })
 
-Deno.test(
-    'getAutocomplete expands branches in mentioned module functions',
-    () => {
-        const session = new YaksokSession()
+Deno.test('getAutocomplete expands branches in mentioned module functions', () => {
+    const session = new YaksokSession()
 
-        session.addModule(
-            '도우미',
-            `약속, (대상)이/가 나타나기
+    session.addModule(
+        '도우미',
+        `약속, (대상)이/가 나타나기
     대상 + " 등장" 보여주기
 `,
-        )
+    )
 
-        const mainCodeFile = session.addModule(
-            'main',
-            `
+    const mainCodeFile = session.addModule(
+        'main',
+        `
 메인 = 0
 `,
-        )
+    )
 
-        mainCodeFile.validate()
+    mainCodeFile.validate()
 
-        const result = getAutocomplete(mainCodeFile, { line: 2, column: 1 })
+    const result = getAutocomplete(mainCodeFile, { line: 2, column: 1 })
 
-        // 멘션된 모듈의 함수도 분기가 확장되어야 함
-        assertEquals(result.includes('@도우미 (대상)이 나타나기'), true)
-        assertEquals(result.includes('@도우미 (대상)가 나타나기'), true)
+    // 멘션된 모듈의 함수도 분기가 확장되어야 함
+    assertEquals(result.includes('@도우미 (대상)이 나타나기'), true)
+    assertEquals(result.includes('@도우미 (대상)가 나타나기'), true)
 
-        // 원본 이름은 포함되지 않아야 함
-        assertEquals(result.includes('@도우미 (대상)이/가 나타나기'), false)
-    },
-)
+    // 원본 이름은 포함되지 않아야 함
+    assertEquals(result.includes('@도우미 (대상)이/가 나타나기'), false)
+})

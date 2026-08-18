@@ -10,7 +10,10 @@ async function run(code: string) {
     return session.getCodeFile('main').ranScope!
 }
 
-function getBool(scope: ReturnType<typeof run> extends Promise<infer T> ? T : never, name: string): boolean {
+function getBool(
+    scope: ReturnType<typeof run> extends Promise<infer T> ? T : never,
+    name: string,
+): boolean {
     const val = scope.getVariable(name)
     assertInstanceOf(val, BooleanValue)
     return val.value

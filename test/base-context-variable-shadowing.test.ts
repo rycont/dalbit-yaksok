@@ -85,7 +85,11 @@ Deno.test('setBaseContext: 같은 변수명으로 재대입하면 값 + 10 = 15�
     await session.runModule('main')
 
     // 값 = 5 + 10 = 15
-    assertEquals(output.trim(), '15', 'baseContext의 값(5)에 10을 더해 15가 되어야 함')
+    assertEquals(
+        output.trim(),
+        '15',
+        'baseContext의 값(5)에 10을 더해 15가 되어야 함',
+    )
 })
 
 Deno.test('validation 단계가 baseContext.ranScope의 변수를 변경하지 않음', async () => {
@@ -158,7 +162,11 @@ Deno.test('CodeFile 스냅샷 주입: 같은 변수명으로 재대입하면 15�
     await session2.runModule('main')
 
     // 값 = 5 + 10 = 15
-    assertEquals(output.trim(), '15', 'CodeFile 스냅샷 경로에서도 baseContext 값을 올바르게 읽음')
+    assertEquals(
+        output.trim(),
+        '15',
+        'CodeFile 스냅샷 경로에서도 baseContext 값을 올바르게 읽음',
+    )
 })
 
 Deno.test('CodeFile 스냅샷 주입: 여러 변수 중 일부만 재대입', async () => {
@@ -186,7 +194,11 @@ Deno.test('CodeFile 스냅샷 주입: 여러 변수 중 일부만 재대입', as
     await session2.runModule('main')
 
     // 가 = 10 + 5 = 15, 나 = 20, 결과 = 35
-    assertEquals(output.trim(), '35', '재대입한 변수(가=15)와 미변경 변수(나=20)의 합이 35')
+    assertEquals(
+        output.trim(),
+        '35',
+        '재대입한 변수(가=15)와 미변경 변수(나=20)의 합이 35',
+    )
 })
 
 Deno.test('복합 대입 연산자로 재대입', async () => {
@@ -204,5 +216,9 @@ Deno.test('복합 대입 연산자로 재대입', async () => {
     await session.runModule('main')
 
     // 5 + 10 = 15
-    assertEquals(output.trim(), '15', '복합 대입 연산자도 baseContext 값을 올바르게 읽음')
+    assertEquals(
+        output.trim(),
+        '15',
+        '복합 대입 연산자도 baseContext 값을 올바르게 읽음',
+    )
 })
