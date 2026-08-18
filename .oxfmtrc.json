@@ -1,0 +1,9 @@
+{
+    "semi": false,
+    "singleQuote": true,
+    "trailingComma": "all",
+    "tabWidth": 4,
+    "printWidth": 80,
+    "sortPackageJson": false,
+    "ignorePatterns": ["docs/api/**", "docs/.vitepress/dist/**"]
+}

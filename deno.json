@@ -4,11 +4,7 @@
         "assert": "jsr:@std/assert@^1.0.7"
     },
     "lint": {
-        "rules": {
-            "exclude": ["no-explicit-any"],
-            "include": [],
-            "tags": ["recommended"]
-        }
+        "exclude": ["**/*"]
     },
     "nodeModulesDir": "auto",
     "workspace": [
@@ -22,12 +18,18 @@
     "version": "7.0.0-RC.1",
     "tasks": {
         "apply-version": "deno run --allow-read --allow-write scripts/apply-version.ts",
-        "publish": "deno task apply-version && deno task --recursive test && deno publish --allow-dirty",
-        "nested-test": "deno task --recursive test && deno publish --dry-run --allow-dirty",
+        "fmt": "deno run -A npm:oxfmt@0.63.0 .",
+        "fmt:check": "deno run -A npm:oxfmt@0.63.0 --check .",
+        "lint": "deno run -A npm:oxlint@1.78.0",
+        "nested-test": "deno task fmt:check && deno task --recursive test && deno publish --dry-run --allow-dirty && deno task lint",
+        "publish": "deno task apply-version && deno task fmt:check && deno task --recursive test && deno task lint && deno publish --allow-dirty",
         "test:pyodide": "deno test exts/pyodide/ --allow-net --allow-read --allow-write --parallel"
     },
     "deploy": {
         "org": "rycont",
         "app": "dalbit-yaksok"
+    },
+    "fmt": {
+        "exclude": ["**/*"]
     }
 }
