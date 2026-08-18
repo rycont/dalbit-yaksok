@@ -81,12 +81,15 @@ export class QuickJS implements Extension {
         const context = this.instance.newContext()
 
         for (const [name, func] of Object.entries(this.functions)) {
-            const handle = context.newFunction(name, (...args: QuickJSHandle[]) => {
-                const nativeArgs = args.map(context.dump)
-                const result = func(nativeArgs)
+            const handle = context.newFunction(
+                name,
+                (...args: QuickJSHandle[]) => {
+                    const nativeArgs = args.map(context.dump)
+                    const result = func(nativeArgs)
 
-                return convertJSDataIntoQuickJSData(result, context)
-            })
+                    return convertJSDataIntoQuickJSData(result, context)
+                },
+            )
             context.setProp(context.global, name, handle)
         }
 
@@ -119,7 +122,7 @@ function convertYaksokDataIntoQuickJSData(data: ValueType) {
         const keys = Array.from(data.entries.keys())
         const maxKey = Math.max(...keys)
 
-        const targetArrayElements = new Array(maxKey + 1)
+        const targetArrayElements = Array.from<string>({ length: maxKey + 1 })
 
         for (let i = 0; i <= maxKey; i++) {
             const value = data.entries.get(i)
@@ -139,7 +142,10 @@ function convertYaksokDataIntoQuickJSData(data: ValueType) {
     }
 }
 
-function convertJSDataIntoQuickJSData(data: unknown, context: QuickJSContext): QuickJSHandle {
+function convertJSDataIntoQuickJSData(
+    data: unknown,
+    context: QuickJSContext,
+): QuickJSHandle {
     if (typeof data === 'string') {
         return context.newString(data)
     } else if (typeof data === 'number') {

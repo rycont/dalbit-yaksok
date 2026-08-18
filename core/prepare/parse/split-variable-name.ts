@@ -10,7 +10,7 @@ import {
     SetVariable,
     ValueWithParenthesis,
 } from '../../node/index.ts'
-import { type Token, TOKEN_TYPE } from '../tokenize/token.ts'
+import { type Token } from '../tokenize/token.ts'
 import type { DynamicRulePattern } from './dynamicRule/index.ts'
 
 /**
@@ -58,19 +58,18 @@ export function splitVariableName(
             const blockIndex = nodes
                 .slice(cursor)
                 .findIndex((node) => node instanceof Block)
-            
+
             if (blockIndex !== -1) {
                 const declaration = nodes.slice(cursor, cursor + blockIndex)
                 const nameNode = declaration.find(
                     (node) =>
-                        node instanceof Identifier &&
-                        node.value !== '약속',
+                        node instanceof Identifier && node.value !== '약속',
                 ) as Identifier
                 if (nameNode) {
                     detectedIdentifierNames.push(nameNode.value)
                 }
             }
-            
+
             resultNodes.push(currentNode)
             cursor++
             continue
@@ -80,13 +79,24 @@ export function splitVariableName(
             const candidates = detectedPatterns
                 .filter((p) => currentNode.value.endsWith(p.suffix))
                 .map((pattern) => {
-                    const headPart = currentNode.value.slice(0, -pattern.suffix.length)
-                    if (headPart && detectedIdentifierNames.includes(headPart)) {
+                    const headPart = currentNode.value.slice(
+                        0,
+                        -pattern.suffix.length,
+                    )
+                    if (
+                        headPart &&
+                        detectedIdentifierNames.includes(headPart)
+                    ) {
                         return { headPart, pattern }
                     }
                     return null
                 })
-                .filter((c): c is { headPart: string; pattern: DynamicRulePattern } => c !== null)
+                .filter(
+                    (
+                        c,
+                    ): c is { headPart: string; pattern: DynamicRulePattern } =>
+                        c !== null,
+                )
 
             if (candidates.length > 0) {
                 if (detectedIdentifierNames.includes(currentNode.value)) {
@@ -135,7 +145,9 @@ export function splitVariableName(
                         lookaheadCursor < nodes.length &&
                         (nodes[lookaheadCursor] instanceof EOL ||
                             (nodes[lookaheadCursor] instanceof Expression &&
-                                [' ', ',', '(', ')'].includes(nodes[lookaheadCursor].value as string)))
+                                [' ', ',', '(', ')'].includes(
+                                    nodes[lookaheadCursor].value as string,
+                                )))
                     ) {
                         lookaheadCursor++
                     }
@@ -149,33 +161,42 @@ export function splitVariableName(
                             nextNode instanceof Identifier ||
                             nextNode instanceof ValueWithParenthesis ||
                             nextNode instanceof Sequence ||
-                            (nextNode instanceof Expression && nextNode.value === '{')
+                            (nextNode instanceof Expression &&
+                                nextNode.value === '{')
                         )
                     }
                     return (
-                        (nextNode instanceof Identifier || nextNode instanceof Expression) &&
+                        (nextNode instanceof Identifier ||
+                            nextNode instanceof Expression) &&
                         nextNode.value === pattern.next
                     )
                 })
 
                 if (validCandidates.length > 0) {
-                    const { headPart: variable, pattern } = validCandidates.toSorted(
-                        (a, b) => b.headPart.length - a.headPart.length,
-                    )[0]
+                    const { headPart: variable, pattern } =
+                        validCandidates.toSorted(
+                            (a, b) => b.headPart.length - a.headPart.length,
+                        )[0]
 
                     const originalToken = currentNode.tokens[0]
-                    const variableToken: Token = { ...originalToken, value: variable }
+                    const variableToken: Token = {
+                        ...originalToken,
+                        value: variable,
+                    }
                     const functionToken: Token = {
                         ...originalToken,
                         value: pattern.suffix,
                         position: {
                             ...originalToken.position,
-                            column: originalToken.position.column + variable.length,
+                            column:
+                                originalToken.position.column + variable.length,
                         },
                     }
 
                     resultNodes.push(new Identifier(variable, [variableToken]))
-                    resultNodes.push(new Identifier(pattern.suffix, [functionToken]))
+                    resultNodes.push(
+                        new Identifier(pattern.suffix, [functionToken]),
+                    )
                     cursor++
                     continue
                 }

@@ -14,7 +14,6 @@ import {
     ErrorOccurredWhileRunningFFIExecution,
 } from '../error/ffi.ts'
 import { type Token, TOKEN_TYPE } from '../prepare/tokenize/token.ts'
-import { extractParamNamesFromHeaderTokens } from '../util/extract-param-names-from-header-tokens.ts'
 import { Block } from './block.ts'
 import { EmptyValue } from '../value/primitive.ts'
 import {

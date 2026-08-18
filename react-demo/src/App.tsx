@@ -1,4 +1,4 @@
-import { useCallback, useEffectEvent, useState } from 'react'
+import { useEffectEvent, useState } from 'react'
 import { type Position, YaksokSession } from '@dalbit-yaksok/core'
 
 export default function App() {
@@ -13,7 +13,7 @@ export default function App() {
         const session = new YaksokSession({
             stdout: (data: string) => setStdout((stdout) => [...stdout, data]),
             events: {
-                runningCode(start: Position, end: Position) {
+                runningCode(_start: Position, _end: Position) {
                     // setStdout((stdout) => [...stdout, start.line])
                 },
             },

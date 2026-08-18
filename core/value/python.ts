@@ -16,12 +16,12 @@ export class ReferenceStore extends ValueType {
             ) {
                 return String(this.ref.toString())
             }
-        } catch (_) {
+        } catch {
             // ignore
         }
         try {
             return String(this.ref)
-        } catch (_) {
+        } catch {
             return '[참조값]'
         }
     }

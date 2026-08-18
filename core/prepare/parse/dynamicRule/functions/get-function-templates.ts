@@ -11,11 +11,7 @@ import {
     FunctionTemplatePiece,
     PIECE_TYPE,
 } from '../../../../type/function-template.ts'
-import {
-    Token,
-    TOKEN_TYPE,
-    TOKEN_TYPE_TO_TEXT,
-} from '../../../tokenize/token.ts'
+import { Token, TOKEN_TYPE } from '../../../tokenize/token.ts'
 
 export function convertTokensToFunctionTemplate(
     _tokens: Token[],

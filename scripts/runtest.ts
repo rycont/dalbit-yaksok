@@ -15,4 +15,4 @@ session.addModule(
     나이: 3`,
 )
 
-const result = await session.runModule('main')
+await session.runModule('main')

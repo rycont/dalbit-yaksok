@@ -17,7 +17,10 @@ const CONJUNCTION_SUFFIXES = ['이고', '이거나', '거나', '이며'] as cons
 function makeConjunctionHint(tokens: Token[]): string {
     for (const token of tokens) {
         for (const suffix of CONJUNCTION_SUFFIXES) {
-            if (token.value.endsWith(suffix) && token.value.length > suffix.length) {
+            if (
+                token.value.endsWith(suffix) &&
+                token.value.length > suffix.length
+            ) {
                 const base = token.value.slice(0, -suffix.length)
                 return ` ${blue(bold(`"${base}"`))}와 ${blue(bold(`"${suffix}"`))}는 띄어써야 해요.`
             }
@@ -199,7 +202,7 @@ function parseInvalidVariableName(
 
 function parseVariableAssigningValueParsingError(
     line: YaksokError[],
-    tokens: Token[],
+    _tokens: Token[],
 ): [YaksokError[]] {
     const notExecutableEqualSignIndex = line.findIndex(
         (error) =>
@@ -247,7 +250,7 @@ function parseVariableAssigningValueParsingError(
 
 function parseNotParsablePrintError(
     line: YaksokError[],
-    tokens: Token[],
+    _tokens: Token[],
 ): [YaksokError[]] {
     const lastError = line[line.length - 1]
 

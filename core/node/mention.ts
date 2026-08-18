@@ -3,7 +3,7 @@ import { ErrorInModuleError } from '../error/index.ts'
 import { ValueType } from '../value/base.ts'
 import { Evaluable, Identifier, Node } from './base.ts'
 import { SubscribeEvent } from './event.ts'
-import { evaluateParams, FunctionInvoke } from './function.ts'
+import { FunctionInvoke } from './function.ts'
 
 import { IncompleteMentionError } from '../error/unknown-node.ts'
 import type { Scope } from '../executer/scope.ts'

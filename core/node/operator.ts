@@ -683,9 +683,10 @@ export class RangeOperator extends Operator {
         ]
         const roundedStart = Math.round(start.value)
         const roundedEnd = Math.round(end.value)
-        const items = new Array(roundedEnd - roundedStart + 1)
-            .fill(null)
-            .map((_, index) => new NumberValue(roundedStart + index))
+        const items = Array.from(
+            { length: roundedEnd - roundedStart + 1 },
+            (_, index) => new NumberValue(roundedStart + index),
+        )
 
         return new ListValue(items)
     }

@@ -18,7 +18,6 @@ import {
     EqualOperator,
     Evaluable,
     Expression,
-    FunctionInvoke,
     GreaterThanOperator,
     GreaterThanOrEqualOperator,
     Identifier,

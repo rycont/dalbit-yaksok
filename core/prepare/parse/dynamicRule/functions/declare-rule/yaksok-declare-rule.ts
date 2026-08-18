@@ -1,7 +1,6 @@
 import { Expression, Identifier } from '../../../../../node/base.ts'
 import { Block } from '../../../../../node/block.ts'
 import { DeclareFunction } from '../../../../../node/function.ts'
-import { TupleLiteral } from '../../../../../node/list.ts'
 import { EOL } from '../../../../../node/misc.ts'
 import { Token } from '../../../../tokenize/token.ts'
 import { PatternUnit, Rule } from '../../../type.ts'

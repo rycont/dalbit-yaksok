@@ -1,6 +1,5 @@
 import type { Node } from '../node/base.ts'
 import { TOKEN_TYPE, type Token } from '../prepare/tokenize/token.ts'
-import { DEFAULT_SESSION_CONFIG } from '../session/session-config.ts'
 import type { CodeFile } from '../type/code-file.ts'
 import type { Position } from '../type/position.ts'
 import { blue, bold, dim, tokenToText, YaksokError } from './common.ts'
@@ -117,9 +116,15 @@ export class FunctionCallOperatorAmbiguityError extends YaksokError {
         const opIdx = tokens.findIndex((t) => t.type === TOKEN_TYPE.OPERATOR)
         let example: string
         if (opIdx > 0 && opIdx < tokens.length - 1) {
-            const left = tokens.slice(0, opIdx).map((t) => t.value).join(' ')
+            const left = tokens
+                .slice(0, opIdx)
+                .map((t) => t.value)
+                .join(' ')
             const op = tokens[opIdx].value
-            const right = tokens.slice(opIdx + 1).map((t) => t.value).join(' ')
+            const right = tokens
+                .slice(opIdx + 1)
+                .map((t) => t.value)
+                .join(' ')
             // 함수 호출이 왼쪽인지 오른쪽인지 판단:
             // 왼쪽이 식별자로만 이루어져 있으면 함수 호출이 왼쪽에 있는 경우
             const leftIsCall = tokens
