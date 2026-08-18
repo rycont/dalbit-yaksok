@@ -7,7 +7,11 @@ on:
             - 'deno.json'
 
 jobs:
+    Test:
+        uses: ./.github/workflows/test.yml
+
     Publish:
+        needs: Test
         runs-on: ubuntu-latest
 
         permissions:
@@ -34,7 +38,7 @@ jobs:
 
             - name: Get version from deno.json
               id: get_version
-              run: echo "::set-output name=version::$(jq -r .version deno.json)"
+              run: echo "version=$(jq -r .version deno.json)" >> "$GITHUB_OUTPUT"
 
             - name: Create GitHub tag
               run: |

@@ -22,7 +22,7 @@
         "fmt:check": "deno run -A npm:oxfmt@0.63.0 --check .",
         "lint": "deno run -A npm:oxlint@1.78.0",
         "nested-test": "deno task fmt:check && deno task --recursive test && deno publish --dry-run --allow-dirty && deno task lint",
-        "publish": "deno task apply-version && deno task fmt:check && deno task --recursive test && deno task lint && deno publish --allow-dirty",
+        "publish": "deno task apply-version && deno publish --allow-dirty",
         "test:pyodide": "deno test exts/pyodide/ --allow-net --allow-read --allow-write --parallel"
     },
     "deploy": {
