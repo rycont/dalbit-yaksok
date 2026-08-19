@@ -33,6 +33,10 @@ export class CodeFile {
     public session: YaksokSession | null = null
     public executionDelay: number | null = null
 
+    // 자기/순환 참조 모듈의 무한재귀를 막기 위한 재진입 가드 (parse / validate).
+    private parsing: boolean = false
+    private validatingScopeInProgress: Scope | null = null
+
     constructor(
         public text: string,
         public fileName: string | symbol,
@@ -205,9 +209,22 @@ export class CodeFile {
      * 이 메서드는 `ast`나 `exportedRules` getter에서 필요할 때 호출됩니다.
      */
     private parse() {
-        const parseResult = parse(this)
-        this.parsed = parseResult.ast
-        this.exportedRulesCache = parseResult.exportedRules
+        // 자기/순환 참조 모듈은 parse 도중 mention 규칙 수집을 위해 같은 파일의
+        // exportedRules(=parse)를 다시 요구해 무한재귀(RangeError)했다. 이미 parse
+        // 중이면 순환 고리를 끊기 위해 빈 규칙으로 처리한다(자기 mention은 미해소).
+        if (this.parsing) {
+            this.exportedRulesCache ??= []
+            return
+        }
+
+        this.parsing = true
+        try {
+            const parseResult = parse(this)
+            this.parsed = parseResult.ast
+            this.exportedRulesCache = parseResult.exportedRules
+        } finally {
+            this.parsing = false
+        }
     }
 
     /**
@@ -215,6 +232,16 @@ export class CodeFile {
      * @returns 검사 과정에서 발견된 오류(`YaksokError`) 리스트와, 검사에 사용된 스코프를 반환합니다.
      */
     public validate(): { errors: YaksokError[]; validatingScope: Scope } {
+        // 자기/순환 참조 모듈(@자기 자신을 멘션)이 validate 도중 같은 파일의
+        // validate를 다시 호출하면 무한재귀(RangeError)가 난다. 이미 검증 중이면
+        // 진행 중인 스코프를 그대로 돌려주어 순환을 끊는다.
+        if (this.validatingScopeInProgress) {
+            return {
+                errors: [],
+                validatingScope: this.validatingScopeInProgress,
+            }
+        }
+
         if (this.validationScopes) {
             this.validationScopes.clear()
         }
@@ -222,6 +249,7 @@ export class CodeFile {
         const validatingScope = new Scope({
             codeFile: this,
         })
+        this.validatingScopeInProgress = validatingScope
 
         try {
             this.registerScope(validatingScope, this.ast)
@@ -246,6 +274,8 @@ export class CodeFile {
             }
 
             throw error
+        } finally {
+            this.validatingScopeInProgress = null
         }
     }
 
