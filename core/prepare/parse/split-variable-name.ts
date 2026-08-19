@@ -1,4 +1,3 @@
-import type { CodeFile } from '../../type/code-file.ts'
 import type { Node } from '../../node/base.ts'
 import {
     Block,
@@ -18,7 +17,6 @@ import type { DynamicRulePattern } from './dynamicRule/index.ts'
  */
 export function splitVariableName(
     nodes: Node[],
-    codeFile?: CodeFile,
     inheritedIdentifiers: string[] = [],
     inheritedPatterns: DynamicRulePattern[] = [],
     depth = 0,
@@ -38,7 +36,6 @@ export function splitVariableName(
         if (currentNode instanceof Block) {
             currentNode.children = splitVariableName(
                 currentNode.children,
-                codeFile,
                 detectedIdentifierNames,
                 detectedPatterns,
                 depth + 1,

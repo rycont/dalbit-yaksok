@@ -1,5 +1,6 @@
 import { YaksokSession } from '../core/mod.ts'
 import { assertEquals } from 'assert/equals'
+import { assert } from '@std/assert'
 import { BooleanValue } from '../core/value/primitive.ts'
 
 const TRUE_LITERALS = ['참', '맞음']
@@ -68,10 +69,13 @@ Deno.test('Compare booleans', async () => {
     )
     await session.runModule('main')
     const scope = session.getCodeFile('main').ranScope
-    assertEquals((scope?.getVariable('결과1') as BooleanValue).value, true)
-    assertEquals((scope?.getVariable('결과2') as BooleanValue).value, true)
-    assertEquals((scope?.getVariable('결과3') as BooleanValue).value, false)
-    assertEquals((scope?.getVariable('결과4') as BooleanValue).value, true)
+
+    assert(scope)
+
+    assertEquals((scope.getVariable('결과1') as BooleanValue).value, true)
+    assertEquals((scope.getVariable('결과2') as BooleanValue).value, true)
+    assertEquals((scope.getVariable('결과3') as BooleanValue).value, false)
+    assertEquals((scope.getVariable('결과4') as BooleanValue).value, true)
 })
 
 Deno.test('Negation operator', async () => {
@@ -88,8 +92,11 @@ Deno.test('Negation operator', async () => {
     )
     await session.runModule('main')
     const scope = session.getCodeFile('main').ranScope
-    assertEquals((scope?.getVariable('결과1') as BooleanValue).value, false)
-    assertEquals((scope?.getVariable('결과2') as BooleanValue).value, true)
-    assertEquals((scope?.getVariable('결과3') as BooleanValue).value, false)
-    assertEquals((scope?.getVariable('결과4') as BooleanValue).value, false)
+
+    assert(scope)
+
+    assertEquals((scope.getVariable('결과1') as BooleanValue).value, false)
+    assertEquals((scope.getVariable('결과2') as BooleanValue).value, true)
+    assertEquals((scope.getVariable('결과3') as BooleanValue).value, false)
+    assertEquals((scope.getVariable('결과4') as BooleanValue).value, false)
 })

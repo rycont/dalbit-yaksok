@@ -7,10 +7,12 @@ import { ValueType } from '../value/base.ts'
 export class YaksokError<T = unknown> extends Error {
     position?: Position
     tokens?: Token[]
-    resource?: T
+    resource: T
     codeFile?: CodeFile
     child?: YaksokError
 
+    constructor(props: { position?: Position; tokens?: Token[] })
+    constructor(props: { position?: Position; resource: T; tokens?: Token[] })
     constructor(props: {
         position?: Position
         resource?: T
@@ -19,7 +21,7 @@ export class YaksokError<T = unknown> extends Error {
         super()
 
         this.position = props.position
-        this.resource = props.resource
+        this.resource = (props.resource ?? null) as T
         this.tokens = props.tokens
     }
 }

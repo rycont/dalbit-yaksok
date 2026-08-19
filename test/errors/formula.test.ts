@@ -44,6 +44,7 @@ for (let i = 0; i < 10; i++) {
         ) as NumberValue
 
         assertInstanceOf(나이, NumberValue)
+        /* oxlint-disable-next-line no-eval */
         assertAlmostEquals(나이.value, eval(formula), 1e-4)
     })
 }

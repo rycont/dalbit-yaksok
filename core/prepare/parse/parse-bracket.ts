@@ -2,7 +2,6 @@ import { UnexpectedEndOfCodeError } from '../../error/prepare.ts'
 import { Expression, Node } from '../../node/base.ts'
 import { Block } from '../../node/block.ts'
 import { ListLiteral, Sequence, TupleLiteral } from '../../node/list.ts'
-import { Token } from '../tokenize/token.ts'
 import { getTokensFromNodes } from '../../util/merge-tokens.ts'
 import type { Rule } from './rule/index.ts'
 import { callParseRecursively } from './srParse.ts'
@@ -16,7 +15,6 @@ const OPENING_TO_CLOSING_BRACKETS: Record<string, string> = {
 
 export function parseBracket(
     nodes: Node[],
-    tokens: Token[],
     dynamicRules: [Rule[][], Rule[][]],
     optimistic = false,
 ) {
@@ -24,7 +22,6 @@ export function parseBracket(
         if (node instanceof Block) {
             node.children = parseBracket(
                 node.children,
-                tokens,
                 dynamicRules,
                 optimistic,
             )
@@ -146,7 +143,7 @@ export function parseBracket(
             ...nodes.slice(closingPosition + 1),
         ]
 
-        return parseBracket(newNodes, tokens, dynamicRules)
+        return parseBracket(newNodes, dynamicRules)
     }
 
     if (
@@ -166,7 +163,7 @@ export function parseBracket(
             ...nodes.slice(closingPosition + 1),
         ]
 
-        return parseBracket(newNodes, tokens, dynamicRules)
+        return parseBracket(newNodes, dynamicRules)
     }
 
     {
@@ -176,6 +173,6 @@ export function parseBracket(
             ...nodes.slice(closingPosition),
         ]
 
-        return parseBracket(newNodes, tokens, dynamicRules)
+        return parseBracket(newNodes, dynamicRules)
     }
 }

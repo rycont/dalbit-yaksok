@@ -54,10 +54,9 @@ export class Executable extends Node {
         childTokens: Token[]
         skipReport?: boolean
     }) {
-        if (scope.codeFile?.session?.stepUnit) {
-            if (!(this instanceof scope.codeFile?.session?.stepUnit)) {
-                return
-            }
+        const stepUnit = scope.codeFile?.session?.stepUnit
+        if (stepUnit && !(this instanceof stepUnit)) {
+            return
         }
 
         if (scope.codeFile?.session?.signal?.aborted) {

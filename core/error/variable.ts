@@ -46,7 +46,7 @@ export class NotDefinedIdentifierError extends YaksokError<NotDefinedIdentifierE
     override get message(): string {
         const name =
             this.tokens?.map((token) => token.value).join(' ') ||
-            this.resource?.name!
+            this.resource.name!
         const fixes = this.resource?.suggestedFixes
         const fixHint =
             fixes && fixes.length > 0

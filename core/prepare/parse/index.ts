@@ -38,12 +38,7 @@ export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
             'disable-bracket-first-parsing'
         ]
             ? indentedNodes
-            : parseBracket(
-                  indentedNodes,
-                  codeFile.tokens,
-                  dynamicRules,
-                  optimistic,
-              )
+            : parseBracket(indentedNodes, dynamicRules, optimistic)
 
         // 조사 분리 (lookahead) — base context의 변수명도 포함
         const baseContextIdentifiers = (
@@ -70,7 +65,6 @@ export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
 
         const variableNameSplitNodes = splitVariableName(
             priorityParsedNodes,
-            codeFile,
             baseContextIdentifiers,
             patterns,
         )
