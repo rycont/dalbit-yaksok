@@ -53,7 +53,12 @@ export function convertTokensToFunctionTemplate(
                     type: PIECE_TYPE.DESTRUCTURE,
                     parameterElements: destructureNames,
                 })
-                i += destructureNames.length * 2 - 1
+                while (
+                    i < tokens.length &&
+                    tokens[i].type !== TOKEN_TYPE.CLOSING_PARENTHESIS
+                ) {
+                    i++
+                }
                 continue
             }
         }
