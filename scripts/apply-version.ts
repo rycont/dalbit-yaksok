@@ -13,6 +13,6 @@ for (const subModule of subModules) {
 
     await Deno.writeTextFile(
         subModulePath,
-        JSON.stringify(subModuleJson, null, 2),
+        JSON.stringify(subModuleJson, null, 4) + '\n',
     )
 }
