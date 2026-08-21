@@ -54,8 +54,6 @@ export class YaksokSession {
     public runningPromise: Promise<RunModuleResult[]> | null = null
     /** `보여주기` 출력 훅 */
     public stdout: SessionConfig['stdout']
-    /** `입력받기` 입력 훅 */
-    public stdin: SessionConfig['stdin']
     /** 에러 출력 훅 */
     public stderr: SessionConfig['stderr']
     /** 런타임 기능 플래그 */
@@ -107,7 +105,6 @@ export class YaksokSession {
         }
 
         this.stdout = resolvedConfig.stdout
-        this.stdin = resolvedConfig.stdin
         this.stderr = resolvedConfig.stderr
         this.flags = resolvedConfig.flags
         this.signal = resolvedConfig.signal ?? null

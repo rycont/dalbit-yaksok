@@ -22,7 +22,6 @@
     "npm:monaco-editor@~0.52.2": "0.52.2",
     "npm:oxfmt@0.63.0": "0.63.0",
     "npm:oxlint@1.78.0": "1.78.0",
-    "npm:pyodide@0.24.1": "0.24.1",
     "npm:quickjs-emscripten-core@0.31": "0.31.0",
     "npm:quickjs-emscripten@0.31": "0.31.0",
     "npm:solid-js@2.0.0-rc.0": "2.0.0-rc.0",
@@ -769,8 +768,6 @@
     "@napi-rs/wasm-runtime@1.2.3_@emnapi+core@1.11.1_@emnapi+runtime@1.11.1": {
       "integrity": "sha512-UMduMbqO5s5zF2NkNacMT/yK5Y5QiKvWr2+50bzIIxFDwVJ2h49b+oyjaCGPhJxd2/gC2x39EHv/gHVuu36x2Q==",
       "dependencies": [
-        "@emnapi/core@1.11.1",
-        "@emnapi/runtime@1.11.1",
         "@tybys/wasm-util"
       ]
     },
@@ -2061,9 +2058,6 @@
     },
     "balanced-match@1.0.2": {
       "integrity": "sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw=="
-    },
-    "base-64@1.0.0": {
-      "integrity": "sha512-kwDPIFCGx0NZHog36dj+tHiwP4QMzsZ3AgMViUBKI0+V5n4U0ufTCUMhnQ04diaRI8EX/QcPfql7zlhZ7j4zgg=="
     },
     "base64-js@1.5.1": {
       "integrity": "sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA=="
@@ -3818,13 +3812,6 @@
     "punycode@2.3.1": {
       "integrity": "sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg=="
     },
-    "pyodide@0.24.1": {
-      "integrity": "sha512-fkNolNwiv41E2KKCP2bgW+dwr95B+0KSC/WG9WCmlWM9MNFbRVX0rF9i4OikRM78bGeVUvLdVJw8jY17wxKoRQ==",
-      "dependencies": [
-        "base-64",
-        "ws"
-      ]
-    },
     "qsu@1.10.3": {
       "integrity": "sha512-OoA9UClkVuWvfcOiQrXrqvcJU1x3v/Mx0A+zMTELw3zZ6TWDeGRVnObQuUusz5rksTYo3QcyXLi9zVQMLxg2cQ=="
     },
@@ -4799,11 +4786,6 @@
         "dependencies": [
           "npm:quickjs-emscripten-core@0.31",
           "npm:quickjs-emscripten@0.31"
-        ]
-      },
-      "test": {
-        "dependencies": [
-          "npm:pyodide@0.24.1"
         ]
       }
     }

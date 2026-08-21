@@ -23,8 +23,7 @@
         "fmt:check": "deno run -A npm:oxfmt@0.63.0 --check .",
         "lint": "deno run -A npm:oxlint@1.78.0",
         "nested-test": "deno task fmt:check && deno task --recursive test && deno publish --dry-run --allow-dirty && deno task lint",
-        "publish": "deno task apply-version && deno publish --allow-dirty",
-        "test:pyodide": "deno test exts/pyodide/ --allow-net --allow-read --allow-write --parallel"
+        "publish": "deno task apply-version && deno publish --allow-dirty"
     },
     "deploy": {
         "org": "rycont",

@@ -15,7 +15,7 @@ export interface ExtensionManifest {
      */
     ffiRunner?: {
         /**
-         * FFI 런타임을 식별하는 고유한 이름입니다. (예: "QuickJS", "Pyodide")
+         * FFI 런타임을 식별하는 고유한 이름입니다. (예: "QuickJS", "수학")
          * `번역` 구문에서 이 이름을 사용하여 특정 런타임을 지정합니다.
          */
         runtimeName?: string

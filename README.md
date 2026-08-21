@@ -22,9 +22,10 @@ await yaksok(code)
 
 ## 구성 요소
 
-| 이름                | 상태 | 주소                                                                | 문서                                                                                                     |
-| ------------------- | ---- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| 런타임              | ✔️   | [jsr:@dalbit-yaksok/core](https://jsr.io/@dalbit-yaksok/core)       | [library/1. getting-started](https://dalbit-yaksok.postica.app/library/1.%20getting-started)             |
-| 문서                | ✔️   | https://dalbit-yaksok.postica.app                                   |                                                                                                          |
-| QuickJS 번역 브릿지 | ✔️   | [jsr:@dalbit-yaksok/quickjs](https://jsr.io/@dalbit-yaksok/quickjs) | [library/4.1. quickjs-translation](https://dalbit-yaksok.postica.app/library/4.1.%20quickjs-translation) |
-| MCP 서버            | 🤖   | -                                                                   | [mcp-server/main.ts](mcp-server/main.ts)                                                                 |
+| 이름                | 상태 | 주소                                                                      | 문서                                                                                                       |
+| ------------------- | ---- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| 런타임              | ✔️   | [jsr:@dalbit-yaksok/core](https://jsr.io/@dalbit-yaksok/core)             | [library/1. getting-started](https://dalbit-yaksok.postica.app/library/1.%20getting-started)               |
+| 문서                | ✔️   | https://dalbit-yaksok.postica.app                                         |                                                                                                            |
+| QuickJS 번역 브릿지 | ✔️   | [jsr:@dalbit-yaksok/quickjs](https://jsr.io/@dalbit-yaksok/quickjs)       | [library/4.1. quickjs-translation](https://dalbit-yaksok.postica.app/library/4.1.%20quickjs-translation)   |
+| 수학 확장           | ✔️   | [jsr:@dalbit-yaksok/math](https://jsr.io/@dalbit-yaksok/math)             | [library/4.3. math-extension](https://dalbit-yaksok.postica.app/library/4.3.%20math-extension)             |
+| 통계 확장           | ✔️   | [jsr:@dalbit-yaksok/statistics](https://jsr.io/@dalbit-yaksok/statistics) | [library/4.4. statistics-extension](https://dalbit-yaksok.postica.app/library/4.4.%20statistics-extension) |
