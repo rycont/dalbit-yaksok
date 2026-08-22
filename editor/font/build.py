@@ -29,7 +29,7 @@ PS_NAME = "InterludeCodeSquare-Regular"
 OUT = HERE / "InterludeCodeSquare.woff2"
 
 UPEM = 1000
-SCALE = 0.86  # 칸 대비 글자 크기. 나머지가 글자와 격자선 사이 여백
+SCALE = 0.7  # 칸 대비 글자 크기. 나머지가 글자와 격자선 사이 여백
 INSTANCE = {"wght": 400, "opsz": 20}
 BORROW = [*range(0x21, 0x7F), *range(0xE0A0, 0xE0D5)]  # ASCII + powerline
 CENTER_ON = "가힣뷁명한글"  # 세로 중심을 잡는 기준 글자

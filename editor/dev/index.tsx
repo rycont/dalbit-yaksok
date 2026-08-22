@@ -1,4 +1,3 @@
-import { render } from '@solidjs/web'
-import App from './App.tsx'
+import { Editor } from '@dalbit-yaksok/editor'
 
-render(() => <App />, document.getElementById('root')!)
+Editor(document.getElementById('root')!)
