@@ -1,0 +1,28 @@
+{
+  "name": "@dalbit-yaksok/editor",
+  "version": "7.0.0-RC.2",
+  "description": "달빛약속 코드 에디터 라이브러리 (Solid + Vanilla Extract)",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "sideEffects": false,
+  "peerDependencies": {
+    "@solidjs/web": "^2.0.0-rc.1",
+    "solid-js": "^2.0.0-rc.1"
+  },
+  "devDependencies": {
+    "@deno/vite-plugin": "^2.0.3",
+    "@solidjs/web": "^2.0.0-rc.1",
+    "@vanilla-extract/css": "^1.21.2",
+    "@vanilla-extract/vite-plugin": "^5.2.6",
+    "solid-js": "^2.0.0-rc.1",
+    "vite": "^8.2.2",
+    "vite-plugin-solid": "^3.0.0-next.27"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

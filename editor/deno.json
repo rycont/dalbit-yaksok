@@ -1,19 +1,23 @@
 {
-    "tasks": {
-        "dev": "deno run -A npm:vite"
-    },
+    "name": "@dalbit-yaksok/editor",
+    "version": "7.0.0-RC.2",
+    "exports": "./src/index.ts",
     "imports": {
-        "@solidjs/meta": "npm:@solidjs/meta@1.0.0-next.2",
-        "@solidjs/router": "npm:@solidjs/router@2.0.0-next.16",
-        "@solidjs/testing-library": "npm:@solidjs/testing-library@1.0.0-beta.2",
-        "@solidjs/vite-plugin": "npm:@solidjs/vite-plugin@3.0.0-next.29",
-        "@solidjs/web": "npm:@solidjs/web@2.0.0-rc.0",
-        "@testing-library/jest-dom": "npm:@testing-library/jest-dom@^6.10.0",
-        "filesystem-routing": "npm:filesystem-routing@0.2.1",
-        "jsdom": "npm:jsdom@^25.0.1",
-        "solid-js": "npm:solid-js@2.0.0-rc.0",
-        "typescript": "npm:typescript@^5.9.3",
-        "vite": "npm:vite@^8.2.1",
-        "vitest": "npm:vitest@^4.1.11"
+        "solid-js": "npm:solid-js@^2.0.0-rc.1",
+        "@solidjs/web": "npm:@solidjs/web@^2.0.0-rc.1"
+    },
+    "compilerOptions": {
+        "strict": true,
+        "lib": ["DOM", "DOM.Iterable", "ESNext"],
+        "jsx": "react-jsx",
+        "jsxImportSource": "@solidjs/web",
+        "isolatedModules": true
+    },
+    "tasks": {
+        "dev": "deno run -A npm:vite@^8.2.2 serve --config dev/vite.config.ts",
+        "build": "deno run -A npm:vite@^8.2.2 build --config dev/vite.config.ts",
+        "build:app": "deno run -A npm:vite@^8.2.2 build --config dev/vite.config.ts --mode app",
+        "preview": "deno run -A npm:vite@^8.2.2 preview --config dev/vite.config.ts --mode app",
+        "check": "deno check src/ dev/"
     }
 }
