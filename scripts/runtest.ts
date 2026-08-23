@@ -1,18 +1,18 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
+import { QuickJS } from '@dalbit-yaksok/quickjs'
 
 const session = new YaksokSession({
     stderr: (message) => console.error(message),
 })
 
+await session.extend(new QuickJS())
+
 session.addModule(
     'main',
-    `
-약속, 물어보기(이름?, 나이?)
-    "{이름}이는 {나이}살이 맞아?" 보여주기
-
-물어보기
-    이름: "이진"
-    나이: 3`,
+    `번역(QuickJS), 길이
+***
+return 리스트.length
+***`,
 )
 
 await session.runModule('main')

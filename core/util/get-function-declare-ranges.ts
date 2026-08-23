@@ -45,10 +45,10 @@ function getFunctionDeclareRangesByType(
     let starterFinder = isYaksokStartingPattern
     if (type === 'ffi') starterFinder = isFfiStartingPattern
 
-    const functionStartingIndexes = tokens
-        .map(starterFinder)
-        .map((isStarting, index) => (isStarting ? index : -1))
-        .filter((index) => index !== -1)
+    const functionStartingIndexes = Array.from(
+        { length: tokens.length + 1 },
+        (_, index) => (starterFinder(index, tokens) ? index : -1),
+    ).filter((index) => index !== -1)
 
     const functionEndingIndexesByStartingIndex = functionStartingIndexes.map(
         (startingIndex) => getFunctionEndingIndex(tokens, startingIndex),
@@ -78,8 +78,7 @@ function getFunctionEndingIndex(tokens: Token[], startingIndex: number) {
     )
 
     if (nearestNewLineIndexFromStart === -1) {
-        const lastToken =
-            tokensFromStartingIndex[tokensFromStartingIndex.length - 1]
+        const lastToken = tokens[tokens.length - 1]
 
         throw new UnexpectedEndOfCodeError({
             resource: {

@@ -1,10 +1,9 @@
 import { Token, TOKEN_TYPE } from '../prepare/tokenize/token.ts'
 
 export function isYaksokStartingPattern(
-    _: Token,
     index: number,
     allTokens: Token[],
-) {
+): boolean {
     const prevPrevToken = allTokens[index - 2]
     const prevToken = allTokens[index - 1]
 
@@ -22,33 +21,45 @@ export function isYaksokStartingPattern(
 }
 
 export function isFfiStartingPattern(
-    _: Token,
     index: number,
     allTokens: Token[],
-) {
-    const prev5Tokens = allTokens
-        .slice(index - 5)
-        .filter((token) => token.type !== TOKEN_TYPE.SPACE)
-    if (prev5Tokens.length < 5) return false
-
-    function shift() {
-        const shifted = prev5Tokens.shift()!
-        return shifted
+): boolean {
+    if (index < 5) {
+        return false
     }
 
-    const first = shift()!
+    const first5Tokens = []
+
+    for (let i = index - 5; i < allTokens.length; i++) {
+        if (first5Tokens.length === 5) {
+            break
+        }
+
+        if (allTokens[i].type === TOKEN_TYPE.SPACE) {
+            continue
+        }
+
+        first5Tokens.push(allTokens[i])
+    }
+
+    if (first5Tokens.length < 5) {
+        return false
+    }
+
+    const first = first5Tokens.shift()!
+
     if (first.type !== TOKEN_TYPE.IDENTIFIER) return false
     if (first.value !== '번역') return false
 
-    const second = shift()!
+    const second = first5Tokens.shift()!
     if (second.type !== TOKEN_TYPE.OPENING_PARENTHESIS) return false
 
-    const third = shift()!
+    const third = first5Tokens.shift()!
     if (third.type !== TOKEN_TYPE.IDENTIFIER) return false
 
-    const fourth = shift()!
+    const fourth = first5Tokens.shift()!
     if (fourth.type !== TOKEN_TYPE.CLOSING_PARENTHESIS) return false
 
-    const fifth = shift()!
-    return fifth?.type === TOKEN_TYPE.COMMA
+    const fifth = first5Tokens.shift()!
+    return fifth.type === TOKEN_TYPE.COMMA
 }
