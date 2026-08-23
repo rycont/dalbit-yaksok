@@ -50,7 +50,7 @@ deny() {
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
       permissionDecision: "deny",
-      permissionDecisionReason: ($what + " 로 명령을 이어붙였습니다. 한 번에 명령 하나만 실행하세요.\n\n- 서로 의존 없는 작업이면 한 응답에서 Bash 툴을 여러 번 호출하세요 (그러면 병렬로 돕니다).\n- 여러 단계가 필요하면 Write 로 스크립트 파일을 만든 뒤 그 파일 하나를 실행하세요. 검토 가능하고 재실행도 됩니다.\n- 파이프라인 하나(`a | b`)는 명령 하나로 봅니다. 힙독도 허용됩니다.")
+      permissionDecisionReason: ($what + " 로 명령을 이어붙였습니다. 한 번에 명령 하나만 실행하세요.\n\n- 서로 의존 없는 작업이면 한 응답에서 Bash 툴을 여러 번 호출하세요 (그러면 병렬로 돕니다).\n- 순서가 필요하면 앞 명령의 결과를 보고 다음 호출을 하세요.\n- 다른 디렉터리에서 실행하려면 `env -C <경로> <명령>` 또는 `cd <경로> && <명령 하나>` 를 쓰세요.\n- 파이프라인 하나(`a | b`)는 명령 하나로 봅니다. 힙독도 허용됩니다.\n\n스크립트 파일로 감싸서 우회하지 마세요. 스크립트는 여러 번 재실행할 검증 하네스일 때만 만듭니다.")
     }
   }'
   exit 0
@@ -62,6 +62,12 @@ LINES=$(printf '%s\n' "$BARE" | grep -c '[^[:space:]]' || true)
 
 # 한 줄 안에서 이어붙인 경우. 끝에 붙은 `;` 하나는 봐준다.
 ONELINE=$(printf '%s' "$BARE" | tr -d '\n' | sed 's/[[:space:]]*;[[:space:]]*$//')
+
+# `cd <경로> &&` 접두사는 한 번만 허용한다.
+# 작업 디렉터리가 Bash 호출 간 유지되지 않아 생기는 구조적 필요라 예외로 둔다.
+# 떼어낸 나머지는 그대로 검사하므로 `cd x && a && b` 는 여전히 막힌다.
+ONELINE=$(printf '%s' "$ONELINE" |
+  sed -E 's/^[[:space:]]*cd[[:space:]]+[^&|;]+&&[[:space:]]*//')
 
 case "$ONELINE" in
   *"&&"*) deny "\`&&\`" ;;

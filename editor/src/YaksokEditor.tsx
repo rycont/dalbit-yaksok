@@ -1,14 +1,13 @@
-import interludeCodeSquarePath from '../font/InterludeCodeSquare.woff2'
 import {
     defaultKeymap,
     insertTab,
     temporarilySetTabFocusMode,
 } from '@codemirror/commands'
 import { drawSelection, EditorView, keymap, ViewPlugin } from '@codemirror/view'
-import { CodeFile, YaksokSession } from '@dalbit-yaksok/core'
+import { YaksokSession } from '@dalbit-yaksok/core'
 import { GRID_SIZE } from './constant.ts'
 import { editorId } from './style.css.ts'
-import { EditorState, StateEffect, StateField } from '@codemirror/state'
+import { EditorState } from '@codemirror/state'
 import { autocompletion, startCompletion } from '@codemirror/autocomplete'
 import { completionProvider } from './completion.ts'
 import {
@@ -17,6 +16,11 @@ import {
     validationDone,
     validationResultStore,
 } from './state.ts'
+
+const interludeCodeSquarePath = new URL(
+    '../font/InterludeCodeSquare.woff2',
+    import.meta.url,
+).href
 
 export const bezier = 'cubic-bezier(0.16, 1, 0.3, 1)'
 const interludeCodeSquare = new FontFace(
