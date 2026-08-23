@@ -1,5 +1,4 @@
 import { ADVANCED_RULES, BASIC_RULES } from './rule/index.ts'
-import { satisfiesPattern } from './satisfiesPattern.ts'
 
 import { Block } from '../../node/block.ts'
 
@@ -10,22 +9,18 @@ import { getTokensFromNodes } from '../../util/merge-tokens.ts'
 import { Rule, RULE_FLAGS } from './type.ts'
 import { FunctionCallOperatorAmbiguityError } from '../../error/prepare.ts'
 import { RESERVED_WORDS } from '../../constant/reserved-words.ts'
+import { Ruleset } from './ruleset.ts'
 
-export function SRParse(_nodes: Node[], rules: Rule[]) {
+export function SRParse(_nodes: Node[], ruleset: Ruleset) {
     const leftNodes = [..._nodes]
     const buffer: Node[] = []
 
     let changed = false
 
     nodeloop: while (true) {
-        for (const rule of rules) {
-            if (buffer.length < rule.pattern.length) continue
+        const matchedRules = ruleset.findRule(buffer)
 
-            const stackSlice = buffer.slice(-rule.pattern.length)
-            const satisfies = satisfiesPattern(stackSlice, rule.pattern)
-
-            if (!satisfies) continue
-
+        for (const rule of matchedRules) {
             const isStatement = rule.flags?.includes(RULE_FLAGS.IS_STATEMENT)
 
             if (isStatement) {
@@ -36,7 +31,9 @@ export function SRParse(_nodes: Node[], rules: Rule[]) {
                 if (lastNode && !(lastNode instanceof EOL)) continue
             }
 
+            const stackSlice = buffer.slice(-rule.pattern.length)
             const reduced = reduce(stackSlice, rule)
+
             if (reduced === null) continue
 
             if (
@@ -108,7 +105,7 @@ export function reduce(nodes: Node[], rule: Rule) {
 export function callParseRecursively(
     _tokens: Node[],
     externalPatterns: [Rule[][], Rule[][]],
-): Node[] {
+): [Node[], Rule[][]] {
     let parsedTokens = [..._tokens]
 
     for (let i = 0; i < parsedTokens.length; i++) {
@@ -118,11 +115,11 @@ export function callParseRecursively(
             token.children = callParseRecursively(
                 token.children,
                 externalPatterns,
-            )
+            )[0]
         }
     }
 
-    const patternsByLevel = [
+    const rulesByLevel = [
         ...externalPatterns[0],
         BASIC_RULES[0],
         ...BASIC_RULES.slice(1),
@@ -130,9 +127,11 @@ export function callParseRecursively(
         ADVANCED_RULES,
     ]
 
+    const rulesets = rulesByLevel.map((rules) => Ruleset.createFromRules(rules))
+
     loop1: while (true) {
-        for (const patterns of patternsByLevel) {
-            const result = SRParse(parsedTokens, patterns)
+        for (const ruleset of rulesets) {
+            const result = SRParse(parsedTokens, ruleset)
             parsedTokens = result.nodes
 
             if (result.changed) continue loop1
@@ -141,5 +140,5 @@ export function callParseRecursively(
         break
     }
 
-    return parsedTokens
+    return [parsedTokens, rulesByLevel]
 }

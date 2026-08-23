@@ -19,6 +19,7 @@ import { splitVariableName } from './split-variable-name.ts'
 interface ParseResult {
     ast: Block
     exportedRules: Rule[]
+    computedRules: Rule[]
 }
 
 /**
@@ -73,7 +74,7 @@ export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
         const updatedTokens = getTokensFromNodes(variableNameSplitNodes)
         codeFile.tokens = updatedTokens
 
-        const childNodes = callParseRecursively(
+        const [childNodes, internalRules] = callParseRecursively(
             variableNameSplitNodes,
             dynamicRules,
         )
@@ -89,7 +90,15 @@ export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
             ...extractExportedVariables(childNodes),
         ]
 
-        return { ast, exportedRules }
+        return {
+            ast,
+            exportedRules,
+            computedRules: [
+                dynamicRules.flat().flat(),
+                localRules.flat().flat(),
+                internalRules.flat(),
+            ].flat(),
+        }
     } catch (error) {
         if (error instanceof YaksokError) {
             if (!error.codeFile) {

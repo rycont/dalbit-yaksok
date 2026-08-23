@@ -4,11 +4,19 @@ import {
     insertTab,
     temporarilySetTabFocusMode,
 } from '@codemirror/commands'
-import { drawSelection, EditorView, keymap } from '@codemirror/view'
+import { drawSelection, EditorView, keymap, ViewPlugin } from '@codemirror/view'
+import { CodeFile, YaksokSession } from '@dalbit-yaksok/core'
 import { GRID_SIZE } from './constant.ts'
 import { editorId } from './style.css.ts'
-import { EditorState } from '@codemirror/state'
-import { snippetCompletion, autocompletion } from '@codemirror/autocomplete'
+import { EditorState, StateEffect, StateField } from '@codemirror/state'
+import { autocompletion, startCompletion } from '@codemirror/autocomplete'
+import { completionProvider } from './completion.ts'
+import {
+    codeParseDone,
+    parsedCodeStore,
+    validationDone,
+    validationResultStore,
+} from './state.ts'
 
 export const bezier = 'cubic-bezier(0.16, 1, 0.3, 1)'
 const interludeCodeSquare = new FontFace(
@@ -34,12 +42,43 @@ const myTheme = EditorView.theme({
     '.cm-line': { padding: '0' },
 })
 
+const completionOnFocus = EditorView.domEventHandlers({
+    focus(_e, view) {
+        startCompletion(view)
+        return false
+    },
+})
+
+const yaksokParser = ViewPlugin.define((view) => ({
+    docViewUpdate(update) {
+        if (update.composing) {
+            return
+        }
+
+        const session = new YaksokSession()
+
+        const codeFile = session.addModule('main', update.state.doc.toString())
+        const validationResult = codeFile.validate()
+
+        view.dispatch({
+            effects: [
+                codeParseDone.of(codeFile),
+                validationDone.of(validationResult),
+            ],
+        })
+
+        return
+    },
+}))
+
 export function Editor(parent: HTMLElement): void {
     parent.id = editorId
     const view = new EditorView({
         parent,
-
         extensions: [
+            yaksokParser,
+            parsedCodeStore,
+            validationResultStore,
             myTheme,
             drawSelection(),
             keymap.of([
@@ -48,6 +87,12 @@ export function Editor(parent: HTMLElement): void {
             ]),
             keymap.of(defaultKeymap),
             EditorState.tabSize.of(1),
+            autocompletion({
+                override: [completionProvider],
+                activateOnTyping: true,
+                activateOnCompletion: () => true,
+            }),
+            completionOnFocus,
         ],
     })
 
