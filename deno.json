@@ -20,11 +20,11 @@
     ],
     "version": "7.0.0-RC.3",
     "tasks": {
-        "apply-version": "deno run --allow-read --allow-write scripts/apply-version.ts",
+        "apply-version": "deno run --allow-read --allow-write scripts/apply-version.ts && deno task fmt",
         "fmt": "deno run -A npm:oxfmt@0.63.0 .",
         "fmt:check": "deno run -A npm:oxfmt@0.63.0 --check .",
         "lint": "deno run -A npm:oxlint@1.78.0",
-        "nested-test": "deno task fmt:check && deno task --recursive test && deno publish --dry-run --allow-dirty && deno task lint",
+        "nested-test": "deno task fmt && deno task --recursive test && deno publish --dry-run --allow-dirty && deno task lint",
         "publish": "deno task apply-version && deno publish --allow-dirty"
     },
     "deploy": {

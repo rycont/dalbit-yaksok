@@ -11,8 +11,5 @@ for (const subModule of subModules) {
 
     subModuleJson.version = rootModule.version
 
-    await Deno.writeTextFile(
-        subModulePath,
-        JSON.stringify(subModuleJson, null, 4) + '\n',
-    )
+    await Deno.writeTextFile(subModulePath, JSON.stringify(subModuleJson))
 }
