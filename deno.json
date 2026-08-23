@@ -1,37 +1,37 @@
 {
-  "imports": {
-    "@std/assert": "jsr:@std/assert@^1.0.8",
-    "assert": "jsr:@std/assert@^1.0.7",
-    "@codemirror/state": "npm:@codemirror/state@^6.7.1",
-    "@codemirror/view": "npm:@codemirror/view@^6.43.9"
-  },
-  "lint": {
-    "exclude": ["**/*"]
-  },
-  "nodeModulesDir": "auto",
-  "workspace": [
-    "editor",
-    "docs",
-    "core",
-    "test",
-    "exts/quickjs",
-    "exts/math",
-    "exts/statistics"
-  ],
-  "version": "7.0.0-RC.3",
-  "tasks": {
-    "apply-version": "deno run --allow-read --allow-write scripts/apply-version.ts",
-    "fmt": "deno run -A npm:oxfmt@0.63.0 .",
-    "fmt:check": "deno run -A npm:oxfmt@0.63.0 --check .",
-    "lint": "deno run -A npm:oxlint@1.78.0",
-    "nested-test": "deno task fmt:check && deno task --recursive test && deno publish --dry-run --allow-dirty && deno task lint",
-    "publish": "deno task apply-version && deno publish --allow-dirty"
-  },
-  "deploy": {
-    "org": "rycont",
-    "app": "dalbit-yaksok"
-  },
-  "fmt": {
-    "exclude": ["**/*"]
-  }
+    "imports": {
+        "@std/assert": "jsr:@std/assert@^1.0.8",
+        "assert": "jsr:@std/assert@^1.0.7",
+        "@codemirror/state": "npm:@codemirror/state@^6.7.1",
+        "@codemirror/view": "npm:@codemirror/view@^6.43.9"
+    },
+    "lint": {
+        "exclude": ["**/*"]
+    },
+    "nodeModulesDir": "auto",
+    "workspace": [
+        "editor",
+        "docs",
+        "core",
+        "test",
+        "exts/quickjs",
+        "exts/math",
+        "exts/statistics"
+    ],
+    "version": "7.0.0-RC.3",
+    "tasks": {
+        "apply-version": "deno run --allow-read --allow-write scripts/apply-version.ts",
+        "fmt": "deno run -A npm:oxfmt@0.63.0 .",
+        "fmt:check": "deno run -A npm:oxfmt@0.63.0 --check .",
+        "lint": "deno run -A npm:oxlint@1.78.0",
+        "nested-test": "deno task fmt:check && deno task --recursive test && deno publish --dry-run --allow-dirty && deno task lint",
+        "publish": "deno task apply-version && deno publish --allow-dirty"
+    },
+    "deploy": {
+        "org": "rycont",
+        "app": "dalbit-yaksok"
+    },
+    "fmt": {
+        "exclude": ["**/*"]
+    }
 }
