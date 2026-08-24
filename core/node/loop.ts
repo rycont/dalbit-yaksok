@@ -1,5 +1,5 @@
 import { BreakSignal, ContinueSignal } from '../executer/signals.ts'
-import { Executable } from './base.ts'
+import { Executable, NodeCapability } from './base.ts'
 
 import { YaksokError } from '../error/common.ts'
 import { LoopWithoutBodyError, NoBreakOrReturnError } from '../error/loop.ts'
@@ -12,6 +12,8 @@ import {
 } from '../util/loop-warning.ts'
 
 export class Loop extends Executable {
+    static override accepts = [NodeCapability.LOOP_CONTROL]
+
     static override friendlyName = '반복'
 
     constructor(

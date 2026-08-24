@@ -21,7 +21,7 @@ export function SRParse(_nodes: Node[], ruleset: Ruleset) {
         const matchedRules = ruleset.findRule(buffer)
 
         for (const rule of matchedRules) {
-            const isStatement = rule.flags?.includes(RULE_FLAGS.IS_STATEMENT)
+            const isStatement = !!rule.config?.statement
 
             if (isStatement) {
                 const nextNode = leftNodes[0]

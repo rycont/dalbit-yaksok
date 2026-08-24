@@ -10,9 +10,7 @@ import { editorId } from './style.css.ts'
 import { EditorState } from '@codemirror/state'
 import { autocompletion, startCompletion } from '@codemirror/autocomplete'
 import { completionProvider } from './completion.ts'
-import {
-    validationResultStore,
-} from './state.ts'
+import { validationResultStore } from './state.ts'
 
 const interludeCodeSquarePath = new URL(
     '../font/InterludeCodeSquare.woff2',

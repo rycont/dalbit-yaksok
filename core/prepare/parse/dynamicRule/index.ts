@@ -66,7 +66,7 @@ function extractFunctionPatterns(ruleGroups: Rule[][]): DynamicRulePattern[] {
         for (const rule of rules) {
             if (
                 !rule?.flags?.includes(RULE_FLAGS.IS_FUNCTION_INVOKE) &&
-                !rule?.flags?.includes(RULE_FLAGS.IS_STATEMENT)
+                !rule?.config?.statement
             ) {
                 continue
             }

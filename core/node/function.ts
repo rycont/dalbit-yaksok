@@ -2,7 +2,7 @@ import { Scope } from '../executer/scope.ts'
 import { assertValidReturnValue } from '../util/assert-valid-return-value.ts'
 import { ValueType } from '../value/base.ts'
 import { FunctionObject } from '../value/function.ts'
-import { Evaluable, Executable, Identifier } from './base.ts'
+import { Evaluable, Executable, Identifier, NodeCapability } from './base.ts'
 
 import type {
     FunctionInvokingParams,
@@ -31,6 +31,7 @@ import {
  */
 export class DeclareFunction extends Executable {
     static override friendlyName = '새 약속 만들기'
+    static override accepts = [NodeCapability.RETURN]
 
     name: string
     body: Block

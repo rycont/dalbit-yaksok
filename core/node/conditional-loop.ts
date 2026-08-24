@@ -1,5 +1,5 @@
 import { BreakSignal, ContinueSignal } from '../executer/signals.ts'
-import { Evaluable, Executable } from './base.ts'
+import { Evaluable, Executable, NodeCapability } from './base.ts'
 import { YaksokError } from '../error/common.ts'
 import { LoopWithoutBodyError } from '../error/loop.ts'
 import type { Scope } from '../executer/scope.ts'
@@ -13,6 +13,7 @@ import {
 
 export class ConditionalLoop extends Executable {
     static override friendlyName = '반복 동안'
+    static override accepts = [NodeCapability.LOOP_CONTROL]
 
     constructor(
         public condition: Evaluable,

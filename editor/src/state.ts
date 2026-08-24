@@ -8,11 +8,11 @@ export const validationResultStore = StateField.define<ReturnType<
         return null
     },
     update(v, tr) {
-      const session = new YaksokSession()
+        const session = new YaksokSession()
 
-      const codeFile = session.addModule('main', tr.newDoc.toString())
-      const validationResult = codeFile.validate()
+        const codeFile = session.addModule('main', tr.newDoc.toString())
+        const validationResult = codeFile.validate()
 
-      return validationResult
+        return validationResult
     },
 })

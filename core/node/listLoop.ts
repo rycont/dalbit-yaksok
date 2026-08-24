@@ -1,7 +1,7 @@
 import { YaksokError } from '../error/common.ts'
 import { NotEnumerableValueForListLoopError } from '../error/index.ts'
 import { BreakSignal, ContinueSignal } from '../executer/signals.ts'
-import { type Evaluable, Executable } from './base.ts'
+import { type Evaluable, Executable, NodeCapability } from './base.ts'
 
 import { Scope } from '../executer/scope.ts'
 
@@ -17,6 +17,7 @@ import {
 
 export class ListLoop extends Executable {
     static override friendlyName = '목록 반복'
+    static override accepts = [NodeCapability.LOOP_CONTROL]
 
     constructor(
         public list: Evaluable,

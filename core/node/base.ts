@@ -8,11 +8,18 @@ import { AbortedSessionSignal } from '../executer/signals.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { ValueType } from '../value/base.ts'
 
+export enum NodeCapability {
+    LOOP_CONTROL = 'LOOP_CONTROL',
+    RETURN = 'RETURN',
+}
+
 export class Node {
     [key: string]: unknown
     tokens: Token[] = []
 
     static friendlyName = '노드'
+
+    static accepts: NodeCapability[] = []
 
     validate(_scope: Scope): YaksokError[] {
         throw new Error(`${this.getNodeTypeName()} has no validate method`)

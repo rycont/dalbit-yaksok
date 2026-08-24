@@ -1,6 +1,6 @@
 import { Block, EOL, Evaluable, Identifier } from '../../../node/index.ts'
 import { ListLoop } from '../../../node/listLoop.ts'
-import { Rule, RULE_FLAGS } from '../type.ts'
+import { CompletionGroup, Rule } from '../type.ts'
 
 export const LIST_LOOP_RULES: Rule[] = [
     {
@@ -37,7 +37,13 @@ export const LIST_LOOP_RULES: Rule[] = [
 
             return new ListLoop(list, name, body, tokens)
         },
-        flags: [RULE_FLAGS.IS_STATEMENT],
+        config: {
+            statement: {
+                name: '목록에서 하나 하나 반복하기',
+                group: CompletionGroup.LOOP,
+                visibility: 'always',
+            },
+        },
     },
     {
         pattern: [
@@ -73,7 +79,7 @@ export const LIST_LOOP_RULES: Rule[] = [
 
             return new ListLoop(list, name, body, tokens)
         },
-        flags: [RULE_FLAGS.IS_STATEMENT],
+        config: { statement: true },
     },
     {
         pattern: [
@@ -109,6 +115,6 @@ export const LIST_LOOP_RULES: Rule[] = [
 
             return new ListLoop(list, name, body, tokens)
         },
-        flags: [RULE_FLAGS.IS_STATEMENT],
+        config: { statement: true },
     },
 ]

@@ -4,7 +4,7 @@ import { Scope } from '../executer/scope.ts'
 import { BreakSignal, ContinueSignal } from '../executer/signals.ts'
 import { Token } from '../prepare/tokenize/token.ts'
 import { NumberValue } from '../value/primitive.ts'
-import { Evaluable, Executable } from './base.ts'
+import { Evaluable, Executable, NodeCapability } from './base.ts'
 import { Block } from './block.ts'
 import {
     emitLoopIterationWarning,
@@ -13,6 +13,7 @@ import {
 
 export class CountLoop extends Executable {
     static override friendlyName = '횟수 반복'
+    static override accepts = [NodeCapability.LOOP_CONTROL]
 
     constructor(
         public count: Evaluable,

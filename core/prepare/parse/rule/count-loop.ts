@@ -1,6 +1,6 @@
 import { CountLoop } from '../../../node/count-loop.ts'
 import { Block, EOL, Evaluable, Identifier } from '../../../node/index.ts'
-import { Rule, RULE_FLAGS } from '../type.ts'
+import { CompletionGroup, Rule } from '../type.ts'
 
 export const COUNT_LOOP_RULES: Rule[] = [
     {
@@ -29,7 +29,13 @@ export const COUNT_LOOP_RULES: Rule[] = [
 
             return new CountLoop(list, body, tokens)
         },
-        flags: [RULE_FLAGS.IS_STATEMENT],
+        config: {
+            statement: {
+                name: '몇 번 반복하기',
+                group: CompletionGroup.LOOP,
+                visibility: 'always',
+            },
+        },
     },
     {
         pattern: [
@@ -57,7 +63,7 @@ export const COUNT_LOOP_RULES: Rule[] = [
 
             return new CountLoop(list, body, tokens)
         },
-        flags: [RULE_FLAGS.IS_STATEMENT],
+        config: { statement: true },
     },
     {
         pattern: [
@@ -85,6 +91,6 @@ export const COUNT_LOOP_RULES: Rule[] = [
 
             return new CountLoop(list, body, tokens)
         },
-        flags: [RULE_FLAGS.IS_STATEMENT],
+        config: { statement: true },
     },
 ]

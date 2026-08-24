@@ -56,7 +56,8 @@ import { IndexedValue } from '../../../value/indexed.ts'
 import { NumberValue, StringValue } from '../../../value/primitive.ts'
 import { ASSIGNERS } from '../../tokenize/rules.ts'
 import type { Rule } from '../type.ts'
-import { RULE_FLAGS } from '../type.ts'
+import { CompletionGroup } from '../type.ts'
+import { NodeCapability } from '../../../node/base.ts'
 import { COUNT_LOOP_RULES } from './count-loop.ts'
 import { DICT_RULES } from './dict.ts'
 import { LIST_LOOP_RULES } from './list-loop.ts'
@@ -542,7 +543,7 @@ export const ADVANCED_RULES: Rule[] = [
             },
         ],
         factory: (_nodes, tokens) => new Pause(tokens),
-        flags: [RULE_FLAGS.IS_STATEMENT],
+        config: { statement: true },
     },
     {
         pattern: [
@@ -621,7 +622,16 @@ export const ADVANCED_RULES: Rule[] = [
 
             return new SetToIndex(target, value, operator.value, tokens)
         },
-        flags: [RULE_FLAGS.IS_STATEMENT],
+        config: {
+            statement:
+                assigner === '='
+                    ? {
+                          name: '목록 안의 값 바꾸기',
+                          group: CompletionGroup.DATA,
+                          visibility: 'always',
+                      }
+                    : true,
+        },
     })),
     ...ASSIGNERS.map<Rule>((assigner) => ({
         pattern: [
@@ -643,7 +653,16 @@ export const ADVANCED_RULES: Rule[] = [
 
             return new SetVariable(name, value, tokens, operator.value)
         },
-        flags: [RULE_FLAGS.IS_STATEMENT],
+        config: {
+            statement:
+                assigner === '='
+                    ? {
+                          name: '변수에 값 넣기',
+                          group: CompletionGroup.DATA,
+                          visibility: 'always',
+                      }
+                    : true,
+        },
     })),
     {
         pattern: [
@@ -671,7 +690,7 @@ export const ADVANCED_RULES: Rule[] = [
 
             return ifStatement
         },
-        flags: [RULE_FLAGS.IS_STATEMENT],
+        config: { statement: true },
     },
     {
         pattern: [
@@ -701,7 +720,7 @@ export const ADVANCED_RULES: Rule[] = [
 
             return ifStatement
         },
-        flags: [RULE_FLAGS.IS_STATEMENT],
+        config: { statement: true },
     },
     {
         pattern: [
@@ -733,7 +752,13 @@ export const ADVANCED_RULES: Rule[] = [
 
             return new ElseIfStatement({ condition, body }, tokens)
         },
-        flags: [RULE_FLAGS.IS_STATEMENT],
+        config: {
+            statement: {
+                name: '아니면 만약',
+                group: CompletionGroup.FLOW,
+                visibility: { after: IfStatement },
+            },
+        },
     },
     {
         pattern: [
@@ -753,7 +778,13 @@ export const ADVANCED_RULES: Rule[] = [
 
             return new ElseStatement(body, tokens)
         },
-        flags: [RULE_FLAGS.IS_STATEMENT],
+        config: {
+            statement: {
+                name: '아니면',
+                group: CompletionGroup.FLOW,
+                visibility: { after: IfStatement },
+            },
+        },
     },
     {
         pattern: [
@@ -781,7 +812,13 @@ export const ADVANCED_RULES: Rule[] = [
 
             return new IfStatement([{ condition, body }], tokens)
         },
-        flags: [RULE_FLAGS.IS_STATEMENT],
+        config: {
+            statement: {
+                name: '만약',
+                group: CompletionGroup.FLOW,
+                visibility: 'always',
+            },
+        },
     },
     {
         pattern: [
@@ -821,7 +858,13 @@ export const ADVANCED_RULES: Rule[] = [
             const value = nodes[0] as Evaluable
             return new Print(value, tokens)
         },
-        flags: [RULE_FLAGS.IS_STATEMENT],
+        config: {
+            statement: {
+                name: '보여주기',
+                group: CompletionGroup.OUTPUT,
+                visibility: 'always',
+            },
+        },
     },
     {
         pattern: [
@@ -837,7 +880,13 @@ export const ADVANCED_RULES: Rule[] = [
             const value = nodes[0] as Evaluable
             return new ReturnStatement(tokens, value)
         },
-        flags: [RULE_FLAGS.IS_STATEMENT],
+        config: {
+            statement: {
+                name: '값 돌려주기',
+                group: CompletionGroup.FUNCTION,
+                visibility: { inside: NodeCapability.RETURN },
+            },
+        },
     },
     {
         pattern: [
@@ -849,7 +898,13 @@ export const ADVANCED_RULES: Rule[] = [
         factory: (_nodes, tokens) => {
             return new ReturnStatement(tokens)
         },
-        flags: [RULE_FLAGS.IS_STATEMENT],
+        config: {
+            statement: {
+                name: '약속 끝내기',
+                group: CompletionGroup.FUNCTION,
+                visibility: { inside: NodeCapability.RETURN },
+            },
+        },
     },
     {
         pattern: [
@@ -865,7 +920,7 @@ export const ADVANCED_RULES: Rule[] = [
         factory: (_nodes, tokens) => {
             return new ReturnStatement(tokens)
         },
-        flags: [RULE_FLAGS.IS_STATEMENT],
+        config: { statement: true },
     },
     {
         pattern: [
@@ -881,7 +936,13 @@ export const ADVANCED_RULES: Rule[] = [
             },
         ],
         factory: (nodes, tokens) => new Loop(nodes[2] as Block, tokens),
-        flags: [RULE_FLAGS.IS_STATEMENT],
+        config: {
+            statement: {
+                name: '계속 반복하기',
+                group: CompletionGroup.LOOP,
+                visibility: 'always',
+            },
+        },
     },
     {
         pattern: [
@@ -897,7 +958,7 @@ export const ADVANCED_RULES: Rule[] = [
             },
         ],
         factory: (nodes, tokens) => new Loop(nodes[2] as Block, tokens),
-        flags: [RULE_FLAGS.IS_STATEMENT],
+        config: { statement: true },
     },
     {
         pattern: [
@@ -911,7 +972,13 @@ export const ADVANCED_RULES: Rule[] = [
             },
         ],
         factory: (_nodes, tokens) => new Break(tokens),
-        flags: [RULE_FLAGS.IS_STATEMENT],
+        config: {
+            statement: {
+                name: '반복 멈추기',
+                group: CompletionGroup.LOOP,
+                visibility: { inside: NodeCapability.LOOP_CONTROL },
+            },
+        },
     },
     {
         pattern: [
@@ -925,7 +992,13 @@ export const ADVANCED_RULES: Rule[] = [
             },
         ],
         factory: (_nodes, tokens) => new Continue(tokens),
-        flags: [RULE_FLAGS.IS_STATEMENT],
+        config: {
+            statement: {
+                name: '다음 것으로 넘어가기',
+                group: CompletionGroup.LOOP,
+                visibility: { inside: NodeCapability.LOOP_CONTROL },
+            },
+        },
     },
     ...LIST_LOOP_RULES,
     ...COUNT_LOOP_RULES,
@@ -954,7 +1027,13 @@ export const ADVANCED_RULES: Rule[] = [
             const body = nodes[4] as Block
             return new ConditionalLoop(condition, body, tokens)
         },
-        flags: [RULE_FLAGS.IS_STATEMENT],
+        config: {
+            statement: {
+                name: '맞는 동안 반복하기',
+                group: CompletionGroup.LOOP,
+                visibility: 'always',
+            },
+        },
     },
     {
         pattern: [

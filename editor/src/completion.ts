@@ -4,13 +4,7 @@ import {
     snippetCompletion,
 } from '@codemirror/autocomplete'
 import { validationResultStore } from './state.ts'
-import {
-    Block,
-    EOL,
-    Evaluable,
-    Identifier,
-    RULE_FLAGS,
-} from '@dalbit-yaksok/core'
+import { Block, EOL, Evaluable, Identifier } from '@dalbit-yaksok/core'
 
 export function completionProvider(
     context: CompletionContext,
@@ -29,8 +23,8 @@ export function completionProvider(
     }
 
     const statements =
-        validationResult.validatingScope.codeFile?.appliedRules?.filter((r) =>
-            r.flags?.includes(RULE_FLAGS.IS_STATEMENT),
+        validationResult.validatingScope.codeFile?.appliedRules?.filter(
+            (r) => typeof r.config?.statement === 'object',
         )
 
     if (!statements) {
