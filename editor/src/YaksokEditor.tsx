@@ -11,9 +11,6 @@ import { EditorState } from '@codemirror/state'
 import { autocompletion, startCompletion } from '@codemirror/autocomplete'
 import { completionProvider } from './completion.ts'
 import {
-    codeParseDone,
-    parsedCodeStore,
-    validationDone,
     validationResultStore,
 } from './state.ts'
 
@@ -53,35 +50,33 @@ const completionOnFocus = EditorView.domEventHandlers({
     },
 })
 
-const yaksokParser = ViewPlugin.define((view) => ({
-    docViewUpdate(update) {
-        if (update.composing) {
-            return
-        }
+// const yaksokParser = ViewPlugin.define((view) => ({
+//     docViewUpdate(update) {
+//         if (update.composing) {
+//             return
+//         }
 
-        const session = new YaksokSession()
+//         const session = new YaksokSession()
 
-        const codeFile = session.addModule('main', update.state.doc.toString())
-        const validationResult = codeFile.validate()
+//         const codeFile = session.addModule('main', update.state.doc.toString())
+//         const validationResult = codeFile.validate()
 
-        view.dispatch({
-            effects: [
-                codeParseDone.of(codeFile),
-                validationDone.of(validationResult),
-            ],
-        })
+//         view.dispatch({
+//             effects: [
+//                 codeParseDone.of(codeFile),
+//                 validationDone.of(validationResult),
+//             ],
+//         })
 
-        return
-    },
-}))
+//         return
+//     },
+// }))
 
 export function Editor(parent: HTMLElement): void {
     parent.id = editorId
     const view = new EditorView({
         parent,
         extensions: [
-            yaksokParser,
-            parsedCodeStore,
             validationResultStore,
             myTheme,
             drawSelection(),

@@ -16,6 +16,7 @@ export function completionProvider(
     context: CompletionContext,
 ): CompletionResult | null {
     const validationResult = context.state.field(validationResultStore)
+    console.log(validationResult)
 
     if (!validationResult) {
         return null
