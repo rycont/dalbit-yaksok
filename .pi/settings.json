@@ -1,0 +1,67 @@
+{
+    "packages": ["npm:@hsingjui/pi-hooks"],
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "^bash$",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/no-shell-file-edit.sh\"",
+                        "timeout": 10
+                    }
+                ]
+            },
+            {
+                "matcher": "^(grep|find)$",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/ast-grep-only.sh\"",
+                        "timeout": 10
+                    }
+                ]
+            },
+            {
+                "matcher": "^bash$",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/ast-grep-only.sh\"",
+                        "timeout": 10
+                    }
+                ]
+            },
+            {
+                "matcher": "^bash$",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/no-output-filtering.sh\"",
+                        "timeout": 10
+                    }
+                ]
+            },
+            {
+                "matcher": "^bash$",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/save-long-output.sh\"",
+                        "timeout": 10
+                    }
+                ]
+            },
+            {
+                "matcher": "^bash$",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/one-command-at-a-time.sh\"",
+                        "timeout": 10
+                    }
+                ]
+            }
+        ]
+    }
+}

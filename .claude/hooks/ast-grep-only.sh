@@ -32,11 +32,11 @@ HINT='소스코드 탐색은 ast-grep 만 사용합니다.
 
 파일명으로 찾을 땐 Glob 툴을 쓰세요.'
 
-if [[ $TOOL == "Grep" ]]; then
+if [[ $TOOL == "Grep" || $TOOL == "Find" || $TOOL == "grep" || $TOOL == "find" ]]; then
   deny "Grep 툴은 이 저장소에서 막혀 있습니다. $HINT"
 fi
 
-[[ $TOOL == "Bash" && -n $CMD ]] || exit 0
+[[ ( $TOOL == "Bash" || $TOOL == "bash" ) && -n $CMD ]] || exit 0
 
 # 저장해둔 실행 결과를 탐색하는 경우는 통과
 case "$CMD" in */tmp/*|*scratchpad*) exit 0 ;; esac

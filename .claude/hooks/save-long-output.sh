@@ -12,7 +12,7 @@ set -euo pipefail
 
 MAX_LINES=200
 MAX_BYTES=100000
-LOG_DIR="${TMPDIR:-/tmp}/claude-bash-out"
+LOG_DIR="${TMPDIR:-/tmp}/agent-command-output"
 
 IN=$(cat)
 
@@ -22,33 +22,34 @@ TOOL=$(jq -r '.tool_name // ""' <<<"$IN")
 CMD=$(jq -r '.tool_input.command // ""' <<<"$IN")
 BG=$(jq -r '.tool_input.run_in_background // false' <<<"$IN")
 
-[[ $TOOL == "Bash" && -n $CMD ]] || exit 0
+[[ ( $TOOL == "Bash" || $TOOL == "bash" ) && -n $CMD ]] || exit 0
 # 백그라운드 실행은 이미 파일로 출력을 받는다
 [[ $BG == "true" ]] && exit 0
 # 이미 감싼 명령은 다시 감싸지 않는다
-case "$CMD" in *__cc_log*) exit 0 ;; esac
+case "$CMD" in *__agent_hook_log*) exit 0 ;; esac
 
 # 원본을 작은따옴표 문자열 안에 그대로 넣기 위한 이스케이프
 ESC=${CMD//\'/\'\\\'\'}
 
 WRAPPED="mkdir -p '$LOG_DIR'
-__cc_log=\$(mktemp '$LOG_DIR/out.XXXXXXXX')
-{ eval '$ESC'; } > \"\$__cc_log\" 2>&1
-__cc_rc=\$?
-__cc_lines=\$(wc -l < \"\$__cc_log\")
-__cc_bytes=\$(wc -c < \"\$__cc_log\")
-if [ \"\$__cc_lines\" -gt $MAX_LINES ] || [ \"\$__cc_bytes\" -gt $MAX_BYTES ]; then
-  head -n $MAX_LINES \"\$__cc_log\"
-  printf '\\n[출력 잘림] 전체 %s줄 / %s바이트. 원본 보존됨:\\n  %s\\n[안내] 나머지는 Read 툴(offset/limit) 이나 이 파일 대상 grep/sed 로 찾으세요. 명령을 다시 돌리지 마세요.\\n' \"\$__cc_lines\" \"\$__cc_bytes\" \"\$__cc_log\"
+__agent_hook_log=\$(mktemp '$LOG_DIR/out.XXXXXXXX')
+{ eval '$ESC'; } > \"\$__agent_hook_log\" 2>&1
+__agent_hook_rc=\$?
+__agent_hook_lines=\$(wc -l < \"\$__agent_hook_log\")
+__agent_hook_bytes=\$(wc -c < \"\$__agent_hook_log\")
+if [ \"\$__agent_hook_lines\" -gt $MAX_LINES ] || [ \"\$__agent_hook_bytes\" -gt $MAX_BYTES ]; then
+  head -n $MAX_LINES \"\$__agent_hook_log\"
+  printf '\\n[출력 잘림] 전체 %s줄 / %s바이트. 원본 보존됨:\\n  %s\\n[안내] 나머지는 해당 파일을 offset/limit 방식으로 읽으세요. 명령을 다시 돌리지 마세요.\\n' \"\$__agent_hook_lines\" \"\$__agent_hook_bytes\" \"\$__agent_hook_log\"
 else
-  cat \"\$__cc_log\"
-  rm -f \"\$__cc_log\"
+  cat \"\$__agent_hook_log\"
+  unlink \"\$__agent_hook_log\"
 fi
-( exit \$__cc_rc )"
+( exit \$__agent_hook_rc )"
 
 jq -n --argjson input "$IN" --arg cmd "$WRAPPED" '{
   hookSpecificOutput: {
     hookEventName: "PreToolUse",
+    permissionDecision: "allow",
     updatedInput: ($input.tool_input | .command = $cmd)
   }
 }'

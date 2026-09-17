@@ -16,9 +16,9 @@ command -v jq >/dev/null 2>&1 || exit 0
 TOOL=$(jq -r '.tool_name // ""' <<<"$IN")
 CMD=$(jq -r '.tool_input.command // ""' <<<"$IN")
 
-[[ $TOOL == "Bash" && -n $CMD ]] || exit 0
+[[ ( $TOOL == "Bash" || $TOOL == "bash" ) && -n $CMD ]] || exit 0
 # save-long-output 훅이 감싼 명령은 대상이 아니다
-case "$CMD" in *__cc_log*) exit 0 ;; esac
+case "$CMD" in *__agent_hook_log*) exit 0 ;; esac
 
 # 힙독 본문을 걷어낸다 (여러 줄이어도 명령 하나이므로)
 STRIPPED=$(printf '%s\n' "$CMD" | awk '

@@ -14,7 +14,7 @@ if command -v jq >/dev/null 2>&1; then
   CMD=$(jq -r '.tool_input.command // ""' <<<"$IN")
 fi
 
-[[ $TOOL == "Bash" && -n $CMD ]] || exit 0
+[[ ( $TOOL == "Bash" || $TOOL == "bash" ) && -n $CMD ]] || exit 0
 
 # 저장해둔 결과를 탐색하는 경우는 통과
 case "$CMD" in */tmp/*|*scratchpad*) exit 0 ;; esac
@@ -43,7 +43,7 @@ while IFS= read -r seg; do
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
         permissionDecision: "deny",
-        permissionDecisionReason: ("`| " + $cmd + "` 로 출력을 버리고 있습니다. 필터가 빗나가면 원본이 사라져서 명령을 다시 돌려야 합니다.\n\n필터를 떼고 그냥 실행하세요. 길이는 신경 쓸 필요 없습니다:\n출력이 200줄을 넘으면 save-long-output 훅이 전체를 파일로 저장하고\n앞 200줄과 그 경로를 보여줍니다. 나머지는 Read 툴이나 그 파일 대상 grep 으로 찾으면 됩니다.\n\n실행 중인 명령에 head/tail 을 붙이면 명령이 끝날 때까지 아무것도 안 보이기까지 합니다.\n출력을 버리지 않는 파이프(wc, jq, sort, uniq)는 그대로 쓰면 됩니다.")
+        permissionDecisionReason: ("`| " + $cmd + "` 로 출력을 버리고 있습니다. 필터가 빗나가면 원본이 사라져서 명령을 다시 돌려야 합니다.\n\n필터를 떼고 그냥 실행하세요. 길이는 신경 쓸 필요 없습니다:\n출력이 200줄을 넘으면 save-long-output 훅이 전체를 파일로 저장하고\n앞 200줄과 그 경로를 보여줍니다. 나머지는 해당 파일을 직접 읽거나 grep 으로 찾으면 됩니다.\n\n실행 중인 명령에 head/tail 을 붙이면 명령이 끝날 때까지 아무것도 안 보이기까지 합니다.\n출력을 버리지 않는 파이프(wc, jq, sort, uniq)는 그대로 쓰면 됩니다.")
       }
     }'
     exit 0
