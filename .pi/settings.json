@@ -62,6 +62,18 @@
                     }
                 ]
             }
+        ],
+        "PostToolUse": [
+            {
+                "matcher": "^(edit|write)$",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/oxlint-after-edit.sh\"",
+                        "timeout": 60
+                    }
+                ]
+            }
         ]
     }
 }
