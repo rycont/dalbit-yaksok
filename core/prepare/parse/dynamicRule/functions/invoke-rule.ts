@@ -91,8 +91,13 @@ function createTemplatePieceFromChoices(
         const { candidates } = variantParts[index]
         const content = candidates[optionIndex]
 
+        const originalPart = parts[variantParts[index].index]
+        if (originalPart.type !== PIECE_TYPE.STATIC) {
+            continue
+        }
+
         parts[variantParts[index].index] = {
-            type: PIECE_TYPE.STATIC,
+            ...originalPart,
             variations: [content],
         }
     }
@@ -294,11 +299,12 @@ function extractParamsFromBlock(node: Node): Record<string, Evaluable> {
 function createInlineInvokerPattern(
     pieces: FunctionTemplatePiece[],
 ): PatternUnit[] {
-    return pieces.map((piece) => {
+    return pieces.map<PatternUnit>((piece) => {
         if (piece.type === PIECE_TYPE.STATIC) {
             return {
                 type: Identifier,
                 value: piece.variations[0],
+                isSuffix: piece.isSuffix,
             }
         }
 

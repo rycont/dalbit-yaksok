@@ -19,6 +19,7 @@ export function convertTokensToFunctionTemplate(
     const tokens = _tokens
         .map((token) => ({ ...token }))
         .filter((t) => t.type !== TOKEN_TYPE.SPACE)
+
     const rawPieces: FunctionTemplatePiece[] = []
 
     for (let i = 0; i < tokens.length; i++) {
@@ -74,7 +75,18 @@ export function convertTokensToFunctionTemplate(
             }
         }
 
-        rawPieces.push({ type: PIECE_TYPE.STATIC, variations: [token.value] })
+        const prevToken = tokens[i - 1]
+
+        const isSuffix = prevToken
+            ? prevToken.position.column + prevToken.value.length ===
+              token.position.column
+            : false
+
+        rawPieces.push({
+            type: PIECE_TYPE.STATIC,
+            variations: [token.value],
+            isSuffix,
+        })
     }
 
     const lastPiece = rawPieces[rawPieces.length - 1]
@@ -96,6 +108,7 @@ export function convertTokensToFunctionTemplate(
                 piece.variations[0],
                 shouldAddVerbFormVariant,
             ),
+            isSuffix: piece.isSuffix,
         }
     })
 

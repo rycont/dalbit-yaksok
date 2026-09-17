@@ -7,6 +7,7 @@ export interface PatternUnit {
     }
     value?: string
     as?: string
+    isSuffix?: boolean
 }
 
 export type Rule = {

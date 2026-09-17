@@ -15,6 +15,7 @@ export enum SIGNATURE_TYPE {
 export interface StaticPiece {
     type: PIECE_TYPE.STATIC
     variations: string[]
+    isSuffix: boolean
 }
 
 export interface ParameterPiece {

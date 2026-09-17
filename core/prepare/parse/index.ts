@@ -12,6 +12,7 @@ import type { CodeFile } from '../../type/code-file.ts'
 import { parseBracket } from './parse-bracket.ts'
 import type { Rule } from './type.ts'
 import { splitVariableName } from './split-variable-name.ts'
+import { ADVANCED_RULES, BASIC_RULES } from './rule/index.ts'
 
 /**
  * 파싱 결과를 담는 객체입니다.
@@ -27,11 +28,7 @@ interface ParseResult {
  */
 export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
     try {
-        const {
-            rules: dynamicRules,
-            patterns,
-            localRules,
-        } = createDynamicRule(codeFile)
+        const { rules: dynamicRules, localRules } = createDynamicRule(codeFile)
         const nodes = convertTokensToNodes(codeFile.tokens)
         const indentedNodes = parseIndent(nodes)
 
@@ -64,17 +61,24 @@ export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
             }
         })
 
+        const computedRules = [
+            dynamicRules.flat().flat(),
+            localRules.flat().flat(),
+            ADVANCED_RULES.flat(),
+            BASIC_RULES.flat(),
+        ].flat()
+
         const variableNameSplitNodes = splitVariableName(
             priorityParsedNodes,
             baseContextIdentifiers,
-            patterns,
+            computedRules,
         )
 
         // 중요: 조사 분리 후에 노드들의 토큰 정보를 기반으로 전체 토큰 배열을 갱신합니다.
         const updatedTokens = getTokensFromNodes(variableNameSplitNodes)
         codeFile.tokens = updatedTokens
 
-        const [childNodes, internalRules] = callParseRecursively(
+        const childNodes = callParseRecursively(
             variableNameSplitNodes,
             dynamicRules,
         )
@@ -93,11 +97,7 @@ export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
         return {
             ast,
             exportedRules,
-            computedRules: [
-                dynamicRules.flat().flat(),
-                localRules.flat().flat(),
-                internalRules.flat(),
-            ].flat(),
+            computedRules,
         }
     } catch (error) {
         if (error instanceof YaksokError) {

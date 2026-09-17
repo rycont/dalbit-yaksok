@@ -8,6 +8,7 @@ export function functionHeaderToPattern(tokens: Token[]): PatternUnit[] {
 
     while (i < tokens.length) {
         const token = tokens[i]
+        const prevToken = tokens[i - 1]
 
         if (
             token.type === TOKEN_TYPE.OPENING_PARENTHESIS &&
@@ -19,7 +20,8 @@ export function functionHeaderToPattern(tokens: Token[]): PatternUnit[] {
             continue
         }
 
-        const unit = mapTokenToPatternUnit(token)
+        const unit = mapTokenToPatternUnit(token, prevToken)
+
         if (unit) {
             units.push(unit)
         }
@@ -40,11 +42,15 @@ function skipDestructureGroup(tokens: Token[], startIndex: number): number {
     return i + 1
 }
 
-function mapTokenToPatternUnit(token: Token): PatternUnit | null {
+function mapTokenToPatternUnit(
+    token: Token,
+    prevToken?: Token,
+): PatternUnit | null {
     if (token.type === TOKEN_TYPE.IDENTIFIER) {
         return {
             type: Identifier,
             value: token.value,
+            isSuffix: prevToken?.type === TOKEN_TYPE.CLOSING_PARENTHESIS,
         }
     }
 

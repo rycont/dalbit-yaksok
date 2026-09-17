@@ -105,7 +105,7 @@ export function parseBracket(
         closingPosition,
     )
 
-    const [mergedNode] = callParseRecursively(nodesInBrackets, dynamicRules)
+    const mergedNode = callParseRecursively(nodesInBrackets, dynamicRules)
 
     const openingNode = nodes[openingBracketIndex]
     const isOpeningParenForTuple =
