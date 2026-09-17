@@ -13,13 +13,19 @@ export enum NodeCapability {
     RETURN = 'RETURN',
 }
 
-export class Node {
-    [key: string]: unknown
+type SubnodeScheme = Record<string, Node> | Node[] | Node | unknown
+
+export class Node<SubnodeShape extends SubnodeScheme = unknown> {
     tokens: Token[] = []
+
+    public subnode!: SubnodeShape
+    public value?: string
 
     static friendlyName = '노드'
 
     static accepts: NodeCapability[] = []
+
+    constructor() {}
 
     validate(_scope: Scope): YaksokError[] {
         throw new Error(`${this.getNodeTypeName()} has no validate method`)
@@ -41,7 +47,7 @@ export class Node {
     }
 }
 
-export class Executable extends Node {
+export class Executable<T extends SubnodeScheme = unknown> extends Node<T> {
     static override friendlyName = '실행 가능한 노드'
 
     execute(_scope: Scope): Promise<unknown> {
@@ -118,7 +124,10 @@ export class Executable extends Node {
     }
 }
 
-export class Evaluable<T extends ValueType = ValueType> extends Executable {
+export class Evaluable<
+    LeavesType extends SubnodeScheme = unknown,
+    T extends ValueType = ValueType,
+> extends Executable<LeavesType> {
     static override friendlyName = '값이 있는 노드'
 
     override execute(_scope: Scope): Promise<T> {
@@ -130,7 +139,7 @@ export class Identifier extends Evaluable {
     static override friendlyName = '식별자'
 
     constructor(
-        public value: string,
+        public override value: string,
         public override tokens: Token[],
     ) {
         super()
@@ -149,7 +158,11 @@ export class Identifier extends Evaluable {
                     const functionObject = scope.getFunctionObject(this.value)
                     const functionResult = await functionObject.run({})
 
-                    assertValidReturnValue(this, functionResult)
+                    assertValidReturnValue(
+                        functionResult,
+                        this.tokens,
+                        functionObject.name,
+                    )
 
                     return functionResult
                 } catch (e2) {
@@ -198,14 +211,14 @@ export class Operator extends Node implements OperatorNode {
     static override friendlyName = '연산자'
 
     constructor(
-        public value: string | null,
+        public override value: string,
         public override tokens: Token[],
     ) {
         super()
     }
 
     override toPrint(): string {
-        return this.value ?? '알 수 없음'
+        return this.value
     }
 
     async call(
@@ -231,11 +244,13 @@ export type OperatorClass = {
     new (...args: any[]): OperatorNode
 }
 
-export class Expression extends Node {
+export class Expression<
+    LeavesType extends SubnodeScheme = unknown,
+> extends Node<LeavesType> {
     static override friendlyName = '표현식'
 
     constructor(
-        public value: string,
+        public override value: string,
         public override tokens: Token[],
     ) {
         super()

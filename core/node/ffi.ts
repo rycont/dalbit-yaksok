@@ -47,7 +47,6 @@ export class DeclareFFI extends Executable {
         this.runtime = props.runtime
         this.paramNames = props.paramNames || []
         this.dotReceiverTypeNames = props.dotReceiverTypeNames
-        this.position = props.position
     }
 
     override execute(scope: Scope): Promise<void> {

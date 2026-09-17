@@ -5,41 +5,46 @@ import type { ValueType } from '../value/base.ts'
 import { IndexedValue } from '../value/indexed.ts'
 import { Evaluable, Expression } from './base.ts'
 
-export class KeyValuePair extends Expression {
+export class KeyValuePair extends Expression<Evaluable> {
     static override friendlyName = '키-값 쌍'
 
     constructor(
         public key: string | number,
-        public entry: Evaluable,
+        entry: Evaluable,
         public override tokens: Token[] = [],
     ) {
         super(String(key), tokens)
+        this.subnode = entry
     }
 }
 
-export class KeyValuePairSequence extends Expression {
+export class KeyValuePairSequence extends Expression<KeyValuePair[]> {
     static override friendlyName = '키-값 쌍 목록'
 
     constructor(
-        public pairs: KeyValuePair[],
+        pairs: KeyValuePair[],
         public override tokens: Token[] = [],
     ) {
         super('키-값 쌍 목록', tokens)
+        this.subnode = pairs
     }
 }
 
-export class DictLiteral extends Evaluable {
+export class DictLiteral extends Evaluable<KeyValuePair[]> {
     static override friendlyName = '사전'
 
     constructor(
-        private pairs: KeyValuePair[],
+        pairs: KeyValuePair[],
         public override tokens: Token[] = [],
     ) {
         super()
+        this.subnode = pairs
     }
 
     override validate(scope: Scope): YaksokError[] {
-        const errors = this.pairs.flatMap((pair) => pair.entry.validate(scope))
+        const errors = this.subnode.flatMap((pair) =>
+            pair.subnode.validate(scope),
+        )
 
         return errors
     }
@@ -47,9 +52,9 @@ export class DictLiteral extends Evaluable {
     override async execute(scope: Scope): Promise<ValueType> {
         const evaluatedEntries = new Map(
             await Promise.all(
-                this.pairs.map(
+                this.subnode.map(
                     async (pair) =>
-                        [pair.key, await pair.entry.execute(scope)] as const,
+                        [pair.key, await pair.subnode.execute(scope)] as const,
                 ),
             ),
         )

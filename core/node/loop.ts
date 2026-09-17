@@ -86,7 +86,7 @@ export class Loop extends Executable {
         const childErrors = this.body.validate(scope)
 
         const hasBodyError =
-            this.body.children.length === 0
+            this.body.subnode.length === 0
                 ? new LoopWithoutBodyError({
                       tokens: this.tokens,
                   })

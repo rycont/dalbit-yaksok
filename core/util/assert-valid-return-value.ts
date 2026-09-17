@@ -1,21 +1,20 @@
 import { FFIResultTypeIsNotForYaksokError } from '../error/ffi.ts'
-import type { Identifier } from '../node/base.ts'
-import type { FunctionInvoke } from '../node/function.ts'
+
+import { Token } from '../prepare/tokenize/token.ts'
 import { ValueType } from '../value/base.ts'
 
 export function assertValidReturnValue(
-    node: FunctionInvoke | Identifier,
     value: ValueType,
+    tokens: Token[],
+    name: string,
 ) {
     if (value instanceof ValueType) {
         return
     }
 
-    const ffiName = node.value
-
     throw new FFIResultTypeIsNotForYaksokError({
-        ffiName,
+        ffiName: name,
         value,
-        tokens: node.tokens,
+        tokens,
     })
 }

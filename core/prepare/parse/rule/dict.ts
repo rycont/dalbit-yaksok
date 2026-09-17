@@ -23,7 +23,7 @@ export const DICT_RULES: Rule[] = [
             },
         ],
         factory: (nodes, tokens) => {
-            const name = nodes[0].value as string
+            const name = (nodes[0] as Identifier).value as string
             const entry = nodes[2] as Evaluable
 
             return new KeyValuePair(name, entry, tokens)
@@ -144,7 +144,7 @@ export const DICT_RULES: Rule[] = [
         factory: (nodes, tokens) => {
             const left = nodes[0] as KeyValuePairSequence
             const right = nodes[1] as KeyValuePair
-            const pairs = [...left.pairs, right]
+            const pairs = [...left.subnode, right]
             return new KeyValuePairSequence(pairs, tokens)
         },
     },
@@ -164,7 +164,7 @@ export const DICT_RULES: Rule[] = [
         ],
         factory: (nodes, tokens) => {
             const sequence = nodes[1] as KeyValuePairSequence
-            return new DictLiteral(sequence.pairs, tokens)
+            return new DictLiteral(sequence.subnode, tokens)
         },
     },
     {

@@ -40,19 +40,20 @@ export class Sequence extends Node {
     }
 }
 
-export class ListLiteral extends Evaluable {
+export class ListLiteral extends Evaluable<Evaluable[]> {
     static override friendlyName = '목록'
 
     constructor(
-        public items: Evaluable[],
+        items: Evaluable[],
         public override tokens: Token[],
     ) {
         super()
+        this.subnode = items
     }
 
     override async execute(scope: Scope): Promise<ListValue> {
         const evaluatedItems = await Promise.all(
-            this.items.map((item) => item.execute(scope)),
+            this.subnode.map((item) => item.execute(scope)),
         )
 
         const value = new ListValue(evaluatedItems)
@@ -60,7 +61,7 @@ export class ListLiteral extends Evaluable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        const errors = this.items
+        const errors = this.subnode
             .flatMap((item) => item.validate(scope))
             .filter((error): error is YaksokError => !!error)
 
@@ -100,8 +101,8 @@ export class IndexFetch extends Evaluable {
     static override friendlyName = '사전에서 값 가져오기'
 
     constructor(
-        public list: Evaluable<IndexedValue | StringValue>,
-        public index: Evaluable<StringValue | NumberValue | ListValue>,
+        public list: Evaluable<unknown, IndexedValue | StringValue>,
+        public index: Evaluable<unknown, StringValue | NumberValue | ListValue>,
         public override tokens: Token[],
     ) {
         super()
@@ -220,18 +221,17 @@ export class IndexFetch extends Evaluable {
     }
 }
 
-export class SetToIndex extends Executable {
+export class SetToIndex extends Executable<Evaluable> {
     static override friendlyName = '목록에 값 넣기'
 
     constructor(
         public target: IndexFetch,
-        public value: Evaluable,
+        value: Evaluable,
         private readonly operator: string,
         public override tokens: Token[],
     ) {
         super()
-
-        this.position = target.position
+        this.subnode = value
     }
 
     override async execute(scope: Scope): Promise<void> {
@@ -240,7 +240,7 @@ export class SetToIndex extends Executable {
                 this.operator as keyof typeof assignerToOperatorMap
             ]
 
-        const operand = await this.value.execute(scope)
+        const operand = await this.subnode.execute(scope)
         let newValue = operand
 
         if (operatorNode) {
@@ -273,7 +273,7 @@ export class SetToIndex extends Executable {
     override validate(scope: Scope): YaksokError[] {
         const errors = [
             ...(this.target.validate(scope) || []),
-            ...(this.value.validate(scope) || []),
+            ...(this.subnode.validate(scope) || []),
         ]
 
         return errors

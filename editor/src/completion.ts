@@ -4,13 +4,24 @@ import {
     snippetCompletion,
 } from '@codemirror/autocomplete'
 import { validationResultStore } from './state.ts'
-import { Block, EOL, Evaluable, Identifier } from '@dalbit-yaksok/core'
+import {
+    Block,
+    EOL,
+    Evaluable,
+    Identifier,
+    PatternUnit,
+    SuggestableStatement,
+} from '@dalbit-yaksok/core'
+
+interface ValidStatements {
+    pattern: PatternUnit[]
+    statement: SuggestableStatement | true
+}
 
 export function completionProvider(
     context: CompletionContext,
 ): CompletionResult | null {
     const validationResult = context.state.field(validationResultStore)
-    console.log(validationResult)
 
     if (!validationResult) {
         return null
@@ -22,49 +33,54 @@ export function completionProvider(
         return null
     }
 
-    const statements =
-        validationResult.validatingScope.codeFile?.appliedRules?.filter(
-            (r) => typeof r.config?.statement === 'object',
-        )
+    const appliedRules = validationResult.validatingScope.codeFile?.appliedRules
 
-    if (!statements) {
+    if (!appliedRules) {
         return null
     }
 
-    const statementStrings = statements
-        .map((s) =>
-            s.pattern.map((p) => {
-                if (p.value) {
-                    return p.value
-                }
+    const validStatements: ValidStatements[] = appliedRules
+        .map((r) => ({ pattern: r.pattern, statement: r.config?.statement }))
+        .filter((r): r is ValidStatements => !!r.statement)
 
-                if (p.type === EOL) {
-                    return '\n'
-                }
+    const completionTemplates = validStatements.map(
+        ({ pattern, statement }) => ({
+            name: typeof statement === 'boolean' ? null : statement.name,
+            template: pattern
+                .map((p) => {
+                    if (p.value) {
+                        return p.value
+                    }
 
-                if (p.type === Evaluable) {
-                    return '${값}'
-                }
+                    if (p.type === EOL) {
+                        return '\n'
+                    }
 
-                if (p.type === Identifier) {
-                    return '${인자}'
-                }
+                    if (p.type === Evaluable) {
+                        return '${값}'
+                    }
 
-                if (p.type === Block) {
-                    return '\t${내용}'
-                }
+                    if (p.type === Identifier) {
+                        return '${인자}'
+                    }
 
-                return null
-            }),
-        )
-        .filter((s) => !s.includes(null))
-        .map((s) => s.join(' ').replace('\n ', '\n').replace(' \n', '\n'))
+                    if (p.type === Block) {
+                        return '\t${내용}'
+                    }
+
+                    return ''
+                })
+                .join(' ')
+                .replace('\n ', '\n')
+                .replace(' \n', '\n'),
+        }),
+    )
 
     return {
         from: word.from,
-        options: statementStrings.map((s) =>
-            snippetCompletion(s, {
-                label: s,
+        options: completionTemplates.map((s) =>
+            snippetCompletion(s.template, {
+                label: s.name || s.template,
             }),
         ),
         filter: false,

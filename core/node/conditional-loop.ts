@@ -11,20 +11,28 @@ import {
     LOOP_WARNING_THRESHOLD,
 } from '../util/loop-warning.ts'
 
-export class ConditionalLoop extends Executable {
+export class ConditionalLoop extends Executable<{
+    condition: Evaluable
+    body: Block
+}> {
     static override friendlyName = '반복 동안'
     static override accepts = [NodeCapability.LOOP_CONTROL]
 
     constructor(
-        public condition: Evaluable,
-        public body: Block,
+        condition: Evaluable,
+        body: Block,
         public override tokens: Token[],
     ) {
         super()
+
+        this.subnode = {
+            condition,
+            body,
+        }
     }
 
     override async execute(scope: Scope) {
-        if (this.body.tokens.length === 0) {
+        if (this.subnode.body.tokens.length === 0) {
             return
         }
 
@@ -33,7 +41,8 @@ export class ConditionalLoop extends Executable {
 
         try {
             while (true) {
-                const conditionValue = await this.condition.execute(scope)
+                const conditionValue =
+                    await this.subnode.condition.execute(scope)
                 if (!isTruthy(conditionValue)) {
                     break
                 }
@@ -51,11 +60,11 @@ export class ConditionalLoop extends Executable {
 
                 await this.onRunChild({
                     scope,
-                    childTokens: this.body.tokens,
+                    childTokens: this.subnode.body.tokens,
                     skipReport: true,
                 })
                 try {
-                    await this.body.execute(scope)
+                    await this.subnode.body.execute(scope)
                 } catch (e) {
                     if (e instanceof ContinueSignal) continue
                     throw e
@@ -69,11 +78,11 @@ export class ConditionalLoop extends Executable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        const childErrors = this.body.validate(scope)
-        const conditionErrors = this.condition.validate(scope)
+        const childErrors = this.subnode.body.validate(scope)
+        const conditionErrors = this.subnode.condition.validate(scope)
 
         const hasBodyError =
-            this.body.children.length === 0
+            this.subnode.body.subnode.length === 0
                 ? new LoopWithoutBodyError({
                       tokens: this.tokens,
                   })

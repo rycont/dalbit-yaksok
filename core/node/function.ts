@@ -219,7 +219,7 @@ export class FunctionInvoke extends Evaluable {
                 invokingArgument,
                 definedScope,
             )
-            assertValidReturnValue(this, returnValue)
+            assertValidReturnValue(returnValue, this.tokens, this.name)
 
             return returnValue
         } catch (error) {
@@ -248,10 +248,6 @@ export class FunctionInvoke extends Evaluable {
 
             throw error
         }
-    }
-
-    get value(): string {
-        return this.name
     }
 
     override validate(

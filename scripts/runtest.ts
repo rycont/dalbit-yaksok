@@ -1,18 +1,18 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
-import { QuickJS } from '@dalbit-yaksok/quickjs'
 
 const session = new YaksokSession({
     stderr: (message) => console.error(message),
 })
 
-await session.extend(new QuickJS())
-
 session.addModule(
     'main',
-    `번역(QuickJS), 길이
-***
-return 리스트.length
-***`,
-)
+    `
+약속, (음식)을/를 (사람)와/과 먹기
+    "맛있는 " + 음식 + ", " + 사람 + "의 입으로 모두 들어갑니다." 보여주기
 
+먹을_음식 = "유부초밥"
+먹일_사람 = "현수"
+
+먹을_음식을 먹일_사람과 먹기`,
+)
 await session.runModule('main')

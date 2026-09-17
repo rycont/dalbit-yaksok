@@ -6,7 +6,7 @@ import { Identifier, type Node } from '../../node/base.ts'
 import { Formula } from '../../node/calculation.ts'
 import { EOL } from '../../node/misc.ts'
 import { getTokensFromNodes } from '../../util/merge-tokens.ts'
-import { Rule, RULE_FLAGS } from './type.ts'
+import { Rule } from './type.ts'
 import { FunctionCallOperatorAmbiguityError } from '../../error/prepare.ts'
 import { RESERVED_WORDS } from '../../constant/reserved-words.ts'
 import { Ruleset } from './ruleset.ts'
@@ -97,8 +97,6 @@ export function reduce(nodes: Node[], rule: Rule) {
     const reduced = rule.factory(nodes, tokens)
     if (reduced === null) return null
 
-    reduced.position = nodes[0].position
-
     return reduced
 }
 
@@ -112,8 +110,8 @@ export function callParseRecursively(
         const token = parsedTokens[i]
 
         if (token instanceof Block) {
-            token.children = callParseRecursively(
-                token.children,
+            token.subnode = callParseRecursively(
+                token.subnode,
                 externalPatterns,
             )[0]
         }

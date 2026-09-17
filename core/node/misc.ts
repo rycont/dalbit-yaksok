@@ -33,40 +33,42 @@ export class Indent extends Node {
     }
 }
 
-export class Print extends Executable {
+export class Print extends Executable<Evaluable> {
     static override friendlyName = '보여주기'
 
     constructor(
-        public value: Evaluable,
+        value: Evaluable,
         public override tokens: Token[],
     ) {
         super()
+        this.subnode = value
     }
 
     override async execute(scope: Scope): Promise<void> {
         const printFunction = scope.codeFile?.session?.stdout ?? console.log
-        const evaluated = await this.value.execute(scope)
+        const evaluated = await this.subnode.execute(scope)
 
         printFunction(evaluated.toPrint())
     }
 
     override validate(scope: Scope): YaksokError[] {
-        return this.value.validate(scope)
+        return this.subnode.validate(scope)
     }
 }
 
-export class TypeOf extends Evaluable {
+export class TypeOf extends Evaluable<Evaluable> {
     static override friendlyName = '값 종류'
 
     constructor(
-        public value: Evaluable,
+        value: Evaluable,
         public override tokens: Token[],
     ) {
         super()
+        this.subnode = value
     }
 
     override async execute(scope: Scope): Promise<StringValue> {
-        const evaluated = await this.value.execute(scope)
+        const evaluated = await this.subnode.execute(scope)
 
         return new StringValue(
             (evaluated.constructor as typeof ValueType).friendlyName,
@@ -74,7 +76,7 @@ export class TypeOf extends Evaluable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        return this.value.validate(scope)
+        return this.subnode.validate(scope)
     }
 }
 

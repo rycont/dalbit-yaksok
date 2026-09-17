@@ -2,6 +2,7 @@ import { blue, bold, dim, YaksokError } from './common.ts'
 import { Token } from '../prepare/tokenize/token.ts'
 
 import type { Node } from '../node/base.ts'
+import type { Mention } from '../node/mention.ts'
 
 export class UnknownNodeError extends YaksokError {
     constructor(props: { tokens: Token[] }) {
@@ -41,7 +42,7 @@ export class NotExecutableNodeError extends YaksokError<{
 export class IncompleteMentionError extends YaksokError {
     constructor(props: {
         tokens: Token[]
-        resource: { node: Node; message?: string }
+        resource: { node: Mention; message?: string }
     }) {
         super(props)
 

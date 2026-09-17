@@ -8,29 +8,30 @@ import { NumberValue } from '../value/primitive.ts'
 import { assignerToOperatorMap } from './operator.ts'
 import { assertValidIdentifierName } from '../util/assert-valid-identifier-name.ts'
 
-export class SetVariable extends Evaluable {
+export class SetVariable extends Evaluable<Evaluable> {
     static override friendlyName = '변수 정하기'
     public readonly __kind = 'SetVariable' as const
 
     constructor(
         public name: string,
-        public value: Evaluable,
+        evaluator: Evaluable,
         public override tokens: Token[],
         public operator: string,
     ) {
         super()
         assertValidIdentifierName(name, tokens[0])
+        this.subnode = evaluator
     }
 
     override async execute(scope: Scope): Promise<ValueType> {
-        const { name, value } = this
+        const { name, subnode: evaluator } = this
 
         const operatorNode =
             assignerToOperatorMap[
                 this.operator as keyof typeof assignerToOperatorMap
             ]
 
-        const operand = await value.execute(scope)
+        const operand = await evaluator.execute(scope)
 
         let newValue = operand
 
@@ -62,7 +63,7 @@ export class SetVariable extends Evaluable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        const errors = this.value.validate(scope)
+        const errors = this.subnode.validate(scope)
         scope.setLocalVariable(this.name, new NumberValue(0))
 
         return errors

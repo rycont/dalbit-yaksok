@@ -13,7 +13,7 @@ export class Mention extends Node {
     static override friendlyName = '불러올 파일 이름'
 
     constructor(
-        public value: string,
+        public override value: string,
         public override tokens: Token[],
     ) {
         super()
@@ -37,15 +37,16 @@ export class Mention extends Node {
     }
 }
 
-export class MentionScope extends Evaluable {
+export class MentionScope extends Evaluable<FunctionInvoke | Identifier> {
     static override friendlyName = '불러오기'
 
     constructor(
         public fileName: string,
-        public child: FunctionInvoke | Identifier,
+        subnode: FunctionInvoke | Identifier,
         public override tokens: Token[],
     ) {
         super()
+        this.subnode = subnode
     }
 
     override async execute(scope: Scope): Promise<ValueType> {
@@ -56,17 +57,17 @@ export class MentionScope extends Evaluable {
         try {
             const moduleFileScope = await moduleCodeFile.run()
 
-            if (this.child instanceof FunctionInvoke) {
-                return await this.child.execute(moduleFileScope, scope)
+            if (this.subnode instanceof FunctionInvoke) {
+                return await this.subnode.execute(moduleFileScope, scope)
             }
 
-            if (this.child instanceof SubscribeEvent) {
-                this.child.callerScope = scope
-                await this.child.execute(moduleFileScope)
+            if (this.subnode instanceof SubscribeEvent) {
+                this.subnode.callerScope = scope
+                await this.subnode.execute(moduleFileScope)
                 return undefined as unknown as ValueType
             }
 
-            return await this.child.execute(moduleFileScope)
+            return await this.subnode.execute(moduleFileScope)
         } catch (error) {
             if (error instanceof YaksokError) {
                 error.codeFile = moduleCodeFile
@@ -85,7 +86,7 @@ export class MentionScope extends Evaluable {
     }
 
     override toPrint(): string {
-        return '@' + this.fileName + ' ' + this.child.toPrint()
+        return '@' + this.fileName + ' ' + this.subnode.toPrint()
     }
 
     override validate(scope: Scope): YaksokError[] {
@@ -122,7 +123,7 @@ export class MentionScope extends Evaluable {
         }
 
         const childErrors = mentionedModuleScope
-            ? this.child.validate(mentionedModuleScope, scope)
+            ? this.subnode.validate(mentionedModuleScope, scope)
             : []
         return [...moduleErrors, ...childErrors]
     }

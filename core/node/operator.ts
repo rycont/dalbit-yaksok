@@ -6,6 +6,7 @@ import {
     RangeStartMustBeIntegerError,
     RangeStartMustBeLessThanEndError,
     RangeStartMustBeNumberError,
+    YaksokError,
 } from '../error/index.ts'
 import { Token } from '../prepare/tokenize/token.ts'
 
@@ -22,9 +23,10 @@ import { cleanFloatingPointError } from '../util/float-precision.ts'
 
 export class PlusOperator extends Operator {
     static override friendlyName = '더하기(+)'
+    static sign = '+'
 
     constructor(public override tokens: Token[]) {
-        super(null, tokens)
+        super(PlusOperator.sign, tokens)
     }
 
     override toPrint(): string {
@@ -91,9 +93,10 @@ export class PlusOperator extends Operator {
 
 export class MinusOperator extends Operator {
     static override friendlyName = '빼기(-)'
+    static sign = '-'
 
     constructor(public override tokens: Token[]) {
-        super(null, tokens)
+        super(MinusOperator.sign, tokens)
     }
 
     override toPrint(): string {
@@ -128,9 +131,10 @@ export class MinusOperator extends Operator {
 
 export class MultiplyOperator extends Operator {
     static override friendlyName = '곱하기(*)'
+    static sign = '*'
 
     constructor(public override tokens: Token[]) {
-        super(null, tokens)
+        super(MultiplyOperator.sign, tokens)
     }
 
     override toPrint(): string {
@@ -222,9 +226,10 @@ export class MultiplyOperator extends Operator {
 
 export class DivideOperator extends Operator {
     static override friendlyName = '나누기(/)'
+    static sign = '/'
 
     constructor(public override tokens: Token[]) {
-        super(null, tokens)
+        super(DivideOperator.sign, tokens)
     }
 
     override toPrint(): string {
@@ -259,9 +264,10 @@ export class DivideOperator extends Operator {
 
 export class ModularOperator extends Operator {
     static override friendlyName = '나머지(%)'
+    static sign = '%'
 
     constructor(public override tokens: Token[]) {
-        super(null, tokens)
+        super(ModularOperator.sign, tokens)
     }
 
     override toPrint(): string {
@@ -296,9 +302,10 @@ export class ModularOperator extends Operator {
 
 export class PowerOperator extends Operator {
     static override friendlyName = '제곱(**)'
+    static sign = '**'
 
     constructor(public override tokens: Token[]) {
-        super(null, tokens)
+        super(PowerOperator.sign, tokens)
     }
 
     override toPrint(): string {
@@ -333,9 +340,10 @@ export class PowerOperator extends Operator {
 
 export class IntegerDivideOperator extends Operator {
     static override friendlyName = '정수 나누기(//)'
+    static sign = '//'
 
     constructor(public override tokens: Token[]) {
-        super(null, tokens)
+        super(IntegerDivideOperator.sign, tokens)
     }
 
     override toPrint(): string {
@@ -370,9 +378,10 @@ export class IntegerDivideOperator extends Operator {
 
 export class EqualOperator extends Operator {
     static override friendlyName = '같다(==)'
+    static sign = '=='
 
     constructor(public override tokens: Token[]) {
-        super(null, tokens)
+        super(EqualOperator.sign, tokens)
     }
 
     override toPrint(): string {
@@ -383,6 +392,22 @@ export class EqualOperator extends Operator {
         left: () => Promise<ValueType>,
         right: () => Promise<ValueType>,
     ): Promise<BooleanValue> {
+        try {
+            const result = await EqualOperator.isEqual(left, right)
+            return new BooleanValue(result)
+        } catch (e) {
+            if (e instanceof YaksokError && !e.tokens) {
+                e.tokens = this.tokens
+            }
+
+            throw e
+        }
+    }
+
+    public static async isEqual(
+        left: () => Promise<ValueType>,
+        right: () => Promise<ValueType>,
+    ): Promise<boolean> {
         const leftValue = await left()
         const rightValue = await right()
 
@@ -395,7 +420,7 @@ export class EqualOperator extends Operator {
             leftValue instanceof EmptyValue !== rightValue instanceof EmptyValue
 
         if (isBiasedEmpty) {
-            return new BooleanValue(false)
+            return false
         }
 
         if (!isSameType || !isBothPrimitive) {
@@ -404,16 +429,20 @@ export class EqualOperator extends Operator {
                     left: leftValue,
                     right: rightValue,
                 },
-                position: this.tokens?.[0].position,
             })
         }
 
-        return new BooleanValue(leftValue.value === rightValue.value)
+        return leftValue.value === rightValue.value
     }
 }
 
-export class NotEqualOperator extends EqualOperator {
+export class NotEqualOperator extends Operator {
     static override friendlyName = '같지 않다(!=)'
+    static sign = '!='
+
+    constructor(public override tokens: Token[]) {
+        super(NotEqualOperator.sign, tokens)
+    }
 
     override toPrint(): string {
         return '!='
@@ -423,15 +452,25 @@ export class NotEqualOperator extends EqualOperator {
         left: () => Promise<ValueType>,
         right: () => Promise<ValueType>,
     ): Promise<BooleanValue> {
-        return new BooleanValue(!(await super.call(left, right)).value)
+        try {
+            const result = await EqualOperator.isEqual(left, right)
+            return new BooleanValue(!result)
+        } catch (e) {
+            if (e instanceof YaksokError && !e.tokens) {
+                e.tokens = this.tokens
+            }
+
+            throw e
+        }
     }
 }
 
 export class AndOperator extends Operator {
     static override friendlyName = '이고'
+    static sign = '이고'
 
     constructor(public override tokens: Token[]) {
-        super(null, tokens)
+        super(AndOperator.sign, tokens)
     }
 
     override toPrint(): string {
@@ -474,9 +513,10 @@ export class AndOperator extends Operator {
 
 export class OrOperator extends Operator {
     static override friendlyName = '이거나(거나)'
+    static sign = '이거나(거나)'
 
     constructor(public override tokens: Token[]) {
-        super(null, tokens)
+        super(OrOperator.sign, tokens)
     }
 
     override toPrint(): string {
@@ -519,9 +559,10 @@ export class OrOperator extends Operator {
 
 export class GreaterThanOperator extends Operator {
     static override friendlyName = '크다(>)'
+    static sign = '>'
 
     constructor(public override tokens: Token[]) {
-        super(null, tokens)
+        super(GreaterThanOperator.sign, tokens)
     }
 
     override toPrint(): string {
@@ -554,9 +595,10 @@ export class GreaterThanOperator extends Operator {
 
 export class LessThanOperator extends Operator {
     static override friendlyName = '작다(<)'
+    static sign = '<'
 
     constructor(public override tokens: Token[]) {
-        super(null, tokens)
+        super(LessThanOperator.sign, tokens)
     }
 
     override toPrint(): string {
@@ -589,9 +631,10 @@ export class LessThanOperator extends Operator {
 
 export class GreaterThanOrEqualOperator extends Operator {
     static override friendlyName = '크거나 같다(>=)'
+    static sign = '>='
 
     constructor(public override tokens: Token[]) {
-        super(null, tokens)
+        super(GreaterThanOrEqualOperator.sign, tokens)
     }
 
     override toPrint(): string {
@@ -624,9 +667,10 @@ export class GreaterThanOrEqualOperator extends Operator {
 
 export class LessThanOrEqualOperator extends Operator {
     static override friendlyName = '작거나 같다(<=)'
+    static sign = '<='
 
     constructor(public override tokens: Token[]) {
-        super(null, tokens)
+        super(LessThanOrEqualOperator.sign, tokens)
     }
 
     override toPrint(): string {
@@ -659,13 +703,14 @@ export class LessThanOrEqualOperator extends Operator {
 
 export class RangeOperator extends Operator {
     static override friendlyName = '범위에서 목록 만들기(~)'
+    static sign = '~'
 
     constructor(public override tokens: Token[]) {
-        super(null, tokens)
+        super(RangeOperator.sign, tokens)
     }
 
     override toPrint(): string {
-        return '~'
+        return RangeOperator.sign
     }
 
     override async call(

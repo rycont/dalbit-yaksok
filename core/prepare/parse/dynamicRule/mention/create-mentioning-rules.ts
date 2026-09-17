@@ -34,7 +34,6 @@ function createFactory(fileName: string, rule: Rule) {
         const child = rule.factory(nodes.slice(1), childTokens) as
             | Identifier
             | FunctionInvoke
-        child.position = nodes[1].position
 
         return new MentionScope(fileName, child, tokens)
     }

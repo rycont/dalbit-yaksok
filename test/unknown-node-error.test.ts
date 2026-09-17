@@ -5,6 +5,7 @@ import {
     NotExecutableNodeError,
     UnknownNodeError,
 } from '../core/error/unknown-node.ts'
+import { Mention } from '../core/node/mention.ts'
 
 Deno.test('UnknownNodeError', () => {
     const tokens: Token[] = [
@@ -78,7 +79,7 @@ Deno.test('IncompleteMentionError', () => {
         },
     ]
 
-    const node = new Identifier('module', tokens)
+    const node = new Mention('module', tokens)
     const error = new IncompleteMentionError({
         tokens,
         resource: {

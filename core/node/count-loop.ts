@@ -11,16 +11,24 @@ import {
     LOOP_WARNING_THRESHOLD,
 } from '../util/loop-warning.ts'
 
-export class CountLoop extends Executable {
+export class CountLoop extends Executable<{
+    count: Evaluable
+    body: Block
+}> {
     static override friendlyName = '횟수 반복'
     static override accepts = [NodeCapability.LOOP_CONTROL]
 
     constructor(
-        public count: Evaluable,
-        public body: Block,
+        count: Evaluable,
+        body: Block,
         public override tokens: Token[],
     ) {
         super()
+
+        this.subnode = {
+            count,
+            body,
+        }
     }
 
     override async execute(_scope: Scope): Promise<void> {
@@ -29,11 +37,11 @@ export class CountLoop extends Executable {
             callerNode: this,
         })
 
-        const countValue = await this.count.execute(scope)
+        const countValue = await this.subnode.count.execute(scope)
 
         if (!(countValue instanceof NumberValue)) {
             throw new LoopCountIsNotNumberError({
-                tokens: this.count.tokens,
+                tokens: this.subnode.count.tokens,
                 value: countValue,
             })
         }
@@ -48,7 +56,7 @@ export class CountLoop extends Executable {
                     if (
                         !(await scope.codeFile?.session?.canRunNode(
                             scope,
-                            this.body,
+                            this.subnode.body,
                         ))
                     ) {
                         return
@@ -68,11 +76,11 @@ export class CountLoop extends Executable {
 
                 await this.onRunChild({
                     scope,
-                    childTokens: this.body.tokens,
+                    childTokens: this.subnode.body.tokens,
                     skipReport: true,
                 })
                 try {
-                    await this.body.execute(scope)
+                    await this.subnode.body.execute(scope)
                 } catch (e) {
                     if (e instanceof ContinueSignal) continue
                     throw e
@@ -84,6 +92,6 @@ export class CountLoop extends Executable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        return this.body.validate(scope)
+        return this.subnode.body.validate(scope)
     }
 }

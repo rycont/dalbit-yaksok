@@ -20,11 +20,7 @@ export function parseBracket(
 ) {
     for (const node of nodes) {
         if (node instanceof Block) {
-            node.children = parseBracket(
-                node.children,
-                dynamicRules,
-                optimistic,
-            )
+            node.subnode = parseBracket(node.subnode, dynamicRules, optimistic)
         }
     }
 

@@ -212,7 +212,7 @@ function createArgumentTupleParser(parameterElements: ParameterElement[]) {
 
         if (node instanceof ValueWithParenthesis) {
             return {
-                [parameterElements[0].name]: node.value,
+                [parameterElements[0].name]: node.subnode,
             }
         }
 
@@ -274,19 +274,20 @@ function extractParamsFromBlock(node: Node): Record<string, Evaluable> {
         return {}
     }
 
-    const kvSequence = node.children[0]
+    const kvSequence = node.subnode[0]
 
     if (!(kvSequence instanceof KeyValuePairSequence)) {
         if (kvSequence instanceof KeyValuePair) {
-            return { [kvSequence.key]: kvSequence.entry }
+            return { [kvSequence.key]: kvSequence.subnode }
         }
 
         return {}
     }
 
     const pairs = Object.fromEntries(
-        kvSequence.pairs.map((p) => [p.key, p.entry]),
+        kvSequence.subnode.map((p) => [p.key, p.subnode]),
     )
+
     return pairs
 }
 
@@ -389,7 +390,10 @@ export function parseParameterFromTemplate(
         ([tupleIndex, subParameters]) =>
             subParameters.map<[string, Evaluable]>((subName, i) => {
                 const subfetcher = new IndexFetch(
-                    matchedNodes[tupleIndex] as Evaluable<IndexedValue>,
+                    matchedNodes[tupleIndex] as Evaluable<
+                        unknown,
+                        IndexedValue
+                    >,
                     new NumberLiteral(i, matchedNodes[tupleIndex].tokens),
                     matchedNodes[tupleIndex].tokens,
                 )
@@ -412,7 +416,7 @@ export function parseParameterFromTemplate(
  * 예) `1~100 사이 무작위 값 가져오기` → isRangeFormula(Formula(1, ~, 100)) === true
  */
 function isRangeFormula(formula: Formula): boolean {
-    const { terms } = formula
+    const { subnode: terms } = formula
     return (
         terms.length === 3 &&
         terms[0] instanceof Evaluable &&

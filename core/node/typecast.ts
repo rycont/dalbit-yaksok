@@ -12,19 +12,20 @@ export type TypeCastTarget = '숫자' | '문자열' | '참거짓'
 const TRUTHY_STRINGS = new Set(['참', 'true', '맞음'])
 const FALSY_STRINGS = new Set(['거짓', 'false', '아님'])
 
-export class TypeCast extends Evaluable {
+export class TypeCast extends Evaluable<Evaluable> {
     static override friendlyName = '형변환'
 
     constructor(
-        public value: Evaluable,
+        value: Evaluable,
         public targetType: TypeCastTarget,
         public override tokens: Token[],
     ) {
         super()
+        this.subnode = value
     }
 
     override async execute(scope: Scope): Promise<ValueType> {
-        const evaluated = await this.value.execute(scope)
+        const evaluated = await this.subnode.execute(scope)
 
         switch (this.targetType) {
             case '숫자':
@@ -86,6 +87,6 @@ export class TypeCast extends Evaluable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        return this.value.validate(scope)
+        return this.subnode.validate(scope)
     }
 }

@@ -10,7 +10,7 @@ import { YaksokError } from '../error/common.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { Scope } from '../executer/scope.ts'
 
-export class NumberLiteral extends Evaluable {
+export class NumberLiteral extends Evaluable<unknown, NumberValue> {
     static override friendlyName = '숫자'
 
     constructor(

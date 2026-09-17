@@ -3,8 +3,7 @@ import {
     insertTab,
     temporarilySetTabFocusMode,
 } from '@codemirror/commands'
-import { drawSelection, EditorView, keymap, ViewPlugin } from '@codemirror/view'
-import { YaksokSession } from '@dalbit-yaksok/core'
+import { drawSelection, EditorView, keymap } from '@codemirror/view'
 import { GRID_SIZE } from './constant.ts'
 import { editorId } from './style.css.ts'
 import { EditorState } from '@codemirror/state'
@@ -48,30 +47,9 @@ const completionOnFocus = EditorView.domEventHandlers({
     },
 })
 
-// const yaksokParser = ViewPlugin.define((view) => ({
-//     docViewUpdate(update) {
-//         if (update.composing) {
-//             return
-//         }
-
-//         const session = new YaksokSession()
-
-//         const codeFile = session.addModule('main', update.state.doc.toString())
-//         const validationResult = codeFile.validate()
-
-//         view.dispatch({
-//             effects: [
-//                 codeParseDone.of(codeFile),
-//                 validationDone.of(validationResult),
-//             ],
-//         })
-
-//         return
-//     },
-// }))
-
 export function Editor(parent: HTMLElement): void {
     parent.id = editorId
+    parent.setAttribute('lang', 'ko')
     const view = new EditorView({
         parent,
         extensions: [

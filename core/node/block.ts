@@ -6,21 +6,19 @@ import { EOL } from './misc.ts'
 import type { Scope } from '../executer/scope.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 
-export class Block extends Executable {
+export class Block extends Executable<Node[]> {
     static override friendlyName = '코드 덩어리'
-
-    children: Node[]
 
     constructor(
         content: Node[],
         public override tokens: Token[],
     ) {
         super()
-        this.children = content
+        this.subnode = content
     }
 
     override async execute(scope: Scope): Promise<void> {
-        for (const child of this.children) {
+        for (const child of this.subnode) {
             if (child instanceof Executable) {
                 if (scope.codeFile?.session?.canRunNode) {
                     if (
@@ -52,7 +50,7 @@ export class Block extends Executable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        const childErrors = this.children
+        const childErrors = this.subnode
             .flatMap((child) => child.validate(scope))
             .filter((error) => error !== null)
 

@@ -28,37 +28,41 @@ import {
     NotBooleanTypeError,
 } from '../error/calculation.ts'
 
-export class ValueWithParenthesis extends Evaluable {
+export class ValueWithParenthesis extends Evaluable<Evaluable> {
     static override friendlyName = '괄호로 묶인 값'
 
     constructor(
-        public value: Evaluable,
+        value: Evaluable,
         public override tokens: Token[],
     ) {
         super()
+
+        this.subnode = value
     }
 
     override async execute(scope: Scope): Promise<ValueType> {
-        return await this.value.execute(scope)
+        return await this.subnode.execute(scope)
     }
 
     override validate(scope: Scope): YaksokError[] {
-        return this.value.validate(scope)
+        return this.subnode.validate(scope)
     }
 }
 
-export class NotExpression extends Evaluable {
+export class NotExpression extends Evaluable<Evaluable> {
     static override friendlyName = '부정'
 
     constructor(
-        public value: Evaluable,
+        value: Evaluable,
         public override tokens: Token[],
     ) {
         super()
+
+        this.subnode = value
     }
 
     override async execute(scope: Scope): Promise<BooleanValue> {
-        const value = await this.value.execute(scope)
+        const value = await this.subnode.execute(scope)
 
         if (!(value instanceof BooleanValue)) {
             throw new NotBooleanTypeError({
@@ -73,18 +77,19 @@ export class NotExpression extends Evaluable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        return this.value.validate(scope)
+        return this.subnode.validate(scope)
     }
 }
 
-export class Formula extends Evaluable {
+export class Formula extends Evaluable<(Evaluable | Operator)[]> {
     static override friendlyName = '계산식'
 
     constructor(
-        public terms: (Evaluable | Operator)[],
+        terms: (Evaluable | Operator)[],
         public override tokens: Token[],
     ) {
         super()
+        this.subnode = terms
     }
 
     override async execute(scope: Scope): Promise<ValueType> {
@@ -148,7 +153,7 @@ export class Formula extends Evaluable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        return this.terms
+        return this.subnode
             .filter((term) => term instanceof Evaluable)
             .flatMap((term) => (term as Evaluable).validate(scope))
     }
@@ -157,7 +162,7 @@ export class Formula extends Evaluable {
         const outputQueue: (Evaluable | Operator)[] = []
         const operatorStack: Operator[] = []
 
-        for (const term of this.terms) {
+        for (const term of this.subnode) {
             if (term instanceof Operator) {
                 while (
                     operatorStack.length > 0 &&

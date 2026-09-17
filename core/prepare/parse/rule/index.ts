@@ -205,8 +205,14 @@ export const BASIC_RULES: Rule[][] = [
                 },
             ],
             factory: (nodes, tokens) => {
-                const target = nodes[0] as Evaluable<IndexedValue | StringValue>
-                const index = nodes[2] as Evaluable<StringValue | NumberValue>
+                const target = nodes[0] as Evaluable<
+                    unknown,
+                    IndexedValue | StringValue
+                >
+                const index = nodes[2] as Evaluable<
+                    unknown,
+                    StringValue | NumberValue
+                >
 
                 return new IndexFetch(target, index, tokens)
             },
@@ -287,7 +293,6 @@ export const BASIC_RULES: Rule[][] = [
                     nodes[1] as Evaluable,
                     tokens,
                 )
-                newNode.position = nodes[0].position
 
                 return newNode
             },
@@ -329,7 +334,10 @@ export const BASIC_RULES: Rule[][] = [
                 const right = nodes[2] as Evaluable
 
                 if (left instanceof Formula) {
-                    return new Formula([...left.terms, operator, right], tokens)
+                    return new Formula(
+                        [...left.subnode, operator, right],
+                        tokens,
+                    )
                 }
 
                 return new Formula([left, operator, right], tokens)
