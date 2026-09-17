@@ -1,4 +1,5 @@
-import type { Evaluable, Expression, Operator } from '../node/base.ts'
+import type { Scope } from '../executer/scope.ts'
+import type { Evaluable, Expression, Node, Operator } from '../node/base.ts'
 import { Token, TOKEN_TYPE_TO_TEXT } from '../prepare/tokenize/token.ts'
 import type { CodeFile } from '../type/code-file.ts'
 import type { Position } from '../type/position.ts'
@@ -10,10 +11,25 @@ export class YaksokError<T = unknown> extends Error {
     resource: T
     codeFile?: CodeFile
     child?: YaksokError
+    scope?: Scope
+    node?: Node
 
-    constructor(props: { position?: Position; tokens?: Token[] })
-    constructor(props: { position?: Position; resource: T; tokens?: Token[] })
     constructor(props: {
+        node?: Node
+        scope?: Scope
+        position?: Position
+        tokens?: Token[]
+    })
+    constructor(props: {
+        node?: Node
+        scope?: Scope
+        position?: Position
+        resource: T
+        tokens?: Token[]
+    })
+    constructor(props: {
+        node?: Node
+        scope?: Scope
         position?: Position
         resource?: T
         tokens?: Token[]
@@ -23,6 +39,8 @@ export class YaksokError<T = unknown> extends Error {
         this.position = props.position
         this.resource = (props.resource ?? null) as T
         this.tokens = props.tokens
+        this.scope = props.scope
+        this.node = props.node
     }
 }
 

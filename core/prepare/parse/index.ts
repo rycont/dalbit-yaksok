@@ -1,6 +1,5 @@
 import { YaksokError } from '../../error/common.ts'
 import { Block } from '../../node/block.ts'
-import { getTokensFromNodes } from '../../util/merge-tokens.ts'
 import { convertTokensToNodes } from '../lex/convert-tokens-to-nodes.ts'
 import { createDynamicRule } from './dynamicRule/index.ts'
 import { parseIndent } from './parse-indent.ts'
@@ -11,7 +10,6 @@ import { SetVariable } from '../../node/variable.ts'
 import type { CodeFile } from '../../type/code-file.ts'
 import { parseBracket } from './parse-bracket.ts'
 import type { Rule } from './type.ts'
-import { splitVariableName } from './split-variable-name.ts'
 import { ADVANCED_RULES, BASIC_RULES } from './rule/index.ts'
 
 /**
@@ -38,29 +36,6 @@ export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
             ? indentedNodes
             : parseBracket(indentedNodes, dynamicRules, optimistic)
 
-        // 조사 분리 (lookahead) — base context의 변수명도 포함
-        const baseContextIdentifiers = (
-            codeFile.session?.baseContexts || []
-        ).flatMap((ctx) => {
-            // base context는 이미 파싱/실행 완료된 CodeFile이므로 실패 가능성이 낮으나,
-            // 오류 시 조사 분리를 건너뛰는 것이 파싱 전체 실패보다 나은 선택
-            try {
-                return ctx.exportedRules.flatMap((r) => {
-                    if (
-                        r.config?.exported &&
-                        r.pattern?.length === 1 &&
-                        r.pattern[0].type === Identifier &&
-                        typeof r.pattern[0].value === 'string'
-                    ) {
-                        return [r.pattern[0].value]
-                    }
-                    return []
-                })
-            } catch {
-                return []
-            }
-        })
-
         const computedRules = [
             dynamicRules.flat().flat(),
             localRules.flat().flat(),
@@ -68,22 +43,12 @@ export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
             BASIC_RULES.flat(),
         ].flat()
 
-        const variableNameSplitNodes = splitVariableName(
-            priorityParsedNodes,
-            baseContextIdentifiers,
-            computedRules,
-        )
-
-        // 중요: 조사 분리 후에 노드들의 토큰 정보를 기반으로 전체 토큰 배열을 갱신합니다.
-        const updatedTokens = getTokensFromNodes(variableNameSplitNodes)
-        codeFile.tokens = updatedTokens
-
         const childNodes = callParseRecursively(
-            variableNameSplitNodes,
+            priorityParsedNodes,
             dynamicRules,
         )
 
-        const ast = new Block(childNodes, updatedTokens)
+        const ast = new Block(childNodes, codeFile.tokens)
 
         const exportedDynamicRules = [
             ...localRules[0].flat(),
@@ -105,6 +70,7 @@ export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
                 error.codeFile = codeFile
             }
         }
+
         throw error
     }
 }

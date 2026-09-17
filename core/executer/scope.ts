@@ -135,6 +135,7 @@ export class Scope {
             resource: {
                 name,
             },
+            scope: this,
         })
 
         errorInstance.codeFile = this.codeFile
@@ -181,6 +182,7 @@ export class Scope {
             resource: {
                 name,
             },
+            scope: this,
         })
 
         errorInstance.codeFile = this.codeFile

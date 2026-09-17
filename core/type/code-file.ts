@@ -13,6 +13,8 @@ import type { Token } from '../prepare/tokenize/token.ts'
 import type { YaksokSession } from '../session/session.ts'
 import { postprocessErrors } from '../error/postprocess.ts'
 import { Node } from '../node/base.ts'
+import { NotDefinedIdentifierError } from '../error/index.ts'
+import { inferTokenSplitPointFromErrors } from '../prepare/lex/infer-token-splitpoint.ts'
 
 /**
  * `달빛 약속` 소스코드 파일 하나를 나타내는 클래스입니다.
@@ -206,7 +208,53 @@ export class CodeFile {
      * 이 메서드는 `ast`나 `exportedRules` getter에서 필요할 때 호출됩니다.
      */
     private parse() {
-        const parseResult = parse(this)
+        const seenErrorFingerprint = new Set<string>()
+        const seenSplitpointFingerprint = new Set<string>()
+
+        let parseResult: ReturnType<typeof parse>
+
+        while (true) {
+            parseResult = parse(this)
+
+            const validatingScope = new Scope({
+                codeFile: this,
+            })
+
+            const missingIdentifierErrors = parseResult.ast
+                .validate(validatingScope)
+                .filter((e) => e instanceof NotDefinedIdentifierError)
+
+            if (missingIdentifierErrors.length === 0) {
+                break
+            }
+
+            const missingIdentifierFingerprint = missingIdentifierErrors
+                .map((e) => e.resource.name)
+                .join('|')
+
+            if (seenErrorFingerprint.has(missingIdentifierFingerprint)) {
+                break
+            }
+
+            seenErrorFingerprint.add(missingIdentifierFingerprint)
+
+            const inferredTokenSplitPoint = inferTokenSplitPointFromErrors(
+                missingIdentifierErrors,
+            )
+
+            const splitpointFingerprint = inferredTokenSplitPoint.join('|')
+
+            if (seenSplitpointFingerprint.has(splitpointFingerprint)) {
+                break
+            }
+
+            seenSplitpointFingerprint.add(splitpointFingerprint)
+        }
+
+        if (!parseResult) {
+            return
+        }
+
         this.parsed = parseResult.ast
         this.exportedRulesCache = parseResult.exportedRules
         this.appliedRules = parseResult.computedRules

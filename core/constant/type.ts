@@ -3,6 +3,8 @@ import { ErrorGroups } from '../error/validation.ts'
 import { CodeFile } from '../type/code-file.ts'
 import { ValueType } from '../value/base.ts'
 
+export type Brand<K, T> = K & { __brand: T }
+
 export interface ParameterElement {
     name: string
     required: boolean
