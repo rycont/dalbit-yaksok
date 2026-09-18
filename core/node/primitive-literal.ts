@@ -40,11 +40,10 @@ export class NumberLiteral extends Evaluable<unknown, NumberValue> {
 export class StringLiteral extends Evaluable {
     static override friendlyName = '문자'
 
-    constructor(
-        private content: string,
-        public override tokens: Token[],
-    ) {
+    constructor(content: string, tokens: Token[]) {
         super()
+
+        parseTemplate
     }
 
     override execute(_scope: Scope): Promise<StringValue> {
@@ -80,61 +79,6 @@ export class BooleanLiteral extends Evaluable {
 
     override validate(): YaksokError[] {
         return []
-    }
-}
-
-export class TemplateStringPart extends Node {
-    static override friendlyName = '템플릿 문자열 부분'
-
-    constructor(
-        public content: string,
-        public override tokens: Token[],
-    ) {
-        super()
-    }
-
-    override toPrint(): string {
-        return this.content
-    }
-
-    override validate(): YaksokError[] {
-        return []
-    }
-}
-
-export class TemplateLiteral extends Evaluable {
-    static override friendlyName = '템플릿 문자열'
-
-    constructor(
-        public parts: (TemplateStringPart | Evaluable)[],
-        public override tokens: Token[],
-    ) {
-        super()
-    }
-
-    override async execute(scope: Scope): Promise<StringValue> {
-        const results: string[] = []
-
-        for (const part of this.parts) {
-            if (part instanceof TemplateStringPart) {
-                results.push(part.content)
-            } else {
-                const value = await part.execute(scope)
-                results.push(value.toPrint())
-            }
-        }
-
-        return new StringValue(results.join(''))
-    }
-
-    override toPrint(): string {
-        return this.parts.map((p) => p.toPrint()).join('')
-    }
-
-    override validate(scope: Scope): YaksokError[] {
-        return this.parts
-            .filter((part) => part instanceof Evaluable)
-            .flatMap((part) => (part as Evaluable).validate(scope))
     }
 }
 

@@ -46,11 +46,7 @@ import {
 } from '../../../node/index.ts'
 import type { TypeCastTarget } from '../../../node/typecast.ts'
 import { NotEqualOperator } from '../../../node/operator.ts'
-import {
-    EmptyLiteral,
-    TemplateLiteral,
-    TemplateStringPart,
-} from '../../../node/primitive-literal.ts'
+import { EmptyLiteral } from '../../../node/primitive-literal.ts'
 import { ReturnStatement } from '../../../node/return.ts'
 import { IndexedValue } from '../../../value/indexed.ts'
 import { NumberValue, StringValue } from '../../../value/primitive.ts'
@@ -67,40 +63,6 @@ export type { Rule }
 
 export const BASIC_RULES: Rule[][] = [
     [
-        // Template literal rules - must be processed early
-        {
-            pattern: [
-                { type: TemplateStringPart },
-                { type: Expression, value: '{' },
-                { type: Evaluable },
-                { type: Expression, value: '}' },
-                { type: TemplateStringPart },
-            ],
-            factory: (nodes, tokens) => {
-                const startPart = nodes[0] as TemplateStringPart
-                const expr = nodes[2] as Evaluable
-                const endPart = nodes[4] as TemplateStringPart
-                return new TemplateLiteral([startPart, expr, endPart], tokens)
-            },
-        },
-        {
-            pattern: [
-                { type: TemplateLiteral },
-                { type: Expression, value: '{' },
-                { type: Evaluable },
-                { type: Expression, value: '}' },
-                { type: TemplateStringPart },
-            ],
-            factory: (nodes, tokens) => {
-                const template = nodes[0] as TemplateLiteral
-                const expr = nodes[2] as Evaluable
-                const endPart = nodes[4] as TemplateStringPart
-                return new TemplateLiteral(
-                    [...template.parts, expr, endPart],
-                    tokens,
-                )
-            },
-        },
         {
             pattern: [
                 {

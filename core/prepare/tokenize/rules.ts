@@ -124,6 +124,7 @@ export const RULES: {
                 } else {
                     spaces++
                 }
+
                 i++
             }
             if (i > index) {
@@ -210,31 +211,6 @@ export const RULES: {
 
             if (bestMatch) {
                 return { value: bestMatch, newIndex: index + bestMatch.length }
-            }
-
-            return null
-        },
-    },
-    {
-        type: TOKEN_TYPE.REGEX,
-        starter: ['r'],
-        parse: (code, index) => {
-            if (code[index] !== 'r') return null
-            if (code[index + 1] !== '"' && code[index + 1] !== "'") return null
-
-            const quote = code[index + 1]
-            let i = index + 2
-            while (i < code.length && code[i] !== quote) {
-                if (code[i] === '\\' && i + 1 < code.length) {
-                    i += 2
-                    continue
-                }
-                i++
-            }
-
-            if (i < code.length) {
-                const newIndex = i + 1
-                return { value: code.substring(index, newIndex), newIndex }
             }
 
             return null
@@ -346,31 +322,6 @@ export const RULES: {
                 i++
             }
             return { value: code.substring(index, i), newIndex: i }
-        },
-    },
-    {
-        type: TOKEN_TYPE.REGEX,
-        starter: ['r'],
-        parse: (code, index) => {
-            if (code[index] !== 'r') return null
-            if (code[index + 1] !== '"' && code[index + 1] !== "'") return null
-
-            const quote = code[index + 1]
-            let i = index + 2
-            while (i < code.length && code[i] !== quote) {
-                if (code[i] === '\\' && i + 1 < code.length) {
-                    i += 2
-                    continue
-                }
-                i++
-            }
-
-            if (i < code.length) {
-                const newIndex = i + 1
-                return { value: code.substring(index, newIndex), newIndex }
-            }
-
-            return null
         },
     },
     {

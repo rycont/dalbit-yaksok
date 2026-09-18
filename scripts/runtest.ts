@@ -3,38 +3,7 @@ import { YaksokSession } from '@dalbit-yaksok/core'
 const session = new YaksokSession()
 
 // Main uses @mention with the base context variable + postposition
-session.addModule(
-    'main',
-    `약속, 이동하기(가로, 세로)
-    "{가로},{세로}" 보여주기
-
-이동하기(1, 2)
-이동하기 (3, 4)
-이동하기 [5, 6]
-
-이동하기
-    가로: 7
-    세로: 8
-
-이동하기
-    세로: 10
-    가로: 9
-
-위치 = (11, 12)
-이동하기 위치
-
-약속, 인사하기(이름)
-    이름 보여주기
-
-인사하기("곶감")
-인사하기 "하랑"
-값 = "설기"
-인사하기 값
-
-인사하기
-    이름: "누룽지"
-`,
-)
+session.addModule('main', `"누렁아 {10} 먹자" 보여주기`)
 
 await session.runModule('main')
 
