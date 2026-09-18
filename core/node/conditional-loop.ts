@@ -6,10 +6,6 @@ import type { Scope } from '../executer/scope.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { Block } from './block.ts'
 import { isTruthy } from '../executer/internal/isTruthy.ts'
-import {
-    emitLoopIterationWarning,
-    LOOP_WARNING_THRESHOLD,
-} from '../util/loop-warning.ts'
 
 export class ConditionalLoop extends Executable<{
     condition: Evaluable
@@ -36,26 +32,12 @@ export class ConditionalLoop extends Executable<{
             return
         }
 
-        let iterationCount = 0
-        let warned = false
-
         try {
             while (true) {
                 const conditionValue =
                     await this.subnode.condition.execute(scope)
                 if (!isTruthy(conditionValue)) {
                     break
-                }
-
-                iterationCount += 1
-
-                if (!warned && iterationCount > LOOP_WARNING_THRESHOLD) {
-                    emitLoopIterationWarning({
-                        scope,
-                        tokens: this.tokens,
-                        iterations: iterationCount,
-                    })
-                    warned = true
                 }
 
                 await this.onRunChild({

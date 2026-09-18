@@ -1,31 +1,30 @@
 import { createLocalDynamicRules } from './functions/index.ts'
 import { getRulesFromMentioningFile } from './mention/index.ts'
 
-import type { CodeFile } from '../../../type/code-file.ts'
 import type { Rule } from '../type.ts'
+import { Token, YaksokSession } from '@dalbit-yaksok/core'
 
 export interface DynamicRulePattern {
     suffix: string
     next: string | 'parameter' | 'EOL' | null
 }
 
-export interface DynamicRuleSet {
-    rules: [Rule[][], Rule[][]]
-    localRules: [Rule[][], Rule[][]]
-}
+export function createDynamicRule(
+    tokens: Token[],
+    session: YaksokSession,
+): [Rule[][], Rule[][]] {
+    const localRules = createLocalDynamicRules(tokens)
 
-export function createDynamicRule(codeFile: CodeFile): DynamicRuleSet {
-    const localRules = createLocalDynamicRules(codeFile.tokens)
-
-    const mentioningRules = getRulesFromMentioningFile(codeFile)
+    const mentioningRules = getRulesFromMentioningFile(tokens, session)
     const baseContextRules =
-        codeFile.session?.baseContexts.flatMap(
-            (context) =>
-                context.appliedRules?.filter((r) => r.config?.exported) || [],
+        session.baseContexts.flatMap(
+            (baseFile) =>
+                baseFile.appliedRules?.filter((r) => r.config?.exportedScope) ||
+                [],
         ) || []
 
     const extensionRules =
-        codeFile.session?.extensions.flatMap(
+        session.extensions.flatMap(
             (extension) => extension.manifest.parsingRules || [],
         ) || []
 
@@ -34,8 +33,5 @@ export function createDynamicRule(codeFile: CodeFile): DynamicRuleSet {
         [...localRules[1], mentioningRules, baseContextRules],
     ]
 
-    return {
-        rules,
-        localRules,
-    }
+    return rules
 }

@@ -9,7 +9,7 @@ export function getExportedRules(session: YaksokSession, fileName: string) {
     const codeFile = session.getCodeFile(fileName)
     try {
         const rules =
-            codeFile.appliedRules?.filter((r) => r.config?.exported) || []
+            codeFile.appliedRules?.filter((r) => r.config?.exportedScope) || []
 
         const mentioningRules = rules.map((rule: Rule) =>
             createMentioningRule(fileName, rule),

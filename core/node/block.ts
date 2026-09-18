@@ -20,17 +20,6 @@ export class Block extends Executable<Node[]> {
     override async execute(scope: Scope): Promise<void> {
         for (const child of this.subnode) {
             if (child instanceof Executable) {
-                if (scope.codeFile?.session?.canRunNode) {
-                    if (
-                        !(await scope.codeFile?.session?.canRunNode(
-                            scope,
-                            child,
-                        ))
-                    ) {
-                        return
-                    }
-                }
-
                 await this.onRunChild({
                     childTokens: child.tokens,
                     scope,

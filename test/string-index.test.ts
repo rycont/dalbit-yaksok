@@ -15,7 +15,7 @@ Deno.test('String allows indexing by number', async () => {
     const result = await yaksok(`결과 = '달빛'[1]`)
     assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
 
-    const scope = result.codeFile.ranScope!
+    const { scope } = result
     const stored = scope.getVariable('결과')
     assertInstanceOf(stored, StringValue)
     assertEquals(stored.value, '빛')
@@ -52,7 +52,7 @@ Deno.test('String variables can be indexed', async () => {
     const result = await yaksok(`대상 = '달빛'\n결과 = 대상[1]`)
     assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
 
-    const scope = result.codeFile.ranScope!
+    const { scope } = result
     const stored = scope.getVariable('결과')
     assertInstanceOf(stored, StringValue)
     assertEquals(stored.value, '빛')
@@ -62,7 +62,7 @@ Deno.test('List indexing supports multiple indexes', async () => {
     const result = await yaksok(`결과 = ['가', '나', '다'][[0, 2]]`)
     assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
 
-    const scope = result.codeFile.ranScope!
+    const { scope } = result
     const stored = scope.getVariable('결과')
     assertInstanceOf(stored, ListValue)
 

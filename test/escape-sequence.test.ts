@@ -11,7 +11,7 @@ Deno.test('Escape sequence: double quote inside string', async () => {
 
     assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
 
-    const scope = result.codeFile.ranScope!
+    const { scope } = result
     const stored = scope.getVariable('결과')
     assertInstanceOf(stored, StringValue)
     assertEquals(stored.value, '안녕"!')
@@ -25,7 +25,7 @@ Deno.test('Escape sequence: single quote inside string', async () => {
 
     assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
 
-    const scope = result.codeFile.ranScope!
+    const { scope } = result
     const stored = scope.getVariable('결과')
     assertInstanceOf(stored, StringValue)
     assertEquals(stored.value, "작은' 따옴표")
@@ -39,7 +39,7 @@ Deno.test('Escape sequence: backslash', async () => {
 
     assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
 
-    const scope = result.codeFile.ranScope!
+    const { scope } = result
     const stored = scope.getVariable('결과')
     assertInstanceOf(stored, StringValue)
     assertEquals(stored.value, '경로\\파일')
@@ -53,7 +53,7 @@ Deno.test('Escape sequence: newline', async () => {
 
     assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
 
-    const scope = result.codeFile.ranScope!
+    const { scope } = result
     const stored = scope.getVariable('결과')
     assertInstanceOf(stored, StringValue)
     assertEquals(stored.value, '첫줄\n둘째줄')
@@ -67,7 +67,7 @@ Deno.test('Escape sequence: tab', async () => {
 
     assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
 
-    const scope = result.codeFile.ranScope!
+    const { scope } = result
     const stored = scope.getVariable('결과')
     assertInstanceOf(stored, StringValue)
     assertEquals(stored.value, '탭\t문자')
@@ -81,7 +81,7 @@ Deno.test('Escape sequence: carriage return', async () => {
 
     assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
 
-    const scope = result.codeFile.ranScope!
+    const { scope } = result
     const stored = scope.getVariable('결과')
     assertInstanceOf(stored, StringValue)
     assertEquals(stored.value, '캐리지\r리턴')
@@ -95,7 +95,7 @@ Deno.test('Escape sequence: multiple escapes in one string', async () => {
 
     assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
 
-    const scope = result.codeFile.ranScope!
+    const { scope } = result
     const stored = scope.getVariable('결과')
     assertInstanceOf(stored, StringValue)
     assertEquals(stored.value, 'He said "Hello", then\nleft.')
@@ -109,7 +109,7 @@ Deno.test('Escape sequence: unknown escape is preserved', async () => {
 
     assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
 
-    const scope = result.codeFile.ranScope!
+    const { scope } = result
     const stored = scope.getVariable('결과')
     assertInstanceOf(stored, StringValue)
     assertEquals(stored.value, '알 수 없는 \\x 이스케이프')

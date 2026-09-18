@@ -205,7 +205,7 @@ Deno.test('Yaksok Passed List<string>', async () => {
     const result = results.get('main')!
 
     assert(result.reason === 'finish')
-    const 내_점수 = result.codeFile.ranScope!.getVariable('내_점수')
+    const 내_점수 = result.scope!.getVariable('내_점수')
     assertInstanceOf(내_점수, ListValue)
     assertEquals(내_점수.toPrint(), '[80, 90]')
 

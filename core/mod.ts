@@ -40,4 +40,3 @@ export {
     RULE_FLAGS,
 } from './prepare/parse/type.ts'
 export { dalbitToJS } from './util/converter.ts'
-export { getAutocomplete } from './util/get-autocomplete.ts'

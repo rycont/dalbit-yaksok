@@ -1,23 +1,16 @@
 import {
     Brand,
-    CodeFile,
     NotDefinedIdentifierError,
     PatternUnit,
-    Rule,
 } from '@dalbit-yaksok/core'
 import { Token } from '../tokenize/token.ts'
 
 export type Splitpoint = Brand<number, 'Splitpoint'>
 
 export function inferTokenSplitpointsFromErrors(
-    codeFile: CodeFile,
+    code: string,
     missingIdentifierErrors: NotDefinedIdentifierError[],
-    appliedRules: Rule[],
 ): Splitpoint[] {
-    const patternsWithSuffix = appliedRules
-        .map((r) => r.pattern)
-        .filter((p) => p.some((u) => u.isSuffix))
-
     const errorsWithPosition = missingIdentifierErrors.filter(
         (e) => e.tokens?.length === 1 && e.scope,
     )
@@ -39,18 +32,24 @@ export function inferTokenSplitpointsFromErrors(
             return []
         }
 
-        const scopeNames = new Set(errors[0].scope!.getAccessibleNames())
+        const scope = errors[0].scope!
+
+        const scopeNames = new Set(scope.getAccessibleNames())
+        const scopeRules = scope
+            .getDynamicRules()
+            .map((r) => r.pattern)
+            .filter((p) => p.some((u) => u.isSuffix))
 
         const inferredSplitpointByLine = inferSplitpointByLine(
             errors,
-            patternsWithSuffix,
+            scopeRules,
             scopeNames,
         )
 
         return inferredSplitpointByLine
     })
 
-    const lines = codeFile.text.split('\n').reduce(
+    const lines = code.split('\n').reduce(
         (acc, current) => {
             return acc.concat(acc[acc.length - 1] + current.length + 1)
         },

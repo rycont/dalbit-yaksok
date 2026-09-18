@@ -1,5 +1,4 @@
 import { assert, assertIsError } from '@std/assert'
-import { YaksokError } from '../../core/error/common.ts'
 import {
     IndexKeyNotFoundError,
     InvalidTypeForOperatorError,
@@ -13,12 +12,8 @@ import {
     RangeStartMustBeNumberError,
     TargetIsNotIndexedValueError,
 } from '../../core/error/index.ts'
-import {
-    LoopCountIsNotNumberError,
-    NoBreakOrReturnError,
-} from '../../core/error/loop.ts'
+import { LoopCountIsNotNumberError } from '../../core/error/loop.ts'
 import { yaksok } from '../../core/mod.ts'
-import { YaksokSession } from '../../core/session/session.ts'
 
 Deno.test('Error raised in loop', async () => {
     const result = await yaksok(`
@@ -175,41 +170,6 @@ Deno.test('List index must bigger than 0', async () => {
         `Expected an error, but got ${result.reason}`,
     )
     assertIsError(result.error, ListIndexMustBeGreaterOrEqualThan0Error)
-})
-
-Deno.test('No break or return in loop', async () => {
-    const result = await yaksok(`반복
-    1 + 1 보여주기`)
-    assert(
-        result.reason === 'validation',
-        `Expected an validation, but got ${result.reason}`,
-    )
-    assertIsError(result.errors.get('main')![0], NoBreakOrReturnError)
-})
-
-Deno.test('Skip validating break or return in loop', async () => {
-    const code = `
-순서 = 0
-반복
-    순서 = 순서 + 1
-    만약 순서 == 3 이면
-        [] / 2 보여주기`
-    const session = new YaksokSession({
-        flags: {
-            'skip-validate-break-or-return-in-loop': true,
-        },
-    })
-
-    session.addModule('main', code)
-    const results = await session.runModule('main')
-    const result = results.get('main')!
-
-    assert(
-        result.reason === 'error',
-        `Expected an error, but got ${result.reason}`,
-    )
-    assertIsError(result.error, YaksokError)
-    assertIsError(result.error, InvalidTypeForOperatorError)
 })
 
 Deno.test('Loop Count is not a number', async () => {

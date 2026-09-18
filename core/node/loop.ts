@@ -2,14 +2,10 @@ import { BreakSignal, ContinueSignal } from '../executer/signals.ts'
 import { Executable, NodeCapability } from './base.ts'
 
 import { YaksokError } from '../error/common.ts'
-import { LoopWithoutBodyError, NoBreakOrReturnError } from '../error/loop.ts'
+import { LoopWithoutBodyError } from '../error/loop.ts'
 import type { Scope } from '../executer/scope.ts'
-import { type Token, TOKEN_TYPE } from '../prepare/tokenize/token.ts'
+import { type Token } from '../prepare/tokenize/token.ts'
 import type { Block } from './block.ts'
-import {
-    emitLoopIterationWarning,
-    LOOP_WARNING_THRESHOLD,
-} from '../util/loop-warning.ts'
 
 export class Loop extends Executable {
     static override accepts = [NodeCapability.LOOP_CONTROL]
@@ -28,33 +24,8 @@ export class Loop extends Executable {
             return
         }
 
-        let iterationCount = 0
-        let warned = false
-
         try {
             while (true) {
-                if (scope.codeFile?.session?.canRunNode) {
-                    if (
-                        !(await scope.codeFile?.session?.canRunNode(
-                            scope,
-                            this.body,
-                        ))
-                    ) {
-                        return
-                    }
-                }
-
-                iterationCount += 1
-
-                if (!warned && iterationCount > LOOP_WARNING_THRESHOLD) {
-                    emitLoopIterationWarning({
-                        scope,
-                        tokens: this.tokens,
-                        iterations: iterationCount,
-                    })
-                    warned = true
-                }
-
                 await this.onRunChild({
                     scope,
                     childTokens: this.body.tokens,
@@ -75,14 +46,6 @@ export class Loop extends Executable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        const noBreakOrReturnError = hasBreakOrReturn(this, scope)
-            ? []
-            : [
-                  new NoBreakOrReturnError({
-                      tokens: this.tokens,
-                  }),
-              ]
-
         const childErrors = this.body.validate(scope)
 
         const hasBodyError =
@@ -92,9 +55,7 @@ export class Loop extends Executable {
                   })
                 : null
 
-        return [...noBreakOrReturnError, ...childErrors, hasBodyError].filter(
-            Boolean,
-        ) as YaksokError[]
+        return [...childErrors, hasBodyError].filter(Boolean) as YaksokError[]
     }
 }
 
@@ -128,36 +89,4 @@ export class Continue extends Executable {
     override validate(): YaksokError[] {
         return []
     }
-}
-
-function hasBreakOrReturn(node: Loop, scope: Scope): boolean {
-    const shouldSkipValidation =
-        scope.codeFile?.session?.flags['skip-validate-break-or-return-in-loop']
-
-    if (shouldSkipValidation) {
-        return true
-    }
-
-    return node.tokens.some((token, index) => {
-        if (
-            token.type === TOKEN_TYPE.IDENTIFIER &&
-            (token.value === '반복' || token.value === '약속')
-        ) {
-            const nextToken = node.tokens[index + 1]
-            if (
-                nextToken &&
-                nextToken.type === TOKEN_TYPE.IDENTIFIER &&
-                nextToken.value === '그만'
-            ) {
-                return true
-            }
-        }
-
-        if (
-            token.type === TOKEN_TYPE.IDENTIFIER &&
-            token.value === '반환하기'
-        ) {
-            return true
-        }
-    })
 }

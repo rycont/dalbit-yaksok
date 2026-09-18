@@ -9,7 +9,7 @@ import {
     errorToMachineReadable,
     renderErrorString,
 } from '../error/render-error-string.ts'
-import { CodeFile, CodeFileConfig } from '../type/code-file.ts'
+import { CodeFile } from '../type/code-file.ts'
 import { PubSub } from '../util/pubsub.ts'
 import {
     DEFAULT_SESSION_CONFIG,
@@ -17,70 +17,43 @@ import {
     type SessionConfig,
 } from './session-config.ts'
 
-import type { EnabledFlags } from '../constant/feature-flags.ts'
 import {
     AbortedRunModuleResult,
     ErrorRunModuleResult,
     FunctionInvokingParams,
     RunModuleResult,
     SuccessRunModuleResult,
-    ValidationRunModuleResult,
 } from '../constant/type.ts'
 import { AbortedSessionSignal } from '../executer/signals.ts'
 import type { Extension } from '../extension/extension.ts'
 import type { ValueType } from '../value/base.ts'
-import type { Node } from '../node/base.ts'
 import type { Scope } from '../executer/scope.ts'
-import { ErrorGroups } from '../error/validation.ts'
+
 import { ErrorInFFIExecution } from '../error/ffi.ts'
 
-export interface ExtendOptions {
-    baseContextFileName?: string[]
-}
+const THREAD_YIELD_INTERVAL = 300
 
-/**
- * 인터프리터 실행 진입점 세션입니다.
- *
- * 모듈 등록/실행과 입출력, 확장(FFI), 런타임 이벤트를 관리합니다.
- */
 export class YaksokSession {
-    /** base context 모듈을 식별하기 위한 내부 심볼 */
-    readonly #BASE_CONTEXT_SYMBOL = Symbol('baseContext')
-    public get BASE_CONTEXT_SYMBOL(): symbol {
-        return this.#BASE_CONTEXT_SYMBOL
-    }
-
     /** 현재 실행 중인 runModule Promise */
-    public runningPromise: Promise<RunModuleResult[]> | null = null
+    public runningPromise: Promise<
+        [string | symbol, RunModuleResult][]
+    > | null = null
     /** `보여주기` 출력 훅 */
     public stdout: SessionConfig['stdout']
     /** 에러 출력 훅 */
     public stderr: SessionConfig['stderr']
-    /** 런타임 기능 플래그 */
-    public flags: Partial<EnabledFlags> = {}
     /** FFI 확장 목록 */
     public extensions: Extension[] = []
-    /** base context 체인 */
-    public baseContexts: CodeFile[] = []
-    public get baseContext(): CodeFile | undefined {
-        return this.baseContexts[this.baseContexts.length - 1]
-    }
+    public baseScope: Scope | null = null
     /** 외부 중단 시그널 */
     public signal: AbortSignal | null = null
-    /** 실행 일시정지 여부 */
-    public paused: boolean = false
     public stepByStep: boolean = false
-    public stepUnit: (new (...args: any[]) => Node) | null = null
-    public canRunNode:
-        | ((scope: Scope, node: Node) => Promise<boolean> | boolean)
-        | null = null
     /** 세션 이벤트 버스 */
     public pubsub: PubSub<Events> = new PubSub<Events>()
     /** 세션에 등록된 모듈 저장소 */
     public files: Record<string | symbol, CodeFile> = {}
 
-    private tick = 0
-    private threadYieldInterval: number
+    private tickCounter = 0
 
     public eventCreation: PubSub<{
         [key: string]: (
@@ -106,66 +79,41 @@ export class YaksokSession {
 
         this.stdout = resolvedConfig.stdout
         this.stderr = resolvedConfig.stderr
-        this.flags = resolvedConfig.flags
         this.signal = resolvedConfig.signal ?? null
-        this.threadYieldInterval = resolvedConfig.threadYieldInterval
-        this.stepUnit = resolvedConfig.stepUnit ?? null
-        this.canRunNode = resolvedConfig.canRunNode ?? null
     }
 
-    addModule(
-        moduleName: string | symbol,
-        code: string,
-        codeFileConfig: Partial<CodeFileConfig> = {},
-    ): CodeFile {
+    addModule(moduleName: string | symbol, code: string): CodeFile {
         if (this.files[moduleName]) {
             throw new AlreadyRegisteredModuleError({
                 resource: { moduleName: moduleName.toString() },
             })
         }
 
-        const codeFile = new CodeFile(code, moduleName)
-        codeFile.executionDelay = codeFileConfig.executionDelay ?? null
-        codeFile.mount(this)
+        const codeFile = new CodeFile(code, moduleName, this)
 
         this.files[moduleName] = codeFile
         return codeFile
     }
 
-    addModules(modules: Record<string, string>): void {
-        for (const [moduleName, code] of Object.entries(modules)) {
-            this.addModule(moduleName, code)
-        }
-    }
-
-    async extend(
-        extension: Extension,
-        options: ExtendOptions = {},
-    ): Promise<void> {
+    async extend(extension: Extension): Promise<void> {
         this.extensions.push(extension)
+        const initPromise = extension.init?.()
+
         if (extension.manifest.module) {
             const { module } = extension.manifest
-            for (const [name, code] of Object.entries(module)) {
-                this.addModule(name, code)
+            for (const { fileName, code, baseScope } of module) {
+                const ranScope = await this.addModule(fileName, code).run()
+                if (baseScope) {
+                    this.useBaseScope(ranScope)
+                }
             }
         }
-        await extension.init?.()
 
-        const baseContextFileNames = options.baseContextFileName ?? []
-        for (const fileName of baseContextFileNames) {
-            const code = this.getCodeFile(fileName).text
-            const result = await this.setBaseContext(code)
+        await initPromise
+    }
 
-            if (result.reason === 'error') {
-                throw result.error
-            }
-
-            if (result.reason !== 'finish') {
-                throw new Error(
-                    `기본 문맥 파일 "${fileName}"을 불러오지 못했어요. (reason: ${result.reason})`,
-                )
-            }
-        }
+    public useBaseScope(scope: Scope): void {
+        this.baseScope = scope
     }
 
     private async runOneModule(
@@ -175,48 +123,23 @@ export class YaksokSession {
         if (!codeFile) {
             return {
                 reason: 'error',
-                error: new FileForRunNotExistError({
-                    resource: {
-                        fileName: moduleName.toString(),
-                        files: Object.keys(this.files),
-                    },
-                }),
+                errors: [
+                    new FileForRunNotExistError({
+                        resource: {
+                            fileName: moduleName.toString(),
+                            files: Object.keys(this.files),
+                        },
+                    }),
+                ],
             }
         }
 
         try {
-            const validationErrors = this.validate(moduleName)
-            const allErrors = [...validationErrors.values()].flat()
-
-            if (allErrors.length > 0) {
-                for (const [
-                    fileName,
-                    validationErrorList,
-                ] of validationErrors.entries()) {
-                    const codeFile = this.getCodeFile(fileName)
-
-                    for (const error of validationErrorList) {
-                        error.codeFile = codeFile
-                        this.stderr(
-                            renderErrorString(error),
-                            errorToMachineReadable(error),
-                        )
-                    }
-                }
-
-                return {
-                    codeFile,
-                    reason: 'validation',
-                    errors: validationErrors,
-                } as ValidationRunModuleResult
-            }
-
-            const result = codeFile.run()
-            await result
+            const ranScope = await codeFile.run()
             await Promise.all(this.aliveListeners)
 
             return {
-                codeFile,
+                scope: ranScope,
                 reason: 'finish',
             } as SuccessRunModuleResult
         } catch (e) {
@@ -224,17 +147,17 @@ export class YaksokSession {
                 if (!e.codeFile) {
                     e.codeFile = codeFile
                 }
+
                 this.stderr(renderErrorString(e), errorToMachineReadable(e))
+
                 return {
-                    codeFile,
                     reason: 'error',
-                    error: e,
+                    errors: [e],
                 } as ErrorRunModuleResult
             }
 
             if (e instanceof AbortedSessionSignal) {
                 return {
-                    codeFile,
                     reason: 'aborted',
                 } as AbortedRunModuleResult
             }
@@ -245,9 +168,9 @@ export class YaksokSession {
         }
     }
 
-    async runModule(
-        moduleName: string | symbol | (string | symbol)[],
-    ): Promise<Map<string | symbol, RunModuleResult>> {
+    async runModule<const T extends (string | symbol)[]>(
+        moduleName: T,
+    ): Promise<Record<T[number], RunModuleResult>> {
         if (this.runningPromise) {
             await this.runningPromise
         }
@@ -256,69 +179,20 @@ export class YaksokSession {
             ? moduleName
             : [moduleName]
 
-        this.runningPromise = Promise.all(
-            runModuleNames.map((n) => this.runOneModule(n)),
+        const runningPromise = Promise.all(
+            runModuleNames.map<Promise<[T[number], RunModuleResult]>>(
+                async (n) => [n, await this.runOneModule(n)],
+            ),
         )
 
-        const entries = (await this.runningPromise).map(
-            (result, index) => [runModuleNames[index], result] as const,
-        )
+        this.runningPromise = runningPromise
 
-        return new Map(entries)
-    }
+        const entries = Object.fromEntries(await runningPromise) as Record<
+            T[number],
+            RunModuleResult
+        >
 
-    async setBaseContext(code: string): Promise<RunModuleResult> {
-        const moduleName = Symbol(`baseContext-${this.baseContexts.length}`)
-        this.addModule(moduleName, code)
-
-        const results = await this.runModule(moduleName)
-        const result = results.get(moduleName)!
-
-        if (result.reason === 'finish') {
-            this.baseContexts.push(result.codeFile)
-        }
-
-        return result
-    }
-
-    validate(fileName?: string | symbol): ErrorGroups {
-        const filesToValidate: Record<string | symbol, CodeFile> = {}
-        if (fileName) {
-            if (this.files[fileName]) {
-                filesToValidate[fileName] = this.files[fileName]
-            } else {
-                throw new FileForRunNotExistError({
-                    resource: {
-                        fileName: fileName.toString(),
-                        files: Object.keys(this.files),
-                    },
-                })
-            }
-        } else {
-            Object.assign(filesToValidate, this.files)
-        }
-
-        const validationErrors = new Map(
-            Object.entries(filesToValidate).map(([fileName, codeFile]) => [
-                fileName,
-                codeFile.validate().errors,
-            ]),
-        )
-
-        return validationErrors
-    }
-
-    public getCodeFile(fileName: string | symbol): CodeFile {
-        if (!this.files[fileName]) {
-            throw new FileForRunNotExistError({
-                resource: {
-                    fileName: String(fileName),
-                    files: Object.keys(this.files),
-                },
-            })
-        }
-
-        return this.files[fileName]
+        return entries
     }
 
     public async runFFI(
@@ -363,42 +237,9 @@ export class YaksokSession {
         }
     }
 
-    public pause() {
-        this.paused = true
-        this.pubsub.pub('pause', [])
-    }
-
-    public resume(): Promise<void> {
-        this.paused = false
-        this.pubsub.pub('resume', [])
-
-        if (this.runningPromise) {
-            return this.runningPromise?.then()
-        }
-
-        return Promise.resolve()
-    }
-
-    public async increaseTick(): Promise<void> {
-        if (this.tick++ % this.threadYieldInterval === 0) {
+    public async tick(): Promise<void> {
+        if (this.tickCounter++ % THREAD_YIELD_INTERVAL === 0) {
             await new Promise((ok) => setTimeout(ok, 0))
         }
     }
-}
-
-export async function yaksok(
-    code: string | Record<string, string>,
-): Promise<RunModuleResult> {
-    const session = new YaksokSession()
-
-    if (typeof code === 'string') {
-        session.addModule('main', code)
-    } else {
-        for (const [fileName, fileCode] of Object.entries(code)) {
-            session.addModule(fileName, fileCode)
-        }
-    }
-
-    const results = await session.runModule('main')
-    return results.get('main')!
 }

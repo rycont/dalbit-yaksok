@@ -79,22 +79,3 @@ export class TypeOf extends Evaluable<Evaluable> {
         return this.subnode.validate(scope)
     }
 }
-
-export class Pause extends Executable {
-    static override friendlyName = '잠깐 멈추기'
-
-    constructor(public override tokens: Token[]) {
-        super()
-    }
-
-    override execute(scope: Scope): Promise<void> {
-        scope.codeFile?.session?.pubsub.pub('debug', [scope, this])
-        scope.codeFile?.session?.pause()
-
-        return Promise.resolve()
-    }
-
-    override validate(_scope: Scope): YaksokError[] {
-        return []
-    }
-}

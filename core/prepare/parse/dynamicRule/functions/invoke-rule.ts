@@ -142,7 +142,7 @@ function createRuleFromFunctionTemplate(
             )
         },
         config: {
-            exported: true,
+            exportedScope: true,
         },
         flags: [RULE_FLAGS.IS_FUNCTION_INVOKE],
     }
@@ -184,7 +184,7 @@ function createInlineBracketRule(functionTemplate: FunctionTemplate) {
             )
         },
         config: {
-            exported: true,
+            exportedScope: true,
         },
         flags: [RULE_FLAGS.IS_FUNCTION_INVOKE],
     }
@@ -266,7 +266,7 @@ function createParameterBlockRule(functionTemplate: FunctionTemplate) {
             )
         },
         config: {
-            exported: true,
+            exportedScope: true,
         },
         flags: [RULE_FLAGS.IS_FUNCTION_INVOKE],
     }

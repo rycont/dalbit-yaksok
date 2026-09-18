@@ -6,10 +6,6 @@ import { Token } from '../prepare/tokenize/token.ts'
 import { NumberValue } from '../value/primitive.ts'
 import { Evaluable, Executable, NodeCapability } from './base.ts'
 import { Block } from './block.ts'
-import {
-    emitLoopIterationWarning,
-    LOOP_WARNING_THRESHOLD,
-} from '../util/loop-warning.ts'
 
 export class CountLoop extends Executable<{
     count: Evaluable
@@ -31,10 +27,9 @@ export class CountLoop extends Executable<{
         }
     }
 
-    override async execute(_scope: Scope): Promise<void> {
+    override async execute(parent: Scope): Promise<void> {
         const scope = new Scope({
-            parent: _scope,
-            callerNode: this,
+            parent: parent,
         })
 
         const countValue = await this.subnode.count.execute(scope)
@@ -48,32 +43,8 @@ export class CountLoop extends Executable<{
 
         const countNumber = countValue.value
 
-        let warned = false
-
         try {
             for (let i = 0; i < countNumber; i++) {
-                if (scope.codeFile?.session?.canRunNode) {
-                    if (
-                        !(await scope.codeFile?.session?.canRunNode(
-                            scope,
-                            this.subnode.body,
-                        ))
-                    ) {
-                        return
-                    }
-                }
-
-                const iterationCount = i + 1
-
-                if (!warned && iterationCount > LOOP_WARNING_THRESHOLD) {
-                    emitLoopIterationWarning({
-                        scope,
-                        tokens: this.tokens,
-                        iterations: iterationCount,
-                    })
-                    warned = true
-                }
-
                 await this.onRunChild({
                     scope,
                     childTokens: this.subnode.body.tokens,

@@ -6,18 +6,14 @@ import { Scope } from './scope.ts'
 import { BreakSignal, ReturnSignal } from './signals.ts'
 
 import type { Executable } from '../node/base.ts'
-import type { CodeFile } from '../type/code-file.ts'
 
 export async function executer<NodeType extends Executable>(
     node: NodeType,
-    codeFile?: CodeFile,
+    parentScope?: Scope,
 ): Promise<Scope> {
-    const scope =
-        codeFile?.ranScope ||
-        new Scope({
-            codeFile,
-            callerNode: node,
-        })
+    const scope = new Scope({
+        parent: parentScope,
+    })
 
     try {
         await node.execute(scope)

@@ -1,3 +1,4 @@
+import { Scope } from '@dalbit-yaksok/core'
 import type { Node, NodeCapability } from '../../node/base.ts'
 import type { Token } from '../tokenize/token.ts'
 
@@ -15,7 +16,7 @@ export type Rule = {
     factory: (nodes: Node[], tokens: Token[]) => Node | null
     config?: Record<string, unknown> & {
         statement?: SuggestableStatement | true
-        exported?: boolean
+        exportedScope?: Scope
     }
     flags?: RULE_FLAGS[]
 }

@@ -10,6 +10,10 @@ export function createMentioningRule(
     fileName: string,
     originalRule: Rule,
 ): Rule {
+    if (!originalRule.config?.exportedScope) {
+        throw new Error('Mentioning에는 Exported Scope가 필요합니다')
+    }
+
     const mergedPattern = [
         {
             type: Mention,
@@ -35,6 +39,11 @@ function createFactory(fileName: string, rule: Rule) {
             | Identifier
             | FunctionInvoke
 
-        return new MentionScope(fileName, child, tokens)
+        return new MentionScope(
+            fileName,
+            rule.config!.exportedScope!,
+            child,
+            tokens,
+        )
     }
 }

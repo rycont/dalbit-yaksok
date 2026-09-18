@@ -39,9 +39,7 @@ for (let i = 0; i < 10; i++) {
 
         const result = await yaksok(code)
         assert(result.reason === 'finish')
-        const 나이 = result.codeFile.ranScope!.getVariable(
-            '나이',
-        ) as NumberValue
+        const 나이 = result.scope!.getVariable('나이') as NumberValue
 
         assertInstanceOf(나이, NumberValue)
         /* oxlint-disable-next-line no-eval */

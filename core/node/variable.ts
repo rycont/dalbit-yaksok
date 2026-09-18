@@ -48,17 +48,13 @@ export class SetVariable extends Evaluable<Evaluable> {
                     if (!error.tokens) {
                         error.tokens = this.tokens
                     }
-
-                    if (!error.codeFile) {
-                        error.codeFile = scope.codeFile
-                    }
                 }
 
                 throw error
             }
         }
 
-        scope.setVariable(name, newValue, this.tokens)
+        scope.setVariable(name, newValue)
         return newValue
     }
 

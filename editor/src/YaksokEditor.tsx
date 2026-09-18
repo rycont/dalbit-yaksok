@@ -9,7 +9,7 @@ import { editorId } from './style.css.ts'
 import { EditorState } from '@codemirror/state'
 import { autocompletion, startCompletion } from '@codemirror/autocomplete'
 import { completionProvider } from './completion.ts'
-import { validationResultStore } from './state.ts'
+import { codeFileStore } from './state.ts'
 
 const interludeCodeSquarePath = new URL(
     '../font/InterludeCodeSquare.woff2',
@@ -53,7 +53,7 @@ export function Editor(parent: HTMLElement): void {
     const view = new EditorView({
         parent,
         extensions: [
-            validationResultStore,
+            codeFileStore,
             myTheme,
             drawSelection(),
             keymap.of([

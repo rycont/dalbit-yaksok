@@ -3,7 +3,7 @@ import {
     CompletionResult,
     snippetCompletion,
 } from '@codemirror/autocomplete'
-import { validationResultStore } from './state.ts'
+import { codeFileStore } from './state.ts'
 import {
     Block,
     EOL,
@@ -21,9 +21,9 @@ interface ValidStatements {
 export function completionProvider(
     context: CompletionContext,
 ): CompletionResult | null {
-    const validationResult = context.state.field(validationResultStore)
+    const codeFile = context.state.field(codeFileStore)
 
-    if (!validationResult) {
+    if (!codeFile) {
         return null
     }
 
@@ -33,13 +33,13 @@ export function completionProvider(
         return null
     }
 
-    const appliedRules = validationResult.validatingScope.codeFile?.appliedRules
+    const dynamicRules = codeFile.ranScope?.getDynamicRules()
 
-    if (!appliedRules) {
+    if (!dynamicRules) {
         return null
     }
 
-    const validStatements: ValidStatements[] = appliedRules
+    const validStatements: ValidStatements[] = dynamicRules
         .map((r) => ({ pattern: r.pattern, statement: r.config?.statement }))
         .filter((r): r is ValidStatements => !!r.statement)
 

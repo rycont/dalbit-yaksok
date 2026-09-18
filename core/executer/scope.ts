@@ -2,13 +2,10 @@ import { AlreadyDefinedFunctionError } from '../error/function.ts'
 import { NotDefinedIdentifierError } from '../error/index.ts'
 import { ValueType } from '../value/base.ts'
 
-import { FEATURE_FLAG } from '../constant/feature-flags.ts'
-
 import type { Token } from '../prepare/tokenize/token.ts'
-import type { Node } from '../node/base.ts'
 
-import type { CodeFile } from '../type/code-file.ts'
 import type { RunnableObject } from '../value/function.ts'
+import { Rule, YaksokSession } from '@dalbit-yaksok/core'
 
 /**
  * 실행 컨텍스트(Execution Context)를 관리하는 클래스입니다.
@@ -21,23 +18,16 @@ import type { RunnableObject } from '../value/function.ts'
 export class Scope {
     variables: Record<string, ValueType>
     parent: Scope | undefined
-    codeFile?: CodeFile
 
     public id: string = crypto.randomUUID()
-
     public functions: Map<string, RunnableObject> = new Map()
-    public callStackDepth: number
-
-    private readonly allowFunctionOverride: boolean
+    public readonly session?: YaksokSession
 
     constructor(
         config: {
             parent?: Scope
-            codeFile?: CodeFile
             initialVariable?: Record<string, ValueType> | null
-            callStackDepth?: number
-            callerNode?: Node
-            allowFunctionOverride?: boolean
+            session?: YaksokSession
         } = {},
     ) {
         this.variables = config.initialVariable || Object.create(null)
@@ -46,28 +36,10 @@ export class Scope {
             this.parent = config.parent
         }
 
-        if (config.callStackDepth !== undefined) {
-            this.callStackDepth = config.callStackDepth
-        } else if (config.parent) {
-            this.callStackDepth = config.parent.callStackDepth
-        } else {
-            this.callStackDepth = 0
-        }
-
-        if (config.codeFile) {
-            this.codeFile = config.codeFile
-        } else if (config.parent?.codeFile) {
-            this.codeFile = config.parent.codeFile
-        }
-
-        if (!config.parent && config.codeFile?.session?.baseContext?.ranScope) {
-            this.parent = config.codeFile.session.baseContext.ranScope
-        }
-
-        this.allowFunctionOverride = config.allowFunctionOverride ?? false
-
-        if (this.codeFile && config.callerNode) {
-            this.codeFile.registerScope(this, config.callerNode)
+        if (config.session) {
+            this.session = config.session
+        } else if (this.parent?.session) {
+            this.session = this.parent.session
         }
     }
 
@@ -78,19 +50,17 @@ export class Scope {
      * @param value - 변수에 할당할 값입니다.
      * @param tokens - 변수 설정과 관련된 토큰 리스트입니다. 이벤트 발생 시 사용됩니다.
      */
-    setVariable(name: string, value: ValueType, tokens?: Token[]) {
-        if (this.parent?.askSetVariable(name, value, tokens)) return
+    setVariable(name: string, value: ValueType) {
+        if (this.parent?.askSetVariable(name, value)) return
         this.variables[name] = value
-        this.emitVariableSetEvent(name, value, tokens)
     }
 
     /**
      * 현재 스코프에만 변수를 설정합니다.
      * 상위 스코프 탐색 없이 로컬 슬롯을 직접 갱신해야 하는 경우 사용합니다.
      */
-    setLocalVariable(name: string, value: ValueType, tokens?: Token[]) {
+    setLocalVariable(name: string, value: ValueType) {
         this.variables[name] = value
-        this.emitVariableSetEvent(name, value, tokens)
     }
 
     /**
@@ -101,14 +71,13 @@ export class Scope {
      * @param tokens - 변수 설정과 관련된 토큰 리스트입니다. 이벤트 발생 시 사용됩니다.
      * @returns 변수를 성공적으로 설정했는지 여부를 반환합니다.
      */
-    askSetVariable(name: string, value: ValueType, tokens?: Token[]): boolean {
+    askSetVariable(name: string, value: ValueType): boolean {
         if (name in this.variables) {
             this.variables[name] = value
-            this.emitVariableSetEvent(name, value, tokens)
             return true
         }
 
-        if (this.parent) return this.parent.askSetVariable(name, value, tokens)
+        if (this.parent) return this.parent.askSetVariable(name, value)
         return false
     }
 
@@ -127,7 +96,6 @@ export class Scope {
     getVariable(name: string, tokens?: Token[]): ValueType {
         if (name in this.variables) {
             const value = this.variables[name]
-            this.emitVariableReadEvent(name, value, tokens)
             return value
         }
 
@@ -142,7 +110,6 @@ export class Scope {
             scope: this,
         })
 
-        errorInstance.codeFile = this.codeFile
         throw errorInstance
     }
 
@@ -161,16 +128,13 @@ export class Scope {
      * @param functionObject - 추가할 함수를 나타내는 `RunnableObject`입니다.
      */
     addFunctionObject(functionObject: RunnableObject) {
-        if (
-            this.functions.has(functionObject.name) &&
-            !this.allowFunctionOverride
-        ) {
+        if (this.functions.has(functionObject.name)) {
             const errorInstance = new AlreadyDefinedFunctionError({
                 resource: {
                     name: functionObject.name,
                 },
             })
-            errorInstance.codeFile = this.codeFile
+
             throw errorInstance
         }
         this.functions.set(functionObject.name, functionObject)
@@ -199,61 +163,10 @@ export class Scope {
             scope: this,
         })
 
-        errorInstance.codeFile = this.codeFile
         throw errorInstance
     }
 
-    private emitVariableSetEvent(
-        name: string,
-        value: ValueType,
-        tokens?: Token[],
-    ) {
-        if (!this.codeFile?.session) return
-        if (!tokens || tokens.length === 0) return
-
-        // 플래그 확인: DISABLE_VARIABLE_EVENTS가 활성화되면 이벤트를 발생시키지 않음
-        const isDisabled =
-            this.codeFile.session.flags[
-                FEATURE_FLAG.DISABLE_VARIABLE_EVENTS
-            ] === true
-
-        if (isDisabled) return
-
-        this.codeFile.session.pubsub.pub('variableSet', [
-            {
-                type: 'variable-set',
-                name,
-                value,
-                scope: this,
-                tokens,
-            },
-        ])
-    }
-
-    private emitVariableReadEvent(
-        name: string,
-        value: ValueType,
-        tokens?: Token[],
-    ) {
-        if (!this.codeFile?.session) return
-        if (!tokens || tokens.length === 0) return
-
-        // 플래그 확인: DISABLE_VARIABLE_EVENTS가 활성화되면 이벤트를 발생시키지 않음
-        const isDisabled =
-            this.codeFile.session.flags[
-                FEATURE_FLAG.DISABLE_VARIABLE_EVENTS
-            ] === true
-
-        if (isDisabled) return
-
-        this.codeFile.session.pubsub.pub('variableRead', [
-            {
-                type: 'variable-read',
-                name,
-                value,
-                scope: this,
-                tokens,
-            },
-        ])
+    public getDynamicRules(): Rule[] {
+        return []
     }
 }

@@ -67,38 +67,16 @@ export class Executable<T extends SubnodeScheme = unknown> extends Node<T> {
         childTokens: Token[]
         skipReport?: boolean
     }) {
-        const stepUnit = scope.codeFile?.session?.stepUnit
-        if (stepUnit && !(this instanceof stepUnit)) {
+        if (!scope.session) {
             return
         }
 
-        if (scope.codeFile?.session?.signal?.aborted) {
+        if (scope.session.signal?.aborted) {
             throw new AbortedSessionSignal(childTokens)
         }
 
-        const executionDelay = scope.codeFile?.executionDelay ?? 0
+        await scope.session.tick()
 
-        if (executionDelay) {
-            await new Promise((r) => setTimeout(r, executionDelay))
-        } else {
-            await scope.codeFile?.session?.increaseTick()
-        }
-
-        // runningCode 이벤트를 resume 대기 후에 발생하도록 순서 변경
-        if (
-            scope.codeFile?.session?.paused ||
-            scope.codeFile?.session?.stepByStep
-        ) {
-            await new Promise((resolve) => {
-                const unsubscribe = scope.codeFile?.session?.pubsub.sub(
-                    'resume',
-                    () => {
-                        resolve(undefined)
-                        unsubscribe!()
-                    },
-                )
-            })
-        }
         if (!skipReport && childTokens.length) {
             this.reportRunningCode(childTokens, scope)
         }
@@ -112,7 +90,7 @@ export class Executable<T extends SubnodeScheme = unknown> extends Node<T> {
             column: endToken.position.column + endToken.value.length,
         }
 
-        scope.codeFile?.session?.pubsub.pub('runningCode', [
+        scope.session?.pubsub.pub('runningCode', [
             {
                 line: startPosition.line,
                 column: startPosition.column,

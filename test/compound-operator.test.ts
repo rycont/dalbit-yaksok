@@ -84,7 +84,7 @@ result ${operator} ${b}`.trim()
             `Expected finish, got ${result.reason}`,
         )
 
-        const resultValue = result.codeFile.ranScope!.getVariable('result')
+        const resultValue = result.scope!.getVariable('result')
 
         const expectedType =
             typeof a === 'string' || typeof b === 'string'

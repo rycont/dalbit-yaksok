@@ -14,7 +14,7 @@ Deno.test('List multiplied by integer repeats elements', async () => {
     const result = await yaksok(`결과 = [참] * 3`)
     assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
 
-    const scope = result.codeFile.ranScope!
+    const { scope } = result
     const stored = scope.getVariable('결과')
     assertInstanceOf(stored, ListValue)
 
@@ -31,7 +31,7 @@ Deno.test('Number multiplied by list repeats list elements', async () => {
     const result = await yaksok(`결과 = 3 * [1, 2]`)
     assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
 
-    const scope = result.codeFile.ranScope!
+    const { scope } = result
     const stored = scope.getVariable('결과')
     assertInstanceOf(stored, ListValue)
 

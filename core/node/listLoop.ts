@@ -10,10 +10,6 @@ import type { ValueType } from '../value/base.ts'
 import { IndexedValue } from '../value/indexed.ts'
 import { NumberValue, StringValue } from '../value/primitive.ts'
 import type { Block } from './block.ts'
-import {
-    emitLoopIterationWarning,
-    LOOP_WARNING_THRESHOLD,
-} from '../util/loop-warning.ts'
 
 export class ListLoop extends Executable {
     static override friendlyName = '목록 반복'
@@ -28,49 +24,23 @@ export class ListLoop extends Executable {
         super()
     }
 
-    override async execute(_scope: Scope): Promise<void> {
+    override async execute(parent: Scope): Promise<void> {
         const scope = new Scope({
-            parent: _scope,
-            callerNode: this,
+            parent,
         })
 
         const list = await this.list.execute(scope)
 
         this.assertRepeatTargetIsList(list)
 
-        let iterationCount = 0
-        let warned = false
-
         try {
             for (const value of list.enumerate()) {
-                if (scope.codeFile?.session?.canRunNode) {
-                    if (
-                        !(await scope.codeFile?.session?.canRunNode(
-                            scope,
-                            this.body,
-                        ))
-                    ) {
-                        return
-                    }
-                }
-
-                iterationCount += 1
-
-                if (!warned && iterationCount > LOOP_WARNING_THRESHOLD) {
-                    emitLoopIterationWarning({
-                        scope,
-                        tokens: this.tokens,
-                        iterations: iterationCount,
-                    })
-                    warned = true
-                }
-
                 await this.onRunChild({
                     scope,
                     childTokens: this.body.tokens,
                     skipReport: true,
                 })
-                scope.setVariable(this.variableName, value, this.tokens)
+                scope.setVariable(this.variableName, value)
                 try {
                     await this.body.execute(scope)
                 } catch (e) {
@@ -101,7 +71,6 @@ export class ListLoop extends Executable {
     override validate(scope: Scope): YaksokError[] {
         const listScope = new Scope({
             parent: scope,
-            callerNode: this,
             initialVariable: {
                 [this.variableName]: new NumberValue(0),
             },

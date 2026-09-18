@@ -1,81 +1,16 @@
-import type { EnabledFlags } from '../constant/feature-flags.ts'
 import type { Scope } from '../executer/scope.ts'
-import type { Pause } from '../node/misc.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { Position } from '../type/position.ts'
 import type { MachineReadableError } from '../error/render-error-string.ts'
-import type {
-    VariableReadEvent,
-    VariableSetEvent,
-    WarningEvent,
-} from '../type/events.ts'
-import type { Node } from '../node/base.ts'
-
-/**
- * SessionConfig 객체를 사용하여 약속 런타임을 설정합니다.
- *
- * ```typescript
- * import { YaksokSession } from '@dalbit-yaksok/core'
- *
- * const session = new YaksokSession({
- *    stdout: console.log,
- *    stderr: console.error,
- *    flags: {},
- *    events: {
- *        runningCode: (start, end) => {
- *            //  Do something with start and end
- *        }
- *    },
- *    signal: null,
- * })
- *
- * session.addModule('main', `"안녕" 보여주기`)
- * await session.runModule('main')
- * ```
- */
 
 export interface SessionConfig {
-    /**
-     * `보여주기`에서 전달된 메시지를 처리하는 메소드
-     * @default console.log
-     */
     stdout: (message: string) => void
-    /**
-     * 오류로 인해 발생한 메시지를 처리하는 메소드
-     * @param message - 사람이 읽기 쉬운 형식의 에러 메시지
-     * @param machineReadableError - 구조화된 형식(JSON)의 에러 정보 오브젝트
-     * @default console.error
-     */
     stderr: (
         message: string,
         machineReadableError: MachineReadableError,
     ) => void
-    /**
-     * 활성화할 기능 플래그
-     */
-    flags: EnabledFlags
-    /**
-     * 코드 실행 중 발생하는 이벤트를 구독합니다.
-     */
     events: Partial<Events>
-    /**
-     * 코드 실행을 중단시키는 시그널
-     */
     signal: AbortSignal | null
-    /**
-     * 명령어 실행을 잠깐 멈추고 브라우저에게 제어권을 넘기는 주기
-     */
-    threadYieldInterval: number
-    /**
-     * 디버거 / Step by step 실행 모드 설정
-     */
-    stepUnit: (new (...args: any[]) => Node) | null
-    /**
-     * 다음 노드를 실행해도 될지 사용자에게 확인을 요구하는 메소드
-     */
-    canRunNode:
-        | ((scope: Scope, node: Node) => Promise<boolean> | boolean)
-        | null
 }
 
 export type Events = {
@@ -91,32 +26,13 @@ export type Events = {
         scope: Scope,
         tokens: Token[],
     ) => void
-
-    pause: () => void
-    resume: () => void
-    debug: (scope: Scope, node: Pause) => void
-    warning: (warning: WarningEvent) => void
-    variableSet: (event: VariableSetEvent) => void
-    variableRead: (event: VariableReadEvent) => void
 }
 
 export const DEFAULT_SESSION_CONFIG: SessionConfig = {
     stdout: console.log,
     stderr: console.error,
-    flags: {},
     events: {
         runningCode: () => {},
-        pause: () => {},
-        resume: () => {},
-        debug: () => {},
-        warning: () => {},
-        variableSet: () => {},
-        variableRead: () => {},
     },
     signal: null,
-    threadYieldInterval: 300,
-    stepUnit: null,
-    canRunNode: null,
 }
-
-export type { WarningEvent } from '../type/events.ts'

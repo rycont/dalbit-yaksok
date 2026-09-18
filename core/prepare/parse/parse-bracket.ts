@@ -16,11 +16,10 @@ const OPENING_TO_CLOSING_BRACKETS: Record<string, string> = {
 export function parseBracket(
     nodes: Node[],
     dynamicRules: [Rule[][], Rule[][]],
-    optimistic = false,
 ) {
     for (const node of nodes) {
         if (node instanceof Block) {
-            node.subnode = parseBracket(node.subnode, dynamicRules, optimistic)
+            node.subnode = parseBracket(node.subnode, dynamicRules)
         }
     }
 
@@ -82,12 +81,6 @@ export function parseBracket(
             }
 
             if (closingIndexCandidate >= nodes.length) {
-                if (optimistic) {
-                    continue rangeSeekingLoop
-                }
-
-                console.log(nodes[openingBracketIndex])
-
                 throw new UnexpectedEndOfCodeError({
                     resource: {
                         expected: '닫는 대괄호',

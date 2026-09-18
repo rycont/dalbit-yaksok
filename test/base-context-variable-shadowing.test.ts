@@ -1,5 +1,6 @@
 import { assertEquals } from 'https://deno.land/std@0.211.0/assert/mod.ts'
-import { YaksokSession, CodeFile, NumberValue } from '../core/mod.ts'
+import { YaksokSession, NumberValue } from '../core/mod.ts'
+import { assert } from 'assert'
 
 /**
  * baseContext에서 정의된 변수를 같은 이름으로 재대입할 때의 동작을 검증합니다.
@@ -56,15 +57,16 @@ Deno.test('setBaseContext: 새 변수 선언은 로컬 스코프에 생성됨', 
         },
     })
 
-    await session.setBaseContext('값 = 5')
+    const baseContextResult = await session.setBaseContext('값 = 5')
+
+    assert(baseContextResult.reason === 'finish')
+    const baseContextScope = baseContextResult.scope
 
     session.addModule('main', '새값 = 100\n새값 보여주기')
     await session.runModule('main')
 
     assertEquals(output.trim(), '100')
 
-    // 새값은 parent scope에 없어야 함
-    const baseContextScope = session.baseContext?.ranScope
     assertEquals(baseContextScope?.variables['새값'], undefined)
 })
 
@@ -134,70 +136,6 @@ Deno.test('재대입 후 parent scope에 반영됨', async () => {
         (baseContextScope?.variables['값'] as NumberValue)?.value,
         15,
         'parent scope의 값이 15로 갱신됨 (런타임 재대입은 parent에 반영)',
-    )
-})
-
-Deno.test('CodeFile 스냅샷 주입: 같은 변수명으로 재대입하면 15가 됨', async () => {
-    let output = ''
-
-    const session1 = new YaksokSession({
-        stdout() {},
-    })
-
-    const cell1Code = new CodeFile('값 = 5', 'cell1')
-    cell1Code.mount(session1)
-    session1.files['cell1'] = cell1Code
-    await cell1Code.run()
-
-    const session2 = new YaksokSession({
-        stdout(message) {
-            output += message + '\n'
-        },
-    })
-
-    cell1Code.mount(session2)
-    session2.baseContexts.push(cell1Code)
-
-    session2.addModule('main', '값 = 값 + 10\n값 보여주기')
-    await session2.runModule('main')
-
-    // 값 = 5 + 10 = 15
-    assertEquals(
-        output.trim(),
-        '15',
-        'CodeFile 스냅샷 경로에서도 baseContext 값을 올바르게 읽음',
-    )
-})
-
-Deno.test('CodeFile 스냅샷 주입: 여러 변수 중 일부만 재대입', async () => {
-    let output = ''
-
-    const session1 = new YaksokSession({
-        stdout() {},
-    })
-
-    const cell1Code = new CodeFile('가 = 10\n나 = 20', 'cell1')
-    cell1Code.mount(session1)
-    session1.files['cell1'] = cell1Code
-    await cell1Code.run()
-
-    const session2 = new YaksokSession({
-        stdout(message) {
-            output += message + '\n'
-        },
-    })
-
-    cell1Code.mount(session2)
-    session2.baseContexts.push(cell1Code)
-
-    session2.addModule('main', '가 = 가 + 5\n(가 + 나) 보여주기')
-    await session2.runModule('main')
-
-    // 가 = 10 + 5 = 15, 나 = 20, 결과 = 35
-    assertEquals(
-        output.trim(),
-        '35',
-        '재대입한 변수(가=15)와 미변경 변수(나=20)의 합이 35',
     )
 })
 

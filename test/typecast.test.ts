@@ -10,11 +10,12 @@ import { InvalidTypeCastError } from '../core/error/typecast.ts'
 Deno.test('문자열을 숫자로 바꾸기', async () => {
     const session = new YaksokSession()
     session.addModule('main', `결과 = "123" 을 숫자로 바꾸기`)
-    await session.runModule('main')
-    const result = session
-        .getCodeFile('main')
-        .ranScope?.getVariable('결과') as NumberValue
-    assertEquals(result.value, 123)
+
+    const runResult = await session.runModule(['main'])
+    const variable = runResult.main.scope?.getVariable('결과')
+
+    assertInstanceOf(variable, NumberValue)
+    assertEquals(variable.value, 123)
 })
 
 Deno.test('문자열(소수)을 숫자로 바꾸기', async () => {
