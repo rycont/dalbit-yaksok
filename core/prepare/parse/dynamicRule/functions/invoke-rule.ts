@@ -5,7 +5,6 @@ import { FunctionInvoke } from '../../../../node/function.ts'
 import { FunctionCallOperatorAmbiguityError } from '../../../../error/prepare.ts'
 
 import { IndexFetch } from '../../../../node/list.ts'
-import { NumberLiteral } from '../../../../node/primitive-literal.ts'
 import type { IndexedValue } from '../../../../value/indexed.ts'
 import { getCombination } from './combination.ts'
 
@@ -26,6 +25,7 @@ import { EOL } from '../../../../node/misc.ts'
 import { KeyValuePair, KeyValuePairSequence } from '../../../../node/dict.ts'
 import type { ParameterElement } from '../../../../constant/type.ts'
 import { TooManyArgumentsError } from '../../../../error/function.ts'
+import { NumberLiteral } from '@dalbit-yaksok/core'
 
 interface VariantedPart {
     index: number

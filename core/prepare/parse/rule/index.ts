@@ -46,7 +46,6 @@ import {
 } from '../../../node/index.ts'
 import type { TypeCastTarget } from '../../../node/typecast.ts'
 import { NotEqualOperator } from '../../../node/operator.ts'
-import { EmptyLiteral } from '../../../node/primitive-literal.ts'
 import { ReturnStatement } from '../../../node/return.ts'
 import { IndexedValue } from '../../../value/indexed.ts'
 import { NumberValue, StringValue } from '../../../value/primitive.ts'
@@ -58,6 +57,7 @@ import { COUNT_LOOP_RULES } from './count-loop.ts'
 import { DICT_RULES } from './dict.ts'
 import { LIST_LOOP_RULES } from './list-loop.ts'
 import { OptionalParameter } from '../../../node/function.ts'
+import { EmptyLiteral } from '@dalbit-yaksok/core'
 
 export type { Rule }
 

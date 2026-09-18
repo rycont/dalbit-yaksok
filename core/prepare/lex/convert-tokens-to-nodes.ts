@@ -1,8 +1,8 @@
+import { NumberLiteral, StringLiteral } from '@dalbit-yaksok/core'
 import { Expression, Identifier, Node, Operator } from '../../node/base.ts'
 import { FFIBody } from '../../node/ffi.ts'
 import { Mention } from '../../node/mention.ts'
 import { EOL, Indent } from '../../node/misc.ts'
-import { NumberLiteral, StringLiteral } from '../../node/primitive-literal.ts'
 import { Token, TOKEN_TYPE } from '../tokenize/token.ts'
 
 const escapeMap: Record<string, string> = {

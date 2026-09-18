@@ -286,7 +286,7 @@ export const RULES: {
             code[index] === '?' ? { value: '?', newIndex: index + 1 } : null,
     },
     {
-        type: TOKEN_TYPE.STRING,
+        type: TOKEN_TYPE.RAW_STRING,
         starter: ['"', "'"],
         parse: (code, index) => {
             const quote = code[index]

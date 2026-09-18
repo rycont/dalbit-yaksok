@@ -3,7 +3,10 @@ import type { Position } from '../../type/position.ts'
 export enum TOKEN_TYPE {
     NUMBER = 'NUMBER',
     ASSIGNER = 'ASSIGNER',
-    STRING = 'STRING',
+    SINGLE_QUOTE = 'SINGLE_QUOTE',
+    DOUBLE_QUOTE = 'DOUBLE_QUOTE',
+    STATIC_STRING = 'STATIC_STRING',
+    RAW_STRING = 'RAW_STRING',
     OPERATOR = 'OPERATOR',
     SPACE = 'SPACE',
     INDENT = 'INDENT',
@@ -32,7 +35,10 @@ export interface Token {
 
 export const TOKEN_TYPE_TO_TEXT: Record<TOKEN_TYPE, string> = {
     [TOKEN_TYPE.NUMBER]: '숫자',
-    [TOKEN_TYPE.STRING]: '문자',
+    [TOKEN_TYPE.STATIC_STRING]: '문자',
+    [TOKEN_TYPE.RAW_STRING]: '문자',
+    [TOKEN_TYPE.SINGLE_QUOTE]: '작은 따옴표',
+    [TOKEN_TYPE.DOUBLE_QUOTE]: '큰 따옴표',
     [TOKEN_TYPE.ASSIGNER]: '값 넣기',
     [TOKEN_TYPE.OPERATOR]: '연산자',
     [TOKEN_TYPE.SPACE]: '공백',

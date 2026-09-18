@@ -1,3 +1,4 @@
+import { NumberLiteral } from '@dalbit-yaksok/core'
 import { Evaluable, Expression, Identifier } from '../../../node/base.ts'
 import {
     DictLiteral,
@@ -5,7 +6,6 @@ import {
     KeyValuePairSequence,
 } from '../../../node/dict.ts'
 import { EOL } from '../../../node/misc.ts'
-import { NumberLiteral } from '../../../node/primitive-literal.ts'
 import { Rule } from '../type.ts'
 
 export const DICT_RULES: Rule[] = [

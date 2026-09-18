@@ -1,14 +1,14 @@
 import {
     BooleanValue,
-    EmptyValue,
+    Evaluable,
     NumberValue,
-    StringValue,
-} from '../value/primitive.ts'
-import { Evaluable, Node } from './base.ts'
-import { YaksokError } from '../error/common.ts'
+    Scope,
+    Token,
+    YaksokError,
+    EmptyValue,
+} from '@dalbit-yaksok/core'
 
-import type { Token } from '../prepare/tokenize/token.ts'
-import type { Scope } from '../executer/scope.ts'
+export { StringLiteral } from './string.ts'
 
 export class NumberLiteral extends Evaluable<unknown, NumberValue> {
     static override friendlyName = '숫자'
@@ -36,29 +36,6 @@ export class NumberLiteral extends Evaluable<unknown, NumberValue> {
         return []
     }
 }
-
-export class StringLiteral extends Evaluable {
-    static override friendlyName = '문자'
-
-    constructor(content: string, tokens: Token[]) {
-        super()
-
-        parseTemplate
-    }
-
-    override execute(_scope: Scope): Promise<StringValue> {
-        return Promise.resolve(new StringValue(this.content))
-    }
-
-    override toPrint(): string {
-        return this.content
-    }
-
-    override validate(): YaksokError[] {
-        return []
-    }
-}
-
 export class BooleanLiteral extends Evaluable {
     static override friendlyName = '참거짓'
 

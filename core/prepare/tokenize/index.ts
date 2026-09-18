@@ -3,6 +3,7 @@ import { RULES } from './rules.ts'
 import { YaksokError } from '../../error/common.ts'
 import { type Token, TOKEN_TYPE } from './token.ts'
 import { Splitpoint } from '../lex/infer-token-splitpoint.ts'
+import { tokenizeTemplateString } from './template-string.ts'
 
 class Tokenizer {
     private tokens: Token[] = []
@@ -86,6 +87,19 @@ class Tokenizer {
 
                             this.tokens.push(head)
                             this.tokens.push(tail)
+                        } else if (rule.type === TOKEN_TYPE.RAW_STRING) {
+                            const stringToken: Token = {
+                                type: rule.type,
+                                value: value,
+                                position: {
+                                    line: initialLineForToken,
+                                    column: initialColumnForToken,
+                                },
+                            }
+
+                            this.tokens.push(
+                                ...tokenizeTemplateString(stringToken),
+                            )
                         } else {
                             this.tokens.push({
                                 type: rule.type,
