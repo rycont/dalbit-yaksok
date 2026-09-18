@@ -10,6 +10,7 @@ import { Rule } from './type.ts'
 import { FunctionCallOperatorAmbiguityError } from '../../error/prepare.ts'
 import { RESERVED_WORDS } from '../../constant/reserved-words.ts'
 import { Ruleset } from './ruleset.ts'
+import { NotAcceptableSignal } from './signal.ts'
 
 export function SRParse(_nodes: Node[], ruleset: Ruleset) {
     const leftNodes = [..._nodes]
@@ -94,10 +95,20 @@ export function SRParse(_nodes: Node[], ruleset: Ruleset) {
 export function reduce(nodes: Node[], rule: Rule) {
     const tokens = getTokensFromNodes(nodes)
 
-    const reduced = rule.factory(nodes, tokens)
-    if (reduced === null) return null
+    try {
+        const reduced = rule.factory(nodes, tokens)
+        if (reduced === null) {
+            return null
+        }
 
-    return reduced
+        return reduced
+    } catch (e) {
+        if (e instanceof NotAcceptableSignal) {
+            return null
+        }
+
+        throw e
+    }
 }
 
 export function callParseRecursively(

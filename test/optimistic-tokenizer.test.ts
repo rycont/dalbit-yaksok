@@ -37,7 +37,7 @@ Deno.test('Incompleted String', () => {
             },
         },
         {
-            type: TOKEN_TYPE.STRING,
+            type: TOKEN_TYPE.RAW_STRING,
             value: '"이름이 뭐에',
             position: {
                 line: 1,

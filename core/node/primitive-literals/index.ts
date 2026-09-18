@@ -8,7 +8,7 @@ import {
     EmptyValue,
 } from '@dalbit-yaksok/core'
 
-export { StringLiteral } from './string.ts'
+export { StringStaticPart, StringInterpolationPart } from './string.ts'
 
 export class NumberLiteral extends Evaluable<unknown, NumberValue> {
     static override friendlyName = '숫자'

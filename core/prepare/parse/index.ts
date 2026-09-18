@@ -30,11 +30,11 @@ export function parse(codeFile: CodeFile, optimistic = false): ParseResult {
         const nodes = convertTokensToNodes(codeFile.tokens)
         const indentedNodes = parseIndent(nodes)
 
-        const priorityParsedNodes = codeFile.session?.flags[
-            'disable-bracket-first-parsing'
-        ]
-            ? indentedNodes
-            : parseBracket(indentedNodes, dynamicRules, optimistic)
+        const priorityParsedNodes = parseBracket(
+            indentedNodes,
+            dynamicRules,
+            optimistic,
+        )
 
         const computedRules = [
             dynamicRules.flat().flat(),

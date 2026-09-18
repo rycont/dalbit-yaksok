@@ -58,10 +58,12 @@ import { DICT_RULES } from './dict.ts'
 import { LIST_LOOP_RULES } from './list-loop.ts'
 import { OptionalParameter } from '../../../node/function.ts'
 import { EmptyLiteral } from '@dalbit-yaksok/core'
+import { STRING_RULES } from './template-string.ts'
 
 export type { Rule }
 
 export const BASIC_RULES: Rule[][] = [
+    STRING_RULES,
     [
         {
             pattern: [

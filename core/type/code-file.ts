@@ -33,11 +33,14 @@ export class CodeFile {
     public appliedRules: Rule[] | null = null
 
     public splitpoints: Splitpoint[] = []
+    public text: string
 
     constructor(
-        public text: string,
+        text: string,
         public fileName: string | symbol,
-    ) {}
+    ) {
+        this.text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+    }
 
     /**
      * `CodeFile`을 `YaksokSession`에 마운트합니다.

@@ -86,6 +86,8 @@ export function parseBracket(
                     continue rangeSeekingLoop
                 }
 
+                console.log(nodes[openingBracketIndex])
+
                 throw new UnexpectedEndOfCodeError({
                     resource: {
                         expected: '닫는 대괄호',

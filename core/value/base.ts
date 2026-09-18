@@ -1,3 +1,5 @@
+import { StringValue } from '@dalbit-yaksok/core'
+
 export class ValueType {
     static friendlyName = '값'
 
@@ -5,6 +7,10 @@ export class ValueType {
         return `${(this.constructor as typeof ValueType).friendlyName} (${JSON.stringify(
             this,
         )})`
+    }
+
+    public toStringValue(): StringValue {
+        return new StringValue(this.toPrint())
     }
 }
 

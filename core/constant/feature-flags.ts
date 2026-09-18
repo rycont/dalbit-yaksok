@@ -5,11 +5,6 @@ export enum FEATURE_FLAG {
     SKIP_VALIDATE_BREAK_OR_RETURN_IN_LOOP = 'skip-validate-break-or-return-in-loop',
 
     /**
-     * 대괄호를 우선하여 파싱하지 않습니다. 파싱 오류가 발생할 경우 이 옵션이 도움이 될 수 있습니다.
-     */
-    DISABLE_BRACKET_FIRST_PARSING = 'disable-bracket-first-parsing',
-
-    /**
      * 약속 호출 스택 깊이 제한을 비활성화합니다. 활성화할 시 CallStackDepthExceededError가 발생하지 않습니다.
      */
     DISABLE_CALL_STACK_DEPTH_LIMIT = 'disable-call-stack-depth-limit',

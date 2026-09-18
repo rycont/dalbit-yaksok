@@ -7,7 +7,6 @@ import { tokenizeTemplateString } from './template-string.ts'
 
 class Tokenizer {
     private tokens: Token[] = []
-    private code: string
     private index = 0
 
     private column = 1
@@ -16,8 +15,10 @@ class Tokenizer {
 
     private splitpointQueue
 
-    constructor(code: string, splitpoints: Splitpoint[]) {
-        this.code = preprocess(code)
+    constructor(
+        private code: string,
+        splitpoints: Splitpoint[],
+    ) {
         this.splitpointQueue = Array.from(splitpoints)
     }
 
@@ -232,8 +233,4 @@ export function tokenize(
 ): Token[] {
     const tokens = new Tokenizer(text, splitpoints).tokenize()
     return tokens
-}
-
-function preprocess(code: string) {
-    return code.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
 }
