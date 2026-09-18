@@ -17,8 +17,8 @@ Deno.test('Dictionary literal accepts numeric keys', async () => {
 소인수 보여주기`,
     )
 
-    const results = await session.runModule('main')
-    const result = results.get('main')!
+    const results = await session.runModule(['main'])
+    const result = results.main
     assertEquals(result.reason, 'finish')
 
     const scope = session.getCodeFile('main').ranScope

@@ -52,12 +52,12 @@ Deno.test('List multiplication requires non-negative integers', async () => {
         negativeResult.reason === 'error',
         `Expected error, got ${negativeResult.reason}`,
     )
-    assertIsError(negativeResult.error, InvalidTypeForOperatorError)
+    assertIsError(negativeResult.errors?.[0], InvalidTypeForOperatorError)
 
     const decimalResult = await yaksok(`결과 = [1] * 2.5`)
     assert(
         decimalResult.reason === 'error',
         `Expected error, got ${decimalResult.reason}`,
     )
-    assertIsError(decimalResult.error, InvalidTypeForOperatorError)
+    assertIsError(decimalResult.errors?.[0], InvalidTypeForOperatorError)
 })

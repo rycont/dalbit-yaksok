@@ -11,5 +11,5 @@ Deno.test('인자를 닫는 괄호가 제 위치에 없습니다', async () => {
         result.reason === 'validation',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.errors.get('main')![0], UnexpectedTokenError)
+    assertIsError(result.errors![0], UnexpectedTokenError)
 })

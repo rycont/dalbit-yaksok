@@ -6,5 +6,5 @@ import { yaksok } from '../../core/mod.ts'
 Deno.test('끝나지 못한 괄호', async () => {
     const result = await yaksok(`나이 = 10 + (20`)
     assert(result.reason === 'validation')
-    assertIsError(result.errors.get('main')![0], UnexpectedEndOfCodeError)
+    assertIsError(result.errors![0], UnexpectedEndOfCodeError)
 })

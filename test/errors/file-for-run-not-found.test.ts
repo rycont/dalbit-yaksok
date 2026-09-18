@@ -8,7 +8,7 @@ Deno.test('없는 파일 실행 요청', async () => {
     })
 
     assert(result.reason === 'validation')
-    assertIsError(result.errors.get('main')![0], FileForRunNotExistError)
+    assertIsError(result.errors![0], FileForRunNotExistError)
 
     const result2 = await yaksok({
         코레일: `
@@ -17,5 +17,5 @@ Deno.test('없는 파일 실행 요청', async () => {
     })
 
     assert(result2.reason === 'error')
-    assertIsError(result2.error, FileForRunNotExistError)
+    assertIsError(result2.errors?.[0], FileForRunNotExistError)
 })

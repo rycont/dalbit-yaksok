@@ -24,7 +24,7 @@ async function run(code: string) {
     session.addModule('장치', 모듈)
     session.addModule('main', code)
 
-    const result = (await session.runModule('main')).get('main')!
+    const result = (await session.runModule(['main'])).main
     return { result, printed }
 }
 
@@ -35,7 +35,7 @@ async function validationErrors(code: string): Promise<YaksokError[]> {
         `검증 오류를 기대했지만 "${result.reason}"이 나왔어요`,
     )
 
-    return [...result.errors.values()].flat()
+    return result.errors
 }
 
 Deno.test('인자는 호출한 쪽 스코프에서 평가된다', async (t) => {

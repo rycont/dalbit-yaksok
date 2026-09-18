@@ -28,7 +28,7 @@ Deno.test('Execution Delay in Main Context', async () => {
     session.addModule('main', code.main, {
         executionDelay: 100,
     })
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     const endTime = Date.now()
     const duration = endTime - startTime
@@ -66,7 +66,7 @@ Deno.test('Execution Delay with Imported File', async () => {
     })
     session.addModule('imported', code.imported)
 
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     const endTime = Date.now()
     const duration = endTime - startTime
@@ -110,8 +110,8 @@ Deno.test('Execution Delay with Nested Import', async () => {
     session.addModule('imported', code.imported)
     session.addModule('nested', code.nested)
 
-    const results = await session.runModule('main')
-    const result = results.get('main')!
+    const results = await session.runModule(['main'])
+    const result = results.main
     const endTime = Date.now()
 
     assert(
@@ -153,8 +153,8 @@ Deno.test('Execution Delay with Function Call', async () => {
         },
     )
 
-    const results = await session.runModule('main')
-    const result = results.get('main')!
+    const results = await session.runModule(['main'])
+    const result = results.main
     assert(
         result.reason === 'finish',
         `Expected finish, but got ${result.reason}`,
@@ -184,10 +184,17 @@ Deno.test('Execution Delay with Base Context', async () => {
     })
 
     const baseContextStartTime = Date.now()
-    await session.setBaseContext(`
+    session.useBaseScope(
+        await session
+            .addModule(
+                'base',
+                `
 내_이름 = "달빛"
 내_나이 = 3        
-`)
+`.trim(),
+            )
+            .run(),
+    )
     const baseContextEndTime = Date.now()
     const baseContextDuration = baseContextEndTime - baseContextStartTime
 
@@ -207,7 +214,7 @@ Deno.test('Execution Delay with Base Context', async () => {
         },
     )
 
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     const mainContextEndTime = Date.now()
     const mainContextDuration = mainContextEndTime - mainContextStartTime
@@ -280,8 +287,8 @@ Deno.test('Execution Delay in Formula', async () => {
     )
 
     const startTime = Date.now()
-    const results = await session.runModule('main')
-    const result = results.get('main')!
+    const results = await session.runModule(['main'])
+    const result = results.main
     const endTime = Date.now()
 
     assert(
@@ -317,7 +324,7 @@ Deno.test('Execution Delay with 0ms', async () => {
     session.addModule('main', code.main, {
         executionDelay: 0,
     })
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     const endTime = Date.now()
     const duration = endTime - startTime
@@ -347,7 +354,7 @@ Deno.test('Execution Delay with no delay set', async () => {
     const startTime = Date.now()
 
     session.addModule('main', code.main) // No executionDelay config
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     const endTime = Date.now()
     const duration = endTime - startTime

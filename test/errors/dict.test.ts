@@ -26,11 +26,11 @@ Deno.test('Key is not found in dictionary', async () => {
 객체['자격증']['자식새끼'][1] 보여주기`,
     )
 
-    const results = await session.runModule('main')
-    const result = results.get('main')!
+    const results = await session.runModule(['main'])
+    const result = results.main
 
     assert(result.reason === 'error')
-    assertInstanceOf(result.error, IndexKeyNotFoundError)
+    assertInstanceOf(result.errors?.[0], IndexKeyNotFoundError)
 })
 
 Deno.test('Dict Compound Assignment Operation Error', async () => {
@@ -49,9 +49,9 @@ Deno.test('Dict Compound Assignment Operation Error', async () => {
 객체['주소'] -= 2`,
     )
 
-    const results = await session.runModule('main')
-    const result = results.get('main')!
+    const results = await session.runModule(['main'])
+    const result = results.main
 
     assert(result.reason === 'error')
-    assertInstanceOf(result.error, InvalidTypeForOperatorError)
+    assertInstanceOf(result.errors?.[0], InvalidTypeForOperatorError)
 })

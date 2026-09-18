@@ -30,7 +30,7 @@ export type Events = {
 
 export const DEFAULT_SESSION_CONFIG: SessionConfig = {
     stdout: console.log,
-    stderr: console.error,
+    stderr: (e) => console.error(e),
     events: {
         runningCode: () => {},
     },

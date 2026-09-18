@@ -10,7 +10,7 @@ export function createMentioningRule(
     fileName: string,
     originalRule: Rule,
 ): Rule {
-    if (!originalRule.config?.exportedScope) {
+    if (!originalRule.config?.exported) {
         throw new Error('Mentioning에는 Exported Scope가 필요합니다')
     }
 
@@ -39,11 +39,6 @@ function createFactory(fileName: string, rule: Rule) {
             | Identifier
             | FunctionInvoke
 
-        return new MentionScope(
-            fileName,
-            rule.config!.exportedScope!,
-            child,
-            tokens,
-        )
+        return new MentionScope(fileName, rule.config!.exported!, child, tokens)
     }
 }

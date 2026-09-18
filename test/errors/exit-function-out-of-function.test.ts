@@ -11,5 +11,5 @@ Deno.test('약속의 밖에서는 `약속 그만`을 쓸 수 없음', async () =
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, CannotReturnOutsideFunctionError)
+    assertIsError(result.errors?.[0], CannotReturnOutsideFunctionError)
 })

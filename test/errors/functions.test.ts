@@ -14,7 +14,7 @@ Deno.test('약속 안에서 발생한 오류', async () => {
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, InvalidTypeForOperatorError)
+    assertIsError(result.errors?.[0], InvalidTypeForOperatorError)
 })
 
 Deno.test('동일한 이름으로 약속 재정의 오류', async () => {
@@ -51,10 +51,10 @@ Deno.test('동일한 이름으로 약속 재정의 오류', async () => {
 `,
     )
 
-    const results = await session.runModule('main')
-    const result = results.get('main')!
+    const results = await session.runModule(['main'])
+    const result = results.main
     assert(result.reason === 'validation')
-    assertIsError(result.errors.get('main')![0], AlreadyDefinedFunctionError)
+    assertIsError(result.errors![0], AlreadyDefinedFunctionError)
 
     assertEquals(
         stderrOutput,
@@ -104,8 +104,8 @@ Deno.test('다른 범위에서 동일한 이름으로 약속 정의 (오류 없�
 `,
     )
 
-    const results = await session.runModule('main')
-    const result = results.get('main')!
+    const results = await session.runModule(['main'])
+    const result = results.main
 
     assert(
         result.reason === 'finish',

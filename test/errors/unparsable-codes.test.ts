@@ -7,25 +7,25 @@ Deno.test('Unparsable codes', async () => {
     const result = await yaksok(`]]`)
     assert(result.reason === 'validation')
 
-    assertIsError(result.errors.get('main')![0], NotExecutableNodeError)
-    assertIsError(result.errors.get('main')![1], NotExecutableNodeError)
+    assertIsError(result.errors![0], NotExecutableNodeError)
+    assertIsError(result.errors![1], NotExecutableNodeError)
 })
 
 Deno.test('Unparsable numbers', async () => {
     const result = await yaksok(`1.2.3`)
 
     assert(result.reason === 'validation')
-    assertIsError(result.errors.get('main')![0], NotExecutableNodeError)
+    assertIsError(result.errors![0], NotExecutableNodeError)
 })
 
 Deno.test('Unparsable list', async () => {
     const result = await yaksok(`자리표 = [1, 2, [3, 4]`)
     assert(result.reason === 'validation')
-    assertIsError(result.errors.get('main')![0], UnexpectedEndOfCodeError)
+    assertIsError(result.errors![0], UnexpectedEndOfCodeError)
 })
 
 Deno.test('Unparsable function call', async () => {
     const result = await yaksok(`비만도 = 키가 (`)
     assert(result.reason === 'validation')
-    assertIsError(result.errors.get('main')![0], UnexpectedEndOfCodeError)
+    assertIsError(result.errors![0], UnexpectedEndOfCodeError)
 })

@@ -120,6 +120,7 @@ export class YaksokSession {
         moduleName: string | symbol,
     ): Promise<RunModuleResult> {
         const codeFile = this.files[moduleName]
+
         if (!codeFile) {
             return {
                 reason: 'error',
@@ -131,6 +132,13 @@ export class YaksokSession {
                         },
                     }),
                 ],
+            }
+        }
+
+        if (codeFile.prepareErrors) {
+            return {
+                reason: 'validation',
+                errors: codeFile.prepareErrors,
             }
         }
 

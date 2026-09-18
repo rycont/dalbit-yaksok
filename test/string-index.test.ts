@@ -27,23 +27,26 @@ Deno.test('String index must be a non-negative integer within bounds', async () 
         negativeResult.reason === 'error',
         `Expected error, got ${negativeResult.reason}`,
     )
-    assertIsError(negativeResult.error, ListIndexMustBeGreaterOrEqualThan0Error)
+    assertIsError(
+        negativeResult.errors?.[0],
+        ListIndexMustBeGreaterOrEqualThan0Error,
+    )
 
     const decimalResult = await yaksok(`결과 = '가'[0.5]`)
     assert(
         decimalResult.reason === 'error',
         `Expected error, got ${decimalResult.reason}`,
     )
-    assertIsError(decimalResult.error, ListIndexTypeError)
+    assertIsError(decimalResult.errors?.[0], ListIndexTypeError)
 
     const outOfRangeResult = await yaksok(`결과 = '가'[1]`)
     assert(
         outOfRangeResult.reason === 'error',
         `Expected error, got ${outOfRangeResult.reason}`,
     )
-    assertIsError(outOfRangeResult.error, StringIndexOutOfRangeError)
+    assertIsError(outOfRangeResult.errors?.[0], StringIndexOutOfRangeError)
     assertEquals(
-        outOfRangeResult.error.message,
+        outOfRangeResult.errors?.[0]?.message,
         '가에서 1번째 글자를 가져올 수 없어요. 가의 길이는 1이에요.',
     )
 })

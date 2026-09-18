@@ -1,9 +1,5 @@
 import { executer } from '../executer/index.ts'
 import { Scope } from '../executer/scope.ts'
-import { assertIndentValidity } from '../prepare/lex/indent-validity.ts'
-import { mergeArgumentBranchingTokens } from '../prepare/lex/merge-argument-branching-tokens.ts'
-
-import { getFunctionDeclareRanges } from '../util/get-function-declare-ranges.ts'
 
 import type { Block } from '../node/block.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
@@ -12,7 +8,13 @@ import {
     inferTokenSplitpointsFromErrors,
     Splitpoint,
 } from '../prepare/lex/infer-token-splitpoint.ts'
-import { parse, tokenize, YaksokSession } from '@dalbit-yaksok/core'
+import {
+    errorToMachineReadable,
+    renderErrorString,
+    parse,
+    tokenize,
+    YaksokSession,
+} from '@dalbit-yaksok/core'
 
 export class CodeFile {
     readonly ast: Block
@@ -38,6 +40,13 @@ export class CodeFile {
         this.tokens = tokens
         this.text = text
         this.prepareErrors = validateResult
+
+        for (const error of validateResult) {
+            session.stderr(
+                renderErrorString(error),
+                errorToMachineReadable(error),
+            )
+        }
     }
 
     public get ranScope(): Scope | null {
@@ -59,22 +68,6 @@ export class CodeFile {
     }
 }
 
-function tokenizeAndProcess(text: string, splitpoints: Splitpoint[]): Token[] {
-    const tokens = tokenize(text, splitpoints)
-
-    const functionDeclareRangesByType = getFunctionDeclareRanges(tokens)
-
-    const functionDeclareRanges = [
-        ...functionDeclareRangesByType.yaksok,
-        ...functionDeclareRangesByType.ffi,
-    ]
-
-    const merged = mergeArgumentBranchingTokens(tokens, functionDeclareRanges)
-
-    assertIndentValidity(merged)
-    return merged
-}
-
 function parseWithSession(code: string, session: YaksokSession) {
     const seenErrorFingerprint = new Set<string>()
     const seenSplitpointFingerprint = new Set<string>()
@@ -85,7 +78,7 @@ function parseWithSession(code: string, session: YaksokSession) {
     let tokens: Token[] | null = null
 
     while (true) {
-        tokens = tokenizeAndProcess(code, inferredSplitpoints)
+        tokens = tokenize(code, inferredSplitpoints)
         ast = parse(tokens, session)
 
         const validatingScope = new Scope()

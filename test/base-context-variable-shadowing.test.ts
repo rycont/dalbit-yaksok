@@ -1,6 +1,5 @@
 import { assertEquals } from 'https://deno.land/std@0.211.0/assert/mod.ts'
 import { YaksokSession, NumberValue } from '../core/mod.ts'
-import { assert } from 'assert'
 
 /**
  * baseContext에서 정의된 변수를 같은 이름으로 재대입할 때의 동작을 검증합니다.
@@ -23,10 +22,10 @@ Deno.test('setBaseContext: 다른 변수명으로 읽기 (정상 케이스)', as
         },
     })
 
-    await session.setBaseContext('값 = 5')
+    session.useBaseScope(await session.addModule('base', '값 = 5').run())
 
     session.addModule('main', '결과 = 값 + 10\n결과 보여주기')
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     assertEquals(output.trim(), '15')
 })
@@ -40,10 +39,10 @@ Deno.test('setBaseContext: 단순 읽기', async () => {
         },
     })
 
-    await session.setBaseContext('값 = 5')
+    session.useBaseScope(await session.addModule('base', '값 = 5').run())
 
     session.addModule('main', '값 보여주기')
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     assertEquals(output.trim(), '5')
 })
@@ -57,13 +56,11 @@ Deno.test('setBaseContext: 새 변수 선언은 로컬 스코프에 생성됨', 
         },
     })
 
-    const baseContextResult = await session.setBaseContext('값 = 5')
-
-    assert(baseContextResult.reason === 'finish')
-    const baseContextScope = baseContextResult.scope
+    const baseContextScope = await session.addModule('base', '값 = 5').run()
+    session.useBaseScope(baseContextScope)
 
     session.addModule('main', '새값 = 100\n새값 보여주기')
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     assertEquals(output.trim(), '100')
 
@@ -81,10 +78,10 @@ Deno.test('setBaseContext: 같은 변수명으로 재대입하면 값 + 10 = 15�
         },
     })
 
-    await session.setBaseContext('값 = 5')
+    session.useBaseScope(await session.addModule('base', '값 = 5').run())
 
     session.addModule('main', '값 = 값 + 10\n값 보여주기')
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     // 값 = 5 + 10 = 15
     assertEquals(
@@ -99,9 +96,9 @@ Deno.test('validation 단계가 baseContext.ranScope의 변수를 변경하지 �
         stdout() {},
     })
 
-    await session.setBaseContext('값 = 5')
+    session.useBaseScope(await session.addModule('base', '값 = 5').run())
 
-    const baseScopeBefore = session.baseContext?.ranScope
+    const baseScopeBefore = session.baseScope
     assertEquals(
         (baseScopeBefore?.variables['값'] as NumberValue)?.value,
         5,
@@ -112,7 +109,7 @@ Deno.test('validation 단계가 baseContext.ranScope의 변수를 변경하지 �
     session.addModule('main', '값 = 값 + 10')
     session.validate('main')
 
-    const baseScopeAfter = session.baseContext?.ranScope
+    const baseScopeAfter = session.baseScope
     assertEquals(
         (baseScopeAfter?.variables['값'] as NumberValue)?.value,
         5,
@@ -125,13 +122,13 @@ Deno.test('재대입 후 parent scope에 반영됨', async () => {
         stdout() {},
     })
 
-    await session.setBaseContext('값 = 5')
+    session.useBaseScope(await session.addModule('base', '값 = 5').run())
 
     session.addModule('main', '값 = 값 + 10')
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     // 런타임 재대입은 parent scope chain을 타고 올라가 실제 값을 갱신함 (노트북 시맨틱)
-    const baseContextScope = session.baseContext?.ranScope
+    const baseContextScope = session.baseScope
     assertEquals(
         (baseContextScope?.variables['값'] as NumberValue)?.value,
         15,
@@ -148,10 +145,10 @@ Deno.test('복합 대입 연산자로 재대입', async () => {
         },
     })
 
-    await session.setBaseContext('값 = 5')
+    session.useBaseScope(await session.addModule('base', '값 = 5').run())
 
     session.addModule('main', '값 += 10\n값 보여주기')
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     // 5 + 10 = 15
     assertEquals(

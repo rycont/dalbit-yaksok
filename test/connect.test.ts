@@ -49,7 +49,7 @@ Deno.test('연결 문법을 사용하여 자바스크립트 함수 호출', asyn
 `,
     )
 
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     assertEquals(
         output,
@@ -88,7 +88,7 @@ Deno.test('다른 파일에 있는 연결 호출', async () => {
 `,
     )
 
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     assertEquals(output, '황선형\n')
 })
@@ -128,7 +128,7 @@ RRR
 (("이름이 뭐에요?") 물어보기) 보여주기`,
     )
 
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     assertEquals(output, '[황선형, 도지석]\n')
 })
@@ -159,11 +159,11 @@ SOMETHING
 (("이름이 뭐에요?") 물어보기) 보여주기`,
     )
 
-    const results = await session.runModule('main')
-    const result = results.get('main')!
+    const results = await session.runModule(['main'])
+    const result = results.main
     console.log(result)
     assert(result.reason === 'error')
-    assertIsError(result.error, FFIResultTypeIsNotForYaksokError)
+    assertIsError(result.errors?.[0], FFIResultTypeIsNotForYaksokError)
 })
 
 Deno.test('올바르지 않은 연결 반환값: JS Object', async () => {
@@ -192,11 +192,11 @@ CODES
 (("이름이 뭐에요?") 물어보기) 보여주기`,
     )
 
-    const results = await session.runModule('main')
-    const result = results.get('main')!
+    const results = await session.runModule(['main'])
+    const result = results.main
 
     assert(result.reason === 'error')
-    assertIsError(result.error, FFIResultTypeIsNotForYaksokError)
+    assertIsError(result.errors?.[0], FFIResultTypeIsNotForYaksokError)
 })
 
 Deno.test('연결 반환값이 없음', async () => {
@@ -225,10 +225,10 @@ CODES
 (("이름이 뭐에요?") 물어보기) 보여주기`,
     )
 
-    const results = await session.runModule('main')
-    const result = results.get('main')!
+    const results = await session.runModule(['main'])
+    const result = results.main
     assert(result.reason === 'error')
-    assertIsError(result.error, FFIResultTypeIsNotForYaksokError)
+    assertIsError(result.errors?.[0], FFIResultTypeIsNotForYaksokError)
 })
 
 Deno.test('구현되지 않은 FFI', async () => {
@@ -257,10 +257,10 @@ CODES
 (("이름이 뭐에요?") 물어보기) 보여주기`,
     )
 
-    const results = await session.runModule('main')
-    const result = results.get('main')!
+    const results = await session.runModule(['main'])
+    const result = results.main
     assert(result.reason === 'error')
-    assertIsError(result.error, ErrorOccurredWhileRunningFFIExecution)
+    assertIsError(result.errors?.[0], ErrorOccurredWhileRunningFFIExecution)
 })
 
 Deno.test('Promise를 반환하는 FFI', async () => {
@@ -307,7 +307,7 @@ wait
 `,
     )
 
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     const timeDelta = +new Date() - startTime
 
@@ -349,7 +349,7 @@ Deno.test('한 단어로 된 FFI 이름', async () => {
 `,
     )
 
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     assertEquals(
         output,
@@ -385,7 +385,7 @@ Deno.test('이름에 변형이 있는 함수 선언', async () => {
 `,
     )
 
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     assertEquals(
         output,

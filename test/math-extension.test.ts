@@ -11,7 +11,7 @@ async function runMath(code: string): Promise<string> {
     })
     await session.extend(new MathExtension())
     session.addModule('main', code)
-    await session.runModule('main')
+    await session.runModule(['main'])
     return output.trim()
 }
 

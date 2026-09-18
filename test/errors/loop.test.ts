@@ -25,7 +25,7 @@ Deno.test('Error raised in loop', async () => {
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, InvalidTypeForOperatorError)
+    assertIsError(result.errors?.[0], InvalidTypeForOperatorError)
 })
 
 Deno.test('Error raised in list loop', async () => {
@@ -37,7 +37,7 @@ Deno.test('Error raised in list loop', async () => {
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, InvalidTypeForOperatorError)
+    assertIsError(result.errors?.[0], InvalidTypeForOperatorError)
 })
 
 Deno.test('Loop target is not enumerable', async () => {
@@ -49,7 +49,7 @@ Deno.test('Loop target is not enumerable', async () => {
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, NotEnumerableValueForListLoopError)
+    assertIsError(result.errors?.[0], NotEnumerableValueForListLoopError)
 })
 
 Deno.test('Range start is less than end', async () => {
@@ -58,7 +58,7 @@ Deno.test('Range start is less than end', async () => {
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, RangeStartMustBeLessThanEndError)
+    assertIsError(result.errors?.[0], RangeStartMustBeLessThanEndError)
 })
 
 Deno.test('Range start must be number', async () => {
@@ -67,7 +67,7 @@ Deno.test('Range start must be number', async () => {
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, RangeStartMustBeNumberError)
+    assertIsError(result.errors?.[0], RangeStartMustBeNumberError)
 })
 
 Deno.test('Range end must be number', async () => {
@@ -76,7 +76,7 @@ Deno.test('Range end must be number', async () => {
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, RangeEndMustBeNumberError)
+    assertIsError(result.errors?.[0], RangeEndMustBeNumberError)
 })
 
 Deno.test('Range start must be an integer', async () => {
@@ -85,14 +85,14 @@ Deno.test('Range start must be an integer', async () => {
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, RangeStartMustBeIntegerError)
+    assertIsError(result.errors?.[0], RangeStartMustBeIntegerError)
 
     result = await yaksok(`1.5 ~ 3.2`)
     assert(
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, RangeStartMustBeIntegerError)
+    assertIsError(result.errors?.[0], RangeStartMustBeIntegerError)
 })
 
 Deno.test('Range end must be an integer', async () => {
@@ -101,7 +101,7 @@ Deno.test('Range end must be an integer', async () => {
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, RangeEndMustBeIntegerError)
+    assertIsError(result.errors?.[0], RangeEndMustBeIntegerError)
 })
 
 Deno.test('Index set target is must be indexable', async () => {
@@ -114,7 +114,7 @@ Deno.test('Index set target is must be indexable', async () => {
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, TargetIsNotIndexedValueError)
+    assertIsError(result.errors?.[0], TargetIsNotIndexedValueError)
 })
 
 Deno.test('Index get target is must be indexable', async () => {
@@ -125,7 +125,7 @@ Deno.test('Index get target is must be indexable', async () => {
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, TargetIsNotIndexedValueError)
+    assertIsError(result.errors?.[0], TargetIsNotIndexedValueError)
 })
 
 Deno.test('List out of range', async () => {
@@ -136,7 +136,7 @@ Deno.test('List out of range', async () => {
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, IndexKeyNotFoundError)
+    assertIsError(result.errors?.[0], IndexKeyNotFoundError)
 })
 
 Deno.test('List index must be number', async () => {
@@ -147,7 +147,7 @@ Deno.test('List index must be number', async () => {
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, ListIndexTypeError)
+    assertIsError(result.errors?.[0], ListIndexTypeError)
 })
 
 Deno.test('List index must be integer', async () => {
@@ -158,7 +158,7 @@ Deno.test('List index must be integer', async () => {
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, ListIndexTypeError)
+    assertIsError(result.errors?.[0], ListIndexTypeError)
 })
 
 Deno.test('List index must bigger than 0', async () => {
@@ -169,7 +169,7 @@ Deno.test('List index must bigger than 0', async () => {
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, ListIndexMustBeGreaterOrEqualThan0Error)
+    assertIsError(result.errors?.[0], ListIndexMustBeGreaterOrEqualThan0Error)
 })
 
 Deno.test('Loop Count is not a number', async () => {
@@ -179,5 +179,5 @@ Deno.test('Loop Count is not a number', async () => {
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, LoopCountIsNotNumberError)
+    assertIsError(result.errors?.[0], LoopCountIsNotNumberError)
 })

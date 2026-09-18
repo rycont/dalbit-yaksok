@@ -15,7 +15,7 @@ for (const literal of TRUE_LITERALS) {
 결과 = ${literal}
 `,
         )
-        await session.runModule('main')
+        await session.runModule(['main'])
         const result = session
             .getCodeFile('main')
             .ranScope?.getVariable('결과') as BooleanValue
@@ -32,7 +32,7 @@ for (const literal of FALSE_LITERALS) {
 결과 = ${literal}
 `,
         )
-        await session.runModule('main')
+        await session.runModule(['main'])
         const result = session
             .getCodeFile('main')
             .ranScope?.getVariable('결과') as BooleanValue
@@ -49,7 +49,7 @@ Deno.test('Store boolean in variable', async () => {
 결과 = 불리언
 `,
     )
-    await session.runModule('main')
+    await session.runModule(['main'])
     const result = session
         .getCodeFile('main')
         .ranScope?.getVariable('결과') as BooleanValue
@@ -67,7 +67,7 @@ Deno.test('Compare booleans', async () => {
 결과4 = 참 != 거짓
 `,
     )
-    await session.runModule('main')
+    await session.runModule(['main'])
     const scope = session.getCodeFile('main').ranScope
 
     assert(scope)
@@ -90,7 +90,7 @@ Deno.test('Negation operator', async () => {
 결과4 = 불리언 아니다
 `,
     )
-    await session.runModule('main')
+    await session.runModule(['main'])
     const scope = session.getCodeFile('main').ranScope
 
     assert(scope)

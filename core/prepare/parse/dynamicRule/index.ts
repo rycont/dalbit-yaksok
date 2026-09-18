@@ -16,21 +16,11 @@ export function createDynamicRule(
     const localRules = createLocalDynamicRules(tokens)
 
     const mentioningRules = getRulesFromMentioningFile(tokens, session)
-    const baseContextRules =
-        session.baseContexts.flatMap(
-            (baseFile) =>
-                baseFile.appliedRules?.filter((r) => r.config?.exportedScope) ||
-                [],
-        ) || []
-
-    const extensionRules =
-        session.extensions.flatMap(
-            (extension) => extension.manifest.parsingRules || [],
-        ) || []
+    const baseScopeRules = session.baseScope?.getDynamicRules() || []
 
     const rules: [Rule[][], Rule[][]] = [
-        [extensionRules, ...localRules[0]],
-        [...localRules[1], mentioningRules, baseContextRules],
+        localRules[0],
+        [...localRules[1], mentioningRules, baseScopeRules],
     ]
 
     return rules

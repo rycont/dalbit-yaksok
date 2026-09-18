@@ -12,5 +12,5 @@ Deno.test('반복의 밖에서는 `반복 그만`을 쓸 수 없음', async () =
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, BreakNotInLoopError)
+    assertIsError(result.errors?.[0], BreakNotInLoopError)
 })

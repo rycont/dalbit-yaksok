@@ -22,40 +22,19 @@ import {
     UnexpectedArgumentError,
 } from '../error/function.ts'
 
-/**
- * `약속` 키워드를 통해 함수(약속)를 선언하는 AST 노드입니다.
- *
- * 이 노드는 실행될 때 실제로 함수 코드를 실행하는 것이 아니라,
- * 실행 가능한 `FunctionObject`를 생성하여 현재 스코프에 등록하는 역할을 합니다.
- * 이때 `FunctionObject`는 함수가 선언된 시점의 스코프를 기억하며, 이는 클로저(Closure)를 구현하는 핵심입니다.
- */
 export class DeclareFunction extends Executable {
     static override friendlyName = '새 약속 만들기'
     static override accepts = [NodeCapability.RETURN]
 
-    name: string
-    body: Block
-    parameterElements: ParameterElement[]
-
     constructor(
-        props: {
-            body: Block
-            name: string
-            parameterElements: ParameterElement[]
-        },
+        public body: Block,
+        public name: string,
+        public parameterElements: ParameterElement[],
         public override tokens: Token[],
     ) {
         super()
-
-        this.name = props.name
-        this.body = props.body
-        this.parameterElements = props.parameterElements
     }
 
-    /**
-     * 함수를 나타내는 `FunctionObject`를 생성하고 현재 스코프에 추가합니다.
-     * @param scope - 함수가 선언되는 현재의 스코프입니다.
-     */
     override execute(scope: Scope): Promise<void> {
         const paramNames = this.parameterElements.map((p) => p.name)
 
@@ -119,7 +98,6 @@ export class DeclareFunction extends Executable {
         const functionScope = new Scope({
             parent: scope,
             initialVariable: params,
-            callerNode: this,
         })
 
         try {
@@ -232,17 +210,12 @@ export class FunctionInvoke extends Evaluable {
                     },
                 )
 
-                errorInstance.codeFile = definedScope.codeFile
                 throw errorInstance
             }
 
             if (error instanceof YaksokError) {
                 if (!error.tokens) {
                     error.tokens = this.tokens
-                }
-
-                if (!error.codeFile) {
-                    error.codeFile = definedScope.codeFile
                 }
             }
 

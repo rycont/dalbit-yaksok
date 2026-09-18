@@ -29,14 +29,15 @@ Deno.test('Error in QuickJS', async () => {
 `,
     )
 
-    const results = await session.runModule('main')
-    const result = results.get('main')!
+    const results = await session.runModule(['main'])
+    const result = results.main
     assert(
         result.reason === 'error',
         `Test should have failed, but it finished with reason: ${result.reason}`,
     )
-    assertIsError(result.error, ErrorOccurredWhileRunningFFIExecution)
-    assertIsError(result.error.child, QuickJSInternalError)
+    const error = result.errors?.[0]
+    assertIsError(error, ErrorOccurredWhileRunningFFIExecution)
+    assertIsError(error.child, QuickJSInternalError)
 })
 
 Deno.test('QuickJS passed number', async () => {
@@ -54,8 +55,8 @@ Deno.test('QuickJS passed number', async () => {
 숫자 = 랜덤 수`,
     )
 
-    const results = await session.runModule('main')
-    const result = results.get('main')!
+    const results = await session.runModule(['main'])
+    const result = results.main
 
     assert(result.reason === 'finish')
     const 숫자 = result.codeFile!.ranScope!.getVariable('숫자')
@@ -80,8 +81,8 @@ Deno.test('QuickJS passed Array<number>', async () => {
 `,
     )
 
-    const results = await session.runModule('main')
-    const result = results.get('main')!
+    const results = await session.runModule(['main'])
+    const result = results.main
 
     assert(result.reason === 'finish')
     const 숫자 = result.codeFile!.ranScope!.getVariable('숫자')
@@ -141,8 +142,8 @@ Deno.test('JavaScript bridge function passed object', async () => {
 `,
     )
 
-    const results = await session.runModule('main')
-    const result = results.get('main')!
+    const results = await session.runModule(['main'])
+    const result = results.main
 
     assert(result.reason === 'finish')
     const ranScope = result.codeFile!.ranScope
@@ -201,8 +202,8 @@ Deno.test('Yaksok Passed List<string>', async () => {
 `,
     )
 
-    const results = await session.runModule('main')
-    const result = results.get('main')!
+    const results = await session.runModule(['main'])
+    const result = results.main
 
     assert(result.reason === 'finish')
     const 내_점수 = result.scope!.getVariable('내_점수')
@@ -230,7 +231,7 @@ Deno.test('QuickJS Passed List<string> - 빈 리스트', async () => {
 리스트 = []
 리스트 길이 보여주기`,
     )
-    await session.runModule('main')
+    await session.runModule(['main'])
     assertEquals(output, '0')
 })
 
@@ -252,7 +253,7 @@ Deno.test('QuickJS Passed List<string> - 중복 값', async () => {
 리스트 = ["a", "a", "b"]
 리스트 합치기 보여주기`,
     )
-    await session.runModule('main')
+    await session.runModule(['main'])
     assertEquals(output, 'a,a,b')
 })
 
@@ -274,7 +275,7 @@ Deno.test('QuickJS Passed List<string> - 특수문자/이모지/빈문자', asyn
 리스트 = ["😀", "a!@#", "한글", ""]
 리스트 합치기 보여주기`,
     )
-    await session.runModule('main')
+    await session.runModule(['main'])
     assertEquals(output, '😀|a!@#|한글|')
 })
 
@@ -296,7 +297,7 @@ Deno.test('QuickJS Passed List<string> - 영문 대문자 변환', async () => {
 리스트 = ["a", "b", "c"]
 리스트 대문자 보여주기`,
     )
-    await session.runModule('main')
+    await session.runModule(['main'])
     assertEquals(output, 'ABC')
 })
 
@@ -318,7 +319,7 @@ Deno.test('QuickJS Passed List<string> - 공백/탭/개행', async () => {
 리스트 = [" ", "   ", "\\t", "\\n"]
 리스트 길이합치기 보여주기`,
     )
-    await session.runModule('main')
+    await session.runModule(['main'])
     assertEquals(output, '1,3,1,1')
 })
 
@@ -340,7 +341,7 @@ Deno.test('QuickJS Passed List<string> - 한글 포함 여부', async () => {
 리스트 = ["가", "나", "다"]
 리스트 포함 보여주기`,
     )
-    await session.runModule('main')
+    await session.runModule(['main'])
     assertEquals(output, 'Y')
 })
 
@@ -362,7 +363,7 @@ Deno.test('QuickJS Passed List<string> - 숫자 문자열 합치기', async () =
 리스트 = ["1", "2", "3"]
 리스트 합치기 보여주기`,
     )
-    await session.runModule('main')
+    await session.runModule(['main'])
     assertEquals(output, '123')
 })
 
@@ -385,7 +386,7 @@ A = ["x", "y"]
 B = [A, ["z", "r"]]
 B flat 보여주기`,
     )
-    await session.runModule('main')
+    await session.runModule(['main'])
     assertEquals(output, 'xyzr')
 })
 
@@ -406,8 +407,8 @@ Deno.test('QuickJS passed boolean', async () => {
 `,
     )
 
-    const results = await session.runModule('main')
-    const result = results.get('main')!
+    const results = await session.runModule(['main'])
+    const result = results.main
 
     assert(result.reason === 'finish')
     const 결과 = result.codeFile!.ranScope!.getVariable('결과')

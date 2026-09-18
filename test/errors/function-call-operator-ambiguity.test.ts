@@ -19,8 +19,8 @@ import { YaksokSession } from '../../core/mod.ts'
 async function run(code: string) {
     const session = new YaksokSession()
     session.addModule('main', code)
-    const results = await session.runModule('main')
-    return results.get('main')!
+    const results = await session.runModule(['main'])
+    return results.main
 }
 
 // ─── SHOULD throw ────────────────────────────────────────────────────────────
@@ -40,10 +40,7 @@ Deno.test('함수 결과를 괄호 없이 비교식에 사용 - 함수인자 앞
         result.reason === 'validation',
         `Expected validation, got ${result.reason}`,
     )
-    assertIsError(
-        result.errors.get('main')![0],
-        FunctionCallOperatorAmbiguityError,
-    )
+    assertIsError(result.errors![0], FunctionCallOperatorAmbiguityError)
 })
 
 Deno.test('함수 결과를 괄호 없이 비교식에 사용 - Formula가 함수 인자로 전달', async () => {
@@ -61,10 +58,7 @@ Deno.test('함수 결과를 괄호 없이 비교식에 사용 - Formula가 함�
         result.reason === 'validation',
         `Expected validation, got ${result.reason}`,
     )
-    assertIsError(
-        result.errors.get('main')![0],
-        FunctionCallOperatorAmbiguityError,
-    )
+    assertIsError(result.errors![0], FunctionCallOperatorAmbiguityError)
 })
 
 // ─── Should NOT throw ─────────────────────────────────────────────────────────
@@ -122,7 +116,7 @@ Deno.test('범위 Formula(Evaluable~Evaluable)를 인자로 전달 - 오류 없�
 `)
     assert(
         result.reason !== 'validation' ||
-            !(result.errors?.get('main') ?? []).some(
+            !(result.errors ?? []).some(
                 (e) => e instanceof FunctionCallOperatorAmbiguityError,
             ),
         'RangeFormula as argument must not trigger FunctionCallOperatorAmbiguityError',
@@ -142,7 +136,7 @@ Deno.test('변수~변수 범위 Formula를 인자로 전달 - 오류 없음', as
 `)
     assert(
         result.reason !== 'validation' ||
-            !(result.errors?.get('main') ?? []).some(
+            !(result.errors ?? []).some(
                 (e) => e instanceof FunctionCallOperatorAmbiguityError,
             ),
         'Variable~Variable RangeFormula as argument must not trigger FunctionCallOperatorAmbiguityError',
@@ -162,10 +156,7 @@ Deno.test('비교 연산자 Formula는 여전히 오류', async () => {
         result.reason === 'validation',
         `Expected validation error, got ${result.reason}`,
     )
-    assertIsError(
-        result.errors!.get('main')![0],
-        FunctionCallOperatorAmbiguityError,
-    )
+    assertIsError(result.errors![0], FunctionCallOperatorAmbiguityError)
 })
 
 Deno.test('.property 비교식은 모호성 오류 없음 (우변)', async () => {
@@ -181,7 +172,7 @@ i = 0
 합계 보여주기
 `)
     if (result.reason === 'validation') {
-        const errors = [...(result.errors?.values() ?? [])].flat()
+        const errors = result.errors ?? []
         assert(
             !errors.some(
                 (e) => e instanceof FunctionCallOperatorAmbiguityError,

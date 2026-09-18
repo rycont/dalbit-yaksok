@@ -33,7 +33,6 @@ import {
     MultiplyOperator,
     Operator,
     OrOperator,
-    Pause,
     PlusOperator,
     PowerOperator,
     Print,
@@ -503,20 +502,6 @@ export const BASIC_RULES: Rule[][] = [
 ]
 
 export const ADVANCED_RULES: Rule[] = [
-    {
-        pattern: [
-            {
-                type: Identifier,
-                value: '잠깐',
-            },
-            {
-                type: Identifier,
-                value: '멈추기',
-            },
-        ],
-        factory: (_nodes, tokens) => new Pause(tokens),
-        config: { statement: true },
-    },
     {
         pattern: [
             {

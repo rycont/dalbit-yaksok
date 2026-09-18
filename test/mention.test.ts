@@ -50,7 +50,7 @@ KTX이음 = "KTX-이음"
 `,
     })
 
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     assertEquals(
         output,
@@ -86,7 +86,7 @@ Deno.test('Mentioning with variable in parameter', async () => {
 @하랑봇 (@하랑봇 날씨) 말하기`,
     )
 
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     assertEquals(
         output,
@@ -119,7 +119,7 @@ Deno.test('Mentioning with inline list literal', async () => {
         `@하랑봇 이렇게 ["사과", "바나나", "체리"] 목록을 말하기`,
     )
 
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     assertEquals(
         output,

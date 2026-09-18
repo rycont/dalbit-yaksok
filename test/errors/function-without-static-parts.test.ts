@@ -13,8 +13,5 @@ Deno.test('고정된 부분이 없는 함수', async () => {
         result.reason === 'validation',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(
-        result.errors.get('main')![0],
-        FunctionMustHaveOneOrMoreStringPartError,
-    )
+    assertIsError(result.errors![0], FunctionMustHaveOneOrMoreStringPartError)
 })

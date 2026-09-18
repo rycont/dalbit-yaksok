@@ -24,7 +24,7 @@ Deno.test('이벤트 내부에서 발생한 오류가 stderr로 전달된다', a
         terminate()
     })
 
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     assert(stderrCalled, '이벤트 내부 오류가 stderr로 보고되어야 한다')
 })
@@ -57,7 +57,7 @@ Deno.test({
             throw new Error('runModule이 3초 내에 완료되지 않았다 (hang)')
         }, 3000)
 
-        await session.runModule('main')
+        await session.runModule(['main'])
         clearTimeout(timer)
     },
 })

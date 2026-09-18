@@ -6,8 +6,8 @@ Deno.test('MentionScope validate with invalid module', async () => {
 
     session.addModule('main', `@없는모듈 변수`)
 
-    const results = await session.runModule('main')
-    const result = results.get('main')!
+    const results = await session.runModule(['main'])
+    const result = results.main
     // Should have error about module not found
     assert(
         result.reason === 'validation',
@@ -21,8 +21,8 @@ Deno.test('MentionScope validate with module that has validation errors', async 
     session.addModule('module', `변수 = 1`)
     session.addModule('main', `@module 변수`)
 
-    const results = await session.runModule('main')
-    const result = results.get('main')!
+    const results = await session.runModule(['main'])
+    const result = results.main
     // Should work fine with valid module
     assert(
         result.reason === 'finish',
@@ -36,8 +36,8 @@ Deno.test('MentionScope execute with non-YaksokError', async () => {
     session.addModule('module', `변수 = 1`)
     session.addModule('main', `@module 변수`)
 
-    const results = await session.runModule('main')
-    const result = results.get('main')!
+    const results = await session.runModule(['main'])
+    const result = results.main
     assert(
         result.reason === 'finish',
         `Expected finish but got ${result.reason}`,

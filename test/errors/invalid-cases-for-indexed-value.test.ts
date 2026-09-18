@@ -13,7 +13,7 @@ Deno.test('Tuple is immutable - cannot set value by index', async () => {
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, TupleNotMutableError)
+    assertIsError(result.errors?.[0], TupleNotMutableError)
 })
 
 Deno.test('Key for list fancy indexing is not a number', async () => {
@@ -24,5 +24,5 @@ Deno.test('Key for list fancy indexing is not a number', async () => {
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, ListIndexTypeError)
+    assertIsError(result.errors?.[0], ListIndexTypeError)
 })

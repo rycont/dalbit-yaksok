@@ -43,7 +43,7 @@ Deno.test('Pause and Resume Execution', async () => {
         },
     )
 
-    session.runModule('main')
+    session.runModule(['main'])
     await new Promise((resolve) => setTimeout(resolve, 2500))
     session.pause()
 

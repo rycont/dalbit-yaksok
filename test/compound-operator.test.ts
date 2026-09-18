@@ -109,7 +109,7 @@ result ${operator} ${b}`.trim()
             result.reason === 'error',
             `Expected an error, but got ${result.reason}`,
         )
-        assertIsError(result.error, InvalidTypeForOperatorError)
+        assertIsError(result.errors?.[0], InvalidTypeForOperatorError)
     })
 }
 
@@ -122,5 +122,5 @@ Deno.test('Invalid compound operator in set to index', async () => {
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(result.error, InvalidTypeForOperatorError)
+    assertIsError(result.errors?.[0], InvalidTypeForOperatorError)
 })

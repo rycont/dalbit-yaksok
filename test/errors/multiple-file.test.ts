@@ -12,13 +12,13 @@ Deno.test('Cannot find entry point in files', async () => {
     })
 
     assert(result.reason === 'error')
-    assertIsError(result.error, FileForRunNotExistError)
+    assertIsError(result.errors?.[0], FileForRunNotExistError)
 })
 
 Deno.test('No files to run', async () => {
     const result = await yaksok({})
     assert(result.reason === 'error')
-    assertIsError(result.error, FileForRunNotExistError)
+    assertIsError(result.errors?.[0], FileForRunNotExistError)
 })
 
 Deno.test('Error in importing module', async () => {
@@ -27,10 +27,10 @@ Deno.test('Error in importing module', async () => {
     session.addModule('main', '(@아두이노 이름) 보여주기')
     session.addModule('아두이노', `이름 = "아두이노" / 2`)
 
-    const result = (await session.runModule('main')).get('main')!
+    const result = (await session.runModule(['main'])).main
 
     assert(result.reason === 'error')
-    assertIsError(result.error, ErrorInModuleError)
+    assertIsError(result.errors?.[0], ErrorInModuleError)
 })
 
 Deno.test('Error in parsing module file', async () => {
@@ -40,7 +40,7 @@ Deno.test('Error in parsing module file', async () => {
     })
 
     assert(result.reason === 'validation')
-    assertIsError(result.errors.get('main')![0], ErrorInModuleError)
+    assertIsError(result.errors![0], ErrorInModuleError)
 })
 
 Deno.test('Error in using module function', async () => {
@@ -52,5 +52,5 @@ Deno.test('Error in using module function', async () => {
     })
 
     assert(result.reason === 'error')
-    assertIsError(result.error, ErrorInModuleError)
+    assertIsError(result.errors?.[0], ErrorInModuleError)
 })

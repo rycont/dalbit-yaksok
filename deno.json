@@ -33,5 +33,6 @@
     },
     "fmt": {
         "exclude": ["**/*"]
-    }
+    },
+    "allowScripts": ["npm:esbuild@0.21.5", "npm:vue-demi@0.14.10"]
 }

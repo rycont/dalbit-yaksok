@@ -15,9 +15,7 @@ Deno.test('Variable name is not a valid identifier', async () => {
         `Expected an validation, but got ${result.reason}`,
     )
 
-    const errorTypes = [...result.errors.values()]
-        .flat()
-        .map((e) => e.constructor)
+    const errorTypes = result.errors.map((e) => e.constructor)
 
     assertEquals(errorTypes, [
         NotProperIdentifierNameToDefineError,

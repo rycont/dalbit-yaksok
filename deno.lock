@@ -25,6 +25,7 @@
     "npm:quickjs-emscripten-core@0.31": "0.31.0",
     "npm:quickjs-emscripten@0.31": "0.31.0",
     "npm:solid-js@^2.0.0-rc.1": "2.0.0-rc.1",
+    "npm:ts-pattern@^5.9.0": "5.9.0",
     "npm:typedoc-plugin-markdown@4.2.10": "4.2.10_typedoc@0.27.4__typescript@5.7.3",
     "npm:typedoc-vitepress-theme@^1.1.1": "1.1.2_typedoc-plugin-markdown@4.2.10__typedoc@0.27.4___typescript@5.7.3_typedoc@0.27.4__typescript@5.7.3",
     "npm:typedoc@0.27.4": "0.27.4_typescript@5.7.3",
@@ -3792,6 +3793,9 @@
         "@ts-graphviz/core"
       ]
     },
+    "ts-pattern@5.9.0": {
+      "integrity": "sha512-6s5V71mX8qBUmlgbrfL33xDUwO0fq48rxAu2LBE11WBeGdpCPOsXksQbZJHvHwhrd3QjUusd3mAOM5Gg0mFBLg=="
+    },
     "tsconfig-paths@4.2.0": {
       "integrity": "sha512-NoZ4roiN7LnbKn9QqE1amc9DJfzvZXxF4xDavcOWt1BPkdx+m+0gJuPM+S0vCe7zTJMYUP0R8pO2XMr+Y8oLIg==",
       "dependencies": [
@@ -4215,6 +4219,11 @@
       "npm:@codemirror/view@^6.43.9"
     ],
     "members": {
+      "core": {
+        "dependencies": [
+          "npm:ts-pattern@^5.9.0"
+        ]
+      },
       "docs": {
         "dependencies": [
           "npm:@deno/vite-plugin@^1.0.6",

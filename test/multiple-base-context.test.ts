@@ -11,19 +11,29 @@ Deno.test('Multiple base contexts should be chained', async () => {
     })
 
     // First base context
-    await session.setBaseContext(
-        `
+    session.useBaseScope(
+        await session
+            .addModule(
+                'base-1',
+                `
 약속, (A) (B) 더하기
     A + B 반환하기
 `.trim(),
+            )
+            .run(),
     )
 
     // Second base context (can use first base context)
-    await session.setBaseContext(
-        `
+    session.useBaseScope(
+        await session
+            .addModule(
+                'base-2',
+                `
 약속, (A) 제곱
     (A) (A) 더하기 반환하기
 `.trim(),
+            )
+            .run(),
     )
 
     session.addModule(
@@ -33,7 +43,7 @@ Deno.test('Multiple base contexts should be chained', async () => {
 `.trim(),
     )
 
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     assertEquals(output, '10\n')
 })
@@ -47,12 +57,12 @@ Deno.test('Multiple base contexts should share variables', async () => {
         },
     })
 
-    await session.setBaseContext('값1 = 10')
-    await session.setBaseContext('값2 = 20')
+    session.useBaseScope(await session.addModule('base-1', '값1 = 10').run())
+    session.useBaseScope(await session.addModule('base-2', '값2 = 20').run())
 
     session.addModule('main', '(값1 + 값2) 보여주기')
 
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     assertEquals(output, '30\n')
 })

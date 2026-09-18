@@ -11,8 +11,13 @@ Deno.test('base context variable used in mention with postposition splitting', a
     })
 
     // Base context with a list variable
-    await session.setBaseContext(
-        `과일 = ["사과", "바나나", "딸기", "사과", "딸기", "사과"]`,
+    session.useBaseScope(
+        await session
+            .addModule(
+                'base',
+                `과일 = ["사과", "바나나", "딸기", "사과", "딸기", "사과"]`,
+            )
+            .run(),
     )
 
     // Module with a function that uses postposition '로'
@@ -25,7 +30,7 @@ Deno.test('base context variable used in mention with postposition splitting', a
     // Main module uses @mention with base context variable + postposition
     session.addModule('main', `@처리기 과일로 처리하기`)
 
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     assertEquals(output, '[사과, 바나나, 딸기, 사과, 딸기, 사과]\n')
 })
@@ -42,7 +47,7 @@ Deno.test('base context variable does not leak into mentioned module exported ru
     })
 
     // Base context with a variable
-    await session.setBaseContext(`값 = 42`)
+    session.useBaseScope(await session.addModule('base', `값 = 42`).run())
 
     // Module with a function using postposition
     session.addModule(
@@ -54,7 +59,7 @@ Deno.test('base context variable does not leak into mentioned module exported ru
     // Main uses @mention with the base context variable + postposition
     session.addModule('main', `@도구 값로 출력하기`)
 
-    await session.runModule('main')
+    await session.runModule(['main'])
 
     assertEquals(output, '42\n')
 })

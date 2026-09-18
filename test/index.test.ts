@@ -20,15 +20,15 @@ for (const file of Deno.readDirSync(codesDir)) {
             })
 
             session.addModule('main', code)
-            const results = await session.runModule('main')
-            const result = results.get('main')!
+            const results = await session.runModule(['main'])
+            const result = results.main
 
             if (result.reason === 'error') {
-                throw result.error
+                throw result.errors?.[0]
             }
 
             if (result.reason === 'validation') {
-                const errorMessages = Array.from(result.errors.values())
+                const errorMessages = Array.from(result.errors)
                     .flat()
                     .map((e) => e.message)
                     .join('\n')

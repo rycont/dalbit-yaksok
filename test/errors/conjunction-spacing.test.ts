@@ -4,8 +4,8 @@ import { YaksokSession } from '../../core/mod.ts'
 async function runCode(code: string) {
     const session = new YaksokSession()
     session.addModule('main', code)
-    const results = await session.runModule('main')
-    return results.get('main')!
+    const results = await session.runModule(['main'])
+    return results.main
 }
 
 function getMessages(result: Awaited<ReturnType<typeof runCode>>) {
@@ -13,7 +13,7 @@ function getMessages(result: Awaited<ReturnType<typeof runCode>>) {
         result.reason === 'validation',
         `Expected validation error, got ${result.reason}`,
     )
-    return [...result.errors.values()].flat().map((e) => e.message)
+    return result.errors.map((e) => e.message)
 }
 
 Deno.test('이고 붙여쓰기 - 일반 표현식에서 hint 포함', async () => {

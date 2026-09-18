@@ -36,10 +36,7 @@ Deno.test('Invalid identifier name', async () => {
         result.reason === 'validation',
         `Expected validation, but got ${result.reason}`,
     )
-    assertIsError(
-        result.errors.get('main')![0],
-        NotProperIdentifierNameToDefineError,
-    )
+    assertIsError(result.errors![0], NotProperIdentifierNameToDefineError)
 })
 
 Deno.test('Cannot use reserved words as an identifier', async () => {
@@ -48,10 +45,7 @@ Deno.test('Cannot use reserved words as an identifier', async () => {
         result.reason === 'validation',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(
-        result.errors.get('main')![0],
-        NotProperIdentifierNameToDefineError,
-    )
+    assertIsError(result.errors![0], NotProperIdentifierNameToDefineError)
 })
 
 Deno.test('Cannot use reserved words as a part of a yaksok name', async () => {
@@ -63,10 +57,7 @@ Deno.test('Cannot use reserved words as a part of a yaksok name', async () => {
         result.reason === 'validation',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(
-        result.errors.get('main')![0],
-        NotProperIdentifierNameToDefineError,
-    )
+    assertIsError(result.errors![0], NotProperIdentifierNameToDefineError)
 })
 
 Deno.test('Cannot use reserved words as a part of a connect name', async () => {
@@ -80,8 +71,5 @@ Deno.test('Cannot use reserved words as a part of a connect name', async () => {
         result.reason === 'validation',
         `Expected an error, but got ${result.reason}`,
     )
-    assertIsError(
-        result.errors.get('main')![0],
-        NotProperIdentifierNameToDefineError,
-    )
+    assertIsError(result.errors![0], NotProperIdentifierNameToDefineError)
 })
