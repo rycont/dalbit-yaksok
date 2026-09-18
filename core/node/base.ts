@@ -189,6 +189,7 @@ export class Identifier extends Evaluable {
 
             if (!(variableError instanceof NotDefinedIdentifierError)) {
                 variableError.tokens = this.tokens
+
                 return [variableError]
             }
 
@@ -202,6 +203,9 @@ export class Identifier extends Evaluable {
             }
 
             variableError.tokens = this.tokens
+            variableError.scope = scope
+            variableError.node = this
+
             return [variableError]
         }
     }

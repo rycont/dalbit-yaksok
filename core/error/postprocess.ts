@@ -30,12 +30,12 @@ function makeConjunctionHint(tokens: Token[]): string {
 }
 
 const PROCESSORS: ErrorProcessor[] = [
-    parseNotParsablePrintError,
-    parseInvalidVariableName,
-    parseVariableAssigningValueParsingError,
-    parseGrammarStructureFailure,
-    collapseParenthesesErrors,
-    suppressAssignmentLhsError,
+    // parseNotParsablePrintError,
+    // parseInvalidVariableName,
+    // parseVariableAssigningValueParsingError,
+    // parseGrammarStructureFailure,
+    // collapseParenthesesErrors,
+    // suppressAssignmentLhsError,
 ]
 
 export function postprocessErrors(
@@ -43,71 +43,71 @@ export function postprocessErrors(
     tokens: Token[],
     scope: Scope,
 ): YaksokError[] {
-    const lines = splitErrorsByLine(_errors)
+    // const lines = splitErrorsByLine(_errors)
 
-    const processedLines = lines.map(
-        (line) =>
-            PROCESSORS.reduce(([line], processor) => processor(line, tokens), [
-                line,
-            ] as [YaksokError[]])[0],
-    )
+    // const processedLines = lines.map(
+    //     (line) =>
+    //         PROCESSORS.reduce(([line], processor) => processor(line, tokens), [
+    //             line,
+    //         ] as [YaksokError[]])[0],
+    // )
 
-    let errors: YaksokError[] = []
-    for (const line of processedLines) {
-        if (
-            line.length === 1 &&
-            (line[0].message.includes('조건문') ||
-                line[0].message.includes('반복문'))
-        ) {
-            errors.push(line[0])
-            break
-        }
-        errors.push(...line)
-    }
+    // let errors: YaksokError[] = []
+    // for (const line of processedLines) {
+    //     if (
+    //         line.length === 1 &&
+    //         (line[0].message.includes('조건문') ||
+    //             line[0].message.includes('반복문'))
+    //     ) {
+    //         errors.push(line[0])
+    //         break
+    //     }
+    //     errors.push(...line)
+    // }
 
-    errors = suggestFunctionName(errors, scope)
+    // errors = suggestFunctionName(errors, scope)
 
-    for (let i = errors.length - 1; i >= 0; i--) {
-        const current = errors[i]
-        if (!(current instanceof NotDefinedIdentifierError)) continue
+    // for (let i = errors.length - 1; i >= 0; i--) {
+    //     const current = errors[i]
+    //     if (!(current instanceof NotDefinedIdentifierError)) continue
 
-        const previous = errors[i - 1]
-        if (!(previous instanceof NotDefinedIdentifierError)) continue
+    //     const previous = errors[i - 1]
+    //     if (!(previous instanceof NotDefinedIdentifierError)) continue
 
-        if (!current.tokens || !previous.tokens) continue
+    //     if (!current.tokens || !previous.tokens) continue
 
-        const currentFirstToken = current.tokens[0]
-        const previousLastToken = previous.tokens[previous.tokens.length - 1]
+    //     const currentFirstToken = current.tokens[0]
+    //     const previousLastToken = previous.tokens[previous.tokens.length - 1]
 
-        const currentErrorStartIndex = tokens.indexOf(currentFirstToken)
-        const previousErrorEndIndex = tokens.indexOf(previousLastToken)
+    //     const currentErrorStartIndex = tokens.indexOf(currentFirstToken)
+    //     const previousErrorEndIndex = tokens.indexOf(previousLastToken)
 
-        const isNear =
-            currentErrorStartIndex === previousErrorEndIndex + 1 ||
-            (currentErrorStartIndex === previousErrorEndIndex + 2 &&
-                tokens[previousErrorEndIndex + 1].type === TOKEN_TYPE.SPACE)
+    //     const isNear =
+    //         currentErrorStartIndex === previousErrorEndIndex + 1 ||
+    //         (currentErrorStartIndex === previousErrorEndIndex + 2 &&
+    //             tokens[previousErrorEndIndex + 1].type === TOKEN_TYPE.SPACE)
 
-        if (!isNear) continue
+    //     if (!isNear) continue
 
-        const currentErrorEndIndex = tokens.indexOf(
-            current.tokens[current.tokens.length - 1],
-        )
-        const previousErrorStartIndex = tokens.indexOf(previous.tokens[0])
+    //     const currentErrorEndIndex = tokens.indexOf(
+    //         current.tokens[current.tokens.length - 1],
+    //     )
+    //     const previousErrorStartIndex = tokens.indexOf(previous.tokens[0])
 
-        const tokensInNewRange = tokens.slice(
-            previousErrorStartIndex,
-            currentErrorEndIndex + 1,
-        )
+    //     const tokensInNewRange = tokens.slice(
+    //         previousErrorStartIndex,
+    //         currentErrorEndIndex + 1,
+    //     )
 
-        previous.resource = {
-            name: tokensInNewRange.map((token) => token.value).join(''),
-        }
-        previous.tokens = tokensInNewRange
+    //     previous.resource = {
+    //         name: tokensInNewRange.map((token) => token.value).join(''),
+    //     }
+    //     previous.tokens = tokensInNewRange
 
-        errors.splice(i, 1)
-    }
+    //     errors.splice(i, 1)
+    // }
 
-    return errors
+    return _errors
 }
 
 function parseInvalidVariableName(

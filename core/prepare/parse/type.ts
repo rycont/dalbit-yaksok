@@ -15,6 +15,7 @@ export type Rule = {
     factory: (nodes: Node[], tokens: Token[]) => Node | null
     config?: Record<string, unknown> & {
         statement?: SuggestableStatement | true
+        exported?: boolean
     }
     flags?: RULE_FLAGS[]
 }

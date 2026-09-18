@@ -14,7 +14,10 @@ import type { YaksokSession } from '../session/session.ts'
 import { postprocessErrors } from '../error/postprocess.ts'
 import { Node } from '../node/base.ts'
 import { NotDefinedIdentifierError } from '../error/index.ts'
-import { inferTokenSplitPointFromErrors } from '../prepare/lex/infer-token-splitpoint.ts'
+import {
+    inferTokenSplitpointsFromErrors,
+    Splitpoint,
+} from '../prepare/lex/infer-token-splitpoint.ts'
 
 /**
  * `달빛 약속` 소스코드 파일 하나를 나타내는 클래스입니다.
@@ -23,18 +26,13 @@ import { inferTokenSplitPointFromErrors } from '../prepare/lex/infer-token-split
  * 이 클래스의 인스턴스는 `YaksokSession`에 의해 관리됩니다.
  */
 export class CodeFile {
-    private tokenized: Token[] | null = null
-    private parsed: Block | null = null
-    private functionDeclareRangesCache: ReturnType<
-        typeof getFunctionDeclareRanges
-    > | null = null
-    private exportedRulesCache: Rule[] | null = null
-
     public validationScopes: Map<Node, Scope> = new Map()
     public ranScope: Scope | null = null
     public session: YaksokSession | null = null
     public executionDelay: number | null = null
     public appliedRules: Rule[] | null = null
+
+    public splitpoints: Splitpoint[] = []
 
     constructor(
         public text: string,
@@ -57,21 +55,8 @@ export class CodeFile {
         return this.session !== null
     }
 
-    /**
-     * 소스코드를 토큰화한 결과를 반환합니다.
-     *
-     * **지연 평가 및 캐싱**: 이 getter에 처음 접근할 때만 토크나이징을 수행하고,
-     * 그 결과를 내부 속성에 캐싱합니다.
-     * 이후의 접근에서는 캐시된 값을 즉시 반환합니다.
-     *
-     * @returns `Token` 객체의 리스트를 반환합니다.
-     */
     public get tokens(): Token[] {
-        if (this.tokenized) {
-            return this.tokenized
-        }
-
-        const tokens = tokenize(this.text)
+        const tokens = tokenize(this.text, this.splitpoints)
 
         const functionDeclareRangesByType = getFunctionDeclareRanges(tokens)
 
@@ -86,8 +71,6 @@ export class CodeFile {
         )
 
         assertIndentValidity(merged)
-        this.tokenized = merged
-
         return merged
     }
 
@@ -142,20 +125,8 @@ export class CodeFile {
         }
     }
 
-    /**
-     * 토큰화된 코드를 파싱하여 생성된 추상 구문 트리(AST)를 반환합니다.
-     *
-     * **지연 평가 및 캐싱**: 이 getter에 처음 접근할 때만 파싱을 수행하고,
-     * 그 결과를 내부 속성에 캐싱합니다.
-     *
-     * @returns AST의 루트 노드인 `Block` 객체를 반환합니다.
-     */
     public get ast(): Block {
-        if (!this.parsed) {
-            this.parse()
-        }
-
-        return this.parsed as Block
+        return this.parse()
     }
 
     /**
@@ -167,40 +138,6 @@ export class CodeFile {
      */
     public parseOptimistically(): Block {
         return parse(this, true).ast
-    }
-
-    /**
-     * 코드 내의 함수 선언 범위를 반환합니다.
-     */
-    public get functionDeclareRanges(): ReturnType<
-        typeof getFunctionDeclareRanges
-    > {
-        if (this.functionDeclareRangesCache === null) {
-            this.functionDeclareRangesCache = getFunctionDeclareRanges(
-                this.tokens,
-            )
-        }
-
-        return this.functionDeclareRangesCache
-    }
-
-    /**
-     * 이 파일에서 다른 파일로 내보내는 파싱 규칙을 반환합니다.
-     */
-    public get exportedRules(): Rule[] {
-        try {
-            if (!this.exportedRulesCache) {
-                this.parse()
-            }
-
-            return this.exportedRulesCache as Rule[]
-        } catch (e) {
-            if (e instanceof YaksokError && !e.codeFile) {
-                e.codeFile = this
-            }
-
-            throw e
-        }
     }
 
     /**
@@ -238,26 +175,25 @@ export class CodeFile {
 
             seenErrorFingerprint.add(missingIdentifierFingerprint)
 
-            const inferredTokenSplitPoint = inferTokenSplitPointFromErrors(
+            const inferredSplitpoints = inferTokenSplitpointsFromErrors(
+                this,
                 missingIdentifierErrors,
+                parseResult.computedRules,
             )
 
-            const splitpointFingerprint = inferredTokenSplitPoint.join('|')
+            const splitpointFingerprint = inferredSplitpoints.join('|')
 
             if (seenSplitpointFingerprint.has(splitpointFingerprint)) {
                 break
             }
 
             seenSplitpointFingerprint.add(splitpointFingerprint)
+            this.splitpoints = inferredSplitpoints
         }
 
-        if (!parseResult) {
-            return
-        }
-
-        this.parsed = parseResult.ast
-        this.exportedRulesCache = parseResult.exportedRules
         this.appliedRules = parseResult.computedRules
+
+        return parseResult.ast
     }
 
     /**
@@ -321,10 +257,6 @@ export class CodeFile {
 
     public registerScope(scope: Scope, node: Node) {
         this.validationScopes.set(node, scope)
-    }
-
-    public set tokens(tokens: Token[]) {
-        this.tokenized = tokens
     }
 }
 

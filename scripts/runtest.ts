@@ -2,26 +2,38 @@ import { YaksokSession } from '@dalbit-yaksok/core'
 
 const session = new YaksokSession()
 
-// Base context with a variable
-await session.setBaseContext(`값 = 42`)
-
-// Module with a function using postposition
-session.addModule(
-    '도구',
-    `약속, (데이터)로 출력하기
-    데이터 보여주기`,
-)
-
 // Main uses @mention with the base context variable + postposition
 session.addModule(
     'main',
-    `약속, (음식)을/를 (사람)와/과 먹기
-    "맛있는 " + 음식 + ", " + 사람 + "의 입으로 모두 들어갑니다." 보여주기
+    `약속, 이동하기(가로, 세로)
+    "{가로},{세로}" 보여주기
 
-먹을_음식 = "유부초밥"
-먹일_사람 = "현수"
+이동하기(1, 2)
+이동하기 (3, 4)
+이동하기 [5, 6]
 
-먹을_음식을 먹일_사람과 먹기`,
+이동하기
+    가로: 7
+    세로: 8
+
+이동하기
+    세로: 10
+    가로: 9
+
+위치 = (11, 12)
+이동하기 위치
+
+약속, 인사하기(이름)
+    이름 보여주기
+
+인사하기("곶감")
+인사하기 "하랑"
+값 = "설기"
+인사하기 값
+
+인사하기
+    이름: "누룽지"
+`,
 )
 
 await session.runModule('main')

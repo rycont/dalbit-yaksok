@@ -10,10 +10,8 @@ import { type Token } from '../../../tokenize/token.ts'
 import type { Rule } from '../../type.ts'
 import { tokensToEventSubscribeRule } from './tokens-to-event-subscribe-rule.ts'
 
-export function createLocalDynamicRules(
-    tokens: Token[],
-    functionDeclareRanges = getFunctionDeclareRanges(tokens),
-): [Rule[][], Rule[][]] {
+export function createLocalDynamicRules(tokens: Token[]): [Rule[][], Rule[][]] {
+    const functionDeclareRanges = getFunctionDeclareRanges(tokens)
     const getTokensFromRange = getTokensFromRangeFactory(tokens)
 
     const yaksokHeaders = functionDeclareRanges.yaksok.map(getTokensFromRange)

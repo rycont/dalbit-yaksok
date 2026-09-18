@@ -22,8 +22,12 @@ export class Scope {
     variables: Record<string, ValueType>
     parent: Scope | undefined
     codeFile?: CodeFile
+
+    public id: string = crypto.randomUUID()
+
     public functions: Map<string, RunnableObject> = new Map()
     public callStackDepth: number
+
     private readonly allowFunctionOverride: boolean
 
     constructor(
@@ -140,6 +144,16 @@ export class Scope {
 
         errorInstance.codeFile = this.codeFile
         throw errorInstance
+    }
+
+    public *getAccessibleNames(): Generator<string> {
+        for (const key in this.variables) {
+            yield key
+        }
+
+        if (this.parent) {
+            yield* this.parent.getAccessibleNames()
+        }
     }
 
     /**

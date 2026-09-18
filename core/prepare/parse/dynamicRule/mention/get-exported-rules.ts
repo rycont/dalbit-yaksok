@@ -8,11 +8,12 @@ import { createMentioningRule } from './create-mentioning-rules.ts'
 export function getExportedRules(session: YaksokSession, fileName: string) {
     const codeFile = session.getCodeFile(fileName)
     try {
-        const rules = codeFile.exportedRules
+        const rules =
+            codeFile.appliedRules?.filter((r) => r.config?.exported) || []
 
-        const mentioningRules = rules
-            .filter((rule: Rule) => rule.config?.exported)
-            .map((rule: Rule) => createMentioningRule(fileName, rule))
+        const mentioningRules = rules.map((rule: Rule) =>
+            createMentioningRule(fileName, rule),
+        )
 
         return mentioningRules
     } catch (e) {

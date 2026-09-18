@@ -1,13 +1,8 @@
-import { MultiTokenParseResult, RuleParseResult, RULES } from './rules.ts'
+import { RULES } from './rules.ts'
 
 import { YaksokError } from '../../error/common.ts'
 import { type Token, TOKEN_TYPE } from './token.ts'
-
-function isMultiTokenResult(
-    result: RuleParseResult | MultiTokenParseResult,
-): result is MultiTokenParseResult {
-    return 'tokens' in result
-}
+import { Splitpoint } from '../lex/infer-token-splitpoint.ts'
 
 class Tokenizer {
     private tokens: Token[] = []
@@ -18,8 +13,11 @@ class Tokenizer {
     private line = 1
     private bracketDepth = 0 // Added for multi-line array support
 
-    constructor(code: string) {
+    private splitpointQueue
+
+    constructor(code: string, splitpoints: Splitpoint[]) {
         this.code = preprocess(code)
+        this.splitpointQueue = Array.from(splitpoints)
     }
 
     tokenize() {
@@ -44,49 +42,9 @@ class Tokenizer {
                     )
 
                     if (result === null) {
-                        // Rule did not match
                         continue
                     }
 
-                    // Handle multi-token results (template strings)
-                    if (isMultiTokenResult(result)) {
-                        const { tokens: multiTokens, newIndex } = result
-                        const consumed = this.code.substring(
-                            this.index,
-                            newIndex,
-                        )
-
-                        let currentColumn = initialColumnForToken
-                        let currentLine = initialLineForToken
-
-                        for (const token of multiTokens) {
-                            this.tokens.push({
-                                type: token.type,
-                                value: token.value,
-                                position: {
-                                    line: currentLine,
-                                    column: currentColumn,
-                                },
-                            })
-
-                            // Update position for next token
-                            for (const ch of token.value) {
-                                if (ch === '\n') {
-                                    currentLine++
-                                    currentColumn = 1
-                                } else {
-                                    currentColumn++
-                                }
-                            }
-                        }
-
-                        this.updatePosition(consumed)
-                        this.index = newIndex
-                        accepted = true
-                        break
-                    }
-
-                    // Rule parsing succeeded (single token).
                     const { value, newIndex } = result
                     const consumed = this.code.substring(this.index, newIndex)
 
@@ -101,15 +59,43 @@ class Tokenizer {
                         accepted = true
                         break
                     } else {
-                        // This is a token we want to keep.
-                        this.tokens.push({
-                            type: rule.type,
-                            value: value,
-                            position: {
-                                line: initialLineForToken,
-                                column: initialColumnForToken,
-                            },
-                        })
+                        let matchedSplitpoint: Splitpoint | false
+                        if (
+                            (matchedSplitpoint = this.isInSplitpoint(newIndex))
+                        ) {
+                            const prefixLength = matchedSplitpoint - this.index
+
+                            const head: Token = {
+                                type: rule.type,
+                                value: consumed.slice(0, prefixLength),
+                                position: {
+                                    line: initialLineForToken,
+                                    column: initialColumnForToken,
+                                },
+                            }
+
+                            const tail: Token = {
+                                type: rule.type,
+                                value: consumed.slice(prefixLength),
+                                position: {
+                                    line: initialLineForToken,
+                                    column:
+                                        initialColumnForToken + prefixLength,
+                                },
+                            }
+
+                            this.tokens.push(head)
+                            this.tokens.push(tail)
+                        } else {
+                            this.tokens.push({
+                                type: rule.type,
+                                value: value,
+                                position: {
+                                    line: initialLineForToken,
+                                    column: initialColumnForToken,
+                                },
+                            })
+                        }
 
                         // Update bracketDepth AFTER adding the token, so it reflects state *after* this token.
                         if (
@@ -166,6 +152,23 @@ class Tokenizer {
         return this.tokens
     }
 
+    private isInSplitpoint(newIndex: number): Splitpoint | false {
+        if (this.splitpointQueue.length === 0) {
+            return false
+        }
+
+        if (this.splitpointQueue[0] < this.index) {
+            this.splitpointQueue.shift()
+            return false
+        }
+
+        if (newIndex < this.splitpointQueue[0]) {
+            return false
+        }
+
+        return this.splitpointQueue.shift()!
+    }
+
     private updatePosition(consumed: string) {
         for (const char of consumed) {
             if (char === '\n') {
@@ -209,8 +212,11 @@ class Tokenizer {
  * console.log(tokens);
  * ```
  */
-export function tokenize(text: string): Token[] {
-    const tokens = new Tokenizer(text).tokenize()
+export function tokenize(
+    text: string,
+    splitpoints: Splitpoint[] = [],
+): Token[] {
+    const tokens = new Tokenizer(text, splitpoints).tokenize()
     return tokens
 }
 

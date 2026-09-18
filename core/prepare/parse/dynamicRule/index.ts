@@ -15,15 +15,13 @@ export interface DynamicRuleSet {
 }
 
 export function createDynamicRule(codeFile: CodeFile): DynamicRuleSet {
-    const localRules = createLocalDynamicRules(
-        codeFile.tokens,
-        codeFile.functionDeclareRanges,
-    )
+    const localRules = createLocalDynamicRules(codeFile.tokens)
 
     const mentioningRules = getRulesFromMentioningFile(codeFile)
     const baseContextRules =
         codeFile.session?.baseContexts.flatMap(
-            (context) => context.exportedRules,
+            (context) =>
+                context.appliedRules?.filter((r) => r.config?.exported) || [],
         ) || []
 
     const extensionRules =
