@@ -133,7 +133,6 @@ const rangeToRules = (allTokens: Token[]) => (range: FunctionDeclareRange) => {
     const rules = createCallingRules(functionName, nameGroups)
 
     const lineTokens = allTokens.slice(range.line.start, range.line.end + 1)
-    console.log(lineTokens)
 
     const replacer: DirectReplacer = {
         nodes: [new FunctionDeclareHeader(functionName, lineTokens)],

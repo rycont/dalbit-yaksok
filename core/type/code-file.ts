@@ -93,8 +93,6 @@ function parseWithSession(code: string, session: YaksokSession) {
         tokens = tokenize(code, inferredSplitpoints)
         ast = parse(tokens, session)
 
-        console.log(ast)
-
         const validatingScope = new Scope()
 
         validateResult = ast.validate(validatingScope)
@@ -110,6 +108,8 @@ function parseWithSession(code: string, session: YaksokSession) {
         const missingIdentifierFingerprint = missingIdentifierErrors
             .map((e) => e.resource.name)
             .join('|')
+
+        console.log(missingIdentifierFingerprint)
 
         if (seenErrorFingerprint.has(missingIdentifierFingerprint)) {
             break

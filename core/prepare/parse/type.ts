@@ -18,10 +18,10 @@ type InstanceIntersect<T extends NodeType> = IntersectSchema<
 
 export function instancePipe(
     classType: NodeType,
-    refine: GenericSchema,
+    ...refine: (GenericSchema | v.GenericPipeAction)[]
 ): InstanceSchema<NodeType, undefined> {
     //@ts-ignore
-    return v.pipe(v.instance(classType), refine)
+    return v.pipe(v.instance(classType), ...refine)
 }
 
 export const u = instancePipe

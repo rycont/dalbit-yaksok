@@ -322,7 +322,6 @@ export async function evaluateParams(
 
     for (const key in params) {
         const value = params[key]
-        // console.log(value)
         args[key] = await value.execute(scope)
     }
 

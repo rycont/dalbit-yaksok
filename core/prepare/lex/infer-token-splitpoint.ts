@@ -1,8 +1,7 @@
-import {
-    Brand,
-    NotDefinedIdentifierError,
-    PatternUnitWithValue,
-} from '@dalbit-yaksok/core'
+import * as v from 'valibot'
+
+import { Brand, NotDefinedIdentifierError } from '@dalbit-yaksok/core'
+
 import { Token } from '../tokenize/token.ts'
 
 export type Splitpoint = Brand<number, 'Splitpoint'>
@@ -38,7 +37,14 @@ export function inferTokenSplitpointsFromErrors(
         const scopeRules = scope
             .getDynamicRules()
             .map((r) => r.pattern)
-            .filter((p) => p.some((u) => u.isSuffix))
+            .filter((p) =>
+                p.some(
+                    (u) =>
+                        !(u instanceof Function) &&
+                        !(u.type instanceof Function) &&
+                        v.getMetadata(u as v.GenericSchema).isSuffix,
+                ),
+            )
 
         const inferredSplitpointByLine = inferSplitpointByLine(
             errors,

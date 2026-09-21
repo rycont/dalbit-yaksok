@@ -73,8 +73,6 @@ export class TrieNode {
                 )
                 .otherwise(() => false)
 
-            // console.log(currentDepthNode, patternUnit, matchResult)
-
             return matchResult
         })
 

@@ -21,10 +21,27 @@ export function createCallingRules(
             return Evaluable
         }
 
+        console.log(
+            v.getMetadata(
+                u(
+                    Identifier,
+                    v.object({
+                        value: v.picklist(g.names),
+                    }),
+                    v.metadata({
+                        isSuffix: g.isSuffix,
+                    }),
+                ),
+            ),
+        )
+
         return u(
             Identifier,
             v.object({
                 value: v.picklist(g.names),
+            }),
+            v.metadata({
+                isSuffix: g.isSuffix,
             }),
         )
     })
