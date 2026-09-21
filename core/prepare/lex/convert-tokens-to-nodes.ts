@@ -1,4 +1,4 @@
-import { NumberLiteral } from '@dalbit-yaksok/core'
+import { DirectReplacer, NumberLiteral } from '@dalbit-yaksok/core'
 import { Expression, Identifier, Node, Operator } from '../../node/base.ts'
 import { FFIBody } from '../../node/ffi.ts'
 import { Mention } from '../../node/mention.ts'
@@ -15,17 +15,25 @@ const escapeMap: Record<string, string> = {
     "'": "'",
 }
 
-/**
- * 이스케이프 시퀀스를 실제 문자로 변환합니다.
- * @param str - 이스케이프 시퀀스가 포함된 문자열
- * @returns 이스케이프 시퀀스가 변환된 문자열
- */
 function unescapeString(str: string): string {
     return str.replace(/\\(.)/g, (_, char) => escapeMap[char] ?? `\\${char}`)
 }
 
-export function convertTokensToNodes(tokens: Token[]): Node[] {
-    return tokens.map(mapTokenToNode).filter(Boolean) as Node[]
+export function convertTokensToNodes(
+    tokens: Token[],
+    replacers: DirectReplacer[],
+): Node[] {
+    const nodes: (Node | null)[] = tokens.map(mapTokenToNode)
+
+    for (const replacer of replacers) {
+        nodes.splice(
+            replacer.tokenRange[0],
+            replacer.tokenRange[1] - replacer.tokenRange[0],
+            ...replacer.nodes,
+        )
+    }
+
+    return nodes.filter((n) => !!n)
 }
 
 function mapTokenToNode(token: Token) {
@@ -33,20 +41,6 @@ function mapTokenToNode(token: Token) {
         case TOKEN_TYPE.SPACE:
         case TOKEN_TYPE.LINE_COMMENT:
             return null
-        case TOKEN_TYPE.COMMA:
-        case TOKEN_TYPE.QUESTION_MARK:
-        case TOKEN_TYPE.OPENING_PARENTHESIS:
-        case TOKEN_TYPE.CLOSING_PARENTHESIS:
-        case TOKEN_TYPE.DOUBLE_QUOTE:
-        case TOKEN_TYPE.SINGLE_QUOTE:
-        case TOKEN_TYPE.OPENING_BRACKET:
-        case TOKEN_TYPE.CLOSING_BRACKET:
-        case TOKEN_TYPE.OPENING_BRACE:
-        case TOKEN_TYPE.CLOSING_BRACE:
-        case TOKEN_TYPE.COLON:
-        case TOKEN_TYPE.ASSIGNER:
-        case TOKEN_TYPE.UNKNOWN:
-            return new Expression(token.value, [token])
         case TOKEN_TYPE.NUMBER:
             return new NumberLiteral(parseFloat(token.value), [token])
         case TOKEN_TYPE.STATIC_STRING:
@@ -63,5 +57,7 @@ function mapTokenToNode(token: Token) {
             return new EOL([token])
         case TOKEN_TYPE.MENTION:
             return new Mention(token.value.slice(1), [token])
+        default:
+            return new Expression(token.value, [token])
     }
 }

@@ -7,13 +7,15 @@ import type { Scope } from '../executer/scope.ts'
 import { AbortedSessionSignal } from '../executer/signals.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { ValueType } from '../value/base.ts'
+import { bold } from '../util/terminal.ts'
+import { printTree } from '../util/print-ast.ts'
 
 export enum NodeCapability {
     LOOP_CONTROL = 'LOOP_CONTROL',
     RETURN = 'RETURN',
 }
 
-type SubnodeScheme = Record<string, Node> | Node[] | Node | unknown
+export type SubnodeScheme = Record<string, Node> | Node[] | Node | unknown
 
 export class Node<SubnodeShape extends SubnodeScheme = unknown> {
     tokens: Token[] = []
@@ -22,7 +24,6 @@ export class Node<SubnodeShape extends SubnodeScheme = unknown> {
     public value?: string
 
     static friendlyName = '노드'
-
     static accepts: NodeCapability[] = []
 
     constructor() {}
@@ -31,19 +32,16 @@ export class Node<SubnodeShape extends SubnodeScheme = unknown> {
         throw new Error(`${this.getNodeTypeName()} has no validate method`)
     }
 
-    toJSON(): object {
-        return {
-            type: this.getNodeTypeName(),
-            ...this,
-        }
-    }
-
     toPrint(): string {
         throw new Error(`${this.getNodeTypeName()} has no toPrint method`)
     }
 
     protected getNodeTypeName(): string {
         return (this.constructor as typeof Node).friendlyName || '노드'
+    }
+
+    [Symbol.for('Deno.customInspect')](): string {
+        return printTree(this)
     }
 }
 

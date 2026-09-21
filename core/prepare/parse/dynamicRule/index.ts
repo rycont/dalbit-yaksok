@@ -1,27 +1,19 @@
-import { createLocalDynamicRules } from './functions/index.ts'
+import { DynamicRules, Token, YaksokSession } from '@dalbit-yaksok/core'
+
+import { buildLocalRules } from './local/index.ts'
 import { getRulesFromMentioningFile } from './mention/index.ts'
 
-import type { Rule } from '../type.ts'
-import { Token, YaksokSession } from '@dalbit-yaksok/core'
-
-export interface DynamicRulePattern {
-    suffix: string
-    next: string | 'parameter' | 'EOL' | null
-}
-
-export function createDynamicRule(
+export function createDynamicRules(
     tokens: Token[],
     session: YaksokSession,
-): [Rule[][], Rule[][]] {
-    const localRules = createLocalDynamicRules(tokens)
-
+): DynamicRules {
     const mentioningRules = getRulesFromMentioningFile(tokens, session)
+    const localRules = buildLocalRules(tokens)
+
     const baseScopeRules = session.baseScope?.getDynamicRules() || []
 
-    const rules: [Rule[][], Rule[][]] = [
-        localRules[0],
-        [...localRules[1], mentioningRules, baseScopeRules],
-    ]
-
-    return rules
+    return {
+        replacers: localRules.replacers,
+        rules: localRules.rules.concat(mentioningRules).concat(baseScopeRules),
+    }
 }

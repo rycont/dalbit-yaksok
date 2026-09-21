@@ -1,5 +1,6 @@
 import type { Token } from '../prepare/tokenize/token.ts'
-import { blue, bold, YaksokError } from './common.ts'
+import { blue, bold } from '../util/terminal.ts'
+import { YaksokError } from './common.ts'
 
 export class ErrorInModuleError extends YaksokError<{
     fileName: string

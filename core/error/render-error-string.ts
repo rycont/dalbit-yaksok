@@ -1,7 +1,8 @@
 import { Token } from '../prepare/tokenize/token.ts'
 import { Position } from '../type/position.ts'
+import { bold, dim, underline } from '../util/terminal.ts'
 
-import { bold, dim, underline, type YaksokError } from './common.ts'
+import { type YaksokError } from './common.ts'
 
 export interface MachineReadableError {
     message: string

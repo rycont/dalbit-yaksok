@@ -1,27 +1,25 @@
 import {
-    Formula,
-    NotExpression,
-    ValueWithParenthesis,
-} from '../../../node/calculation.ts'
-import { TupleLiteral } from '../../../node/list.ts'
-import {
     AndOperator,
     Block,
     BooleanLiteral,
     Break,
+    CompletionGroup,
     ConditionalLoop,
     Continue,
     DivideOperator,
     ElseIfStatement,
     ElseStatement,
+    EmptyLiteral,
     EOL,
     EqualOperator,
     Evaluable,
     Expression,
+    Formula,
     GreaterThanOperator,
     GreaterThanOrEqualOperator,
     Identifier,
     IfStatement,
+    IndexedValue,
     IndexFetch,
     IntegerDivideOperator,
     LessThanOperator,
@@ -31,38 +29,40 @@ import {
     MinusOperator,
     ModularOperator,
     MultiplyOperator,
+    NodeCapability,
+    NotEqualOperator,
+    NotExpression,
+    NumberValue,
     Operator,
+    OptionalParameter,
     OrOperator,
     PlusOperator,
     PowerOperator,
     Print,
     RangeOperator,
+    ReturnStatement,
+    Rule,
     Sequence,
     SetToIndex,
     SetVariable,
+    StringValue,
+    TupleLiteral,
     TypeCast,
+    TypeCastTarget,
     TypeOf,
-} from '../../../node/index.ts'
-import type { TypeCastTarget } from '../../../node/typecast.ts'
-import { NotEqualOperator } from '../../../node/operator.ts'
-import { ReturnStatement } from '../../../node/return.ts'
-import { IndexedValue } from '../../../value/indexed.ts'
-import { NumberValue, StringValue } from '../../../value/primitive.ts'
-import { ASSIGNERS } from '../../tokenize/rules.ts'
-import type { Rule } from '../type.ts'
-import { CompletionGroup } from '../type.ts'
-import { NodeCapability } from '../../../node/base.ts'
+    ValueWithParenthesis,
+} from '@dalbit-yaksok/core'
+
 import { COUNT_LOOP_RULES } from './count-loop.ts'
 import { DICT_RULES } from './dict.ts'
 import { LIST_LOOP_RULES } from './list-loop.ts'
-import { OptionalParameter } from '../../../node/function.ts'
-import { EmptyLiteral } from '@dalbit-yaksok/core'
 import { STRING_RULES } from './template-string.ts'
-
-export type { Rule }
+import { FUNCTION_RULES } from './function.ts'
+import { ASSIGNERS } from '../../tokenize/rules.ts'
 
 export const BASIC_RULES: Rule[][] = [
     STRING_RULES,
+    FUNCTION_RULES,
     [
         {
             pattern: [

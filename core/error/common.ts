@@ -3,6 +3,7 @@ import type { Evaluable, Expression, Node, Operator } from '../node/base.ts'
 import { Token, TOKEN_TYPE_TO_TEXT } from '../prepare/tokenize/token.ts'
 import type { CodeFile } from '../type/code-file.ts'
 import type { Position } from '../type/position.ts'
+import { bold, blue, dim } from '../util/terminal.ts'
 import { ValueType } from '../value/base.ts'
 
 export class YaksokError<T = unknown> extends Error {
@@ -82,20 +83,4 @@ export function expressionToText(node: Expression) {
     return `${bold(blue(node.toPrint()))}${dim(
         `(${(node.constructor as typeof Expression).friendlyName})`,
     )}`
-}
-
-export function bold(text: string | number) {
-    return `\x1b[1m${text}\x1b[0m`
-}
-
-export function blue(text: string | number) {
-    return `\x1b[34m${text}\x1b[0m`
-}
-
-export function dim(text: string | number) {
-    return `\x1b[2m${text}\x1b[0m`
-}
-
-export function underline(text: string | number) {
-    return `\x1b[4m${text}\x1b[24m`
 }

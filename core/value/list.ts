@@ -1,8 +1,8 @@
-import { dim } from '../error/common.ts'
 import {
     ListIndexMustBeGreaterOrEqualThan0Error,
     ListIndexTypeError,
 } from '../error/indexed.ts'
+import { dim } from '../util/terminal.ts'
 import { ValueType } from './base.ts'
 import { IndexedValue } from './indexed.ts'
 import { NumberValue } from './primitive.ts'

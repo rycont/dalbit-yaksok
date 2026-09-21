@@ -8,6 +8,7 @@
     "exports": "./mod.ts",
     "version": "7.0.0-RC.3",
     "imports": {
-        "ts-pattern": "npm:ts-pattern@^5.9.0"
+        "ts-pattern": "npm:ts-pattern@^5.9.0",
+        "valibot": "npm:valibot@^1.5.0"
     }
 }

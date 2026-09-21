@@ -1,7 +1,7 @@
-import type { Node, Rule } from '@dalbit-yaksok/core'
-import { PatternUnit } from './type.ts'
+import * as v from 'valibot'
 
-type NodeClass = PatternUnit['type']
+import type { Node, NodeType, Rule } from '@dalbit-yaksok/core'
+import { match, P } from 'ts-pattern'
 
 interface RuleWithPriority {
     priority: number
@@ -10,12 +10,12 @@ interface RuleWithPriority {
 
 export class TrieNode {
     constructor(
-        private nodeKey: NodeClass,
+        private nodeKey: NodeType,
         private rules: RuleWithPriority[],
         private children: TrieNode[] | null,
     ) {}
 
-    private nodeTrieCache = new WeakMap<NodeClass, TrieNode[]>()
+    private nodeTrieCache = new WeakMap<NodeType, TrieNode[]>()
 
     public discover(nodes: Node[], depth = 1): RuleWithPriority[] {
         if (nodes.length < depth) {
@@ -40,10 +40,42 @@ export class TrieNode {
 
         const validRules = rules.filter((r) => {
             const patternUnit = r.rule.pattern[r.rule.pattern.length - depth]
-            return (
-                !('value' in patternUnit) ||
-                currentDepthNode.value === patternUnit.value
-            )
+
+            const matchResult = match(patternUnit)
+                .with(P.instanceOf(Function), () => true)
+                .with(
+                    {
+                        type: P.instanceOf(Function),
+                        value: currentDepthNode.value,
+                    },
+                    () => true,
+                )
+                .with(
+                    {
+                        type: P.instanceOf(Function),
+                        value: P.nonNullable,
+                    },
+                    () => false,
+                )
+                .with(
+                    {
+                        type: P.instanceOf(Function),
+                    },
+                    () => true,
+                )
+                .with(
+                    {
+                        kind: 'schema',
+                    },
+                    (r) => {
+                        return v.safeParse(r, currentDepthNode).success
+                    },
+                )
+                .otherwise(() => false)
+
+            // console.log(currentDepthNode, patternUnit, matchResult)
+
+            return matchResult
         })
 
         return validRules
@@ -54,7 +86,7 @@ export class TrieNode {
             return []
         }
 
-        const nodeClass = node.constructor as NodeClass
+        const nodeClass = node.constructor as NodeType
 
         const cached = this.nodeTrieCache.get(nodeClass)
 
@@ -107,14 +139,48 @@ export class Ruleset {
 }
 
 function rulesToTries(rules: RuleWithPriority[], depth = 1): TrieNode[] {
-    const ruleBucketsByNodeClass = new Map<NodeClass, RuleWithPriority[]>()
+    const ruleBucketsByNodeClass = new Map<NodeType, RuleWithPriority[]>()
 
     for (const r of rules) {
         if (r.rule.pattern.length < depth) {
             continue
         }
 
-        const topNodeClass = r.rule.pattern[r.rule.pattern.length - depth].type
+        const topNodePatternUnit = r.rule.pattern[r.rule.pattern.length - depth]
+
+        const topNodeClass = match(topNodePatternUnit)
+            .with(P.instanceOf(Function), (f) => f)
+            .with(
+                {
+                    type: P.instanceOf(Function).select(),
+                },
+                (f) => f,
+            )
+            .with(
+                {
+                    type: 'instance',
+                    class: P.select(),
+                },
+                (f) => f,
+            )
+            .with(
+                {
+                    type: 'intersect',
+                    options: P.select(),
+                },
+                (options) =>
+                    (
+                        (options as v.IntersectOptions).find(
+                            (o) => o.type === 'instance',
+                        ) as v.InstanceSchema<NodeType, undefined> | null
+                    )?.class,
+            )
+            .otherwise(() => null) as NodeType
+
+        if (!topNodeClass) {
+            throw new Error('Cannot process pattern unit of above kind')
+        }
+
         const bucketContent = ruleBucketsByNodeClass.get(topNodeClass)
 
         if (bucketContent) {

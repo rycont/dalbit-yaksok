@@ -21,18 +21,29 @@ import {
     RequiredParametersShouldPriorError,
     UnexpectedArgumentError,
 } from '../error/function.ts'
+import { Node } from '@dalbit-yaksok/core'
 
-export class DeclareFunction extends Executable {
+export class FunctionDeclareHeader extends Node {
+    constructor(
+        public name: string,
+        public override tokens: Token[],
+    ) {
+        super()
+    }
+}
+
+export class DeclareFunction extends Executable<Block> {
     static override friendlyName = '새 약속 만들기'
     static override accepts = [NodeCapability.RETURN]
 
     constructor(
-        public body: Block,
+        body: Block,
         public name: string,
         public parameterElements: ParameterElement[],
         public override tokens: Token[],
     ) {
         super()
+        this.subnode = body
     }
 
     override execute(scope: Scope): Promise<void> {
@@ -40,7 +51,7 @@ export class DeclareFunction extends Executable {
 
         const functionObject = new FunctionObject(
             this.name,
-            this.body,
+            this.subnode,
             scope,
             paramNames,
         )
@@ -104,7 +115,7 @@ export class DeclareFunction extends Executable {
             scope.addFunctionObject(
                 new FunctionObject(
                     this.name,
-                    this.body,
+                    this.subnode,
                     functionScope,
                     this.parameterElements.map((p) => p.name),
                 ),
@@ -118,7 +129,7 @@ export class DeclareFunction extends Executable {
             }
         }
 
-        const bodyErrors = this.body.validate(functionScope)
+        const bodyErrors = this.subnode.validate(functionScope)
 
         return [...declarationErrors, ...bodyErrors]
     }
@@ -139,9 +150,9 @@ export class FunctionInvoke extends Evaluable {
     static override friendlyName = '약속 사용하기'
 
     public name: string
-    public argumentEvaluator: Record<string, Evaluable>
     public parameterScheme: ParameterElement[]
 
+    private argumentEvaluator: Record<string, Evaluable>
     private emptyArgumentPlaceholder: Record<string, EmptyValue>
 
     constructor(

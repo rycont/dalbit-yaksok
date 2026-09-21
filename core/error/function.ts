@@ -1,6 +1,7 @@
 import type { Token } from '../prepare/tokenize/token.ts'
+import { bold, blue, dim } from '../util/terminal.ts'
 
-import { blue, bold, dim, YaksokError } from './common.ts'
+import { YaksokError } from './common.ts'
 
 export class CannotReturnOutsideFunctionError extends YaksokError {
     constructor(props: { tokens: Token[] }) {

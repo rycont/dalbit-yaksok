@@ -1,7 +1,8 @@
-import { blue, bold, YaksokError } from './common.ts'
+import { YaksokError } from './common.ts'
 import { RESERVED_WORDS } from '../constant/reserved-words.ts'
 
 import { Node, Scope } from '@dalbit-yaksok/core'
+import { bold, blue } from '../util/terminal.ts'
 
 export class NotProperIdentifierNameToDefineError extends YaksokError<{
     texts: string[]

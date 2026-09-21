@@ -18,9 +18,9 @@ export { Scope } from './executer/scope.ts'
 export * from './node/index.ts'
 
 export { tokenize } from './prepare/tokenize/index.ts'
-export * from './prepare/tokenize/token.ts'
 
-export { parse } from './prepare/parse/index.ts'
+export * from './prepare/tokenize/token.ts'
+export * from './prepare/parse/index.ts'
 
 export type * from './constant/type.ts'
 export type { Events, SessionConfig } from './session/session-config.ts'

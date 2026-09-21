@@ -13,10 +13,7 @@ const OPENING_TO_CLOSING_BRACKETS: Record<string, string> = {
     '(': ')',
 }
 
-export function parseBracket(
-    nodes: Node[],
-    dynamicRules: [Rule[][], Rule[][]],
-) {
+export function parseBracket(nodes: Node[], dynamicRules: Rule[]) {
     for (const node of nodes) {
         if (node instanceof Block) {
             node.subnode = parseBracket(node.subnode, dynamicRules)

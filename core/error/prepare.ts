@@ -2,7 +2,8 @@ import type { Node } from '../node/base.ts'
 import { TOKEN_TYPE, type Token } from '../prepare/tokenize/token.ts'
 import type { CodeFile } from '../type/code-file.ts'
 import type { Position } from '../type/position.ts'
-import { blue, bold, dim, tokenToText, YaksokError } from './common.ts'
+import { bold, dim, blue } from '../util/terminal.ts'
+import { tokenToText, YaksokError } from './common.ts'
 
 export class CannotParseError extends YaksokError {
     constructor(props: {

@@ -58,13 +58,25 @@ export class CodeFile {
             throw new Error('CodeFile은 한번만 실행할 수 있습니다.')
         }
 
-        const scope = await executer(
-            this.ast,
-            this.session.baseScope ?? undefined,
-        )
-        this._ranScope = scope
+        try {
+            const scope = await executer(
+                this.ast,
+                this.session.baseScope ?? undefined,
+            )
 
-        return scope
+            this._ranScope = scope
+
+            return scope
+        } catch (e) {
+            if (e instanceof YaksokError) {
+                this.session.stderr(
+                    renderErrorString(e),
+                    errorToMachineReadable(e),
+                )
+            }
+
+            throw e
+        }
     }
 }
 
@@ -80,6 +92,8 @@ function parseWithSession(code: string, session: YaksokSession) {
     while (true) {
         tokens = tokenize(code, inferredSplitpoints)
         ast = parse(tokens, session)
+
+        console.log(ast)
 
         const validatingScope = new Scope()
 
@@ -103,9 +117,8 @@ function parseWithSession(code: string, session: YaksokSession) {
 
         seenErrorFingerprint.add(missingIdentifierFingerprint)
 
-        inferredSplitpoints = inferTokenSplitpointsFromErrors(
-            code,
-            missingIdentifierErrors,
+        inferredSplitpoints = inferredSplitpoints.concat(
+            inferTokenSplitpointsFromErrors(code, missingIdentifierErrors),
         )
 
         const splitpointFingerprint = inferredSplitpoints.join('|')

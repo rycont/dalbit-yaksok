@@ -69,19 +69,20 @@ export class ListLiteral extends Evaluable<Evaluable[]> {
     }
 }
 
-export class TupleLiteral extends Evaluable {
+export class TupleLiteral extends Evaluable<Evaluable[]> {
     static override friendlyName = '튜플'
 
     constructor(
-        public items: Evaluable[],
+        subnode: Evaluable[],
         public override tokens: Token[],
     ) {
         super()
+        this.subnode = subnode
     }
 
     override async execute(scope: Scope): Promise<TupleValue> {
         const evaluatedItems = await Promise.all(
-            this.items.map((item) => item.execute(scope)),
+            this.subnode.map((item) => item.execute(scope)),
         )
 
         const value = new TupleValue(evaluatedItems)
@@ -89,7 +90,7 @@ export class TupleLiteral extends Evaluable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        const errors = this.items
+        const errors = this.subnode
             .flatMap((item) => item.validate(scope))
             .filter((error): error is YaksokError => !!error)
 
@@ -256,10 +257,6 @@ export class SetToIndex extends Executable<Evaluable> {
                 if (error instanceof YaksokError) {
                     if (!error.tokens) {
                         error.tokens = this.tokens
-                    }
-
-                    if (!error.codeFile) {
-                        error.codeFile = scope.codeFile
                     }
                 }
 

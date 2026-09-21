@@ -1,21 +1,26 @@
 import { Block } from '../../node/block.ts'
 import { convertTokensToNodes } from '../lex/convert-tokens-to-nodes.ts'
-import { createDynamicRule } from './dynamicRule/index.ts'
+import { createDynamicRules } from './dynamicRule/index.ts'
 import { parseIndent } from './parse-indent.ts'
 import { callParseRecursively } from './srParse.ts'
 
 import { parseBracket } from './parse-bracket.ts'
-
 import { Token, YaksokSession } from '@dalbit-yaksok/core'
 
+export * from './type.ts'
+
 export function parse(tokens: Token[], session: YaksokSession): Block {
-    const dynamicRules = createDynamicRule(tokens, session)
-    const nodes = convertTokensToNodes(tokens)
+    const { replacers, rules } = createDynamicRules(tokens, session)
+
+    const nodes = convertTokensToNodes(tokens, replacers)
+
     const indentedNodes = parseIndent(nodes)
 
-    const priorityParsedNodes = parseBracket(indentedNodes, dynamicRules)
-    const childNodes = callParseRecursively(priorityParsedNodes, dynamicRules)
+    const priorityParsedNodes = parseBracket(indentedNodes, rules)
+
+    const childNodes = callParseRecursively(priorityParsedNodes, rules)
 
     const ast = new Block(childNodes, tokens)
+
     return ast
 }

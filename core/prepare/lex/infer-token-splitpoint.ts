@@ -1,7 +1,7 @@
 import {
     Brand,
     NotDefinedIdentifierError,
-    PatternUnit,
+    PatternUnitWithValue,
 } from '@dalbit-yaksok/core'
 import { Token } from '../tokenize/token.ts'
 
@@ -70,7 +70,7 @@ export function inferTokenSplitpointsFromErrors(
 
 function inferSplitpointByLine(
     errors: NotDefinedIdentifierError[],
-    patterns: PatternUnit[][],
+    patterns: PatternUnitWithValue[][],
     scopeNames: Set<string>,
 ) {
     const patternSuffixes = Object.entries(
@@ -115,7 +115,10 @@ function inferSplitpointByLine(
         ),
     )
 
-    const matchesByPattern = new Map<PatternUnit[], Map<Token, number>>()
+    const matchesByPattern = new Map<
+        PatternUnitWithValue[],
+        Map<Token, number>
+    >()
 
     for (const match of validMatches) {
         if (!match) {

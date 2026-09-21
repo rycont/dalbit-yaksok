@@ -1,15 +1,10 @@
 import type { Evaluable } from '../node/base.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import type { Position } from '../type/position.ts'
+import { bold } from '../util/terminal.ts'
 import type { ValueType } from '../value/base.ts'
 import { StringValue } from '../value/primitive.ts'
-import {
-    bold,
-    dim,
-    evaluableToText,
-    valueTypeToText,
-    YaksokError,
-} from './common.ts'
+import { evaluableToText, valueTypeToText, YaksokError } from './common.ts'
 
 export class IndexKeyNotFoundError extends YaksokError {
     constructor(props: {

@@ -9,12 +9,12 @@ import {
     EOL,
     Evaluable,
     Identifier,
-    PatternUnit,
+    PatternUnitWithValue,
     SuggestableStatement,
 } from '@dalbit-yaksok/core'
 
 interface ValidStatements {
-    pattern: PatternUnit[]
+    pattern: PatternUnitWithValue[]
     statement: SuggestableStatement | true
 }
 

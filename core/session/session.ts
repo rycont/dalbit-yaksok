@@ -5,10 +5,6 @@ import {
     FileForRunNotExistError,
     MultipleFFIRuntimeError,
 } from '../error/prepare.ts'
-import {
-    errorToMachineReadable,
-    renderErrorString,
-} from '../error/render-error-string.ts'
 import { CodeFile } from '../type/code-file.ts'
 import { PubSub } from '../util/pubsub.ts'
 import {
@@ -155,8 +151,6 @@ export class YaksokSession {
                 if (!e.codeFile) {
                     e.codeFile = codeFile
                 }
-
-                this.stderr(renderErrorString(e), errorToMachineReadable(e))
 
                 return {
                     reason: 'error',
