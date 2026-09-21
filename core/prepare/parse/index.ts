@@ -12,12 +12,11 @@ export * from './type.ts'
 export function parse(tokens: Token[], session: YaksokSession): Block {
     const { replacers, rules } = createDynamicRules(tokens, session)
 
+    console.log(replacers)
+
     const nodes = convertTokensToNodes(tokens, replacers)
-
     const indentedNodes = parseIndent(nodes)
-
     const priorityParsedNodes = parseBracket(indentedNodes, rules)
-
     const childNodes = callParseRecursively(priorityParsedNodes, rules)
 
     const ast = new Block(childNodes, tokens)

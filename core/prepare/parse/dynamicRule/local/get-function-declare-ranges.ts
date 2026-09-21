@@ -120,7 +120,7 @@ export function getDeclareSignature(tokens: Token[]): FunctionDeclareRange[] {
                 {
                     ...matched,
                     line: {
-                        start: linebreaks[index],
+                        start: linebreaks[index] + 1,
                         end: linebreaks[index + 1],
                     },
                     signature: {

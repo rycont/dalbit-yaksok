@@ -21,14 +21,15 @@ function unescapeString(str: string): string {
 
 export function convertTokensToNodes(
     tokens: Token[],
-    replacers: DirectReplacer[],
+    directReplacers: DirectReplacer[],
 ): Node[] {
     const nodes: (Node | null)[] = tokens.map(mapTokenToNode)
 
-    for (const replacer of replacers) {
+    for (const replacer of directReplacers) {
+        nodes.fill(null, replacer.tokenRange[0], replacer.tokenRange[1])
         nodes.splice(
             replacer.tokenRange[0],
-            replacer.tokenRange[1] - replacer.tokenRange[0],
+            replacer.nodes.length,
             ...replacer.nodes,
         )
     }
