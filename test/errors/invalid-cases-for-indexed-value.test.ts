@@ -1,14 +1,19 @@
 import {
     ListIndexTypeError,
     TupleNotMutableError,
-    yaksok,
+    YaksokSession,
 } from '../../core/mod.ts'
 import { assert, assertIsError } from '@std/assert'
 
 Deno.test('Tuple is immutable - cannot set value by index', async () => {
-    const result = await yaksok(`
+    const session = new YaksokSession()
+    session.addModule(
+        'main',
+        `
 튜플 = (1, 2, 3)
-튜플[0] = 10`)
+튜플[0] = 10`,
+    )
+    const result = (await session.runModule(['main'])).main
     assert(
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
@@ -17,9 +22,14 @@ Deno.test('Tuple is immutable - cannot set value by index', async () => {
 })
 
 Deno.test('Key for list fancy indexing is not a number', async () => {
-    const result = await yaksok(`
+    const session = new YaksokSession()
+    session.addModule(
+        'main',
+        `
 목록 = [1, 2, 3]
-목록[[2, "a"]] 보여주기`)
+목록[[2, "a"]] 보여주기`,
+    )
+    const result = (await session.runModule(['main'])).main
     assert(
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,

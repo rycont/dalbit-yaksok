@@ -8,20 +8,25 @@ import {
     ListValue,
     StringIndexOutOfRangeError,
     StringValue,
+    YaksokSession,
 } from '../core/mod.ts'
 
 Deno.test('String allows indexing by number', async () => {
-    const result = await yaksok(`결과 = '달빛'[1]`)
+    const session = new YaksokSession()
+    session.addModule('main', `결과 = '달빛'[1]`)
+    const result = (await session.runModule(['main'])).main
     assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
 
-    const { scope } = result
+    const scope = result.scope!
     const stored = scope.getVariable('결과')
     assertInstanceOf(stored, StringValue)
     assertEquals(stored.value, '빛')
 })
 
 Deno.test('String index must be a non-negative integer within bounds', async () => {
-    const negativeResult = await yaksok(`결과 = '가'[-1]`)
+    const session = new YaksokSession()
+    session.addModule('main', `결과 = '가'[-1]`)
+    const negativeResult = (await session.runModule(['main'])).main
     assert(
         negativeResult.reason === 'error',
         `Expected error, got ${negativeResult.reason}`,
@@ -31,14 +36,18 @@ Deno.test('String index must be a non-negative integer within bounds', async () 
         ListIndexMustBeGreaterOrEqualThan0Error,
     )
 
-    const decimalResult = await yaksok(`결과 = '가'[0.5]`)
+    const session2 = new YaksokSession()
+    session2.addModule('main', `결과 = '가'[0.5]`)
+    const decimalResult = (await session2.runModule(['main'])).main
     assert(
         decimalResult.reason === 'error',
         `Expected error, got ${decimalResult.reason}`,
     )
     assertIsError(decimalResult.errors?.[0], ListIndexTypeError)
 
-    const outOfRangeResult = await yaksok(`결과 = '가'[1]`)
+    const session3 = new YaksokSession()
+    session3.addModule('main', `결과 = '가'[1]`)
+    const outOfRangeResult = (await session3.runModule(['main'])).main
     assert(
         outOfRangeResult.reason === 'error',
         `Expected error, got ${outOfRangeResult.reason}`,
@@ -51,20 +60,24 @@ Deno.test('String index must be a non-negative integer within bounds', async () 
 })
 
 Deno.test('String variables can be indexed', async () => {
-    const result = await yaksok(`대상 = '달빛'\n결과 = 대상[1]`)
+    const session = new YaksokSession()
+    session.addModule('main', `대상 = '달빛'\n결과 = 대상[1]`)
+    const result = (await session.runModule(['main'])).main
     assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
 
-    const { scope } = result
+    const scope = result.scope!
     const stored = scope.getVariable('결과')
     assertInstanceOf(stored, StringValue)
     assertEquals(stored.value, '빛')
 })
 
 Deno.test('List indexing supports multiple indexes', async () => {
-    const result = await yaksok(`결과 = ['가', '나', '다'][[0, 2]]`)
+    const session = new YaksokSession()
+    session.addModule('main', `결과 = ['가', '나', '다'][[0, 2]]`)
+    const result = (await session.runModule(['main'])).main
     assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
 
-    const { scope } = result
+    const scope = result.scope!
     const stored = scope.getVariable('결과')
     assertInstanceOf(stored, ListValue)
 

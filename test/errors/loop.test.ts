@@ -13,14 +13,19 @@ import {
     TargetIsNotIndexedValueError,
 } from '../../core/error/index.ts'
 import { LoopCountIsNotNumberError } from '../../core/error/loop.ts'
-import { yaksok } from '../../core/mod.ts'
+import { YaksokSession } from '../../core/mod.ts'
 
 Deno.test('Error raised in loop', async () => {
-    const result = await yaksok(`
+    const session = new YaksokSession()
+    session.addModule(
+        'main',
+        `
 반복
     "Hello, world!" * "Hello, world!" 보여주기
     반복 그만
-`)
+`,
+    )
+    const result = (await session.runModule(['main'])).main
     assert(
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
@@ -29,10 +34,15 @@ Deno.test('Error raised in loop', async () => {
 })
 
 Deno.test('Error raised in list loop', async () => {
-    const result = await yaksok(`
+    const session = new YaksokSession()
+    session.addModule(
+        'main',
+        `
 반복 [1, 2, 3] 의 숫자 마다
     "Hello, world!" * "Hello, world!" 보여주기
-`)
+`,
+    )
+    const result = (await session.runModule(['main'])).main
     assert(
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
@@ -41,10 +51,15 @@ Deno.test('Error raised in list loop', async () => {
 })
 
 Deno.test('Loop target is not enumerable', async () => {
-    const result = await yaksok(`
+    const session = new YaksokSession()
+    session.addModule(
+        'main',
+        `
 반복 10의 숫자 마다
     숫자 보여주기
-`)
+`,
+    )
+    const result = (await session.runModule(['main'])).main
     assert(
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
@@ -53,7 +68,9 @@ Deno.test('Loop target is not enumerable', async () => {
 })
 
 Deno.test('Range start is less than end', async () => {
-    const result = await yaksok(`10 ~ 5`)
+    const session = new YaksokSession()
+    session.addModule('main', `10 ~ 5`)
+    const result = (await session.runModule(['main'])).main
     assert(
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
@@ -62,7 +79,9 @@ Deno.test('Range start is less than end', async () => {
 })
 
 Deno.test('Range start must be number', async () => {
-    const result = await yaksok(`"Hello" ~ 5`)
+    const session = new YaksokSession()
+    session.addModule('main', `"Hello" ~ 5`)
+    const result = (await session.runModule(['main'])).main
     assert(
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
@@ -71,7 +90,9 @@ Deno.test('Range start must be number', async () => {
 })
 
 Deno.test('Range end must be number', async () => {
-    const result = await yaksok(`5 ~ "Hello"`)
+    const session = new YaksokSession()
+    session.addModule('main', `5 ~ "Hello"`)
+    const result = (await session.runModule(['main'])).main
     assert(
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
@@ -80,14 +101,18 @@ Deno.test('Range end must be number', async () => {
 })
 
 Deno.test('Range start must be an integer', async () => {
-    let result = await yaksok(`1.5 ~ 5`)
+    const session = new YaksokSession()
+    session.addModule('main', `1.5 ~ 5`)
+    let result = (await session.runModule(['main'])).main
     assert(
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
     )
     assertIsError(result.errors?.[0], RangeStartMustBeIntegerError)
 
-    result = await yaksok(`1.5 ~ 3.2`)
+    const session2 = new YaksokSession()
+    session2.addModule('main', `1.5 ~ 3.2`)
+    result = (await session2.runModule(['main'])).main
     assert(
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
@@ -96,7 +121,9 @@ Deno.test('Range start must be an integer', async () => {
 })
 
 Deno.test('Range end must be an integer', async () => {
-    const result = await yaksok(`1 ~ 5.5`)
+    const session = new YaksokSession()
+    session.addModule('main', `1 ~ 5.5`)
+    const result = (await session.runModule(['main'])).main
     assert(
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
@@ -105,11 +132,16 @@ Deno.test('Range end must be an integer', async () => {
 })
 
 Deno.test('Index set target is must be indexable', async () => {
-    const result = await yaksok(`목록 = 5
+    const session = new YaksokSession()
+    session.addModule(
+        'main',
+        `목록 = 5
 목록[1] = 10
 
 목록 보여주기
-`)
+`,
+    )
+    const result = (await session.runModule(['main'])).main
     assert(
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
@@ -118,9 +150,14 @@ Deno.test('Index set target is must be indexable', async () => {
 })
 
 Deno.test('Index get target is must be indexable', async () => {
-    const result = await yaksok(`목록 = 5
+    const session = new YaksokSession()
+    session.addModule(
+        'main',
+        `목록 = 5
 목록[2] 보여주기
-`)
+`,
+    )
+    const result = (await session.runModule(['main'])).main
     assert(
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
@@ -129,9 +166,14 @@ Deno.test('Index get target is must be indexable', async () => {
 })
 
 Deno.test('List out of range', async () => {
-    const result = await yaksok(`목록 = [1, 2, 3]
+    const session = new YaksokSession()
+    session.addModule(
+        'main',
+        `목록 = [1, 2, 3]
 목록[4] 보여주기
-`)
+`,
+    )
+    const result = (await session.runModule(['main'])).main
     assert(
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
@@ -140,9 +182,14 @@ Deno.test('List out of range', async () => {
 })
 
 Deno.test('List index must be number', async () => {
-    const result = await yaksok(`목록 = [1, 2, 3]
+    const session = new YaksokSession()
+    session.addModule(
+        'main',
+        `목록 = [1, 2, 3]
 목록["Hello"] 보여주기
-`)
+`,
+    )
+    const result = (await session.runModule(['main'])).main
     assert(
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
@@ -151,9 +198,14 @@ Deno.test('List index must be number', async () => {
 })
 
 Deno.test('List index must be integer', async () => {
-    const result = await yaksok(`목록 = [1, 2, 3]
+    const session = new YaksokSession()
+    session.addModule(
+        'main',
+        `목록 = [1, 2, 3]
 목록[1.5] 보여주기
-`)
+`,
+    )
+    const result = (await session.runModule(['main'])).main
     assert(
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
@@ -162,9 +214,14 @@ Deno.test('List index must be integer', async () => {
 })
 
 Deno.test('List index must bigger than 0', async () => {
-    const result = await yaksok(`목록 = [1, 2, 3]
+    const session = new YaksokSession()
+    session.addModule(
+        'main',
+        `목록 = [1, 2, 3]
 목록[-1] 보여주기
-`)
+`,
+    )
+    const result = (await session.runModule(['main'])).main
     assert(
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,
@@ -173,8 +230,13 @@ Deno.test('List index must bigger than 0', async () => {
 })
 
 Deno.test('Loop Count is not a number', async () => {
-    const result = await yaksok(`반복 "Hello" 번
-    1 + 1 보여주기`)
+    const session = new YaksokSession()
+    session.addModule(
+        'main',
+        `반복 "Hello" 번
+    1 + 1 보여주기`,
+    )
+    const result = (await session.runModule(['main'])).main
     assert(
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,

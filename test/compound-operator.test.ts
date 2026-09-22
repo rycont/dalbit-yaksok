@@ -6,7 +6,7 @@ import {
     InvalidTypeForOperatorError,
     NumberValue,
     StringValue,
-    yaksok,
+    YaksokSession,
 } from '../core/mod.ts'
 
 const VALID_CASES_FOR_COMPOUND_OPERATORS = [
@@ -77,7 +77,9 @@ for (const { a, b, operator, expected } of VALID_CASES_FOR_COMPOUND_OPERATORS) {
     Deno.test(`Valid compound operator ${operator}`, async () => {
         const code = `result = ${a}
 result ${operator} ${b}`.trim()
-        const result = await yaksok(code)
+        const session = new YaksokSession()
+        session.addModule('main', code)
+        const result = (await session.runModule(['main'])).main
 
         assert(
             result.reason === 'finish',
@@ -104,7 +106,9 @@ for (const { a, b, operator } of INVALID_CASES_FOR_COMPOUND_OPERATORS) {
     Deno.test(`Invalid compound operator ${operator}`, async () => {
         const code = `result = ${a}
 result ${operator} ${b}`.trim()
-        const result = await yaksok(code)
+        const session = new YaksokSession()
+        session.addModule('main', code)
+        const result = (await session.runModule(['main'])).main
         assert(
             result.reason === 'error',
             `Expected an error, but got ${result.reason}`,
@@ -117,7 +121,9 @@ Deno.test('Invalid compound operator in set to index', async () => {
     const code = `목록 = [1, 2, 3]
 목록[0] -= "홍길동"
 `
-    const result = await yaksok(code)
+    const session = new YaksokSession()
+    session.addModule('main', code)
+    const result = (await session.runModule(['main'])).main
     assert(
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,

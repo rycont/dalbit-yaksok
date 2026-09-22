@@ -3,13 +3,18 @@ import {
     AlreadyDefinedFunctionError,
     InvalidTypeForOperatorError,
 } from '../../core/error/index.ts'
-import { yaksok, YaksokSession } from '../../core/mod.ts'
+import { YaksokSession } from '../../core/mod.ts'
 
 Deno.test('약속 안에서 발생한 오류', async () => {
-    const result = await yaksok(`약속, 신나게 놀기
+    const session = new YaksokSession()
+    session.addModule(
+        'main',
+        `약속, 신나게 놀기
     "이름" / 10 보여주기
     
-신나게 놀기`)
+신나게 놀기`,
+    )
+    const result = (await session.runModule(['main'])).main
     assert(
         result.reason === 'error',
         `Expected an error, but got ${result.reason}`,

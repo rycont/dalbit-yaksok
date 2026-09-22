@@ -36,6 +36,8 @@ export class CodeFile {
             session,
         )
 
+        console.log(ast)
+
         this.ast = ast
         this.tokens = tokens
         this.text = text

@@ -1,10 +1,12 @@
 import { assert, assertIsError } from '@std/assert'
 import { UnexpectedEndOfCodeError } from '../../core/error/prepare.ts'
 import { NotExecutableNodeError } from '../../core/error/unknown-node.ts'
-import { yaksok } from '../../core/mod.ts'
+import { YaksokSession } from '../../core/mod.ts'
 
 Deno.test('Unparsable codes', async () => {
-    const result = await yaksok(`]]`)
+    const session = new YaksokSession()
+    session.addModule('main', `]]`)
+    const result = (await session.runModule(['main'])).main
     assert(result.reason === 'validation')
 
     assertIsError(result.errors![0], NotExecutableNodeError)
@@ -12,20 +14,26 @@ Deno.test('Unparsable codes', async () => {
 })
 
 Deno.test('Unparsable numbers', async () => {
-    const result = await yaksok(`1.2.3`)
+    const session = new YaksokSession()
+    session.addModule('main', `1.2.3`)
+    const result = (await session.runModule(['main'])).main
 
     assert(result.reason === 'validation')
     assertIsError(result.errors![0], NotExecutableNodeError)
 })
 
 Deno.test('Unparsable list', async () => {
-    const result = await yaksok(`자리표 = [1, 2, [3, 4]`)
+    const session = new YaksokSession()
+    session.addModule('main', `자리표 = [1, 2, [3, 4]`)
+    const result = (await session.runModule(['main'])).main
     assert(result.reason === 'validation')
     assertIsError(result.errors![0], UnexpectedEndOfCodeError)
 })
 
 Deno.test('Unparsable function call', async () => {
-    const result = await yaksok(`비만도 = 키가 (`)
+    const session = new YaksokSession()
+    session.addModule('main', `비만도 = 키가 (`)
+    const result = (await session.runModule(['main'])).main
     assert(result.reason === 'validation')
     assertIsError(result.errors![0], UnexpectedEndOfCodeError)
 })
