@@ -1,7 +1,6 @@
 import type { Scope } from '../executer/scope.ts'
 import type { Evaluable, Expression, Node, Operator } from '../node/base.ts'
 import { Token, TOKEN_TYPE_TO_TEXT } from '../prepare/tokenize/token.ts'
-import type { CodeFile } from '../type/code-file.ts'
 import type { Position } from '../type/position.ts'
 import { bold, blue, dim } from '../util/terminal.ts'
 import { ValueType } from '../value/base.ts'
@@ -10,7 +9,6 @@ export class YaksokError<T = unknown> extends Error {
     position?: Position
     tokens?: Token[]
     resource: T
-    codeFile?: CodeFile
     child?: YaksokError
     scope?: Scope
     node?: Node

@@ -54,7 +54,7 @@ export class UnexpectedArgumentError extends YaksokError<{
 export class MissingRequiredArgumentError extends YaksokError<{
     names: string[]
 }> {
-    constructor(props: { tokens?: Token[]; resource: { names: string[] } }) {
+    constructor(props: { tokens: Token[]; resource: { names: string[] } }) {
         super(props)
         const { names } = props.resource
         this.message = `이 약속엔 ${names

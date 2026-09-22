@@ -41,6 +41,8 @@ export class CodeFile {
         this.text = text
         this.prepareErrors = validateResult
 
+        console.log(this.ast)
+
         for (const error of validateResult) {
             session.stderr(
                 renderErrorString(error),
@@ -54,6 +56,10 @@ export class CodeFile {
     }
 
     public async run(): Promise<Scope> {
+        if (this.prepareErrors.length !== 0) {
+            throw new Error('오류가 존재하는 CodeFile은 실행할 수 없습니다.')
+        }
+
         if (this._ranScope) {
             throw new Error('CodeFile은 한번만 실행할 수 있습니다.')
         }
@@ -69,6 +75,10 @@ export class CodeFile {
             return scope
         } catch (e) {
             if (e instanceof YaksokError) {
+                if (!e.codeFile) {
+                    e.codeFile = this
+                }
+
                 this.session.stderr(
                     renderErrorString(e),
                     errorToMachineReadable(e),

@@ -18,8 +18,7 @@ export class FunctionObject extends ObjectValue implements RunnableObject {
         public name: string,
         private body: Block,
         public invokeRules: Rule[],
-        private declaredScope?: Scope,
-        public paramNames: string[] = [],
+        private declaredScope: Scope,
     ) {
         super()
     }
@@ -55,6 +54,5 @@ export interface RunnableObject extends ObjectValue {
         fileScope: Scope,
     ) => Promise<ValueType>
     readonly name: string
-    readonly paramNames: string[]
     readonly invokeRules: Rule[]
 }

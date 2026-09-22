@@ -28,27 +28,6 @@ import {
     NotBooleanTypeError,
 } from '../error/calculation.ts'
 
-export class ValueWithParenthesis extends Evaluable<Evaluable> {
-    static override friendlyName = '괄호로 묶인 값'
-
-    constructor(
-        value: Evaluable,
-        public override tokens: Token[],
-    ) {
-        super()
-
-        this.subnode = value
-    }
-
-    override async execute(scope: Scope): Promise<ValueType> {
-        return await this.subnode.execute(scope)
-    }
-
-    override validate(scope: Scope): YaksokError[] {
-        return this.subnode.validate(scope)
-    }
-}
-
 export class NotExpression extends Evaluable<Evaluable> {
     static override friendlyName = '부정'
 

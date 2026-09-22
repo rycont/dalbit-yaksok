@@ -17,7 +17,7 @@ export const FUNCTION_RULES: Rule[] = [
                 body,
                 header.name,
                 header.invokingRules,
-                [],
+                header.parameterScheme,
                 tokens,
             )
         },

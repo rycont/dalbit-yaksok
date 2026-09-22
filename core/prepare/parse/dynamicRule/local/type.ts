@@ -1,3 +1,5 @@
+import { ParameterElement } from '../../../../constant/type.ts'
+
 export enum FunctionType {
     약속,
     번역,
@@ -33,8 +35,15 @@ export enum FunctionPartType {
     parameter,
 }
 
-export interface NameGroup {
-    type: FunctionPartType
-    names: string[]
+export type FunctionStaticPart = {
+    type: FunctionPartType.static
     isSuffix: boolean
+    names: string[]
 }
+
+export type FunctionParameterPart = {
+    type: FunctionPartType.parameter
+    params: ParameterElement[]
+}
+
+export type FunctionHeaderPart = FunctionParameterPart | FunctionStaticPart

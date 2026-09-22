@@ -2,14 +2,21 @@ import {
     DirectReplacer,
     DynamicRules,
     FunctionDeclareHeader,
+    ParameterElement,
     Token,
     TOKEN_TYPE,
 } from '@dalbit-yaksok/core'
 
-import { FunctionDeclareRange, FunctionPartType, NameGroup } from './type.ts'
+import {
+    FunctionDeclareRange,
+    FunctionParameterPart,
+    FunctionHeaderPart,
+    FunctionPartType,
+} from './type.ts'
 
-import { createCallingRules } from './calling-rules.ts'
 import { getDeclareSignature } from './get-function-declare-ranges.ts'
+import { createParameterScheme } from './parameter-scheme.ts'
+import { createCallingRules } from './calling/index.ts'
 
 export function buildLocalRules(tokens: Token[]): DynamicRules {
     const ranges = getDeclareSignature(tokens)
@@ -96,47 +103,94 @@ const rangeToRules = (allTokens: Token[]) => (range: FunctionDeclareRange) => {
 
             continue
         }
+
+        if (token.type === TOKEN_TYPE.QUESTION_MARK) {
+            lastGroup.tokens.push(token)
+            continue
+        }
+
+        if (token.type === TOKEN_TYPE.COMMA) {
+            lastGroup.tokens.push(token)
+            continue
+        }
     }
 
-    const nameGroups = tokenGroups.map<NameGroup>((g, i, a) => {
+    const nameGroups = tokenGroups.map<FunctionHeaderPart>((g, i, a) => {
         const prevGroup = a[i - 1]
         const prevGroupLastToken = prevGroup
             ? prevGroup.tokens[prevGroup.tokens.length - 1]
             : false
 
-        const isSuffix = prevGroupLastToken
-            ? prevGroupLastToken.position.column +
-                  prevGroupLastToken.value.length ===
-              g.tokens[0].position.column
-            : false
+        if (g.type === FunctionPartType.static) {
+            const isSuffix =
+                g.type === FunctionPartType.static &&
+                prevGroupLastToken &&
+                (prevGroupLastToken.type === TOKEN_TYPE.IDENTIFIER ||
+                    prevGroupLastToken.type === TOKEN_TYPE.CLOSING_PARENTHESIS)
+                    ? prevGroupLastToken.position.column +
+                          prevGroupLastToken.value.length ===
+                      g.tokens[0].position.column
+                    : false
+
+            return {
+                type: FunctionPartType.static,
+                isSuffix,
+                names: g.tokens.map((t) => t.value),
+            }
+        }
 
         return {
-            type: g.type,
-            names: g.tokens
-                .filter((t) => t.type === TOKEN_TYPE.IDENTIFIER)
-                .map((t) => t.value),
-            isSuffix,
+            type: FunctionPartType.parameter,
+            params: g.tokens
+                .map<ParameterElement | null>((token, index, all) => {
+                    if (token.type !== TOKEN_TYPE.IDENTIFIER) {
+                        return null
+                    }
+
+                    const nextToken = all[index + 1]
+                    const optional =
+                        nextToken?.type === TOKEN_TYPE.QUESTION_MARK
+
+                    const tokens = optional ? [token, nextToken] : [token]
+
+                    return {
+                        name: token.value,
+                        optional: optional ?? false,
+                        tokens,
+                    }
+                })
+                .filter((t): t is ParameterElement => t !== null),
         }
     })
 
     const functionName = nameGroups
-        .map(
-            (g) =>
-                (g.isSuffix ? '' : ' ') +
-                (g.type === FunctionPartType.static
-                    ? g.names[0]
-                    : g.names.join(', ')),
+        .map((g) =>
+            g.type === FunctionPartType.static
+                ? (g.isSuffix ? '' : ' ') + g.names[0]
+                : `(${g.params.map((p) => p.name).join(', ')})`,
         )
         .join('')
         .trim()
 
-    const invokingRules = createCallingRules(functionName, nameGroups)
+    const parameterScheme = nameGroups.flatMap((g) =>
+        g.type === FunctionPartType.parameter ? g.params : [],
+    )
 
+    const invokingRules = createCallingRules(
+        functionName,
+        nameGroups,
+        parameterScheme,
+    )
     const lineTokens = allTokens.slice(range.line.start, range.line.end + 1)
 
     const replacer: DirectReplacer = {
         nodes: [
-            new FunctionDeclareHeader(functionName, invokingRules, lineTokens),
+            new FunctionDeclareHeader(
+                functionName,
+                invokingRules,
+                parameterScheme,
+                lineTokens,
+            ),
         ],
         tokenRange: [range.line.start, range.line.end],
     }

@@ -50,7 +50,6 @@ import {
     TypeCast,
     TypeCastTarget,
     TypeOf,
-    ValueWithParenthesis,
 } from '@dalbit-yaksok/core'
 
 import { COUNT_LOOP_RULES } from './count-loop.ts'
@@ -202,6 +201,25 @@ export const BASIC_RULES: Rule[][] = [
                     value: '(',
                 },
                 {
+                    type: Evaluable,
+                },
+                {
+                    type: Expression,
+                    value: ')',
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const item = nodes[1] as Evaluable
+                return new TupleLiteral([item], tokens)
+            },
+        },
+        {
+            pattern: [
+                {
+                    type: Expression,
+                    value: '(',
+                },
+                {
                     type: Sequence,
                 },
                 {
@@ -235,29 +253,6 @@ export const BASIC_RULES: Rule[][] = [
             factory: (nodes, tokens) => {
                 const item = nodes[1] as Evaluable
                 return new TupleLiteral([item], tokens)
-            },
-        },
-        {
-            pattern: [
-                {
-                    type: Expression,
-                    value: '(',
-                },
-                {
-                    type: Evaluable,
-                },
-                {
-                    type: Expression,
-                    value: ')',
-                },
-            ],
-            factory: (nodes, tokens) => {
-                const newNode = new ValueWithParenthesis(
-                    nodes[1] as Evaluable,
-                    tokens,
-                )
-
-                return newNode
             },
         },
         {

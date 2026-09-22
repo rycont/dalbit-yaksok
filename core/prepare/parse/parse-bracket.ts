@@ -1,9 +1,15 @@
-import { UnexpectedEndOfCodeError } from '../../error/prepare.ts'
-import { Expression, Node } from '../../node/base.ts'
-import { Block } from '../../node/block.ts'
-import { ListLiteral, Sequence, TupleLiteral } from '../../node/list.ts'
+import {
+    Block,
+    Expression,
+    ListLiteral,
+    Node,
+    Rule,
+    Sequence,
+    TupleLiteral,
+    UnexpectedEndOfCodeError,
+} from '@dalbit-yaksok/core'
+
 import { getTokensFromNodes } from '../../util/merge-tokens.ts'
-import type { Rule } from './rule/index.ts'
 import { callParseRecursively } from './srParse.ts'
 
 const ALL_OPENING_BRACKETS = ['[', '{', '(']
