@@ -40,20 +40,14 @@ export function createInterleavingRule(
                 : [],
         )
 
-        const isAllTuple = nodesWithPart.every(
-            ({ node }) => node instanceof TupleLiteral,
-        )
-
-        if (!isAllTuple) {
-            return null
-        }
-
         const evaluator = Object.fromEntries(
             nodesWithPart.flatMap(({ part, node }) =>
-                (node as TupleLiteral).subnode.map((tupleItem, index) => [
-                    part.params[index].name,
-                    tupleItem,
-                ]),
+                node instanceof TupleLiteral
+                    ? node.subnode.map((tupleItem, index) => [
+                          part.params[index].name,
+                          tupleItem,
+                      ])
+                    : [[part.params[0].name, node as Evaluable]],
             ),
         )
 

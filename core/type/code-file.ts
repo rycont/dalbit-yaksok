@@ -41,8 +41,6 @@ export class CodeFile {
         this.text = text
         this.prepareErrors = validateResult
 
-        console.log(this.ast)
-
         for (const error of validateResult) {
             session.stderr(
                 renderErrorString(error),

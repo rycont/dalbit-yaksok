@@ -3,7 +3,7 @@ import {
     InvalidTypeForCompareError,
     InvalidTypeForOperatorError,
 } from '../core/error/index.ts'
-import { yaksok } from '../core/mod.ts'
+import { YaksokSession } from '@dalbit-yaksok/core'
 
 const WRONG_CASES_FOR_CALCULATION = [
     {
@@ -111,7 +111,12 @@ for (const { a, b, operator } of WRONG_CASES_FOR_CALCULATION) {
         const code = `
             ${a} ${operator} ${b}
         `.trim()
-        const result = await yaksok(code)
+
+        const session = new YaksokSession()
+        session.addModule('main', code)
+
+        const result = (await session.runModule(['main'])).main
+
         assert(
             result.reason === 'error',
             `Expected an error, but got ${result.reason}`,
@@ -125,7 +130,12 @@ for (const { a, b, operator } of WRONG_CASES_FOR_COMPARISON) {
         const code = `
             ${a} ${operator} ${b}
         `.trim()
-        const result = await yaksok(code)
+
+        const session = new YaksokSession()
+        session.addModule('main', code)
+
+        const result = (await session.runModule(['main'])).main
+
         assert(
             result.reason === 'error',
             `Expected an error, but got ${result.reason}`,

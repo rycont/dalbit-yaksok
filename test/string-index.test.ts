@@ -8,7 +8,6 @@ import {
     ListValue,
     StringIndexOutOfRangeError,
     StringValue,
-    yaksok,
 } from '../core/mod.ts'
 
 Deno.test('String allows indexing by number', async () => {
