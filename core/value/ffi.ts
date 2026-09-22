@@ -1,8 +1,11 @@
-import { ObjectValue, ValueType } from './base.ts'
-
-import type { CodeFile } from '../type/code-file.ts'
-import type { RunnableObject } from './function.ts'
-import { Scope } from '../executer/scope.ts'
+import {
+    CodeFile,
+    ObjectValue,
+    Rule,
+    RunnableObject,
+    Scope,
+    ValueType,
+} from '@dalbit-yaksok/core'
 
 export class FFIObject extends ObjectValue implements RunnableObject {
     static override friendlyName = '번역'
@@ -13,7 +16,8 @@ export class FFIObject extends ObjectValue implements RunnableObject {
         public name: string,
         private code: string,
         private runtime: string,
-        private declaredIn?: CodeFile,
+        public invokeRule: Rule,
+        private declaredIn: CodeFile,
         public options: {
             dotReceiverTypeNames?: string[]
         } = {},

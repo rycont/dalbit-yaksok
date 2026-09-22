@@ -45,6 +45,7 @@ export interface Rule<T extends PatternUnit[] = PatternUnit[]> {
                 : Node
         },
         tokens: Token[],
+        rule: Rule,
     ) => Node | null
     config?: Record<string, unknown> & {
         statement?: SuggestableStatement | true

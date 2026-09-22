@@ -13,7 +13,13 @@ export const FUNCTION_RULES: Rule[] = [
         factory(nodes, tokens) {
             const [header, _, body] = nodes
 
-            return new DeclareFunction(body, header.name, [], tokens)
+            return new DeclareFunction(
+                body,
+                header.name,
+                header.invokingRules,
+                [],
+                tokens,
+            )
         },
     }),
 ]

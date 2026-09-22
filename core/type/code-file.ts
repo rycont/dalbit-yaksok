@@ -109,8 +109,6 @@ function parseWithSession(code: string, session: YaksokSession) {
             .map((e) => e.resource.name)
             .join('|')
 
-        console.log(missingIdentifierFingerprint)
-
         if (seenErrorFingerprint.has(missingIdentifierFingerprint)) {
             break
         }

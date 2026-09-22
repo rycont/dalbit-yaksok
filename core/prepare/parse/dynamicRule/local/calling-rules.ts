@@ -15,25 +15,11 @@ import { u } from '../../type.ts'
 export function createCallingRules(
     functionName: string,
     nameGroups: NameGroup[],
-): Rule {
+): Rule[] {
     const pattern = nameGroups.map((g) => {
         if (g.type === FunctionPartType.parameter) {
             return Evaluable
         }
-
-        console.log(
-            v.getMetadata(
-                u(
-                    Identifier,
-                    v.object({
-                        value: v.picklist(g.names),
-                    }),
-                    v.metadata({
-                        isSuffix: g.isSuffix,
-                    }),
-                ),
-            ),
-        )
 
         return u(
             Identifier,
@@ -74,18 +60,20 @@ export function createCallingRules(
         )
     }
 
-    return {
-        pattern,
-        factory(nodes, tokens) {
-            const argumentEvaluator = createEvaluator(nodes)
-            return new FunctionInvoke(
-                {
-                    name: functionName,
-                    argumentEvaluator,
-                    parameterScheme: [],
-                },
-                tokens,
-            )
+    return [
+        {
+            pattern,
+            factory(nodes, tokens) {
+                const argumentEvaluator = createEvaluator(nodes)
+                return new FunctionInvoke(
+                    {
+                        name: functionName,
+                        argumentEvaluator,
+                        parameterScheme: [],
+                    },
+                    tokens,
+                )
+            },
         },
-    }
+    ]
 }

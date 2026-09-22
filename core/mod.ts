@@ -9,6 +9,7 @@ export {
     EmptyValue,
 } from './value/primitive.ts'
 export { ReferenceStore } from './value/python.ts'
+export * from './value/function.ts'
 
 export { YaksokSession } from './session/session.ts'
 export { CodeFile } from './type/code-file.ts'

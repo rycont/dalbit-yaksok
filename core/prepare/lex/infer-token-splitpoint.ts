@@ -1,8 +1,12 @@
 import * as v from 'valibot'
 
-import { Brand, NotDefinedIdentifierError } from '@dalbit-yaksok/core'
-
-import { Token } from '../tokenize/token.ts'
+import {
+    Brand,
+    NotDefinedIdentifierError,
+    PatternUnit,
+    Rule,
+    Scope,
+} from '@dalbit-yaksok/core'
 
 export type Splitpoint = Brand<number, 'Splitpoint'>
 
@@ -33,25 +37,7 @@ export function inferTokenSplitpointsFromErrors(
 
         const scope = errors[0].scope!
 
-        const scopeNames = new Set(scope.getAccessibleNames())
-        const scopeRules = scope
-            .getDynamicRules()
-            .map((r) => r.pattern)
-            .filter((p) =>
-                p.some(
-                    (u) =>
-                        !(u instanceof Function) &&
-                        !(u.type instanceof Function) &&
-                        v.getMetadata(u as v.GenericSchema).isSuffix,
-                ),
-            )
-
-        const inferredSplitpointByLine = inferSplitpointByLine(
-            errors,
-            scopeRules,
-            scopeNames,
-        )
-
+        const inferredSplitpointByLine = inferSplitpointByLine(errors, scope)
         return inferredSplitpointByLine
     })
 
@@ -66,8 +52,7 @@ export function inferTokenSplitpointsFromErrors(
         (p) =>
             (lines[p.token.position.line] +
                 p.token.position.column +
-                p.token.value.length -
-                p.suffixSize -
+                p.prefix.length -
                 1) as Splitpoint,
     )
 
@@ -76,93 +61,145 @@ export function inferTokenSplitpointsFromErrors(
 
 function inferSplitpointByLine(
     errors: NotDefinedIdentifierError[],
-    patterns: PatternUnitWithValue[][],
-    scopeNames: Set<string>,
+    scope: Scope,
 ) {
-    const patternSuffixes = Object.entries(
-        Object.groupBy(
-            patterns.flatMap((p) =>
-                p.flatMap((u, unitIndex) =>
-                    u.isSuffix && u.value
-                        ? [
-                              {
-                                  suffix: u.value,
-                                  unitIndex,
-                                  pattern: p,
-                              },
-                          ]
-                        : [],
-                ),
-            ),
-            (p) => p.suffix,
-        ),
-    ).filter((p) => !!p)
+    const scopeNames = scope.getAccessibleNames().toArray()
+    const scopePatterns = scope.getExportedRules()
 
-    const matchedPatternsByError = errors
-        .map((e) => ({
-            token: e.tokens![0],
-            suffixes: patternSuffixes
-                .filter(([suffix]) => e.resource.name.endsWith(suffix))
-                .flatMap(([suffix, patternUnit]) => ({
-                    prefix: e.resource.name.slice(0, -suffix.length),
-                    patternUnit,
-                }))
-                .filter(({ prefix }) => scopeNames.has(prefix)),
+    const patternsWithOptions = scopePatterns
+        .map((rule) => ({
+            rule,
+            options: rule.pattern.flatMap((u) => inferNameGroup(u)),
         }))
-        .filter((e) => e.suffixes.length)
+        .filter((p) => p.options.length)
+        .toArray()
 
-    const validMatches = matchedPatternsByError.flatMap((e) =>
-        e.suffixes.flatMap((s) =>
-            s.patternUnit?.map((u) => ({
-                pattern: u.pattern,
-                unitIndex: u.unitIndex,
-                token: e.token,
-            })),
+    const patternPostfixes = Object.groupBy(
+        patternsWithOptions.flatMap((p) =>
+            p.options.flatMap((suffixes) =>
+                suffixes.map((suffix) => ({
+                    suffix,
+                    rule: p.rule,
+                })),
+            ),
+        ),
+        (v) => v.suffix,
+    )
+
+    const inferredPrefixes = errors
+        .map((error) => {
+            const missingName = error.resource.name
+
+            return {
+                missingName,
+                token: error.tokens![0],
+                candidates: scopeNames
+                    .filter((s) => missingName.startsWith(s))
+                    .map((prefix) => ({
+                        prefix,
+                        suffix: missingName.slice(prefix.length),
+                    }))
+                    .filter((candidate) => candidate.suffix in patternPostfixes)
+                    .map((candidate) => ({
+                        ...candidate,
+                        rules: patternPostfixes[candidate.suffix]?.map(
+                            (g) => g.rule,
+                        ),
+                    }))
+                    .filter((candidate) => candidate.rules?.length),
+            }
+        })
+        .filter((inferredPrefix) => inferredPrefix.candidates.length)
+
+    if (inferredPrefixes.length === 0) {
+        return []
+    }
+
+    const intersectingRules = Array.from(
+        intersectAll<Rule>(
+            inferredPrefixes.map(
+                (inferredPrefix) =>
+                    new Set<Rule>(
+                        inferredPrefix.candidates.flatMap(
+                            (candidate) => candidate.rules!,
+                        ),
+                    ),
+            ),
         ),
     )
 
-    const matchesByPattern = new Map<
-        PatternUnitWithValue[],
-        Map<Token, number>
-    >()
+    const inferredPrefixesInSharedRules = intersectingRules.flatMap((rule) =>
+        inferredPrefixes.flatMap((prefix) =>
+            prefix.candidates
+                .filter((candidate) => candidate.rules?.includes(rule))
+                .map((candidate) => ({
+                    token: prefix.token,
+                    prefix: candidate.prefix,
+                })),
+        ),
+    )
 
-    for (const match of validMatches) {
-        if (!match) {
-            continue
-        }
+    const inferredPrefixesByToken = Map.groupBy(
+        inferredPrefixesInSharedRules,
+        (i) => i.token,
+    ).entries()
 
-        matchesByPattern
-            .getOrInsert(match.pattern, new Map())
-            .set(match.token, match.unitIndex)
+    const chosenPrefixes = inferredPrefixesByToken
+        .map(([token, infer]) => {
+            if (infer.length === 1) {
+                return { token, prefix: infer[0].prefix }
+            }
+
+            const infersByPrefix = Map.groupBy(infer, (i) => i.prefix)
+
+            if (infersByPrefix.size === 1) {
+                return { token, prefix: infer[0].prefix }
+            }
+
+            const mostInfers = infersByPrefix
+                .entries()
+                .toArray()
+                .toSorted((a, b) => a[1].length - b[1].length)[0][0]
+
+            return { token, prefix: mostInfers }
+        })
+        .toArray()
+
+    return chosenPrefixes
+}
+
+function inferNameGroup(patternUnit: PatternUnit): [string[]] | [] {
+    if (v.getMetadata(patternUnit as v.GenericSchema).isSuffix) {
+        return [
+            patternUnit.pipe.find((p) => p.type === 'object').entries.value
+                .options,
+        ]
     }
 
-    const validPatterns = matchesByPattern
-        .entries()
-        .map(
-            ([pattern, unitIndexMapByToken]) =>
-                [pattern, unitIndexMapByToken.entries().toArray()] as const,
-        )
-        .filter(([_, unitIndexesByToken]) => {
-            const isMappedUnitAcsending = unitIndexesByToken
-                .map((e) => e[1])
-                .every((v, i, a) => (a[i - 1] ?? -1) < v)
+    return []
+}
 
-            const isTokenPositionAscensing = unitIndexesByToken
-                .map((e) => e[0].position.column)
-                .every((v, i, a) => (a[i - 1] ?? -1) < v)
+function intersectAll<T>(sets: Set<T>[]): Set<T> {
+    if (!sets.length) {
+        return new Set()
+    }
 
-            return isMappedUnitAcsending && isTokenPositionAscensing
-        })
+    return sets.reduce((acc, currentSet) => acc.intersection(currentSet))
+}
 
-    const splitPlan = validPatterns
-        .map(([pattern, indexMap]) =>
-            indexMap.map(([token, unitIndex]) => ({
-                token,
-                suffixSize: pattern[unitIndex].value!.length,
-            })),
-        )
-        .toArray()
-        .toSorted((a, b) => b.length - a.length)[0]
+function combination<T>(candidates: T[][]): T[][] {
+    if (candidates.length === 1) {
+        return candidates
+    }
 
-    return splitPlan ?? []
+    const leftArray = candidates.slice(0, -1)
+    const currentCandidate = candidates[candidates.length - 1]
+
+    const childrenCombinations = combination(leftArray)
+
+    const currentCombination = childrenCombinations.flatMap((children) =>
+        currentCandidate.map((current) => children.concat([current])),
+    )
+
+    return currentCombination
 }

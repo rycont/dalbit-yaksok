@@ -96,7 +96,7 @@ export function reduce(nodes: Node[], rule: Rule) {
     const tokens = getTokensFromNodes(nodes)
 
     try {
-        const reduced = rule.factory(nodes, tokens)
+        const reduced = rule.factory(nodes, tokens, rule)
         if (reduced === null) {
             return null
         }

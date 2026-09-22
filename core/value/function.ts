@@ -1,10 +1,13 @@
-import { ObjectValue, type ValueType } from './base.ts'
-import { NumberValue } from './primitive.ts'
+import {
+    Block,
+    NumberValue,
+    ObjectValue,
+    Rule,
+    Scope,
+    ValueType,
+} from '@dalbit-yaksok/core'
 
 import { ReturnSignal } from '../executer/signals.ts'
-import { Scope } from '../executer/scope.ts'
-
-import type { Block } from '../node/block.ts'
 
 const DEFAULT_RETURN_VALUE = new NumberValue(0)
 
@@ -14,13 +17,17 @@ export class FunctionObject extends ObjectValue implements RunnableObject {
     constructor(
         public name: string,
         private body: Block,
+        public invokeRules: Rule[],
         private declaredScope?: Scope,
         public paramNames: string[] = [],
     ) {
         super()
     }
 
-    public async run(args: Record<string, ValueType>, callSiteScope?: Scope) {
+    public async run(
+        args: Record<string, ValueType>,
+        callSiteScope?: Scope,
+    ): Promise<ValueType> {
         const lexicalScope = this.declaredScope ?? callSiteScope
 
         const functionScope = new Scope({
@@ -43,7 +50,11 @@ export class FunctionObject extends ObjectValue implements RunnableObject {
 }
 
 export interface RunnableObject extends ObjectValue {
-    run(args: Record<string, ValueType>, fileScope?: Scope): Promise<ValueType>
-    name: string
-    paramNames: string[]
+    readonly run: (
+        args: Record<string, ValueType>,
+        fileScope: Scope,
+    ) => Promise<ValueType>
+    readonly name: string
+    readonly paramNames: string[]
+    readonly invokeRules: Rule[]
 }

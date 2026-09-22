@@ -21,11 +21,12 @@ import {
     RequiredParametersShouldPriorError,
     UnexpectedArgumentError,
 } from '../error/function.ts'
-import { Node } from '@dalbit-yaksok/core'
+import { Node, Rule } from '@dalbit-yaksok/core'
 
 export class FunctionDeclareHeader extends Node {
     constructor(
         public name: string,
+        public invokingRules: Rule[],
         public override tokens: Token[],
     ) {
         super()
@@ -39,6 +40,7 @@ export class DeclareFunction extends Executable<Block> {
     constructor(
         body: Block,
         public name: string,
+        private invokeRules: Rule[],
         public parameterElements: ParameterElement[],
         public override tokens: Token[],
     ) {
@@ -52,6 +54,7 @@ export class DeclareFunction extends Executable<Block> {
         const functionObject = new FunctionObject(
             this.name,
             this.subnode,
+            this.invokeRules,
             scope,
             paramNames,
         )
@@ -116,6 +119,7 @@ export class DeclareFunction extends Executable<Block> {
                 new FunctionObject(
                     this.name,
                     this.subnode,
+                    this.invokeRules,
                     functionScope,
                     this.parameterElements.map((p) => p.name),
                 ),

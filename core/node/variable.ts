@@ -60,7 +60,7 @@ export class SetVariable extends Evaluable<Evaluable> {
 
     override validate(scope: Scope): YaksokError[] {
         const errors = this.subnode.validate(scope)
-        scope.setLocalVariable(this.name, new NumberValue(0))
+        scope.setVariable(this.name, new NumberValue(0))
 
         return errors
     }
