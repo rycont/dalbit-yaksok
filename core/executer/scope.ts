@@ -6,6 +6,7 @@ import {
     ValueType,
     YaksokSession,
     RunnableObject,
+    Identifier,
 } from '@dalbit-yaksok/core'
 
 export class Scope {
@@ -114,6 +115,17 @@ export class Scope {
 
     public *getExportedRules(): Generator<Rule> {
         yield* this.parent?.getExportedRules() || []
+        yield* Object.keys(this.variables).map<Rule>((v) => ({
+            pattern: [
+                {
+                    type: Identifier,
+                    value: v,
+                },
+            ],
+            factory([node]) {
+                return node
+            },
+        }))
         yield* this.functions.values().flatMap((v) => v.invokeRules)
     }
 }

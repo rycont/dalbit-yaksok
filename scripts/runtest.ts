@@ -42,7 +42,7 @@ const main = `
 @코레일 출발하기
     `
 
-session.addModule('차종', 차종)
+await session.addModule('차종', 차종).run()
 session.addModule('코레일', 코레일)
 // session.addModule('역간거리', 역간거리)
 // session.addModule('main', main)

@@ -1,19 +1,20 @@
+import {
+    FunctionInvoke,
+    Identifier,
+    Mention,
+    MentionScope,
+    Node,
+    Rule,
+    Scope,
+    Token,
+} from '@dalbit-yaksok/core'
 import { getTokensFromNodes } from '../../../../util/merge-tokens.ts'
-import { Mention, MentionScope } from '../../../../node/mention.ts'
-import { FunctionInvoke } from '../../../../node/function.ts'
-import { Identifier, Node } from '../../../../node/base.ts'
-import { Token } from '../../../tokenize/token.ts'
-
-import type { Rule } from '../../type.ts'
 
 export function createMentioningRule(
     fileName: string,
     originalRule: Rule,
+    definedScope: Scope,
 ): Rule {
-    if (!originalRule.config?.exported) {
-        throw new Error('Mentioning에는 Exported Scope가 필요합니다')
-    }
-
     const mergedPattern = [
         {
             type: Mention,
@@ -26,19 +27,19 @@ export function createMentioningRule(
         pattern: mergedPattern,
         config: originalRule.config,
         flags: originalRule.flags,
-        factory: createFactory(fileName, originalRule),
+        factory: createFactory(fileName, originalRule, definedScope),
     }
 }
 
-function createFactory(fileName: string, rule: Rule) {
+function createFactory(fileName: string, rule: Rule, definedScope: Scope) {
     return (nodes: Node[], tokens: Token[]) => {
         const childNodes = nodes.slice(1)
         const childTokens = getTokensFromNodes(childNodes)
 
-        const child = rule.factory(nodes.slice(1), childTokens) as
+        const child = rule.factory(nodes.slice(1), childTokens, rule) as
             | Identifier
             | FunctionInvoke
 
-        return new MentionScope(fileName, rule.config!.exported!, child, tokens)
+        return new MentionScope(fileName, definedScope, child, tokens)
     }
 }

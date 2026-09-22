@@ -8,6 +8,7 @@ import {
 } from '@dalbit-yaksok/core'
 
 import { getMentioningFiles } from './mentioning-files.ts'
+import { getExportedRules } from './get-exported-rules.ts'
 
 export function getRulesFromMentioningFile(
     tokens: Token[],
@@ -15,10 +16,7 @@ export function getRulesFromMentioningFile(
 ): Rule[] {
     try {
         const rules = getMentioningFiles(tokens).flatMap(
-            (fileName) =>
-                session.files[fileName].ranScope
-                    ?.getExportedRules()
-                    .toArray() ?? [],
+            getExportedRules(session),
         )
 
         return rules
