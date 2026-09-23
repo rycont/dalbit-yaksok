@@ -1,5 +1,10 @@
 import * as v from 'valibot'
-import type { GenericSchema, InstanceSchema, IntersectSchema } from 'valibot'
+import type {
+    GenericSchema,
+    InstanceSchema,
+    SchemaWithPipe,
+    MetadataAction,
+} from 'valibot'
 
 import { Node, NodeCapability, Token } from '@dalbit-yaksok/core'
 
@@ -11,15 +16,23 @@ type PatternUnitWithValue<T extends NodeType | unknown = unknown> = {
     isSuffix?: boolean
 }
 
-type InstanceIntersect<T extends NodeType> = IntersectSchema<
-    [InstanceSchema<T, undefined>, GenericSchema],
-    undefined
+export type InstancePipe<T extends NodeType> = SchemaWithPipe<
+    [
+        InstanceSchema<T, undefined>,
+        GenericSchema,
+        MetadataAction<
+            GenericSchema,
+            {
+                isSuffix?: boolean
+            }
+        >,
+    ]
 >
 
 export function instancePipe(
     classType: NodeType,
     ...refine: (GenericSchema | v.GenericPipeAction)[]
-): InstanceSchema<NodeType, undefined> {
+): InstancePipe<NodeType> {
     //@ts-ignore
     return v.pipe(v.instance(classType), ...refine)
 }
@@ -28,7 +41,7 @@ export const u = instancePipe
 
 export type PatternUnit<T extends NodeType = NodeType> =
     | T
-    | InstanceIntersect<T>
+    | InstancePipe<T>
     | PatternUnitWithValue<T>
 
 export interface DirectReplacer {

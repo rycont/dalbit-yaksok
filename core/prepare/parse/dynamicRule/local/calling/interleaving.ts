@@ -9,6 +9,7 @@ import {
     TupleLiteral,
     ParameterElement,
     ListLiteral,
+    PatternUnit,
 } from '@dalbit-yaksok/core'
 
 import { FunctionHeaderPart, FunctionPartType } from '../type.ts'
@@ -18,7 +19,7 @@ export function createInterleavingRule(
     functionHeader: FunctionHeaderPart[],
     parameterScheme: ParameterElement[],
 ): Rule {
-    const pattern = functionHeader.map((g) => {
+    const pattern = functionHeader.map((g): PatternUnit => {
         if (g.type === FunctionPartType.parameter) {
             return Evaluable
         }

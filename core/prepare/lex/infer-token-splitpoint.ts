@@ -2,6 +2,8 @@ import * as v from 'valibot'
 
 import {
     Brand,
+    InstancePipe,
+    NodeType,
     NotDefinedIdentifierError,
     PatternUnit,
     Rule,
@@ -171,22 +173,19 @@ function inferSplitpointByLine(
 }
 
 function inferNameGroup(patternUnit: PatternUnit): [string[]] | [] {
-    if (v.getMetadata(patternUnit as v.GenericSchema).isSuffix) {
-        return [
-            (
-                (
-                    (
-                        patternUnit as v.SchemaWithPipe<[v.GenericSchema]>
-                    ).pipe.find((p) => p.type === 'object') as v.ObjectSchema<
-                        Record<string, v.GenericSchema>,
-                        undefined
-                    >
-                )?.entries?.value as v.PicklistSchema<[], undefined>
-            )?.options,
-        ]
+    if (!v.getMetadata(patternUnit as InstancePipe<NodeType>).isSuffix) {
+        return []
     }
 
-    return []
+    return [
+        (
+            (
+                (patternUnit as InstancePipe<NodeType>).pipe.find(
+                    (p) => p.type === 'object',
+                ) as v.ObjectSchema<Record<string, v.GenericSchema>, undefined>
+            )?.entries?.value as v.PicklistSchema<[], undefined>
+        )?.options,
+    ]
 }
 
 function intersectAll<T>(sets: Set<T>[]): Set<T> {

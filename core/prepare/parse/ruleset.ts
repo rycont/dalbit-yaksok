@@ -161,18 +161,6 @@ function rulesToTries(rules: RuleWithPriority[], depth = 1): TrieNode[] {
                 },
                 (f) => f,
             )
-            .with(
-                {
-                    type: 'intersect',
-                    options: P.select(),
-                },
-                (options) =>
-                    (
-                        (options as v.IntersectOptions).find(
-                            (o) => o.type === 'instance',
-                        ) as v.InstanceSchema<NodeType, undefined> | null
-                    )?.class,
-            )
             .otherwise(() => null) as NodeType
 
         if (!topNodeClass) {
