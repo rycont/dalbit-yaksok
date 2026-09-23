@@ -26,10 +26,10 @@ export function instancePipe(
 
 export const u = instancePipe
 
-export type PatternUnit<T extends NodeType | unknown = unknown> =
-    T extends NodeType
-        ? T | InstanceIntersect<T> | PatternUnitWithValue<T>
-        : NodeType | PatternUnitWithValue<NodeType> | GenericSchema
+export type PatternUnit<T extends NodeType = NodeType> =
+    | T
+    | InstanceIntersect<T>
+    | PatternUnitWithValue<T>
 
 export interface DirectReplacer {
     tokenRange: [number, number]

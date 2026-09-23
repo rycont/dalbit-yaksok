@@ -1,22 +1,18 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
+import { QuickJS } from '@dalbit-yaksok/quickjs'
 
 const session = new YaksokSession()
+await session.extend(new QuickJS())
 
-session.useBaseScope(
-    await session
-        .addModule(
-            'base',
-            `과일 = ["사과", "바나나", "딸기", "사과", "딸기", "사과"]`,
-        )
-        .run(),
+session.addModule(
+    'main',
+    `
+번역(QuickJS), (par)에 (target)이 포함
+***
+return par.includes(target)
+***
+
+결과 = "안녕하세요"에 "안녕"이 포함
+결과 보여주기
+`,
 )
-
-await session
-    .addModule(
-        '처리기',
-        `약속, (데이터)로 처리하기
-    데이터 보여주기`,
-    )
-    .run()
-
-await session.addModule('main', `@처리기 과일로 처리하기`).run()

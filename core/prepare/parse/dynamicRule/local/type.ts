@@ -1,9 +1,9 @@
 import { ParameterElement } from '../../../../constant/type.ts'
 
 export enum FunctionType {
-    약속,
-    번역,
-    이벤트,
+    약속 = '약속',
+    번역 = '번역',
+    이벤트 = '이벤트',
 }
 
 interface Range {
