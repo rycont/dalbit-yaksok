@@ -10,9 +10,11 @@ export function printTree(node: Node): string {
 
     const traits = traitKeys
         .map((k) =>
+            //@ts-ignore
             node[k] === null || node[k] === undefined
                 ? undefined
-                : `${dim(k.toString())} ${stringify(node[k])}`,
+                : //@ts-ignore
+                  `${dim(k.toString())} ${stringify(node[k])}`,
         )
         .filter(Boolean)
 

@@ -23,14 +23,9 @@ export class FunctionObject extends ObjectValue implements RunnableObject {
         super()
     }
 
-    public async run(
-        args: Record<string, ValueType>,
-        callSiteScope?: Scope,
-    ): Promise<ValueType> {
-        const lexicalScope = this.declaredScope ?? callSiteScope
-
+    public async run(args: Record<string, ValueType>): Promise<ValueType> {
         const functionScope = new Scope({
-            parent: lexicalScope,
+            parent: this.declaredScope,
             initialVariable: args,
         })
 
@@ -49,10 +44,7 @@ export class FunctionObject extends ObjectValue implements RunnableObject {
 }
 
 export interface RunnableObject extends ObjectValue {
-    readonly run: (
-        args: Record<string, ValueType>,
-        fileScope: Scope,
-    ) => Promise<ValueType>
+    readonly run: (args: Record<string, ValueType>) => Promise<ValueType>
     readonly name: string
     readonly invokeRules: Rule[]
 }

@@ -12,8 +12,10 @@ export class StatisticsExtension implements Extension {
         ffiRunner: {
             runtimeName: '통계',
         },
-        module: {
-            통계: `
+        module: [
+            {
+                fileName: '통계',
+                code: `
 번역(통계), (목록)의 합계/총합
 ***
 SUM
@@ -84,7 +86,8 @@ COVARIANCE
 CORRELATION
 ***
 `,
-        },
+            },
+        ],
     }
 
     executeFFI(

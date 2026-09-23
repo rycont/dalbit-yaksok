@@ -11,29 +11,32 @@ import {
 
 export class Scope {
     variables: Record<string, ValueType>
-    parent: Scope | undefined
+    parent: Scope | null
 
     public id: string = crypto.randomUUID()
     public functions: Map<string, RunnableObject> = new Map()
-    public readonly session?: YaksokSession
+    public readonly session: YaksokSession
 
     constructor(
-        config: {
-            parent?: Scope
+        config: (
+            | {
+                  session: YaksokSession
+              }
+            | {
+                  parent: Scope
+              }
+        ) & {
             initialVariable?: Record<string, ValueType> | null
-            session?: YaksokSession
-        } = {},
+        },
     ) {
         this.variables = config.initialVariable || Object.create(null)
 
-        if (config.parent) {
-            this.parent = config.parent
-        }
-
-        if (config.session) {
+        if ('session' in config) {
+            this.parent = config.session.baseScope
             this.session = config.session
-        } else if (this.parent?.session) {
-            this.session = this.parent.session
+        } else {
+            this.parent = config.parent
+            this.session = config.parent.session
         }
     }
 

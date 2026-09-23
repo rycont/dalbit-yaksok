@@ -10,6 +10,7 @@ export {
 } from './value/primitive.ts'
 export { ReferenceStore } from './value/python.ts'
 export * from './value/function.ts'
+export * from './value/ffi.ts'
 
 export { YaksokSession } from './session/session.ts'
 export { CodeFile } from './type/code-file.ts'

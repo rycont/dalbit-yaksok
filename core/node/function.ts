@@ -156,10 +156,7 @@ export class FunctionInvoke extends Evaluable {
         const functionObject = definedScope.getFunctionObject(this.name)
 
         try {
-            const returnValue = await functionObject.run(
-                evaluatedArgument,
-                definedScope,
-            )
+            const returnValue = await functionObject.run(evaluatedArgument)
 
             assertValidReturnValue(returnValue, this.tokens, this.name)
 

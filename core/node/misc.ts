@@ -45,7 +45,7 @@ export class Print extends Executable<Evaluable> {
     }
 
     override async execute(scope: Scope): Promise<void> {
-        const printFunction = scope.codeFile?.session?.stdout ?? console.log
+        const printFunction = scope.session?.stdout ?? console.log
         const evaluated = await this.subnode.execute(scope)
 
         printFunction(evaluated.toPrint())

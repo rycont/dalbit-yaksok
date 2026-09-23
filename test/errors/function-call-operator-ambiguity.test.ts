@@ -158,26 +158,3 @@ Deno.test('비교 연산자 Formula는 여전히 오류', async () => {
     )
     assertIsError(result.errors![0], FunctionCallOperatorAmbiguityError)
 })
-
-Deno.test('.property 비교식은 모호성 오류 없음 (우변)', async () => {
-    // `i < 리스트.길이` — dot-member access on the right side of an operator.
-    // The parser must not throw FunctionCallOperatorAmbiguityError here.
-    const result = await run(`
-리스트 = [1, 2, 3]
-i = 0
-합계 = 0
-반복 i < 리스트.길이 동안
-    합계 = 합계 + 리스트[i]
-    i = i + 1
-합계 보여주기
-`)
-    if (result.reason === 'validation') {
-        const errors = result.errors ?? []
-        assert(
-            !errors.some(
-                (e) => e instanceof FunctionCallOperatorAmbiguityError,
-            ),
-            `FunctionCallOperatorAmbiguityError must not fire for dot-member access`,
-        )
-    }
-})

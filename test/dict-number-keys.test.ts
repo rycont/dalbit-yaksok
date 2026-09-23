@@ -21,7 +21,7 @@ Deno.test('Dictionary literal accepts numeric keys', async () => {
     const result = results.main
     assertEquals(result.reason, 'finish')
 
-    const scope = session.getCodeFile('main').ranScope
+    const scope = result.scope
     const value = scope?.getVariable('소인수')
     assert(value instanceof IndexedValue)
 

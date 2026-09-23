@@ -10,7 +10,7 @@ export function createDynamicRules(
     const mentioningRules = getRulesFromMentioningFile(tokens, session)
     const localRules = buildLocalRules(tokens)
 
-    const baseScopeRules = session.baseScope?.getExportedRules() || []
+    const baseScopeRules = session.baseScope?.getExportedRules().toArray() || []
 
     return {
         replacers: localRules.replacers,

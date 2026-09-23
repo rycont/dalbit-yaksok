@@ -171,8 +171,16 @@ function inferSplitpointByLine(
 function inferNameGroup(patternUnit: PatternUnit): [string[]] | [] {
     if (v.getMetadata(patternUnit as v.GenericSchema).isSuffix) {
         return [
-            patternUnit.pipe.find((p) => p.type === 'object').entries.value
-                .options,
+            (
+                (
+                    (
+                        patternUnit as v.SchemaWithPipe<[v.GenericSchema]>
+                    ).pipe.find((p) => p.type === 'object') as v.ObjectSchema<
+                        Record<string, v.GenericSchema>,
+                        undefined
+                    >
+                )?.entries?.value as v.PicklistSchema<[], undefined>
+            )?.options,
         ]
     }
 
@@ -185,21 +193,4 @@ function intersectAll<T>(sets: Set<T>[]): Set<T> {
     }
 
     return sets.reduce((acc, currentSet) => acc.intersection(currentSet))
-}
-
-function combination<T>(candidates: T[][]): T[][] {
-    if (candidates.length === 1) {
-        return candidates
-    }
-
-    const leftArray = candidates.slice(0, -1)
-    const currentCandidate = candidates[candidates.length - 1]
-
-    const childrenCombinations = combination(leftArray)
-
-    const currentCombination = childrenCombinations.flatMap((children) =>
-        currentCandidate.map((current) => children.concat([current])),
-    )
-
-    return currentCombination
 }

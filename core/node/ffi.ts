@@ -1,10 +1,12 @@
-import { YaksokError } from '../error/common.ts'
-import { FFIObject } from '../value/ffi.ts'
-import { Executable, Node } from './base.ts'
-
-import { Scope } from '../executer/scope.ts'
-import type { Token } from '../prepare/tokenize/token.ts'
-import type { Position } from '../type/position.ts'
+import {
+    Executable,
+    Node,
+    Rule,
+    Scope,
+    Token,
+    YaksokError,
+    FFIObject,
+} from '@dalbit-yaksok/core'
 
 export class FFIBody extends Node {
     static override friendlyName = '번역할 내용'
@@ -27,17 +29,14 @@ export class DeclareFFI extends Executable {
     public name: string
     public body: string
     public runtime: string
-    public paramNames: string[]
-    public dotReceiverTypeNames?: string[]
+    private invokeRules: Rule[]
 
     constructor(
         props: {
             name: string
+            invokeRules: Rule[]
             body: string
             runtime: string
-            paramNames?: string[]
-            dotReceiverTypeNames?: string[]
-            position?: Position
         },
         public override tokens: Token[],
     ) {
@@ -45,13 +44,20 @@ export class DeclareFFI extends Executable {
         this.name = props.name
         this.body = props.body
         this.runtime = props.runtime
-        this.paramNames = props.paramNames || []
-        this.dotReceiverTypeNames = props.dotReceiverTypeNames
+        this.invokeRules = props.invokeRules
     }
 
     override execute(scope: Scope): Promise<void> {
         try {
-            scope.addFunctionObject(this.toFFIObject(scope))
+            scope.addFunctionObject(
+                new FFIObject(
+                    this.name,
+                    this.body,
+                    this.runtime,
+                    this.invokeRules,
+                    scope,
+                ),
+            )
             return Promise.resolve()
         } catch (e) {
             if (e instanceof YaksokError && !e.tokens) {
@@ -62,33 +68,16 @@ export class DeclareFFI extends Executable {
         }
     }
 
-    toFFIObject(scope: Scope): FFIObject {
-        const codeFile = scope.codeFile
-        const ffiObject = new FFIObject(
-            this.name,
-            this.body,
-            this.runtime,
-            codeFile,
-            {
-                dotReceiverTypeNames: this.dotReceiverTypeNames,
-            },
-        )
-        ffiObject.paramNames = this.paramNames
-        return ffiObject
-    }
-
     override validate(scope: Scope): YaksokError[] {
         try {
             const ffiObject = new FFIObject(
                 this.name,
-                'VALIDATION',
-                'VALIDATION',
-                undefined,
-                {
-                    dotReceiverTypeNames: this.dotReceiverTypeNames,
-                },
+                this.body,
+                this.runtime,
+                this.invokeRules,
+                scope,
             )
-            ffiObject.paramNames = this.paramNames
+
             scope.addFunctionObject(ffiObject)
         } catch (error) {
             if (error instanceof YaksokError) {

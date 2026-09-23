@@ -1,7 +1,8 @@
 import { Scope } from '../executer/scope.ts'
 import { Token, TOKEN_TYPE } from '../prepare/tokenize/token.ts'
 import { levenshtein } from '../util/levelshtein.ts'
-import { blue, bold, YaksokError } from './common.ts'
+import { blue, bold } from '../util/terminal.ts'
+import { YaksokError } from './common.ts'
 import { NotExecutableNodeError } from './unknown-node.ts'
 import {
     NotDefinedIdentifierError,

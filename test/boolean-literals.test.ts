@@ -15,10 +15,9 @@ for (const literal of TRUE_LITERALS) {
 결과 = ${literal}
 `,
         )
-        await session.runModule(['main'])
-        const result = session
-            .getCodeFile('main')
-            .ranScope?.getVariable('결과') as BooleanValue
+        const runResult = (await session.runModule(['main'])).main
+        assert(runResult.reason === 'finish')
+        const result = runResult.scope.getVariable('결과') as BooleanValue
         assertEquals(result.value, true)
     })
 }
@@ -32,10 +31,9 @@ for (const literal of FALSE_LITERALS) {
 결과 = ${literal}
 `,
         )
-        await session.runModule(['main'])
-        const result = session
-            .getCodeFile('main')
-            .ranScope?.getVariable('결과') as BooleanValue
+        const runResult = (await session.runModule(['main'])).main
+        assert(runResult.reason === 'finish')
+        const result = runResult.scope.getVariable('결과') as BooleanValue
         assertEquals(result.value, false)
     })
 }
@@ -49,10 +47,9 @@ Deno.test('Store boolean in variable', async () => {
 결과 = 불리언
 `,
     )
-    await session.runModule(['main'])
-    const result = session
-        .getCodeFile('main')
-        .ranScope?.getVariable('결과') as BooleanValue
+    const runResult = (await session.runModule(['main'])).main
+    assert(runResult.reason === 'finish')
+    const result = runResult.scope.getVariable('결과') as BooleanValue
     assertEquals(result.value, true)
 })
 
@@ -67,8 +64,9 @@ Deno.test('Compare booleans', async () => {
 결과4 = 참 != 거짓
 `,
     )
-    await session.runModule(['main'])
-    const scope = session.getCodeFile('main').ranScope
+    const runResult = (await session.runModule(['main'])).main
+    assert(runResult.reason === 'finish')
+    const scope = runResult.scope
 
     assert(scope)
 
@@ -90,8 +88,9 @@ Deno.test('Negation operator', async () => {
 결과4 = 불리언 아니다
 `,
     )
-    await session.runModule(['main'])
-    const scope = session.getCodeFile('main').ranScope
+    const runResult = (await session.runModule(['main'])).main
+    assert(runResult.reason === 'finish')
+    const scope = runResult.scope
 
     assert(scope)
 

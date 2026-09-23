@@ -67,31 +67,29 @@ export class SubscribeEvent extends Executable {
         }
 
         const bodyParentScope = this.callerScope ?? scope
+        const session = scope.session
 
-        const session = scope.codeFile?.session
-
-        session?.aliveListeners.push(
+        session.aliveListeners.push(
             new Promise((resolve) => {
-                session?.eventCreation.pub(this.eventId, [
+                session.eventCreation.pub(this.eventId, [
                     param,
-                    () => {
+                    async () => {
                         const subScope = new Scope({
                             parent: bodyParentScope,
-                            callerNode: this,
                             initialVariable: param,
                         })
-                        return this.body.execute(subScope).catch((e) => {
+
+                        try {
+                            await this.body.execute(subScope)
+                        } catch (e) {
                             if (e instanceof YaksokError) {
-                                if (!e.codeFile) {
-                                    e.codeFile = scope.codeFile!
-                                }
-                                session?.stderr(
+                                session.stderr(
                                     renderErrorString(e),
                                     errorToMachineReadable(e),
                                 )
                             }
                             resolve()
-                        })
+                        }
                     },
                     () => {
                         resolve()

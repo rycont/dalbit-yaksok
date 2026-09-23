@@ -12,8 +12,10 @@ export class MathExtension implements Extension {
         ffiRunner: {
             runtimeName: '수학',
         },
-        module: {
-            수학: `
+        module: [
+            {
+                fileName: '수학',
+                code: `
 번역(수학), (값)의 절댓값/절대값
 ***
 ABS
@@ -189,7 +191,8 @@ SUM
 AVERAGE
 ***
 `,
-        },
+            },
+        ],
     }
 
     executeFFI(

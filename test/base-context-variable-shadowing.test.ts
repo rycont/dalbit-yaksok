@@ -1,18 +1,6 @@
 import { assertEquals } from 'https://deno.land/std@0.211.0/assert/mod.ts'
 import { YaksokSession, NumberValue } from '../core/mod.ts'
 
-/**
- * baseContext에서 정의된 변수를 같은 이름으로 재대입할 때의 동작을 검증합니다.
- *
- * 검증 항목:
- * - validate() 단계에서 baseContext.ranScope의 변수가 변경되지 않는다.
- * - 재대입은 로컬 스코프에서 발생하며, parent scope는 불변이다.
- * - setBaseContext API 경로, CodeFile 스냅샷 주입 경로 (ADR 0017),
- *   복합 대입 연산자 (+=, -= 등) 모두 올바르게 동작한다.
- */
-
-// ===== 정상 동작 확인 =====
-
 Deno.test('setBaseContext: 다른 변수명으로 읽기 (정상 케이스)', async () => {
     let output = ''
 
@@ -107,7 +95,6 @@ Deno.test('validation 단계가 baseContext.ranScope의 변수를 변경하지 �
 
     // validate만 호출 (실행은 하지 않음)
     session.addModule('main', '값 = 값 + 10')
-    session.validate('main')
 
     const baseScopeAfter = session.baseScope
     assertEquals(

@@ -63,10 +63,7 @@ export class CodeFile {
         }
 
         try {
-            const scope = await executer(
-                this.ast,
-                this.session.baseScope ?? undefined,
-            )
+            const scope = await executer(this.ast, this.session)
 
             this._ranScope = scope
 
@@ -101,7 +98,10 @@ function parseWithSession(code: string, session: YaksokSession) {
         tokens = tokenize(code, inferredSplitpoints)
         ast = parse(tokens, session)
 
-        const validatingScope = new Scope()
+        const sessionForTest = new YaksokSession()
+        const validatingScope = new Scope({
+            session: sessionForTest,
+        })
 
         validateResult = ast.validate(validatingScope)
 

@@ -43,6 +43,6 @@ const main = `
     `
 
 await session.addModule('차종', 차종).run()
-session.addModule('코레일', 코레일)
-// session.addModule('역간거리', 역간거리)
-// session.addModule('main', main)
+await session.addModule('코레일', 코레일).run()
+await session.addModule('역간거리', 역간거리).run()
+await session.addModule('main', main).run()

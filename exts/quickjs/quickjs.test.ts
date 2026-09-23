@@ -59,7 +59,7 @@ Deno.test('QuickJS passed number', async () => {
     const result = results.main
 
     assert(result.reason === 'finish')
-    const 숫자 = result.codeFile!.ranScope!.getVariable('숫자')
+    const 숫자 = result.scope.getVariable('숫자')
     assertInstanceOf(숫자, NumberValue)
     assertEquals(숫자.value, 20)
     assertEquals(숫자.toPrint(), '20')
@@ -85,7 +85,7 @@ Deno.test('QuickJS passed Array<number>', async () => {
     const result = results.main
 
     assert(result.reason === 'finish')
-    const 숫자 = result.codeFile!.ranScope!.getVariable('숫자')
+    const 숫자 = result.scope.getVariable('숫자')
     assertInstanceOf(숫자, ListValue)
     assertEquals(숫자.toPrint(), '[20, 30]')
 })
@@ -146,7 +146,7 @@ Deno.test('JavaScript bridge function passed object', async () => {
     const result = results.main
 
     assert(result.reason === 'finish')
-    const ranScope = result.codeFile!.ranScope
+    const ranScope = result.scope
 
     assert(ranScope, 'ranScope should not be null')
 
@@ -411,7 +411,7 @@ Deno.test('QuickJS passed boolean', async () => {
     const result = results.main
 
     assert(result.reason === 'finish')
-    const 결과 = result.codeFile!.ranScope!.getVariable('결과')
+    const 결과 = result.scope.getVariable('결과')
     assertInstanceOf(결과, BooleanValue)
     assertEquals(결과.value, true)
     assertEquals(결과.toPrint(), '참')

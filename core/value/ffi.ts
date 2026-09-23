@@ -1,5 +1,4 @@
 import {
-    CodeFile,
     ObjectValue,
     Rule,
     RunnableObject,
@@ -16,24 +15,18 @@ export class FFIObject extends ObjectValue implements RunnableObject {
         public name: string,
         private code: string,
         private runtime: string,
-        public invokeRule: Rule,
-        private declaredIn: CodeFile,
-        public options: {
-            dotReceiverTypeNames?: string[]
-        } = {},
+        public invokeRules: Rule[],
+        private declaredScope: Scope,
     ) {
         super()
     }
 
-    async run(
-        args: Record<string, ValueType>,
-        callerScope: Scope,
-    ): Promise<ValueType> {
-        const result = await this.declaredIn!.session!.runFFI(
+    async run(args: Record<string, ValueType>): Promise<ValueType> {
+        const result = await this.declaredScope.session.runFFI(
             this.runtime,
             this.code,
             args,
-            callerScope,
+            this.declaredScope,
         )
 
         return result
