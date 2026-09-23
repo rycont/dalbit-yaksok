@@ -49,7 +49,7 @@ export function errorToMachineReadable(
     return machineError
 }
 
-export function renderErrorString(error: YaksokError) {
+export function renderErrorString(error: YaksokError): string {
     const code = error.codeFile?.text
     const fileName = error.codeFile?.fileName
 

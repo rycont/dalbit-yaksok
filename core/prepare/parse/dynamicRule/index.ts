@@ -14,6 +14,9 @@ export function createDynamicRules(
 
     return {
         replacers: localRules.replacers,
-        rules: localRules.rules.concat(mentioningRules).concat(baseScopeRules),
+        rules: localRules.rules
+            .concat(mentioningRules)
+            .concat(baseScopeRules)
+            .toSorted((a, b) => b.pattern.length - a.pattern.length),
     }
 }

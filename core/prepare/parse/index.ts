@@ -13,6 +13,7 @@ export function parse(tokens: Token[], session: YaksokSession): Block {
     const { replacers, rules } = createDynamicRules(tokens, session)
 
     const nodes = convertTokensToNodes(tokens, replacers)
+
     const indentedNodes = parseIndent(nodes)
     const priorityParsedNodes = parseBracket(indentedNodes, rules)
     const childNodes = callParseRecursively(priorityParsedNodes, rules)

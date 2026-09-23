@@ -131,7 +131,7 @@ export class YaksokSession {
             }
         }
 
-        if (codeFile.prepareErrors) {
+        if (codeFile.prepareErrors.length !== 0) {
             return {
                 reason: 'validation',
                 errors: codeFile.prepareErrors,

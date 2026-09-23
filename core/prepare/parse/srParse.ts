@@ -128,7 +128,7 @@ export function callParseRecursively(
         }
     }
 
-    const rulesByLevel = [externalPatterns, ...BASIC_RULES, ADVANCED_RULES]
+    const rulesByLevel = [...BASIC_RULES, externalPatterns, ADVANCED_RULES]
     const rulesets = rulesByLevel.map((rules) => Ruleset.createFromRules(rules))
 
     loop1: while (true) {

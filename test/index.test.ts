@@ -32,6 +32,7 @@ for (const file of Deno.readDirSync(codesDir)) {
                     .flat()
                     .map((e) => e.message)
                     .join('\n')
+
                 throw new Error('Validation failed:\n' + errorMessages)
             }
 

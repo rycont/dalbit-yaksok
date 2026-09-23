@@ -9,14 +9,13 @@ import {
 
 import {
     FunctionDeclareRange,
-    FunctionParameterPart,
     FunctionHeaderPart,
     FunctionPartType,
 } from './type.ts'
 
 import { getDeclareSignature } from './get-function-declare-ranges.ts'
-import { createParameterScheme } from './parameter-scheme.ts'
 import { createCallingRules } from './calling/index.ts'
+import { createVerbalVariant } from './verbal-variant.ts'
 
 export function buildLocalRules(tokens: Token[]): DynamicRules {
     const ranges = getDeclareSignature(tokens)
@@ -115,7 +114,7 @@ const rangeToRules = (allTokens: Token[]) => (range: FunctionDeclareRange) => {
         }
     }
 
-    const nameGroups = tokenGroups.map<FunctionHeaderPart>((g, i, a) => {
+    const rawHeaderParts = tokenGroups.map<FunctionHeaderPart>((g, i, a) => {
         const prevGroup = a[i - 1]
         const prevGroupLastToken = prevGroup
             ? prevGroup.tokens[prevGroup.tokens.length - 1]
@@ -163,7 +162,7 @@ const rangeToRules = (allTokens: Token[]) => (range: FunctionDeclareRange) => {
         }
     })
 
-    const functionName = nameGroups
+    const functionName = rawHeaderParts
         .map((g) =>
             g.type === FunctionPartType.static
                 ? (g.isSuffix ? '' : ' ') + g.names[0]
@@ -172,15 +171,18 @@ const rangeToRules = (allTokens: Token[]) => (range: FunctionDeclareRange) => {
         .join('')
         .trim()
 
-    const parameterScheme = nameGroups.flatMap((g) =>
+    const headerParts = createVerbalVariant(rawHeaderParts)
+
+    const parameterScheme = headerParts.flatMap((g) =>
         g.type === FunctionPartType.parameter ? g.params : [],
     )
 
     const invokingRules = createCallingRules(
         functionName,
-        nameGroups,
+        headerParts,
         parameterScheme,
     )
+
     const lineTokens = allTokens.slice(range.line.start, range.line.end + 1)
 
     const replacer: DirectReplacer = {

@@ -8,6 +8,7 @@ import {
     Rule,
     TupleLiteral,
     ParameterElement,
+    ListLiteral,
 } from '@dalbit-yaksok/core'
 
 import { FunctionHeaderPart, FunctionPartType } from '../type.ts'
@@ -42,7 +43,7 @@ export function createInterleavingRule(
 
         const evaluator = Object.fromEntries(
             nodesWithPart.flatMap(({ part, node }) =>
-                node instanceof TupleLiteral
+                node instanceof TupleLiteral || node instanceof ListLiteral
                     ? node.subnode.map((tupleItem, index) => [
                           part.params[index].name,
                           tupleItem,

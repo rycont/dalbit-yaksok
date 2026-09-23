@@ -5,20 +5,20 @@ import { createBlockRule } from './block.ts'
 
 export function createCallingRules(
     functionName: string,
-    functionHeader: FunctionHeaderPart[],
+    headerParts: FunctionHeaderPart[],
     parameterScheme: ParameterElement[],
 ): Rule[] {
     const interleavingRule = createInterleavingRule(
         functionName,
-        functionHeader,
+        headerParts,
         parameterScheme,
     )
 
     const isTrailingParameters =
-        functionHeader.findIndex(
+        headerParts.findIndex(
             (part) => part.type === FunctionPartType.parameter,
         ) ===
-        functionHeader.length - 1
+        headerParts.length - 1
 
     if (!isTrailingParameters) {
         return [interleavingRule]
@@ -26,8 +26,9 @@ export function createCallingRules(
 
     const blockRule = createBlockRule(
         functionName,
-        functionHeader,
+        headerParts,
         parameterScheme,
     )
+
     return [interleavingRule, blockRule]
 }
