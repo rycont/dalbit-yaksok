@@ -64,15 +64,17 @@ function inferSplitpointByLine(
     scope: Scope,
 ) {
     const scopeNames = scope.getAccessibleNames().toArray()
-    const scopePatterns = scope.getExportedRules()
+    const accessiblePatterns = scope
+        .getExportedRules()
+        .toArray()
+        .concat(scope.session.getMentionRules())
 
-    const patternsWithOptions = scopePatterns
+    const patternsWithOptions = accessiblePatterns
         .map((rule) => ({
             rule,
             options: rule.pattern.flatMap((u) => inferNameGroup(u)),
         }))
         .filter((p) => p.options.length)
-        .toArray()
 
     const patternPostfixes = Object.groupBy(
         patternsWithOptions.flatMap((p) =>

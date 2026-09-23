@@ -14,7 +14,9 @@ import {
     parse,
     tokenize,
     YaksokSession,
+    Rule,
 } from '@dalbit-yaksok/core'
+import { createMentioningRule } from '../prepare/parse/dynamicRule/mention/create-mentioning-rules.ts'
 
 export class CodeFile {
     readonly ast: Block
@@ -22,11 +24,12 @@ export class CodeFile {
     readonly text: string
     readonly prepareErrors: YaksokError[]
 
+    private _mentionRules: Rule[] | null = null
     private _ranScope: Scope | null = null
 
     constructor(
         text: string,
-        public fileName: string | symbol,
+        public fileName: string,
         public session: YaksokSession,
     ) {
         const sanitized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
@@ -53,6 +56,10 @@ export class CodeFile {
         return this._ranScope
     }
 
+    public get mentionRules(): Rule[] | null {
+        return this._mentionRules
+    }
+
     public async run(): Promise<Scope> {
         if (this.prepareErrors.length !== 0) {
             throw new Error('오류가 존재하는 CodeFile은 실행할 수 없습니다.')
@@ -66,6 +73,14 @@ export class CodeFile {
             const scope = await executer(this.ast, this.session)
 
             this._ranScope = scope
+            this._mentionRules = scope.functions
+                .values()
+                .flatMap((v) =>
+                    v.invokeRules.map((rule) =>
+                        createMentioningRule(this.fileName, rule, scope),
+                    ),
+                )
+                .toArray()
 
             return scope
         } catch (e) {
@@ -98,10 +113,15 @@ function parseWithSession(code: string, session: YaksokSession) {
         tokens = tokenize(code, inferredSplitpoints)
         ast = parse(tokens, session)
 
-        const sessionForTest = new YaksokSession()
-        const validatingScope = new Scope({
-            session: sessionForTest,
-        })
+        const validatingScope = new Scope(
+            session.baseScope
+                ? {
+                      parent: session.baseScope,
+                  }
+                : {
+                      session,
+                  },
+        )
 
         validateResult = ast.validate(validatingScope)
 

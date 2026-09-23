@@ -3,7 +3,6 @@ import {
     Rule,
     YaksokSession,
 } from '@dalbit-yaksok/core'
-import { createMentioningRule } from './create-mentioning-rules.ts'
 
 export const getExportedRules =
     (session: YaksokSession) =>
@@ -19,16 +18,5 @@ export const getExportedRules =
             })
         }
 
-        const scope = codeFile.ranScope
-
-        if (!scope) {
-            throw new Error(
-                `한 번 이상 실행 한 파일만 Mention으로 가져올 수 있습니다.`,
-            )
-        }
-
-        return scope
-            .getExportedRules()
-            .toArray()
-            .map((rule) => createMentioningRule(fileName, rule, scope))
+        return codeFile.mentionRules || []
     }

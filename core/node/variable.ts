@@ -10,7 +10,6 @@ import { assertValidIdentifierName } from '../util/assert-valid-identifier-name.
 
 export class SetVariable extends Evaluable<Evaluable> {
     static override friendlyName = '변수 정하기'
-    public readonly __kind = 'SetVariable' as const
 
     constructor(
         public name: string,

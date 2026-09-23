@@ -1,5 +1,6 @@
-import { Node } from '@dalbit-yaksok/core'
+import { Node, Scope } from '@dalbit-yaksok/core'
 import { bold, border, dim } from './terminal.ts'
+import { string } from 'valibot'
 
 export function printTree(node: Node): string {
     const traitKeys = Array.from(
@@ -36,6 +37,14 @@ export function printTree(node: Node): string {
 }
 
 function stringify(content: unknown): string {
+    if (content instanceof Object && 'pattern' in content) {
+        return 'Rule'
+    }
+
+    if (content instanceof Scope) {
+        return `Scope[${content.id}]`
+    }
+
     if (content instanceof Node) {
         return printTree(content)
     }
@@ -54,6 +63,17 @@ function stringify(content: unknown): string {
             border('┌(dict)──────') +
             '\n' +
             indent(entries.join('\n')) +
+            '\n' +
+            border('└──────')
+        )
+    }
+
+    if (content instanceof Array && content.constructor === Array) {
+        return (
+            '\n' +
+            border('┌(arr)') +
+            '\n' +
+            indent(content.map(stringify).join('\n')) +
             '\n' +
             border('└──────')
         )

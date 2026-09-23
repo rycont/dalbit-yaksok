@@ -26,14 +26,13 @@ import type { ValueType } from '../value/base.ts'
 import type { Scope } from '../executer/scope.ts'
 
 import { ErrorInFFIExecution } from '../error/ffi.ts'
+import { Rule } from '@dalbit-yaksok/core'
 
 const THREAD_YIELD_INTERVAL = 300
 
 export class YaksokSession {
-    /** 현재 실행 중인 runModule Promise */
-    public runningPromise: Promise<
-        [string | symbol, RunModuleResult][]
-    > | null = null
+    public id: string = crypto.randomUUID()
+    public runningPromise: Promise<[string, RunModuleResult][]> | null = null
     /** `보여주기` 출력 훅 */
     public stdout: SessionConfig['stdout']
     /** 에러 출력 훅 */
@@ -47,7 +46,7 @@ export class YaksokSession {
     /** 세션 이벤트 버스 */
     public pubsub: PubSub<Events> = new PubSub<Events>()
     /** 세션에 등록된 모듈 저장소 */
-    public files: Record<string | symbol, CodeFile> = {}
+    public files: Record<string, CodeFile> = {}
 
     private tickCounter = 0
 
@@ -78,7 +77,7 @@ export class YaksokSession {
         this.signal = resolvedConfig.signal ?? null
     }
 
-    addModule(moduleName: string | symbol, code: string): CodeFile {
+    addModule(moduleName: string, code: string): CodeFile {
         if (this.files[moduleName]) {
             throw new AlreadyRegisteredModuleError({
                 resource: { moduleName: moduleName.toString() },
@@ -112,9 +111,7 @@ export class YaksokSession {
         this.baseScope = scope
     }
 
-    private async runOneModule(
-        moduleName: string | symbol,
-    ): Promise<RunModuleResult> {
+    private async runOneModule(moduleName: string): Promise<RunModuleResult> {
         const codeFile = this.files[moduleName]
 
         if (!codeFile) {
@@ -170,7 +167,7 @@ export class YaksokSession {
         }
     }
 
-    async runModule<const T extends (string | symbol)[]>(
+    async runModule<const T extends string[]>(
         moduleName: T,
     ): Promise<Record<T[number], RunModuleResult>> {
         if (this.runningPromise) {
@@ -243,5 +240,11 @@ export class YaksokSession {
         if (this.tickCounter++ % THREAD_YIELD_INTERVAL === 0) {
             await new Promise((ok) => setTimeout(ok, 0))
         }
+    }
+
+    public getMentionRules(): Rule[] {
+        return Object.values(this.files).flatMap(
+            (codeFile) => codeFile.mentionRules || [],
+        )
     }
 }
