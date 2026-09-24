@@ -20,7 +20,7 @@ Deno.test('Machine Readable Error Output (as second argument)', async () => {
     // 정의되지 않은 변수 사용으로 에러 발생시키기
     session.addModule('main', '정의되지않은변수 보여주기')
 
-    await session.runModule(['main'])
+    await session.runModules(['main'])
 
     // 에러가 출력되었는지 확인
     assertEquals(errorOutputs.length, 1)
@@ -78,7 +78,7 @@ Deno.test('Human Readable Error Output (first argument)', async () => {
     // 정의되지 않은 변수 사용으로 에러 발생시키기
     session.addModule('main', '정의되지않은변수 보여주기')
 
-    await session.runModule(['main'])
+    await session.runModules(['main'])
 
     // 에러가 출력되었는지 확인
     assertEquals(errorOutputs.length, 1)

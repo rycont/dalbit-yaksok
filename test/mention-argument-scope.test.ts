@@ -24,7 +24,7 @@ async function run(code: string) {
     session.addModule('장치', 모듈)
     session.addModule('main', code)
 
-    const result = (await session.runModule(['main'])).main
+    const result = (await session.runModules(['main'])).main
     return { result, printed }
 }
 

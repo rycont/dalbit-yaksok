@@ -191,7 +191,7 @@ const rangeToRules = (allTokens: Token[]) => (range: FunctionDeclareRange) => {
                 functionName,
                 invokingRules,
                 parameterScheme,
-                range.type,
+                range,
                 lineTokens,
             ),
         ],

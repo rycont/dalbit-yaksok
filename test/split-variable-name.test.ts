@@ -26,7 +26,7 @@ Deno.test('splits variable suffix for functions provided via base context', asyn
 사람을 칭찬하기`.trim(),
     )
 
-    await session.runModule(['main'])
+    await session.runModules(['main'])
 
     assertEquals(output, '철수 최고야\n')
 })
@@ -51,7 +51,7 @@ Deno.test('splits variable suffix for functions imported via mentioning', async 
 @helper 대상을 칭찬하기`,
     )
 
-    await session.runModule(['main'])
+    await session.runModules(['main'])
 
     assertEquals(output, '영희 최고야\n')
 })
@@ -81,7 +81,7 @@ Deno.test('prevents splitting when lookahead markers do not match', async () => 
 사람은 보여주기`.trim(),
     )
 
-    await session.runModule(['main'])
+    await session.runModules(['main'])
     assertEquals(output, '영희\n')
 })
 
@@ -109,7 +109,7 @@ Deno.test('correctly splits even with lookahead when markers match', async () =>
 "영희"를 이름으로 바꾸기`.trim(),
     )
 
-    await session.runModule(['main'])
+    await session.runModules(['main'])
     assertEquals(output, '철수 최고야\n')
 })
 
@@ -137,7 +137,7 @@ Deno.test('splits variable name when followed by parameter in parentheses with s
 이름을 ( "최고야" ) 칭찬하기`.trim(),
     )
 
-    await session.runModule(['main'])
+    await session.runModules(['main'])
     assertEquals(output, '영희에게 최고야라고 말하기\n')
 })
 
@@ -166,7 +166,7 @@ Deno.test('splits variable name when followed by a list literal (Sequence)', asy
 이름과 [4, 5] 출력하기`.trim(), // '이름과' should split because of the following list
     )
 
-    await session.runModule(['main'])
+    await session.runModules(['main'])
     assertEquals(output, '철수\n[4, 5]\n')
 })
 
@@ -194,7 +194,7 @@ Deno.test('splits variable name for complex evaluable nodes (indexed access)', a
 목록[0]을 호출하기`.trim(),
     )
 
-    await session.runModule(['main'])
+    await session.runModules(['main'])
     assertEquals(output, 'A 호출됨\n')
 })
 
@@ -222,6 +222,6 @@ Deno.test('prevents splitting when followed by an assignment operator', async ()
 사람은 보여주기`.trim(), // '사람은' should NOT split into '사람' + '은' here
     )
 
-    await session.runModule(['main'])
+    await session.runModules(['main'])
     assertEquals(output, '철수\n')
 })

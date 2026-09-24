@@ -12,7 +12,7 @@ async function validationErrors(code: string): Promise<YaksokError[]> {
     const session = new YaksokSession({ stderr() {} })
     session.addModule('main', code)
 
-    const result = (await session.runModule(['main'])).main
+    const result = (await session.runModules(['main'])).main
     assert(
         result.reason === 'validation',
         `검증 오류를 기대했지만 "${result.reason}"이 나왔어요`,
@@ -54,7 +54,7 @@ Deno.test('선택 인자는 빠져도 오류가 아니다', async () => {
     const session = new YaksokSession({ stderr() {} })
     session.addModule('main', 선택_포함 + `이동하기(1)`)
 
-    const result = (await session.runModule(['main'])).main
+    const result = (await session.runModules(['main'])).main
     assert(result.reason === 'finish', `실행이 끝나야 해요: ${result.reason}`)
 })
 

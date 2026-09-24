@@ -29,10 +29,10 @@ export type InstancePipe<T extends NodeType> = SchemaWithPipe<
     ]
 >
 
-export function instancePipe(
-    classType: NodeType,
-    ...refine: (GenericSchema | v.GenericPipeAction)[]
-): InstancePipe<NodeType> {
+export function instancePipe<T extends NodeType>(
+    classType: T,
+    ...refine: unknown[]
+): InstancePipe<T> {
     //@ts-ignore
     return v.pipe(v.instance(classType), ...refine)
 }

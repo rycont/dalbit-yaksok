@@ -13,7 +13,7 @@ async function run(code: string): Promise<string> {
     })
 
     session.addModule('main', code)
-    await session.runModule(['main'])
+    await session.runModules(['main'])
 
     return output.trim()
 }

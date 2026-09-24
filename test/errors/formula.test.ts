@@ -39,7 +39,7 @@ for (let i = 0; i < 10; i++) {
 
         const session = new YaksokSession()
         session.addModule('main', code)
-        const result = (await session.runModule(['main'])).main
+        const result = (await session.runModules(['main'])).main
         assert(result.reason === 'finish')
         const 나이 = result.scope!.getVariable('나이') as NumberValue
 

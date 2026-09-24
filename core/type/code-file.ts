@@ -113,8 +113,6 @@ function parseWithSession(code: string, session: YaksokSession) {
         tokens = tokenize(code, inferredSplitpoints)
         ast = parse(tokens, session)
 
-        console.log(ast)
-
         const validatingScope = new Scope(
             session.baseScope
                 ? {

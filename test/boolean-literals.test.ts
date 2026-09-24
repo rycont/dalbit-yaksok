@@ -15,7 +15,7 @@ for (const literal of TRUE_LITERALS) {
 결과 = ${literal}
 `,
         )
-        const runResult = (await session.runModule(['main'])).main
+        const runResult = (await session.runModules(['main'])).main
         assert(runResult.reason === 'finish')
         const result = runResult.scope.getVariable('결과') as BooleanValue
         assertEquals(result.value, true)
@@ -31,7 +31,7 @@ for (const literal of FALSE_LITERALS) {
 결과 = ${literal}
 `,
         )
-        const runResult = (await session.runModule(['main'])).main
+        const runResult = (await session.runModules(['main'])).main
         assert(runResult.reason === 'finish')
         const result = runResult.scope.getVariable('결과') as BooleanValue
         assertEquals(result.value, false)
@@ -47,7 +47,7 @@ Deno.test('Store boolean in variable', async () => {
 결과 = 불리언
 `,
     )
-    const runResult = (await session.runModule(['main'])).main
+    const runResult = (await session.runModules(['main'])).main
     assert(runResult.reason === 'finish')
     const result = runResult.scope.getVariable('결과') as BooleanValue
     assertEquals(result.value, true)
@@ -64,7 +64,7 @@ Deno.test('Compare booleans', async () => {
 결과4 = 참 != 거짓
 `,
     )
-    const runResult = (await session.runModule(['main'])).main
+    const runResult = (await session.runModules(['main'])).main
     assert(runResult.reason === 'finish')
     const scope = runResult.scope
 
@@ -88,7 +88,7 @@ Deno.test('Negation operator', async () => {
 결과4 = 불리언 아니다
 `,
     )
-    const runResult = (await session.runModule(['main'])).main
+    const runResult = (await session.runModules(['main'])).main
     assert(runResult.reason === 'finish')
     const scope = runResult.scope
 

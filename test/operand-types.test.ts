@@ -115,7 +115,7 @@ for (const { a, b, operator } of WRONG_CASES_FOR_CALCULATION) {
         const session = new YaksokSession()
         session.addModule('main', code)
 
-        const result = (await session.runModule(['main'])).main
+        const result = (await session.runModules(['main'])).main
 
         assert(
             result.reason === 'error',
@@ -134,7 +134,7 @@ for (const { a, b, operator } of WRONG_CASES_FOR_COMPARISON) {
         const session = new YaksokSession()
         session.addModule('main', code)
 
-        const result = (await session.runModule(['main'])).main
+        const result = (await session.runModules(['main'])).main
 
         assert(
             result.reason === 'error',

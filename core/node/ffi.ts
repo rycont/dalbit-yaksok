@@ -26,25 +26,14 @@ export class FFIBody extends Node {
 export class DeclareFFI extends Executable {
     static override friendlyName = '번역 만들기'
 
-    public name: string
-    public body: string
-    public runtime: string
-    private invokeRules: Rule[]
-
     constructor(
-        props: {
-            name: string
-            invokeRules: Rule[]
-            body: string
-            runtime: string
-        },
+        public name: string,
+        public body: string,
+        public runtime: string,
+        private invokeRules: Rule[],
         public override tokens: Token[],
     ) {
         super()
-        this.name = props.name
-        this.body = props.body
-        this.runtime = props.runtime
-        this.invokeRules = props.invokeRules
     }
 
     override execute(scope: Scope): Promise<void> {

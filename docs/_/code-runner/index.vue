@@ -187,7 +187,7 @@ async function runCode() {
 
         })
 
-        console.log(await session.runModule('main'))
+        console.log(await session.runModules('main'))
     } catch (error) {
         console.error(error)
     }

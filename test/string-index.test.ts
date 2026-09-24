@@ -14,7 +14,7 @@ import {
 Deno.test('String allows indexing by number', async () => {
     const session = new YaksokSession()
     session.addModule('main', `결과 = '달빛'[1]`)
-    const result = (await session.runModule(['main'])).main
+    const result = (await session.runModules(['main'])).main
     assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
 
     const scope = result.scope!
@@ -26,7 +26,7 @@ Deno.test('String allows indexing by number', async () => {
 Deno.test('String index must be a non-negative integer within bounds', async () => {
     const session = new YaksokSession()
     session.addModule('main', `결과 = '가'[-1]`)
-    const negativeResult = (await session.runModule(['main'])).main
+    const negativeResult = (await session.runModules(['main'])).main
     assert(
         negativeResult.reason === 'error',
         `Expected error, got ${negativeResult.reason}`,
@@ -38,7 +38,7 @@ Deno.test('String index must be a non-negative integer within bounds', async () 
 
     const session2 = new YaksokSession()
     session2.addModule('main', `결과 = '가'[0.5]`)
-    const decimalResult = (await session2.runModule(['main'])).main
+    const decimalResult = (await session2.runModules(['main'])).main
     assert(
         decimalResult.reason === 'error',
         `Expected error, got ${decimalResult.reason}`,
@@ -47,7 +47,7 @@ Deno.test('String index must be a non-negative integer within bounds', async () 
 
     const session3 = new YaksokSession()
     session3.addModule('main', `결과 = '가'[1]`)
-    const outOfRangeResult = (await session3.runModule(['main'])).main
+    const outOfRangeResult = (await session3.runModules(['main'])).main
     assert(
         outOfRangeResult.reason === 'error',
         `Expected error, got ${outOfRangeResult.reason}`,
@@ -62,7 +62,7 @@ Deno.test('String index must be a non-negative integer within bounds', async () 
 Deno.test('String variables can be indexed', async () => {
     const session = new YaksokSession()
     session.addModule('main', `대상 = '달빛'\n결과 = 대상[1]`)
-    const result = (await session.runModule(['main'])).main
+    const result = (await session.runModules(['main'])).main
     assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
 
     const scope = result.scope!
@@ -74,7 +74,7 @@ Deno.test('String variables can be indexed', async () => {
 Deno.test('List indexing supports multiple indexes', async () => {
     const session = new YaksokSession()
     session.addModule('main', `결과 = ['가', '나', '다'][[0, 2]]`)
-    const result = (await session.runModule(['main'])).main
+    const result = (await session.runModules(['main'])).main
     assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
 
     const scope = result.scope!

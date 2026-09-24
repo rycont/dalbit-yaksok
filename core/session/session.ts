@@ -2,7 +2,6 @@ import { YaksokError } from '../error/common.ts'
 import {
     AlreadyRegisteredModuleError,
     FFIRuntimeNotFound,
-    FileForRunNotExistError,
     MultipleFFIRuntimeError,
 } from '../error/prepare.ts'
 import { CodeFile } from '../type/code-file.ts'
@@ -13,14 +12,8 @@ import {
     type SessionConfig,
 } from './session-config.ts'
 
-import {
-    AbortedRunModuleResult,
-    ErrorRunModuleResult,
-    FunctionInvokingParams,
-    RunModuleResult,
-    SuccessRunModuleResult,
-} from '../constant/type.ts'
-import { AbortedSessionSignal } from '../executer/signals.ts'
+import { FunctionInvokingParams, RunModuleResult } from '../constant/type.ts'
+
 import type { Extension } from '../extension/extension.ts'
 import type { ValueType } from '../value/base.ts'
 import type { Scope } from '../executer/scope.ts'
@@ -32,7 +25,7 @@ const THREAD_YIELD_INTERVAL = 300
 
 export class YaksokSession {
     public id: string = crypto.randomUUID()
-    public runningPromise: Promise<[string, RunModuleResult][]> | null = null
+    public runningPromise: Promise<void> | null = null
     /** `보여주기` 출력 훅 */
     public stdout: SessionConfig['stdout']
     /** 에러 출력 훅 */
@@ -111,85 +104,22 @@ export class YaksokSession {
         this.baseScope = scope
     }
 
-    private async runOneModule(moduleName: string): Promise<RunModuleResult> {
-        const codeFile = this.files[moduleName]
-
-        if (!codeFile) {
-            return {
-                reason: 'error',
-                errors: [
-                    new FileForRunNotExistError({
-                        resource: {
-                            fileName: moduleName.toString(),
-                            files: Object.keys(this.files),
-                        },
-                    }),
-                ],
-            }
-        }
-
-        if (codeFile.prepareErrors.length !== 0) {
-            return {
-                reason: 'validation',
-                errors: codeFile.prepareErrors,
-            }
-        }
-
-        try {
-            const ranScope = await codeFile.run()
-            await Promise.all(this.aliveListeners)
-
-            return {
-                scope: ranScope,
-                reason: 'finish',
-            } as SuccessRunModuleResult
-        } catch (e) {
-            if (e instanceof YaksokError) {
-                if (!e.codeFile) {
-                    e.codeFile = codeFile
-                }
-
-                return {
-                    reason: 'error',
-                    errors: [e],
-                } as ErrorRunModuleResult
-            }
-
-            if (e instanceof AbortedSessionSignal) {
-                return {
-                    reason: 'aborted',
-                } as AbortedRunModuleResult
-            }
-
-            throw e
-        } finally {
-            this.runningPromise = null
-        }
-    }
-
-    async runModule<const T extends string[]>(
-        moduleName: T,
-    ): Promise<Record<T[number], RunModuleResult>> {
+    async runModules<const T extends string[]>(
+        fileNames: T,
+    ): Promise<Record<T[number], PromiseSettledResult<Scope>>> {
         if (this.runningPromise) {
-            await this.runningPromise
+            throw new Error('세션이 이미 실행중입니다.')
         }
 
-        const runModuleNames = Array.isArray(moduleName)
-            ? moduleName
-            : [moduleName]
-
-        const runningPromise = Promise.all(
-            runModuleNames.map<Promise<[T[number], RunModuleResult]>>(
-                async (n) => [n, await this.runOneModule(n)],
-            ),
+        const runningPromise = Promise.allSettled(
+            fileNames.map((n) => this.files[n].run()),
         )
 
-        this.runningPromise = runningPromise
+        this.runningPromise = runningPromise.then(() => {})
 
-        const entries = Object.fromEntries(await runningPromise) as Record<
-            T[number],
-            RunModuleResult
-        >
+        const entries = Object.fromEntries(
+            (await runningPromise).map((r, i) => [fileNames[i], r]),
+        )
 
         return entries
     }

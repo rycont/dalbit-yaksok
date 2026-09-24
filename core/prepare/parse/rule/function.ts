@@ -7,16 +7,22 @@ import {
     EOL,
     r,
     FFIBody,
+    u,
+    DeclareFFI,
 } from '@dalbit-yaksok/core'
 import { FunctionType } from '../dynamicRule/local/type.ts'
 
 export const FUNCTION_RULES: Rule[] = [
     r({
         pattern: [
-            {
-                type: FunctionDeclareHeader,
-                value: FunctionType.약속,
-            },
+            u(
+                FunctionDeclareHeader<FunctionType.약속>,
+                v.object({
+                    range: v.object({
+                        type: v.literal(FunctionType.약속),
+                    }),
+                }),
+            ),
             EOL,
             Block,
         ],
@@ -34,16 +40,25 @@ export const FUNCTION_RULES: Rule[] = [
     }),
     r({
         pattern: [
-            {
-                type: FunctionDeclareHeader,
-                value: FunctionType.번역,
-            },
+            u(
+                FunctionDeclareHeader<FunctionType.번역>,
+                v.object({
+                    range: v.object({
+                        type: v.literal(FunctionType.번역),
+                    }),
+                }),
+            ),
             EOL,
             FFIBody,
         ],
-        factory(nodes, tokens) {
-            console.log(nodes)
-            return null
+        factory([header, __, body], tokens) {
+            return new DeclareFFI(
+                header.name,
+                body.code,
+                header.range.runtime,
+                header.invokingRules,
+                tokens,
+            )
         },
     }),
 ]

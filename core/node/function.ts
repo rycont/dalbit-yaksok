@@ -19,14 +19,18 @@ import {
     YaksokError,
 } from '@dalbit-yaksok/core'
 import { assertValidReturnValue } from '../util/assert-valid-return-value.ts'
-import { FunctionType } from '../prepare/parse/dynamicRule/local/type.ts'
+import { FunctionDeclareRange } from '../prepare/parse/dynamicRule/local/type.ts'
 
-export class FunctionDeclareHeader extends Node {
+export class FunctionDeclareHeader<
+    T extends FunctionDeclareRange['type'],
+> extends Node {
     constructor(
         public name: string,
         public invokingRules: Rule[],
         public parameterScheme: ParameterElement[],
-        public override value: FunctionType,
+        public range: FunctionDeclareRange & {
+            type: T
+        },
         public override tokens: Token[],
     ) {
         super()

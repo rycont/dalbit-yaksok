@@ -4,7 +4,7 @@ import { YaksokSession } from '../../core/mod.ts'
 async function runCode(code: string) {
     const session = new YaksokSession()
     session.addModule('main', code)
-    const results = await session.runModule(['main'])
+    const results = await session.runModules(['main'])
     return results.main
 }
 

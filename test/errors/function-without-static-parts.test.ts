@@ -13,7 +13,7 @@ Deno.test('고정된 부분이 없는 함수', async () => {
 (10) (20) (30) 보여주기
             `,
     )
-    const result = (await session.runModule(['main'])).main
+    const result = (await session.runModules(['main'])).main
     assert(
         result.reason === 'validation',
         `Expected an error, but got ${result.reason}`,

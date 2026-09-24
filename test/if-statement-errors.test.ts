@@ -7,7 +7,7 @@ async function runCode(code: string) {
         stdout: (msg: string) => (printed += msg + '\n'),
     })
     session.addModule('main', code)
-    const results = await session.runModule(['main'])
+    const results = await session.runModules(['main'])
     return { result: results.main, printed }
 }
 

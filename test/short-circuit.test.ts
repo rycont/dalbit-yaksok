@@ -7,7 +7,7 @@ import { BooleanValue, NumberValue } from '../core/value/primitive.ts'
 async function run(code: string) {
     const session = new YaksokSession()
     session.addModule('main', code)
-    const result = (await session.runModule(['main'])).main
+    const result = (await session.runModules(['main'])).main
     assert(result.reason === 'finish')
     return result.scope
 }

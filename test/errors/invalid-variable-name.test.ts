@@ -14,7 +14,7 @@ Deno.test('Variable name is not a valid identifier', async () => {
 1이름 = "홍길동",
 1이름 보여주기`,
     )
-    const result = (await session.runModule(['main'])).main
+    const result = (await session.runModules(['main'])).main
     assert(
         result.reason === 'validation',
         `Expected an validation, but got ${result.reason}`,

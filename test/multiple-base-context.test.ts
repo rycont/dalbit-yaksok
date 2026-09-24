@@ -43,7 +43,7 @@ Deno.test('Multiple base contexts should be chained', async () => {
 `.trim(),
     )
 
-    await session.runModule(['main'])
+    await session.runModules(['main'])
 
     assertEquals(output, '10\n')
 })
@@ -62,7 +62,7 @@ Deno.test('Multiple base contexts should share variables', async () => {
 
     session.addModule('main', '(값1 + 값2) 보여주기')
 
-    await session.runModule(['main'])
+    await session.runModules(['main'])
 
     assertEquals(output, '30\n')
 })

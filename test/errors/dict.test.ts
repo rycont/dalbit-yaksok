@@ -26,7 +26,7 @@ Deno.test('Key is not found in dictionary', async () => {
 객체['자격증']['자식새끼'][1] 보여주기`,
     )
 
-    const results = await session.runModule(['main'])
+    const results = await session.runModules(['main'])
     const result = results.main
 
     assert(result.reason === 'error')
@@ -49,7 +49,7 @@ Deno.test('Dict Compound Assignment Operation Error', async () => {
 객체['주소'] -= 2`,
     )
 
-    const results = await session.runModule(['main'])
+    const results = await session.runModules(['main'])
     const result = results.main
 
     assert(result.reason === 'error')

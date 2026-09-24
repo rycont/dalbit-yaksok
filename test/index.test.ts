@@ -19,22 +19,7 @@ for (const file of Deno.readDirSync(codesDir)) {
                 },
             })
 
-            session.addModule('main', code)
-            const results = await session.runModule(['main'])
-            const result = results.main
-
-            if (result.reason === 'error') {
-                throw result.errors?.[0]
-            }
-
-            if (result.reason === 'validation') {
-                const errorMessages = Array.from(result.errors)
-                    .flat()
-                    .map((e) => e.message)
-                    .join('\n')
-
-                throw new Error('Validation failed:\n' + errorMessages)
-            }
+            await session.addModule('main', code).run()
 
             if (expected.includes('\r')) {
                 expected = expected.replace(/\r\n/g, '\n')
