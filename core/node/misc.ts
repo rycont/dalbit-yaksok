@@ -79,3 +79,18 @@ export class TypeOf extends Evaluable<Evaluable> {
         return this.subnode.validate(scope)
     }
 }
+
+export class PrepareErrorPlace extends Evaluable {
+    constructor(public errors: YaksokError[]) {
+        super()
+        this.tokens = []
+    }
+
+    override async execute(_scope: Scope): Promise<ValueType> {
+        throw this.errors[0]
+    }
+
+    override validate(_scope: Scope): YaksokError[] {
+        return this.errors
+    }
+}

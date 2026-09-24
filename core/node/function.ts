@@ -7,7 +7,6 @@ import {
     Executable,
     FunctionInvokingParams,
     FunctionObject,
-    Identifier,
     MissingRequiredArgumentError,
     Node,
     NodeCapability,
@@ -114,29 +113,20 @@ export class DeclareFunction extends Executable<Block> {
 export class FunctionInvoke extends Evaluable {
     static override friendlyName = '약속 사용하기'
 
-    public readonly name: string
-    private readonly argumentEvaluator: Record<string, Evaluable>
-    private readonly parameterScheme: ParameterElement[]
     private readonly optionalFiller: Record<string, EmptyValue>
 
     constructor(
-        props: {
-            name: string
-            argumentEvaluator: Record<string, Evaluable>
-            parameterScheme: ParameterElement[]
-        },
+        public readonly name: string,
+        private readonly argumentEvaluator: Record<string, Evaluable>,
+        private readonly parameterScheme: ParameterElement[],
         public override tokens: Token[],
     ) {
         super()
 
-        this.name = props.name
-        this.argumentEvaluator = props.argumentEvaluator
-        this.parameterScheme = props.parameterScheme
-
         const optionalKeys = new Set(
-            props.parameterScheme.filter((p) => p.optional).map((p) => p.name),
+            parameterScheme.filter((p) => p.optional).map((p) => p.name),
         )
-        const providedKeys = new Set(Object.keys(props.argumentEvaluator))
+        const providedKeys = new Set(Object.keys(argumentEvaluator))
 
         const missingOptionals = Array.from(
             optionalKeys.difference(providedKeys),
@@ -219,12 +209,6 @@ export class FunctionInvoke extends Evaluable {
         })
 
         return argumentErrors.concat([missingKeysError])
-    }
-}
-
-export class OptionalParameter extends Identifier {
-    constructor(name: string, token: Token[]) {
-        super(name, token)
     }
 }
 

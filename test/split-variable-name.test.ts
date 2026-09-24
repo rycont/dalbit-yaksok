@@ -40,11 +40,13 @@ Deno.test('splits variable suffix for functions imported via mentioning', async 
         },
     })
 
-    session.addModule(
-        'helper',
-        `약속, (대상)을 칭찬하기
-        대상 + " 최고야" 보여주기`,
-    )
+    await session
+        .addModule(
+            'helper',
+            `약속, (대상)을 칭찬하기
+    대상 + " 최고야" 보여주기`,
+        )
+        .run()
     const codeFile = session.addModule(
         'main',
         `대상 = "영희"

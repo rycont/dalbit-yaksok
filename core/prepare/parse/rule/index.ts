@@ -34,7 +34,6 @@ import {
     NotExpression,
     NumberValue,
     Operator,
-    OptionalParameter,
     OrOperator,
     PlusOperator,
     PowerOperator,
@@ -67,16 +66,20 @@ export const BASIC_RULES: Rule[][] = [
         {
             pattern: [
                 {
-                    type: Identifier,
+                    type: Expression,
+                    value: '[',
+                },
+                {
+                    type: Sequence,
                 },
                 {
                     type: Expression,
-                    value: '?',
+                    value: ']',
                 },
             ],
-            factory: (node, tokens) => {
-                const identifier = node[0] as Identifier
-                return new OptionalParameter(identifier.value, tokens)
+            factory: (nodes, tokens) => {
+                const sequence = nodes[1] as Sequence
+                return new ListLiteral(sequence.items, tokens)
             },
         },
         {
@@ -254,25 +257,6 @@ export const BASIC_RULES: Rule[][] = [
             factory: (nodes, tokens) => {
                 const item = nodes[1] as Evaluable
                 return new ValueWithParenthesis(item, tokens)
-            },
-        },
-        {
-            pattern: [
-                {
-                    type: Expression,
-                    value: '[',
-                },
-                {
-                    type: Sequence,
-                },
-                {
-                    type: Expression,
-                    value: ']',
-                },
-            ],
-            factory: (nodes, tokens) => {
-                const sequence = nodes[1] as Sequence
-                return new ListLiteral(sequence.items, tokens)
             },
         },
         {

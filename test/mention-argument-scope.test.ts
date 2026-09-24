@@ -21,7 +21,7 @@ async function run(code: string) {
         stderr() {},
     })
 
-    session.addModule('장치', 모듈)
+    await session.addModule('장치', 모듈).run()
     const codeFile = session.addModule('main', code)
 
     return { codeFile, printed }

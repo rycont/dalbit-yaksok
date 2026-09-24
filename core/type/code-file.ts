@@ -1,21 +1,26 @@
-import { executer } from '../executer/index.ts'
-import { Scope } from '../executer/scope.ts'
+import * as v from 'valibot'
 
-import type { Block } from '../node/block.ts'
-import type { Token } from '../prepare/tokenize/token.ts'
-import { NotDefinedIdentifierError, YaksokError } from '../error/index.ts'
 import {
-    inferTokenSplitpointsFromErrors,
-    Splitpoint,
-} from '../prepare/lex/infer-token-splitpoint.ts'
-import {
+    Block,
     errorToMachineReadable,
-    renderErrorString,
+    Identifier,
+    NotDefinedIdentifierError,
     parse,
-    tokenize,
-    YaksokSession,
+    renderErrorString,
     Rule,
+    Scope,
+    Token,
+    tokenize,
+    u,
+    YaksokError,
+    YaksokSession,
 } from '@dalbit-yaksok/core'
+
+import { executer } from '../executer/index.ts'
+import {
+    Splitpoint,
+    inferTokenSplitpointsFromErrors,
+} from '../prepare/lex/infer-token-splitpoint.ts'
 import { createMentioningRule } from '../prepare/parse/dynamicRule/mention/create-mentioning-rules.ts'
 
 export class CodeFile {
@@ -34,20 +39,27 @@ export class CodeFile {
     ) {
         const sanitized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
 
-        const { ast, tokens, validateResult } = parseWithSession(
+        const { ast, tokens, validationErrors } = parseWithSession(
             sanitized,
             session,
         )
 
+        for (const e of validationErrors) {
+            if (!e.codeFile) {
+                e.codeFile = this
+            }
+        }
+
         this.ast = ast
         this.tokens = tokens
         this.text = text
-        this.prepareErrors = validateResult
+        this.prepareErrors = validationErrors
 
-        for (const error of validateResult) {
+        for (const error of validationErrors) {
             session.stderr(
                 renderErrorString(error),
                 errorToMachineReadable(error),
+                error,
             )
         }
     }
@@ -69,20 +81,49 @@ export class CodeFile {
             throw new Error('CodeFile은 한번만 실행할 수 있습니다.')
         }
 
-        try {
-            const scope = await executer(this.ast, this.session)
+        const rootScope = new Scope({
+            session: this.session,
+        })
 
-            this._ranScope = scope
-            this._mentionRules = scope.functions
+        try {
+            await executer(this.ast, rootScope)
+
+            this._ranScope = rootScope
+
+            const exportedFunctionRules = rootScope.functions
                 .values()
                 .flatMap((v) =>
                     v.invokeRules.map((rule) =>
-                        createMentioningRule(this.fileName, rule, scope),
+                        createMentioningRule(this.fileName, rule, rootScope),
                     ),
                 )
                 .toArray()
 
-            return scope
+            const exportedVariableRules = createMentioningRule(
+                this.fileName,
+                {
+                    pattern: [
+                        u(
+                            Identifier,
+                            v.object({
+                                value: v.picklist(
+                                    Object.keys(rootScope.variables),
+                                ),
+                            }),
+                        ),
+                    ],
+                    factory([node]) {
+                        return node
+                    },
+                },
+                rootScope,
+            )
+
+            this._mentionRules = exportedFunctionRules.concat(
+                exportedVariableRules,
+            )
+
+            return rootScope
         } catch (e) {
             if (e instanceof YaksokError) {
                 if (!e.codeFile) {
@@ -92,7 +133,10 @@ export class CodeFile {
                 this.session.stderr(
                     renderErrorString(e),
                     errorToMachineReadable(e),
+                    e,
                 )
+
+                return rootScope
             }
 
             throw e
@@ -104,7 +148,7 @@ function parseWithSession(code: string, session: YaksokSession) {
     const seenErrorFingerprint = new Set<string>()
     const seenSplitpointFingerprint = new Set<string>()
 
-    let validateResult: YaksokError[]
+    let validationErrors: YaksokError[]
     let ast: ReturnType<typeof parse>
     let inferredSplitpoints: Splitpoint[] = []
     let tokens: Token[] | null = null
@@ -123,9 +167,9 @@ function parseWithSession(code: string, session: YaksokSession) {
                   },
         )
 
-        validateResult = ast.validate(validatingScope)
+        validationErrors = ast.validate(validatingScope)
 
-        const missingIdentifierErrors = validateResult.filter(
+        const missingIdentifierErrors = validationErrors.filter(
             (e) => e instanceof NotDefinedIdentifierError,
         )
 
@@ -156,5 +200,5 @@ function parseWithSession(code: string, session: YaksokSession) {
         seenSplitpointFingerprint.add(splitpointFingerprint)
     }
 
-    return { ast, validateResult, tokens }
+    return { ast, validationErrors, tokens }
 }

@@ -17,7 +17,7 @@ Deno.test('MentionScope validate with invalid module', async () => {
 Deno.test('MentionScope validate with module that has validation errors', async () => {
     const session = new YaksokSession()
 
-    session.addModule('module', `변수 = 1`)
+    await session.addModule('module', `변수 = 1`).run()
     const codeFile = session.addModule('main', `@module 변수`)
 
     // Should work fine with valid module
@@ -27,7 +27,7 @@ Deno.test('MentionScope validate with module that has validation errors', async 
 Deno.test('MentionScope execute with non-YaksokError', async () => {
     const session = new YaksokSession()
 
-    session.addModule('module', `변수 = 1`)
+    await session.addModule('module', `변수 = 1`).run()
     const codeFile = session.addModule('main', `@module 변수`)
 
     await codeFile.run()

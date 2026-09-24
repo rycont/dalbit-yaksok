@@ -1,4 +1,4 @@
-import { assertIsError, unreachable } from '@std/assert'
+import { assertIsError } from '@std/assert'
 import {
     InvalidTypeForCompareError,
     InvalidTypeForOperatorError,
@@ -112,14 +112,15 @@ for (const { a, b, operator } of WRONG_CASES_FOR_CALCULATION) {
             ${a} ${operator} ${b}
         `.trim()
 
-        const session = new YaksokSession()
-
-        try {
-            await session.addModule('main', code).run()
-            unreachable()
-        } catch (error) {
-            assertIsError(error, InvalidTypeForOperatorError)
-        }
+        const errors: unknown[] = []
+        const session = new YaksokSession({
+            stderr(_message, _machineReadable, error) {
+                errors.push(error)
+            },
+        })
+        const codeFile = session.addModule('main', code)
+        await codeFile.run()
+        assertIsError(errors[0], InvalidTypeForOperatorError)
     })
 }
 
@@ -129,13 +130,14 @@ for (const { a, b, operator } of WRONG_CASES_FOR_COMPARISON) {
             ${a} ${operator} ${b}
         `.trim()
 
-        const session = new YaksokSession()
-
-        try {
-            await session.addModule('main', code).run()
-            unreachable()
-        } catch (error) {
-            assertIsError(error, InvalidTypeForCompareError)
-        }
+        const errors: unknown[] = []
+        const session = new YaksokSession({
+            stderr(_message, _machineReadable, error) {
+                errors.push(error)
+            },
+        })
+        const codeFile = session.addModule('main', code)
+        await codeFile.run()
+        assertIsError(errors[0], InvalidTypeForCompareError)
     })
 }

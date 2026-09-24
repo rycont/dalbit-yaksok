@@ -1,5 +1,5 @@
 import { YaksokSession } from '../core/mod.ts'
-import { assertEquals, assertInstanceOf, unreachable } from '@std/assert'
+import { assertEquals, assertInstanceOf } from '@std/assert'
 import {
     BooleanValue,
     NumberValue,
@@ -180,13 +180,15 @@ Deno.test('변수와 함께 사용', async () => {
 })
 
 Deno.test('잘못된 문자열을 숫자로 바꾸기 시도', async () => {
-    const session = new YaksokSession()
-    try {
-        await session.addModule('main', `결과 = "abc" 를 숫자로 바꾸기`).run()
-        unreachable()
-    } catch (error) {
-        assertInstanceOf(error, InvalidTypeCastError)
-    }
+    const errors: unknown[] = []
+    const session = new YaksokSession({
+        stderr(_message, _machineReadable, error) {
+            errors.push(error)
+        },
+    })
+    const codeFile = session.addModule('main', `결과 = "abc" 를 숫자로 바꾸기`)
+    await codeFile.run()
+    assertInstanceOf(errors[0], InvalidTypeCastError)
 })
 
 Deno.test('불리언으로 바꾸기 (별칭)', async () => {

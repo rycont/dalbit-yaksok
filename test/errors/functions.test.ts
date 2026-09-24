@@ -1,4 +1,4 @@
-import { assertEquals, assertIsError, unreachable } from '@std/assert'
+import { assertEquals, assertIsError } from '@std/assert'
 import {
     AlreadyDefinedFunctionError,
     InvalidTypeForOperatorError,
@@ -6,23 +6,21 @@ import {
 import { YaksokSession } from '../../core/mod.ts'
 
 Deno.test('약속 안에서 발생한 오류', async () => {
-    const session = new YaksokSession()
-
-    try {
-        await session
-            .addModule(
-                'main',
-                `약속, 신나게 놀기
+    const errors: unknown[] = []
+    const session = new YaksokSession({
+        stderr(_message, _machineReadable, error) {
+            errors.push(error)
+        },
+    })
+    const codeFile = session.addModule(
+        'main',
+        `약속, 신나게 놀기
     "이름" / 10 보여주기
 
 신나게 놀기`,
-            )
-            .run()
-
-        unreachable()
-    } catch (error) {
-        assertIsError(error, InvalidTypeForOperatorError)
-    }
+    )
+    await codeFile.run()
+    assertIsError(errors[0], InvalidTypeForOperatorError)
 })
 
 Deno.test('동일한 이름으로 약속 재정의 오류', async () => {

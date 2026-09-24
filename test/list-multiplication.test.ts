@@ -1,7 +1,6 @@
 import { assertEquals } from 'assert/equals'
 import { assertInstanceOf } from 'assert/instance-of'
 import { assertIsError } from 'assert/is-error'
-import { unreachable } from '@std/assert'
 import {
     BooleanValue,
     InvalidTypeForOperatorError,
@@ -43,21 +42,23 @@ Deno.test('Number multiplied by list repeats list elements', async () => {
 })
 
 Deno.test('List multiplication requires non-negative integers', async () => {
-    const session = new YaksokSession()
+    const errors: unknown[] = []
+    const session = new YaksokSession({
+        stderr(_message, _machineReadable, error) {
+            errors.push(error)
+        },
+    })
+    const codeFile = session.addModule('main', `결과 = [1] * -1`)
+    await codeFile.run()
+    assertIsError(errors[0], InvalidTypeForOperatorError)
 
-    try {
-        await session.addModule('main', `결과 = [1] * -1`).run()
-        unreachable()
-    } catch (error) {
-        assertIsError(error, InvalidTypeForOperatorError)
-    }
-
-    const session2 = new YaksokSession()
-
-    try {
-        await session2.addModule('main', `결과 = [1] * 2.5`).run()
-        unreachable()
-    } catch (error) {
-        assertIsError(error, InvalidTypeForOperatorError)
-    }
+    const errors2: unknown[] = []
+    const session2 = new YaksokSession({
+        stderr(_message, _machineReadable, error) {
+            errors2.push(error)
+        },
+    })
+    const codeFile2 = session2.addModule('main', `결과 = [1] * 2.5`)
+    await codeFile2.run()
+    assertIsError(errors2[0], InvalidTypeForOperatorError)
 })

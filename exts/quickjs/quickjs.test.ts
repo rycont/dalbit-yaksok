@@ -13,31 +13,29 @@ import {
     YaksokSession,
 } from '../../core/mod.ts'
 import { QuickJS, QuickJSInternalError } from './mod.ts'
-import { unreachable } from '@std/assert'
 
 Deno.test('Error in QuickJS', async () => {
-    const session = new YaksokSession()
+    const errors: unknown[] = []
+    const session = new YaksokSession({
+        stderr(_message, _machineReadable, error) {
+            errors.push(error)
+        },
+    })
     await session.extend(new QuickJS())
 
-    try {
-        await session
-            .addModule(
-                'main',
-                `번역(QuickJS), 에러 발생
+    const codeFile = session.addModule(
+        'main',
+        `번역(QuickJS), 에러 발생
   ***
       throw new Error('QuickJS Error')
   ***
 
   에러 발생
   `,
-            )
-            .run()
-
-        unreachable()
-    } catch (error) {
-        assertIsError(error, ErrorOccurredWhileRunningFFIExecution)
-        assertIsError(error.child, QuickJSInternalError)
-    }
+    )
+    await codeFile.run()
+    assertIsError(errors[0], ErrorOccurredWhileRunningFFIExecution)
+    assertIsError(errors[0].child, QuickJSInternalError)
 })
 
 Deno.test('QuickJS passed number', async () => {

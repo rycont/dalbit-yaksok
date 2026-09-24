@@ -5,6 +5,7 @@ import { StatisticsExtension } from '../exts/statistics/mod.ts'
 async function runStats(code: string): Promise<string> {
     let output = ''
     let errorOutput = ''
+
     const session = new YaksokSession({
         stdout(value) {
             output += value + '\n'
@@ -13,6 +14,7 @@ async function runStats(code: string): Promise<string> {
             errorOutput += value + '\n'
         },
     })
+
     await session.extend(new StatisticsExtension())
     await session.addModule('main', code).run()
 

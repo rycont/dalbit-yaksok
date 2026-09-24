@@ -1,172 +1,103 @@
-import {
-    Block,
-    Expression,
-    ListLiteral,
-    Node,
-    Rule,
-    Sequence,
-    TupleLiteral,
-    UnexpectedEndOfCodeError,
-} from '@dalbit-yaksok/core'
-
-import { getTokensFromNodes } from '../../util/merge-tokens.ts'
+import { Node, Rule } from '@dalbit-yaksok/core'
+import { Expression } from '../../node/index.ts'
 import { callParseRecursively } from './srParse.ts'
 
-const ALL_OPENING_BRACKETS = ['[', '{', '(']
-const OPENING_TO_CLOSING_BRACKETS: Record<string, string> = {
-    '[': ']',
-    '{': '}',
-    '(': ')',
+const BRACKETS: Record<
+    string,
+    {
+        shape: string
+        role: 'open' | 'close'
+    }
+> = {
+    '{': {
+        shape: '{',
+        role: 'open',
+    },
+    '}': {
+        shape: '{',
+        role: 'close',
+    },
+    '(': {
+        shape: '(',
+        role: 'open',
+    },
+    ')': {
+        shape: '(',
+        role: 'close',
+    },
+    '[': {
+        shape: '[',
+        role: 'open',
+    },
+    ']': {
+        shape: '[',
+        role: 'close',
+    },
 }
 
-export function parseBracket(nodes: Node[], dynamicRules: Rule[]) {
-    for (const node of nodes) {
-        if (node instanceof Block) {
-            node.subnode = parseBracket(node.subnode, dynamicRules)
-        }
+export function parseBracket(rawNodes: Node[], externalPatterns: Rule[]) {
+    const brackets = createBracketMap(rawNodes)
+
+    if (brackets.length === 0) {
+        return rawNodes
     }
 
-    let openingBracketIndex = nodes.length - 1
-    let closingPosition = -1
+    const nodes = Array.from(rawNodes)
 
-    rangeSeekingLoop: for (
-        openingBracketIndex;
-        openingBracketIndex >= 0;
-        openingBracketIndex--
-    ) {
-        const openingBracketNode = nodes[openingBracketIndex]
+    for (const range of brackets) {
+        const start = nodes.indexOf(range[0]) + 1
+        const end = nodes.indexOf(range[1])
 
-        const isNotOpeningBracketNode =
-            !(openingBracketNode instanceof Expression) ||
-            !ALL_OPENING_BRACKETS.includes(openingBracketNode.value)
+        const nodesInBracket = nodes.slice(start, end)
+        const parsed = callParseRecursively(nodesInBracket, externalPatterns)
 
-        if (isNotOpeningBracketNode) {
+        nodes.splice(start, end - start, ...parsed)
+    }
+
+    return nodes
+}
+
+function createBracketMap(nodes: Node[]) {
+    const seekingStack: { char: string; node: Node }[] = []
+    const bracketRanges: [Node, Node][] = []
+
+    for (let i = 0; i < nodes.length; i++) {
+        const current = nodes[i]
+
+        if (!(current instanceof Expression)) {
             continue
         }
 
-        let closingIndexCandidate = openingBracketIndex
-        let depth = 0
-
-        while (true) {
-            closingIndexCandidate++
-            const seekingClosingNode = nodes[closingIndexCandidate]
-
-            const isClosingBracket =
-                seekingClosingNode instanceof Expression &&
-                seekingClosingNode.value ===
-                    OPENING_TO_CLOSING_BRACKETS[openingBracketNode.value]
-
-            if (isClosingBracket) {
-                const distance = closingIndexCandidate - openingBracketIndex
-                const isEmptyParen =
-                    openingBracketNode.value === '(' && distance === 1
-                if (distance <= 2 && !isEmptyParen) {
-                    continue rangeSeekingLoop
-                }
-
-                if (0 < depth) {
-                    depth--
-                    continue rangeSeekingLoop
-                }
-
-                closingPosition = closingIndexCandidate
-                break rangeSeekingLoop
-            }
-
-            const isOpeningBracket =
-                seekingClosingNode instanceof Expression &&
-                seekingClosingNode.value ===
-                    OPENING_TO_CLOSING_BRACKETS[openingBracketNode.value]
-
-            if (isOpeningBracket) {
-                depth++
-                continue rangeSeekingLoop
-            }
-
-            if (closingIndexCandidate >= nodes.length) {
-                throw new UnexpectedEndOfCodeError({
-                    resource: {
-                        expected: '닫는 대괄호',
-                    },
-                    position: nodes[openingBracketIndex].tokens[0].position,
-                })
-            }
+        if (!(current.value in BRACKETS)) {
+            continue
         }
+
+        if (seekingStack.length === 0) {
+            seekingStack.push({
+                char: current.value,
+                node: current,
+            })
+            continue
+        }
+
+        const currentBracket = BRACKETS[current.value as keyof typeof BRACKETS]
+
+        if (currentBracket.role === 'close') {
+            const last = seekingStack.pop()!
+            const lastBracket = BRACKETS[last.char]
+
+            if (lastBracket.shape === currentBracket.shape) {
+                bracketRanges.push([last.node, current])
+            }
+
+            continue
+        }
+
+        seekingStack.push({
+            char: current.value,
+            node: current,
+        })
     }
 
-    if (openingBracketIndex < 0) {
-        return nodes
-    }
-
-    const nodesInBrackets = nodes.slice(
-        openingBracketIndex + 1,
-        closingPosition,
-    )
-
-    const mergedNode = callParseRecursively(nodesInBrackets, dynamicRules)
-
-    const openingNode = nodes[openingBracketIndex]
-    const isOpeningParenForTuple =
-        openingNode instanceof Expression && openingNode.value === '('
-
-    if (
-        mergedNode.length === nodesInBrackets.length &&
-        !(mergedNode.length === 0 && isOpeningParenForTuple)
-    ) {
-        return nodes // No change in nodes, return original
-    }
-
-    const isOpeningSquareBracket =
-        openingNode instanceof Expression && openingNode.value === '['
-
-    if (
-        mergedNode.length === 1 &&
-        mergedNode[0] instanceof Sequence &&
-        isOpeningSquareBracket
-    ) {
-        const listLiteral = new ListLiteral(
-            mergedNode[0].items,
-            getTokensFromNodes(
-                nodes.slice(openingBracketIndex, closingPosition + 1),
-            ),
-        )
-
-        const newNodes = [
-            ...nodes.slice(0, openingBracketIndex),
-            listLiteral,
-            ...nodes.slice(closingPosition + 1),
-        ]
-
-        return parseBracket(newNodes, dynamicRules)
-    }
-
-    if (
-        (mergedNode.length === 1 && mergedNode[0] instanceof Sequence) ||
-        (mergedNode.length === 0 && isOpeningParenForTuple)
-    ) {
-        const tupleLiteral = new TupleLiteral(
-            mergedNode.length === 1 ? (mergedNode[0] as Sequence).items : [],
-            getTokensFromNodes(
-                nodes.slice(openingBracketIndex, closingPosition + 1),
-            ),
-        )
-
-        const newNodes = [
-            ...nodes.slice(0, openingBracketIndex),
-            tupleLiteral,
-            ...nodes.slice(closingPosition + 1),
-        ]
-
-        return parseBracket(newNodes, dynamicRules)
-    }
-
-    {
-        const newNodes = [
-            ...nodes.slice(0, openingBracketIndex + 1),
-            ...mergedNode,
-            ...nodes.slice(closingPosition),
-        ]
-
-        return parseBracket(newNodes, dynamicRules)
-    }
+    return bracketRanges
 }

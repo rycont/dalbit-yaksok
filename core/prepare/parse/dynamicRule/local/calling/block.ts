@@ -73,11 +73,9 @@ export function createBlockRule(
         }
 
         return new FunctionInvoke(
-            {
-                name: functionName,
-                argumentEvaluator,
-                parameterScheme,
-            },
+            functionName,
+            argumentEvaluator,
+            parameterScheme,
             tokens,
         )
     }

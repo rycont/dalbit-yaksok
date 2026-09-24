@@ -10,26 +10,31 @@ Deno.test('Mentioning', async () => {
         },
     })
 
-    session.addModule(
-        '차종',
-        `
+    await session
+        .addModule(
+            '차종',
+            `
 KTX이음 = "KTX-이음"
 무궁화호 = "무궁화호"
 `,
-    )
-    session.addModule(
-        '역간거리',
-        `
+        )
+        .run()
+    await session
+        .addModule(
+            '역간거리',
+            `
 약속, (역1)부터 (역2)까지
     만약 역1 == "청량리" 이고 역2 == "안동" 이면
         235.3 반환하기
     만약 역1 == "판교" 이고 역2 == "충주" 이면
         140.9 반환하기
     `,
-    )
-    session.addModule(
-        '코레일',
-        `
+        )
+        .run()
+    await session
+        .addModule(
+            '코레일',
+            `
 약속, (차종)으로 (거리)km을 이동할 때 운임
     만약 차종 == @차종 KTX이음 이면
         만약 거리 <= 60 이면
@@ -46,7 +51,8 @@ KTX이음 = "KTX-이음"
 약속, 출발하기
     "빵빵" 보여주기
         `.trim(),
-    )
+        )
+        .run()
     const codeFile = session.addModule(
         'main',
         `
@@ -81,13 +87,16 @@ Deno.test('Mentioning with variable in parameter', async () => {
             output += message + '\n'
         },
     })
-    session.addModule(
-        '하랑봇',
-        `약속, (내용) 말하기
+
+    await session
+        .addModule(
+            '하랑봇',
+            `약속, (내용) 말하기
     내용 + "? 어쩌라고." 보여주기
 
 날씨 = "비"`,
-    )
+        )
+        .run()
 
     const codeFile = session.addModule(
         'main',
@@ -118,12 +127,13 @@ Deno.test('Mentioning with inline list literal', async () => {
         // },
     })
 
-    session.addModule(
-        '하랑봇',
-        `약속, 이렇게 (목록) 목록을 말하기
+    await session
+        .addModule(
+            '하랑봇',
+            `약속, 이렇게 (목록) 목록을 말하기
     목록 보여주기`,
-    )
-
+        )
+        .run()
     const codeFile = session.addModule(
         'main',
         `@하랑봇 이렇게 ["사과", "바나나", "체리"] 목록을 말하기`,

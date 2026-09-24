@@ -1,5 +1,5 @@
 import { QuickJS } from '@dalbit-yaksok/quickjs'
-import { assert, assertEquals, assertIsError, unreachable } from '@std/assert'
+import { assert, assertEquals, assertIsError } from '@std/assert'
 import { FFIResultTypeIsNotForYaksokError } from '../core/error/ffi.ts'
 import {
     ErrorOccurredWhileRunningFFIExecution,
@@ -74,14 +74,15 @@ Deno.test('다른 파일에 있는 연결 호출', async () => {
         }),
     )
 
-    session.addModule(
-        '유틸',
-        `번역(QuickJS), (질문) 물어보기
+    await session
+        .addModule(
+            '유틸',
+            `번역(QuickJS), (질문) 물어보기
 ***
     return prompt()
 ***`,
-    )
-
+        )
+        .run()
     const codeFile = session.addModule(
         'main',
         `(@유틸 ("이름이 뭐에요?") 물어보기) 보여주기
@@ -134,7 +135,12 @@ RRR
 })
 
 Deno.test('올바르지 않은 연결 반환값: JS String', async () => {
-    const session = new YaksokSession()
+    const errors: unknown[] = []
+    const session = new YaksokSession({
+        stderr(_message, _machineReadable, error) {
+            errors.push(error)
+        },
+    })
 
     await session.extend({
         manifest: {
@@ -159,16 +165,17 @@ SOMETHING
 (("이름이 뭐에요?") 물어보기) 보여주기`,
     )
 
-    try {
-        await codeFile.run()
-        unreachable()
-    } catch (error) {
-        assertIsError(error, FFIResultTypeIsNotForYaksokError)
-    }
+    await codeFile.run()
+    assertIsError(errors[0], FFIResultTypeIsNotForYaksokError)
 })
 
 Deno.test('올바르지 않은 연결 반환값: JS Object', async () => {
-    const session = new YaksokSession()
+    const errors: unknown[] = []
+    const session = new YaksokSession({
+        stderr(_message, _machineReadable, error) {
+            errors.push(error)
+        },
+    })
 
     await session.extend({
         manifest: {
@@ -193,16 +200,17 @@ CODES
 (("이름이 뭐에요?") 물어보기) 보여주기`,
     )
 
-    try {
-        await codeFile.run()
-        unreachable()
-    } catch (error) {
-        assertIsError(error, FFIResultTypeIsNotForYaksokError)
-    }
+    await codeFile.run()
+    assertIsError(errors[0], FFIResultTypeIsNotForYaksokError)
 })
 
 Deno.test('연결 반환값이 없음', async () => {
-    const session = new YaksokSession()
+    const errors: unknown[] = []
+    const session = new YaksokSession({
+        stderr(_message, _machineReadable, error) {
+            errors.push(error)
+        },
+    })
 
     await session.extend({
         manifest: {
@@ -227,16 +235,17 @@ CODES
 (("이름이 뭐에요?") 물어보기) 보여주기`,
     )
 
-    try {
-        await codeFile.run()
-        unreachable()
-    } catch (error) {
-        assertIsError(error, FFIResultTypeIsNotForYaksokError)
-    }
+    await codeFile.run()
+    assertIsError(errors[0], FFIResultTypeIsNotForYaksokError)
 })
 
 Deno.test('구현되지 않은 FFI', async () => {
-    const session = new YaksokSession()
+    const errors: unknown[] = []
+    const session = new YaksokSession({
+        stderr(_message, _machineReadable, error) {
+            errors.push(error)
+        },
+    })
 
     await session.extend({
         manifest: {
@@ -261,12 +270,8 @@ CODES
 (("이름이 뭐에요?") 물어보기) 보여주기`,
     )
 
-    try {
-        await codeFile.run()
-        unreachable()
-    } catch (error) {
-        assertIsError(error, ErrorOccurredWhileRunningFFIExecution)
-    }
+    await codeFile.run()
+    assertIsError(errors[0], ErrorOccurredWhileRunningFFIExecution)
 })
 
 Deno.test('Promise를 반환하는 FFI', async () => {

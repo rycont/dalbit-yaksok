@@ -61,6 +61,7 @@ export class SubscribeEvent extends Executable {
                                 session.stderr(
                                     renderErrorString(e),
                                     errorToMachineReadable(e),
+                                    e,
                                 )
                             }
                             resolve()
@@ -78,6 +79,8 @@ export class SubscribeEvent extends Executable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        return []
+        return Object.values(this.argumentEvaluator).flatMap((v) =>
+            v.validate(scope),
+        )
     }
 }

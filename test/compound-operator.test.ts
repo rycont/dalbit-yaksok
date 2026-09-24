@@ -1,7 +1,6 @@
 import { assertEquals } from 'assert/equals'
 import { assertInstanceOf } from 'assert/instance-of'
 import { assertIsError } from 'assert/is-error'
-import { unreachable } from '@std/assert'
 import {
     InvalidTypeForOperatorError,
     NumberValue,
@@ -100,14 +99,15 @@ for (const { a, b, operator } of INVALID_CASES_FOR_COMPOUND_OPERATORS) {
     Deno.test(`Invalid compound operator ${operator}`, async () => {
         const code = `result = ${a}
 result ${operator} ${b}`.trim()
-        const session = new YaksokSession()
-
-        try {
-            await session.addModule('main', code).run()
-            unreachable()
-        } catch (error) {
-            assertIsError(error, InvalidTypeForOperatorError)
-        }
+        const errors: unknown[] = []
+        const session = new YaksokSession({
+            stderr(_message, _machineReadable, error) {
+                errors.push(error)
+            },
+        })
+        const codeFile = session.addModule('main', code)
+        await codeFile.run()
+        assertIsError(errors[0], InvalidTypeForOperatorError)
     })
 }
 
@@ -115,12 +115,13 @@ Deno.test('Invalid compound operator in set to index', async () => {
     const code = `목록 = [1, 2, 3]
 목록[0] -= "홍길동"
 `
-    const session = new YaksokSession()
-
-    try {
-        await session.addModule('main', code).run()
-        unreachable()
-    } catch (error) {
-        assertIsError(error, InvalidTypeForOperatorError)
-    }
+    const errors: unknown[] = []
+    const session = new YaksokSession({
+        stderr(_message, _machineReadable, error) {
+            errors.push(error)
+        },
+    })
+    const codeFile = session.addModule('main', code)
+    await codeFile.run()
+    assertIsError(errors[0], InvalidTypeForOperatorError)
 })

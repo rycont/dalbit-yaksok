@@ -213,13 +213,14 @@ Deno.test('@mention 이벤트에서 외부 변수를 조건문에 사용하기',
         },
     })
 
-    session.addModule(
-        'device',
-        `
+    await session
+        .addModule(
+            'device',
+            `
 이벤트(BUTTON_PRESSED), 버튼 눌렀을 때
 `,
-    )
-
+        )
+        .run()
     const codeFile = session.addModule(
         'main',
         `
