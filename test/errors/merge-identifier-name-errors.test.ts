@@ -10,8 +10,11 @@ Deno.test('Merge identifier name errors', async () => {
         },
     })
 
-    session.addModule('main', `정의 되지 않은 약속`)
-    await session.runModules(['main'])
+    try {
+        await session.addModule('main', `정의 되지 않은 약속`).run()
+    } catch {
+        // stderr 출력은 아래에서 검증
+    }
 
     assertEquals(machineReadables.length, 1)
     assertEquals(

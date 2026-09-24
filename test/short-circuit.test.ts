@@ -1,15 +1,12 @@
 import { YaksokSession } from '../core/mod.ts'
-import { assert } from '@std/assert'
 import { assertEquals } from 'assert/equals'
 import { assertInstanceOf } from 'assert/instance-of'
 import { BooleanValue, NumberValue } from '../core/value/primitive.ts'
 
 async function run(code: string) {
     const session = new YaksokSession()
-    session.addModule('main', code)
-    const result = (await session.runModules(['main'])).main
-    assert(result.reason === 'finish')
-    return result.scope
+    const scope = await session.addModule('main', code).run()
+    return scope
 }
 
 function getBool(

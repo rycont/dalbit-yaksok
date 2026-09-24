@@ -5,9 +5,10 @@ import { NumberValue } from '../core/value/primitive.ts'
 
 Deno.test('Dictionary literal accepts numeric keys', async () => {
     const session = new YaksokSession()
-    session.addModule(
-        'main',
-        `소인수 = {
+    const scope = await session
+        .addModule(
+            'main',
+            `소인수 = {
     2: 0,
     3: 0,
     5: 0,
@@ -15,13 +16,8 @@ Deno.test('Dictionary literal accepts numeric keys', async () => {
 }
 
 소인수 보여주기`,
-    )
-
-    const results = await session.runModules(['main'])
-    const result = results.main
-    assertEquals(result.reason, 'finish')
-
-    const scope = result.scope
+        )
+        .run()
     const value = scope?.getVariable('소인수')
     assert(value instanceof IndexedValue)
 

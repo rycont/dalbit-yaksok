@@ -9,7 +9,7 @@ Deno.test('이벤트 구독 및 실행', async () => {
         },
     })
 
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `
 이벤트(TEST_EVENT), 테스트 이벤트
@@ -29,7 +29,7 @@ Deno.test('이벤트 구독 및 실행', async () => {
         terminate()
     })
 
-    await session.runModules(['main'])
+    await codeFile.run()
 
     assertEquals(output, '이벤트 실행됨\n이벤트 실행됨\n이벤트 실행됨\n')
 })
@@ -42,7 +42,7 @@ Deno.test('여러 이벤트 구독 및 실행', async () => {
         },
     })
 
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `
 이벤트(TEST_EVENT), 테스트 (A) 이벤트
@@ -71,7 +71,7 @@ Deno.test('여러 이벤트 구독 및 실행', async () => {
         }
     })
 
-    await session.runModules(['main'])
+    await codeFile.run()
 
     assertEquals(output, '이벤트 1 실행됨\n이벤트 2 실행됨\n')
 })
@@ -79,7 +79,7 @@ Deno.test('여러 이벤트 구독 및 실행', async () => {
 Deno.test('이벤트 구독 시 subscriber target 정보 전달', async () => {
     const session = new YaksokSession()
 
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `
 이벤트(TEST_EVENT), 테스트 이벤트
@@ -100,7 +100,7 @@ Deno.test('이벤트 구독 시 subscriber target 정보 전달', async () => {
         },
     )
 
-    await session.runModules(['main'])
+    await codeFile.run()
 
     const scope = receivedScope!
     assertInstanceOf(scope, Scope)
@@ -116,7 +116,7 @@ Deno.test('이벤트 밖에서 선언된 변수를 이벤트 안에서 읽기', 
         },
     })
 
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `
 이벤트(TEST_EVENT), 테스트 이벤트
@@ -133,7 +133,7 @@ Deno.test('이벤트 밖에서 선언된 변수를 이벤트 안에서 읽기', 
         terminate()
     })
 
-    await session.runModules(['main'])
+    await codeFile.run()
 
     assertEquals(output, '안녕하세요\n')
 })
@@ -146,7 +146,7 @@ Deno.test('이벤트 안에서 외부 변수를 조건문에 사용하기', asyn
         },
     })
 
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `
 이벤트(TEST_EVENT), 테스트 이벤트
@@ -169,7 +169,7 @@ Deno.test('이벤트 안에서 외부 변수를 조건문에 사용하기', asyn
         terminate()
     })
 
-    await session.runModules(['main'])
+    await codeFile.run()
 
     assertEquals(output, '출발\n정지\n')
 })
@@ -182,7 +182,7 @@ Deno.test('이벤트 안에서 외부 변수를 조건문에 사용하기 (단�
         },
     })
 
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `
 이벤트(TEST_EVENT), 테스트 이벤트
@@ -200,7 +200,7 @@ Deno.test('이벤트 안에서 외부 변수를 조건문에 사용하기 (단�
         terminate()
     })
 
-    await session.runModules(['main'])
+    await codeFile.run()
 
     assertEquals(output, '출발\n')
 })
@@ -220,7 +220,7 @@ Deno.test('@mention 이벤트에서 외부 변수를 조건문에 사용하기',
 `,
     )
 
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `
 상태 = "정지 중"
@@ -244,7 +244,7 @@ Deno.test('@mention 이벤트에서 외부 변수를 조건문에 사용하기',
         },
     )
 
-    await session.runModules(['main'])
+    await codeFile.run()
 
     assertEquals(output, '출발\n정지\n')
 })
@@ -257,7 +257,7 @@ Deno.test('이벤트 안에서 외부 변수 수정하기', async () => {
         },
     })
 
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `
 이벤트(TEST_EVENT), 테스트 이벤트
@@ -276,7 +276,7 @@ Deno.test('이벤트 안에서 외부 변수 수정하기', async () => {
         terminate()
     })
 
-    await session.runModules(['main'])
+    await codeFile.run()
 
     assertEquals(output, '정지 중\n가는 중\n')
 })

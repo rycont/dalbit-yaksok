@@ -1,4 +1,4 @@
-import { assert, assertEquals, assertIsError } from '@std/assert'
+import { assertEquals, assertIsError, unreachable } from '@std/assert'
 import {
     AlreadyDefinedFunctionError,
     InvalidTypeForOperatorError,
@@ -7,19 +7,22 @@ import { YaksokSession } from '../../core/mod.ts'
 
 Deno.test('약속 안에서 발생한 오류', async () => {
     const session = new YaksokSession()
-    session.addModule(
-        'main',
-        `약속, 신나게 놀기
+
+    try {
+        await session
+            .addModule(
+                'main',
+                `약속, 신나게 놀기
     "이름" / 10 보여주기
 
 신나게 놀기`,
-    )
-    const result = (await session.runModules(['main'])).main
-    assert(
-        result.reason === 'error',
-        `Expected an error, but got ${result.reason}`,
-    )
-    assertIsError(result.errors?.[0], InvalidTypeForOperatorError)
+            )
+            .run()
+
+        unreachable()
+    } catch (error) {
+        assertIsError(error, InvalidTypeForOperatorError)
+    }
 })
 
 Deno.test('동일한 이름으로 약속 재정의 오류', async () => {
@@ -45,7 +48,7 @@ Deno.test('동일한 이름으로 약속 재정의 오류', async () => {
         },
     })
 
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `
 약속, 테스트하기
@@ -56,10 +59,7 @@ Deno.test('동일한 이름으로 약속 재정의 오류', async () => {
 `,
     )
 
-    const results = await session.runModules(['main'])
-    const result = results.main
-    assert(result.reason === 'validation')
-    assertIsError(result.errors![0], AlreadyDefinedFunctionError)
+    assertIsError(codeFile.prepareErrors[0], AlreadyDefinedFunctionError)
 
     assertEquals(
         stderrOutput,
@@ -91,7 +91,7 @@ Deno.test('다른 범위에서 동일한 이름으로 약속 정의 (오류 없�
         },
     })
 
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `
 약속, 바깥함수
@@ -109,12 +109,6 @@ Deno.test('다른 범위에서 동일한 이름으로 약속 정의 (오류 없�
 `,
     )
 
-    const results = await session.runModules(['main'])
-    const result = results.main
-
-    assert(
-        result.reason === 'finish',
-        `Expected finish, but got ${result.reason}`,
-    )
+    await codeFile.run()
     assertEquals(output, '안쪽함수 실행됨\n다른 안쪽함수 실행됨\n')
 })

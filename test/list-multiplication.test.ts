@@ -1,7 +1,7 @@
-import { assert } from '@std/assert'
 import { assertEquals } from 'assert/equals'
 import { assertInstanceOf } from 'assert/instance-of'
 import { assertIsError } from 'assert/is-error'
+import { unreachable } from '@std/assert'
 import {
     BooleanValue,
     InvalidTypeForOperatorError,
@@ -12,11 +12,7 @@ import {
 
 Deno.test('List multiplied by integer repeats elements', async () => {
     const session = new YaksokSession()
-    session.addModule('main', `결과 = [참] * 3`)
-    const result = (await session.runModules(['main'])).main
-    assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
-
-    const scope = result.scope!
+    const scope = await session.addModule('main', `결과 = [참] * 3`).run()
     const stored = scope.getVariable('결과')
     assertInstanceOf(stored, ListValue)
 
@@ -31,11 +27,7 @@ Deno.test('List multiplied by integer repeats elements', async () => {
 
 Deno.test('Number multiplied by list repeats list elements', async () => {
     const session = new YaksokSession()
-    session.addModule('main', `결과 = 3 * [1, 2]`)
-    const result = (await session.runModules(['main'])).main
-    assert(result.reason === 'finish', `Expected finish, got ${result.reason}`)
-
-    const scope = result.scope!
+    const scope = await session.addModule('main', `결과 = 3 * [1, 2]`).run()
     const stored = scope.getVariable('결과')
     assertInstanceOf(stored, ListValue)
 
@@ -52,20 +44,20 @@ Deno.test('Number multiplied by list repeats list elements', async () => {
 
 Deno.test('List multiplication requires non-negative integers', async () => {
     const session = new YaksokSession()
-    session.addModule('main', `결과 = [1] * -1`)
-    const negativeResult = (await session.runModules(['main'])).main
-    assert(
-        negativeResult.reason === 'error',
-        `Expected error, got ${negativeResult.reason}`,
-    )
-    assertIsError(negativeResult.errors?.[0], InvalidTypeForOperatorError)
+
+    try {
+        await session.addModule('main', `결과 = [1] * -1`).run()
+        unreachable()
+    } catch (error) {
+        assertIsError(error, InvalidTypeForOperatorError)
+    }
 
     const session2 = new YaksokSession()
-    session2.addModule('main', `결과 = [1] * 2.5`)
-    const decimalResult = (await session2.runModules(['main'])).main
-    assert(
-        decimalResult.reason === 'error',
-        `Expected error, got ${decimalResult.reason}`,
-    )
-    assertIsError(decimalResult.errors?.[0], InvalidTypeForOperatorError)
+
+    try {
+        await session2.addModule('main', `결과 = [1] * 2.5`).run()
+        unreachable()
+    } catch (error) {
+        assertIsError(error, InvalidTypeForOperatorError)
+    }
 })

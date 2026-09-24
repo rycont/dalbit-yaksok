@@ -13,35 +13,3 @@ export interface ParameterElement {
 export interface FunctionInvokingParams {
     [key: string]: ValueType
 }
-
-export interface RunModuleResultBase {
-    reason: string
-    scope?: Scope
-    errors?: YaksokError[]
-}
-
-export interface SuccessRunModuleResult extends RunModuleResultBase {
-    reason: 'finish'
-    scope: Scope
-}
-
-export interface AbortedRunModuleResult extends RunModuleResultBase {
-    reason: 'aborted'
-    scope: Scope
-}
-
-export interface ErrorRunModuleResult extends RunModuleResultBase {
-    reason: 'error'
-    errors: YaksokError[]
-}
-
-export type ValidationRunModuleResult = RunModuleResultBase & {
-    reason: 'validation'
-    errors: YaksokError[]
-}
-
-export type RunModuleResult =
-    | SuccessRunModuleResult
-    | AbortedRunModuleResult
-    | ErrorRunModuleResult
-    | ValidationRunModuleResult

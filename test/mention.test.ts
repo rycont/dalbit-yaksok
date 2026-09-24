@@ -47,7 +47,7 @@ KTX이음 = "KTX-이음"
     "빵빵" 보여주기
         `.trim(),
     )
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `
 "청량리부터 안동까지 KTX 이음을 타면" 보여주기
@@ -60,7 +60,7 @@ KTX이음 = "KTX-이음"
         `,
     )
 
-    await session.runModules(['main'])
+    await codeFile.run()
 
     assertEquals(
         output,
@@ -89,14 +89,14 @@ Deno.test('Mentioning with variable in parameter', async () => {
 날씨 = "비"`,
     )
 
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `할말 = "뭐라고"
 @하랑봇 할말 말하기
 @하랑봇 (@하랑봇 날씨) 말하기`,
     )
 
-    await session.runModules(['main'])
+    await codeFile.run()
 
     assertEquals(
         output,
@@ -124,12 +124,12 @@ Deno.test('Mentioning with inline list literal', async () => {
     목록 보여주기`,
     )
 
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `@하랑봇 이렇게 ["사과", "바나나", "체리"] 목록을 말하기`,
     )
 
-    await session.runModules(['main'])
+    await codeFile.run()
 
     assertEquals(
         output,

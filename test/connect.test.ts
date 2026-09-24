@@ -1,5 +1,5 @@
 import { QuickJS } from '@dalbit-yaksok/quickjs'
-import { assert, assertEquals, assertIsError } from '@std/assert'
+import { assert, assertEquals, assertIsError, unreachable } from '@std/assert'
 import { FFIResultTypeIsNotForYaksokError } from '../core/error/ffi.ts'
 import {
     ErrorOccurredWhileRunningFFIExecution,
@@ -24,7 +24,7 @@ Deno.test('연결 문법을 사용하여 자바스크립트 함수 호출', asyn
         }),
     )
 
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `
 번역(QuickJS), (질문) 물어보기
@@ -49,7 +49,7 @@ Deno.test('연결 문법을 사용하여 자바스크립트 함수 호출', asyn
 `,
     )
 
-    await session.runModules(['main'])
+    await codeFile.run()
 
     assertEquals(
         output,
@@ -82,13 +82,13 @@ Deno.test('다른 파일에 있는 연결 호출', async () => {
 ***`,
     )
 
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `(@유틸 ("이름이 뭐에요?") 물어보기) 보여주기
 `,
     )
 
-    await session.runModules(['main'])
+    await codeFile.run()
 
     assertEquals(output, '황선형\n')
 })
@@ -119,7 +119,7 @@ Deno.test('리스트를 반환하는 연결', async () => {
         },
     })
 
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `번역(mock), (질문) 물어보기
 ***
@@ -128,7 +128,7 @@ RRR
 (("이름이 뭐에요?") 물어보기) 보여주기`,
     )
 
-    await session.runModules(['main'])
+    await codeFile.run()
 
     assertEquals(output, '[황선형, 도지석]\n')
 })
@@ -150,7 +150,7 @@ Deno.test('올바르지 않은 연결 반환값: JS String', async () => {
         },
     })
 
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `번역(mock), (질문) 물어보기
 ***
@@ -159,11 +159,12 @@ SOMETHING
 (("이름이 뭐에요?") 물어보기) 보여주기`,
     )
 
-    const results = await session.runModules(['main'])
-    const result = results.main
-    console.log(result)
-    assert(result.reason === 'error')
-    assertIsError(result.errors?.[0], FFIResultTypeIsNotForYaksokError)
+    try {
+        await codeFile.run()
+        unreachable()
+    } catch (error) {
+        assertIsError(error, FFIResultTypeIsNotForYaksokError)
+    }
 })
 
 Deno.test('올바르지 않은 연결 반환값: JS Object', async () => {
@@ -183,7 +184,7 @@ Deno.test('올바르지 않은 연결 반환값: JS Object', async () => {
         },
     })
 
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `번역(mock), (질문) 물어보기
 ***
@@ -192,11 +193,12 @@ CODES
 (("이름이 뭐에요?") 물어보기) 보여주기`,
     )
 
-    const results = await session.runModules(['main'])
-    const result = results.main
-
-    assert(result.reason === 'error')
-    assertIsError(result.errors?.[0], FFIResultTypeIsNotForYaksokError)
+    try {
+        await codeFile.run()
+        unreachable()
+    } catch (error) {
+        assertIsError(error, FFIResultTypeIsNotForYaksokError)
+    }
 })
 
 Deno.test('연결 반환값이 없음', async () => {
@@ -216,7 +218,7 @@ Deno.test('연결 반환값이 없음', async () => {
         },
     })
 
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `번역(mock), (질문) 물어보기
 ***
@@ -225,10 +227,12 @@ CODES
 (("이름이 뭐에요?") 물어보기) 보여주기`,
     )
 
-    const results = await session.runModules(['main'])
-    const result = results.main
-    assert(result.reason === 'error')
-    assertIsError(result.errors?.[0], FFIResultTypeIsNotForYaksokError)
+    try {
+        await codeFile.run()
+        unreachable()
+    } catch (error) {
+        assertIsError(error, FFIResultTypeIsNotForYaksokError)
+    }
 })
 
 Deno.test('구현되지 않은 FFI', async () => {
@@ -248,7 +252,7 @@ Deno.test('구현되지 않은 FFI', async () => {
         },
     })
 
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `번역(mock), (질문) 물어보기
 ***
@@ -257,10 +261,12 @@ CODES
 (("이름이 뭐에요?") 물어보기) 보여주기`,
     )
 
-    const results = await session.runModules(['main'])
-    const result = results.main
-    assert(result.reason === 'error')
-    assertIsError(result.errors?.[0], ErrorOccurredWhileRunningFFIExecution)
+    try {
+        await codeFile.run()
+        unreachable()
+    } catch (error) {
+        assertIsError(error, ErrorOccurredWhileRunningFFIExecution)
+    }
 })
 
 Deno.test('Promise를 반환하는 FFI', async () => {
@@ -295,7 +301,7 @@ Deno.test('Promise를 반환하는 FFI', async () => {
         },
     })
 
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `번역(Runtime), (숫자)초 기다리기
 ***
@@ -307,7 +313,7 @@ wait
 `,
     )
 
-    await session.runModules(['main'])
+    await codeFile.run()
 
     const timeDelta = +new Date() - startTime
 
@@ -334,7 +340,7 @@ Deno.test('한 단어로 된 FFI 이름', async () => {
         }),
     )
 
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `번역(QuickJS), 물어보기
 ***
@@ -349,7 +355,7 @@ Deno.test('한 단어로 된 FFI 이름', async () => {
 `,
     )
 
-    await session.runModules(['main'])
+    await codeFile.run()
 
     assertEquals(
         output,
@@ -368,7 +374,7 @@ Deno.test('이름에 변형이 있는 함수 선언', async () => {
 
     await session.extend(new QuickJS())
 
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `번역(QuickJS), 지금/현재 시간 가져오기
 ***
@@ -385,7 +391,7 @@ Deno.test('이름에 변형이 있는 함수 선언', async () => {
 `,
     )
 
-    await session.runModules(['main'])
+    await codeFile.run()
 
     assertEquals(
         output,

@@ -1,12 +1,14 @@
-import { assert, assertInstanceOf } from '@std/assert'
+import { assertInstanceOf, unreachable } from '@std/assert'
 import { InvalidTypeForOperatorError } from '../../core/error/calculation.ts'
 import { IndexKeyNotFoundError, YaksokSession } from '../../core/mod.ts'
 
 Deno.test('Key is not found in dictionary', async () => {
     const session = new YaksokSession()
-    session.addModule(
-        'main',
-        `객체 = {
+    try {
+        await session
+            .addModule(
+                'main',
+                `객체 = {
     이름: '홍길동'
     나이: 30
     주소: '서울시 강남구',
@@ -24,20 +26,22 @@ Deno.test('Key is not found in dictionary', async () => {
 }
 
 객체['자격증']['자식새끼'][1] 보여주기`,
-    )
+            )
+            .run()
 
-    const results = await session.runModules(['main'])
-    const result = results.main
-
-    assert(result.reason === 'error')
-    assertInstanceOf(result.errors?.[0], IndexKeyNotFoundError)
+        unreachable()
+    } catch (error) {
+        assertInstanceOf(error, IndexKeyNotFoundError)
+    }
 })
 
 Deno.test('Dict Compound Assignment Operation Error', async () => {
     const session = new YaksokSession()
-    session.addModule(
-        'main',
-        `객체 = {
+    try {
+        await session
+            .addModule(
+                'main',
+                `객체 = {
     이름: '홍길동'
     나이: 30
     주소: '서울시 강남구',
@@ -47,11 +51,11 @@ Deno.test('Dict Compound Assignment Operation Error', async () => {
 객체['나이'] 보여주기
 
 객체['주소'] -= 2`,
-    )
+            )
+            .run()
 
-    const results = await session.runModules(['main'])
-    const result = results.main
-
-    assert(result.reason === 'error')
-    assertInstanceOf(result.errors?.[0], InvalidTypeForOperatorError)
+        unreachable()
+    } catch (error) {
+        assertInstanceOf(error, InvalidTypeForOperatorError)
+    }
 })

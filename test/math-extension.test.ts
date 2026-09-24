@@ -10,8 +10,7 @@ async function runMath(code: string): Promise<string> {
         },
     })
     await session.extend(new MathExtension())
-    session.addModule('main', code)
-    await session.runModules(['main'])
+    await session.addModule('main', code).run()
     return output.trim()
 }
 

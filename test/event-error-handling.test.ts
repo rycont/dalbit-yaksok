@@ -9,7 +9,7 @@ Deno.test('이벤트 내부에서 발생한 오류가 stderr로 전달된다', a
         },
     })
 
-    session.addModule(
+    const codeFile = session.addModule(
         'main',
         `
 이벤트(TEST_EVENT), 테스트 이벤트
@@ -24,7 +24,7 @@ Deno.test('이벤트 내부에서 발생한 오류가 stderr로 전달된다', a
         terminate()
     })
 
-    await session.runModules(['main'])
+    await codeFile.run()
 
     assert(stderrCalled, '이벤트 내부 오류가 stderr로 보고되어야 한다')
 })
@@ -38,7 +38,7 @@ Deno.test({
             stderr() {},
         })
 
-        session.addModule(
+        const codeFile = session.addModule(
             'main',
             `
 이벤트(TEST_EVENT), 테스트 이벤트
@@ -57,7 +57,7 @@ Deno.test({
             throw new Error('runModule이 3초 내에 완료되지 않았다 (hang)')
         }, 3000)
 
-        await session.runModules(['main'])
+        await codeFile.run()
         clearTimeout(timer)
     },
 })

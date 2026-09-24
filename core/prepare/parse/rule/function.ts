@@ -9,6 +9,8 @@ import {
     FFIBody,
     u,
     DeclareFFI,
+    SubscribeEvent,
+    DeclareEvent,
 } from '@dalbit-yaksok/core'
 import { FunctionType } from '../dynamicRule/local/type.ts'
 
@@ -59,6 +61,21 @@ export const FUNCTION_RULES: Rule[] = [
                 header.invokingRules,
                 tokens,
             )
+        },
+    }),
+    r({
+        pattern: [
+            u(
+                FunctionDeclareHeader<FunctionType.이벤트>,
+                v.object({
+                    range: v.object({
+                        type: v.literal(FunctionType.이벤트),
+                    }),
+                }),
+            ),
+        ],
+        factory([header], tokens) {
+            return new DeclareEvent(header.range.id, header.name, tokens)
         },
     }),
 ]

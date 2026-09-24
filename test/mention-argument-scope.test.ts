@@ -22,47 +22,37 @@ async function run(code: string) {
     })
 
     session.addModule('장치', 모듈)
-    session.addModule('main', code)
+    const codeFile = session.addModule('main', code)
 
-    const result = (await session.runModules(['main'])).main
-    return { result, printed }
+    return { codeFile, printed }
 }
 
 async function validationErrors(code: string): Promise<YaksokError[]> {
-    const { result } = await run(code)
-    assert(
-        result.reason === 'validation',
-        `검증 오류를 기대했지만 "${result.reason}"이 나왔어요`,
-    )
+    const { codeFile } = await run(code)
 
-    return result.errors
+    return codeFile.prepareErrors
 }
 
 Deno.test('인자는 호출한 쪽 스코프에서 평가된다', async (t) => {
     await t.step('블록 호출', async () => {
-        const { result, printed } = await run(
+        const { codeFile, printed } = await run(
             `값 = 9\n@장치 이동하기\n    가로: 값\n    세로: 2`,
         )
-        assert(
-            result.reason === 'finish',
-            `실행이 끝나야 해요: ${result.reason}`,
-        )
+        await codeFile.run()
         assertEquals(printed, ['9,2'])
     })
 
     await t.step('괄호 호출', async () => {
-        const { result, printed } = await run(`값 = 9\n@장치 이동하기(값, 2)`)
-        assert(
-            result.reason === 'finish',
-            `실행이 끝나야 해요: ${result.reason}`,
-        )
+        const { codeFile, printed } = await run(`값 = 9\n@장치 이동하기(값, 2)`)
+        await codeFile.run()
         assertEquals(printed, ['9,2'])
     })
 
     await t.step('수식도 호출한 쪽에서 평가된다', async () => {
-        const { printed } = await run(
+        const { codeFile, printed } = await run(
             `값 = 9\n@장치 이동하기\n    가로: 값 + 1\n    세로: 2`,
         )
+        await codeFile.run()
         assertEquals(printed, ['10,2'])
     })
 
@@ -93,11 +83,8 @@ Deno.test('모듈 너머의 약속도 인자 검사를 받는다', async (t) => 
     })
 
     await t.step('선택 인자는 생략해도 된다', async () => {
-        const { result, printed } = await run(`@장치 설정하기(1)`)
-        assert(
-            result.reason === 'finish',
-            `실행이 끝나야 해요: ${result.reason}`,
-        )
+        const { codeFile, printed } = await run(`@장치 설정하기(1)`)
+        await codeFile.run()
         assertEquals(printed, ['비어있음'])
     })
 })

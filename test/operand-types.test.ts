@@ -1,4 +1,4 @@
-import { assert, assertIsError } from '@std/assert'
+import { assertIsError, unreachable } from '@std/assert'
 import {
     InvalidTypeForCompareError,
     InvalidTypeForOperatorError,
@@ -113,15 +113,13 @@ for (const { a, b, operator } of WRONG_CASES_FOR_CALCULATION) {
         `.trim()
 
         const session = new YaksokSession()
-        session.addModule('main', code)
 
-        const result = (await session.runModules(['main'])).main
-
-        assert(
-            result.reason === 'error',
-            `Expected an error, but got ${result.reason}`,
-        )
-        assertIsError(result.errors?.[0], InvalidTypeForOperatorError)
+        try {
+            await session.addModule('main', code).run()
+            unreachable()
+        } catch (error) {
+            assertIsError(error, InvalidTypeForOperatorError)
+        }
     })
 }
 
@@ -132,14 +130,12 @@ for (const { a, b, operator } of WRONG_CASES_FOR_COMPARISON) {
         `.trim()
 
         const session = new YaksokSession()
-        session.addModule('main', code)
 
-        const result = (await session.runModules(['main'])).main
-
-        assert(
-            result.reason === 'error',
-            `Expected an error, but got ${result.reason}`,
-        )
-        assertIsError(result.errors?.[0], InvalidTypeForCompareError)
+        try {
+            await session.addModule('main', code).run()
+            unreachable()
+        } catch (error) {
+            assertIsError(error, InvalidTypeForCompareError)
+        }
     })
 }

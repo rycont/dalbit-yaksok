@@ -181,6 +181,7 @@ const rangeToRules = (allTokens: Token[]) => (range: FunctionDeclareRange) => {
         functionName,
         headerParts,
         parameterScheme,
+        range,
     )
 
     const lineTokens = allTokens.slice(range.line.start, range.line.end + 1)

@@ -1,44 +1,35 @@
-import { YaksokError } from '../error/common.ts'
 import {
     AlreadyRegisteredModuleError,
+    CodeFile,
+    ErrorInFFIExecution,
+    Events,
+    Extension,
     FFIRuntimeNotFound,
+    FunctionInvokingParams,
     MultipleFFIRuntimeError,
-} from '../error/prepare.ts'
-import { CodeFile } from '../type/code-file.ts'
+    Rule,
+    Scope,
+    SessionConfig,
+    ValueType,
+} from '@dalbit-yaksok/core'
+
 import { PubSub } from '../util/pubsub.ts'
-import {
-    DEFAULT_SESSION_CONFIG,
-    type Events,
-    type SessionConfig,
-} from './session-config.ts'
-
-import { FunctionInvokingParams, RunModuleResult } from '../constant/type.ts'
-
-import type { Extension } from '../extension/extension.ts'
-import type { ValueType } from '../value/base.ts'
-import type { Scope } from '../executer/scope.ts'
-
-import { ErrorInFFIExecution } from '../error/ffi.ts'
-import { Rule } from '@dalbit-yaksok/core'
+import { DEFAULT_SESSION_CONFIG } from './session-config.ts'
 
 const THREAD_YIELD_INTERVAL = 300
 
 export class YaksokSession {
     public id: string = crypto.randomUUID()
+
     public runningPromise: Promise<void> | null = null
-    /** `보여주기` 출력 훅 */
+
     public stdout: SessionConfig['stdout']
-    /** 에러 출력 훅 */
     public stderr: SessionConfig['stderr']
-    /** FFI 확장 목록 */
+
     public extensions: Extension[] = []
     public baseScope: Scope | null = null
-    /** 외부 중단 시그널 */
     public signal: AbortSignal | null = null
-    public stepByStep: boolean = false
-    /** 세션 이벤트 버스 */
     public pubsub: PubSub<Events> = new PubSub<Events>()
-    /** 세션에 등록된 모듈 저장소 */
     public files: Record<string, CodeFile> = {}
 
     private tickCounter = 0
@@ -107,9 +98,7 @@ export class YaksokSession {
     async runModules<const T extends string[]>(
         fileNames: T,
     ): Promise<Record<T[number], PromiseSettledResult<Scope>>> {
-        if (this.runningPromise) {
-            throw new Error('세션이 이미 실행중입니다.')
-        }
+        await this.runningPromise
 
         const runningPromise = Promise.allSettled(
             fileNames.map((n) => this.files[n].run()),
@@ -119,7 +108,7 @@ export class YaksokSession {
 
         const entries = Object.fromEntries(
             (await runningPromise).map((r, i) => [fileNames[i], r]),
-        )
+        ) as Record<T[number], PromiseSettledResult<Scope>>
 
         return entries
     }

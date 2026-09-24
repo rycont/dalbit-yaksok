@@ -56,8 +56,7 @@ export class MentionScope extends Evaluable<FunctionInvoke | Identifier> {
             }
 
             if (this.subnode instanceof SubscribeEvent) {
-                this.subnode.callerScope = scope
-                await this.subnode.execute(this.definedScope)
+                await this.subnode.execute(scope)
                 return new EmptyValue()
             }
 

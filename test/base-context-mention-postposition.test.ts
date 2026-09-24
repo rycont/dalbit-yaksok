@@ -28,9 +28,9 @@ Deno.test('base context variable used in mention with postposition splitting', a
     )
 
     // Main module uses @mention with base context variable + postposition
-    session.addModule('main', `@처리기 과일로 처리하기`)
+    const codeFile = session.addModule('main', `@처리기 과일로 처리하기`)
 
-    await session.runModules(['main'])
+    await codeFile.run()
 
     assertEquals(output, '[사과, 바나나, 딸기, 사과, 딸기, 사과]\n')
 })
@@ -57,9 +57,9 @@ Deno.test('base context variable does not leak into mentioned module exported ru
     )
 
     // Main uses @mention with the base context variable + postposition
-    session.addModule('main', `@도구 값로 출력하기`)
+    const codeFile = session.addModule('main', `@도구 값로 출력하기`)
 
-    await session.runModules(['main'])
+    await codeFile.run()
 
     assertEquals(output, '42\n')
 })

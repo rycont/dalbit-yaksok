@@ -1,13 +1,24 @@
 import { ParameterElement, Rule } from '@dalbit-yaksok/core'
-import { FunctionHeaderPart, FunctionPartType } from '../type.ts'
+import {
+    FunctionDeclareRange,
+    FunctionHeaderPart,
+    FunctionPartType,
+    FunctionType,
+} from '../type.ts'
 import { createInterleavingRule } from './interleaving.ts'
 import { createBlockRule } from './block.ts'
+import { createEventSubscriptionRules } from './event.ts'
 
 export function createCallingRules(
     functionName: string,
     headerParts: FunctionHeaderPart[],
     parameterScheme: ParameterElement[],
+    range: FunctionDeclareRange,
 ): Rule[] {
+    if (range.type === FunctionType.이벤트) {
+        return [createEventSubscriptionRules(headerParts, range)]
+    }
+
     const interleavingRule = createInterleavingRule(
         functionName,
         headerParts,

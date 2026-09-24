@@ -14,8 +14,7 @@ async function runStats(code: string): Promise<string> {
         },
     })
     await session.extend(new StatisticsExtension())
-    session.addModule('main', code)
-    await session.runModules(['main'])
+    await session.addModule('main', code).run()
 
     if (errorOutput.trim()) {
         throw new Error(errorOutput.trim())

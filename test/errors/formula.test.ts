@@ -1,4 +1,4 @@
-import { assert, assertAlmostEquals, assertInstanceOf } from '@std/assert'
+import { assertAlmostEquals, assertInstanceOf } from '@std/assert'
 import { NumberValue, YaksokSession } from '../../core/mod.ts'
 
 function createRandomValue(depth = 0): number | (string | number)[] {
@@ -38,10 +38,8 @@ for (let i = 0; i < 10; i++) {
     `
 
         const session = new YaksokSession()
-        session.addModule('main', code)
-        const result = (await session.runModules(['main'])).main
-        assert(result.reason === 'finish')
-        const 나이 = result.scope!.getVariable('나이') as NumberValue
+        const scope = await session.addModule('main', code).run()
+        const 나이 = scope.getVariable('나이') as NumberValue
 
         assertInstanceOf(나이, NumberValue)
         /* oxlint-disable-next-line no-eval */

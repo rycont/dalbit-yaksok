@@ -12,8 +12,8 @@ Deno.test('setBaseContext: 다른 변수명으로 읽기 (정상 케이스)', as
 
     session.useBaseScope(await session.addModule('base', '값 = 5').run())
 
-    session.addModule('main', '결과 = 값 + 10\n결과 보여주기')
-    await session.runModules(['main'])
+    const codeFile = session.addModule('main', '결과 = 값 + 10\n결과 보여주기')
+    await codeFile.run()
 
     assertEquals(output.trim(), '15')
 })
@@ -29,8 +29,8 @@ Deno.test('setBaseContext: 단순 읽기', async () => {
 
     session.useBaseScope(await session.addModule('base', '값 = 5').run())
 
-    session.addModule('main', '값 보여주기')
-    await session.runModules(['main'])
+    const codeFile = session.addModule('main', '값 보여주기')
+    await codeFile.run()
 
     assertEquals(output.trim(), '5')
 })
@@ -47,8 +47,8 @@ Deno.test('setBaseContext: 새 변수 선언은 로컬 스코프에 생성됨', 
     const baseContextScope = await session.addModule('base', '값 = 5').run()
     session.useBaseScope(baseContextScope)
 
-    session.addModule('main', '새값 = 100\n새값 보여주기')
-    await session.runModules(['main'])
+    const codeFile = session.addModule('main', '새값 = 100\n새값 보여주기')
+    await codeFile.run()
 
     assertEquals(output.trim(), '100')
 
@@ -68,8 +68,8 @@ Deno.test('setBaseContext: 같은 변수명으로 재대입하면 값 + 10 = 15�
 
     session.useBaseScope(await session.addModule('base', '값 = 5').run())
 
-    session.addModule('main', '값 = 값 + 10\n값 보여주기')
-    await session.runModules(['main'])
+    const codeFile = session.addModule('main', '값 = 값 + 10\n값 보여주기')
+    await codeFile.run()
 
     // 값 = 5 + 10 = 15
     assertEquals(
@@ -111,8 +111,8 @@ Deno.test('재대입 후 parent scope에 반영됨', async () => {
 
     session.useBaseScope(await session.addModule('base', '값 = 5').run())
 
-    session.addModule('main', '값 = 값 + 10')
-    await session.runModules(['main'])
+    const codeFile = session.addModule('main', '값 = 값 + 10')
+    await codeFile.run()
 
     // 런타임 재대입은 parent scope chain을 타고 올라가 실제 값을 갱신함 (노트북 시맨틱)
     const baseContextScope = session.baseScope
@@ -134,8 +134,8 @@ Deno.test('복합 대입 연산자로 재대입', async () => {
 
     session.useBaseScope(await session.addModule('base', '값 = 5').run())
 
-    session.addModule('main', '값 += 10\n값 보여주기')
-    await session.runModules(['main'])
+    const codeFile = session.addModule('main', '값 += 10\n값 보여주기')
+    await codeFile.run()
 
     // 5 + 10 = 15
     assertEquals(

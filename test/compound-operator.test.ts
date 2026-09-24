@@ -1,7 +1,7 @@
-import { assert } from 'assert/assert'
 import { assertEquals } from 'assert/equals'
 import { assertInstanceOf } from 'assert/instance-of'
 import { assertIsError } from 'assert/is-error'
+import { unreachable } from '@std/assert'
 import {
     InvalidTypeForOperatorError,
     NumberValue,
@@ -78,15 +78,9 @@ for (const { a, b, operator, expected } of VALID_CASES_FOR_COMPOUND_OPERATORS) {
         const code = `result = ${a}
 result ${operator} ${b}`.trim()
         const session = new YaksokSession()
-        session.addModule('main', code)
-        const result = (await session.runModules(['main'])).main
+        const scope = await session.addModule('main', code).run()
 
-        assert(
-            result.reason === 'finish',
-            `Expected finish, got ${result.reason}`,
-        )
-
-        const resultValue = result.scope!.getVariable('result')
+        const resultValue = scope.getVariable('result')
 
         const expectedType =
             typeof a === 'string' || typeof b === 'string'
@@ -107,13 +101,13 @@ for (const { a, b, operator } of INVALID_CASES_FOR_COMPOUND_OPERATORS) {
         const code = `result = ${a}
 result ${operator} ${b}`.trim()
         const session = new YaksokSession()
-        session.addModule('main', code)
-        const result = (await session.runModules(['main'])).main
-        assert(
-            result.reason === 'error',
-            `Expected an error, but got ${result.reason}`,
-        )
-        assertIsError(result.errors?.[0], InvalidTypeForOperatorError)
+
+        try {
+            await session.addModule('main', code).run()
+            unreachable()
+        } catch (error) {
+            assertIsError(error, InvalidTypeForOperatorError)
+        }
     })
 }
 
@@ -122,11 +116,11 @@ Deno.test('Invalid compound operator in set to index', async () => {
 목록[0] -= "홍길동"
 `
     const session = new YaksokSession()
-    session.addModule('main', code)
-    const result = (await session.runModules(['main'])).main
-    assert(
-        result.reason === 'error',
-        `Expected an error, but got ${result.reason}`,
-    )
-    assertIsError(result.errors?.[0], InvalidTypeForOperatorError)
+
+    try {
+        await session.addModule('main', code).run()
+        unreachable()
+    } catch (error) {
+        assertIsError(error, InvalidTypeForOperatorError)
+    }
 })

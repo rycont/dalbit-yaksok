@@ -1,20 +1,26 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
-import { QuickJS } from '@dalbit-yaksok/quickjs'
+// import { QuickJS } from '@dalbit-yaksok/quickjs'
 
 const session = new YaksokSession()
-await session.extend(new QuickJS())
+// await session.extend(new QuickJS())
+
+session.eventCreation.sub('TEST_EVENT', async (_, callback, terminate) => {
+    callback()
+    await new Promise<void>((ok) => setTimeout(ok, 1000))
+    callback()
+    await new Promise<void>((ok) => setTimeout(ok, 1000))
+    callback()
+    await new Promise<void>((ok) => setTimeout(ok, 1000))
+
+    terminate()
+})
 
 await session
     .addModule(
         'main',
-        `
-번역(QuickJS), (par)에 (target)이 포함
-***
-return par.includes(target)
-***
+        `이벤트(TEST_EVENT), 테스트 이벤트
 
-결과 = "안녕하세요"에 "안녕"이 포함
-결과 보여주기
-`,
+테스트 이벤트
+    "이벤트 실행됨" 보여주기`,
     )
     .run()

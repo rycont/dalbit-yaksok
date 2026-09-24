@@ -1,5 +1,5 @@
 import { YaksokSession } from '../core/mod.ts'
-import { assert, assertEquals, assertInstanceOf } from '@std/assert'
+import { assertEquals, assertInstanceOf, unreachable } from '@std/assert'
 import {
     BooleanValue,
     NumberValue,
@@ -9,10 +9,10 @@ import { InvalidTypeCastError } from '../core/error/typecast.ts'
 
 Deno.test('문자열을 숫자로 바꾸기', async () => {
     const session = new YaksokSession()
-    session.addModule('main', `결과 = "123" 을 숫자로 바꾸기`)
-
-    const runResult = await session.runModules(['main'])
-    const variable = runResult.main.scope?.getVariable('결과')
+    const scope = await session
+        .addModule('main', `결과 = "123" 을 숫자로 바꾸기`)
+        .run()
+    const variable = scope.getVariable('결과')
 
     assertInstanceOf(variable, NumberValue)
     assertEquals(variable.value, 123)
@@ -20,10 +20,10 @@ Deno.test('문자열을 숫자로 바꾸기', async () => {
 
 Deno.test('문자열(소수)을 숫자로 바꾸기', async () => {
     const session = new YaksokSession()
-    session.addModule('main', `결과 = "3.14" 를 숫자로 바꾸기`)
-
-    const runResult = await session.runModules(['main'])
-    const variable = runResult.main.scope?.getVariable('결과')
+    const scope = await session
+        .addModule('main', `결과 = "3.14" 를 숫자로 바꾸기`)
+        .run()
+    const variable = scope.getVariable('결과')
 
     assertInstanceOf(variable, NumberValue)
     assertEquals(variable.value, 3.14)
@@ -31,10 +31,10 @@ Deno.test('문자열(소수)을 숫자로 바꾸기', async () => {
 
 Deno.test('숫자를 문자열로 바꾸기', async () => {
     const session = new YaksokSession()
-    session.addModule('main', `결과 = 123 을 문자열로 바꾸기`)
-
-    const runResult = await session.runModules(['main'])
-    const variable = runResult.main.scope?.getVariable('결과')
+    const scope = await session
+        .addModule('main', `결과 = 123 을 문자열로 바꾸기`)
+        .run()
+    const variable = scope.getVariable('결과')
 
     assertInstanceOf(variable, StringValue)
     assertEquals(variable.value, '123')
@@ -42,10 +42,10 @@ Deno.test('숫자를 문자열로 바꾸기', async () => {
 
 Deno.test('숫자를 문자로 바꾸기 (별칭)', async () => {
     const session = new YaksokSession()
-    session.addModule('main', `결과 = 456 를 문자로 바꾸기`)
-
-    const runResult = await session.runModules(['main'])
-    const variable = runResult.main.scope?.getVariable('결과')
+    const scope = await session
+        .addModule('main', `결과 = 456 를 문자로 바꾸기`)
+        .run()
+    const variable = scope.getVariable('결과')
 
     assertInstanceOf(variable, StringValue)
     assertEquals(variable.value, '456')
@@ -53,10 +53,10 @@ Deno.test('숫자를 문자로 바꾸기 (별칭)', async () => {
 
 Deno.test('참을 숫자로 바꾸기', async () => {
     const session = new YaksokSession()
-    session.addModule('main', `결과 = 참 을 숫자로 바꾸기`)
-
-    const runResult = await session.runModules(['main'])
-    const variable = runResult.main.scope?.getVariable('결과')
+    const scope = await session
+        .addModule('main', `결과 = 참 을 숫자로 바꾸기`)
+        .run()
+    const variable = scope.getVariable('결과')
 
     assertInstanceOf(variable, NumberValue)
     assertEquals(variable.value, 1)
@@ -64,10 +64,10 @@ Deno.test('참을 숫자로 바꾸기', async () => {
 
 Deno.test('거짓을 숫자로 바꾸기', async () => {
     const session = new YaksokSession()
-    session.addModule('main', `결과 = 거짓 을 숫자로 바꾸기`)
-
-    const runResult = await session.runModules(['main'])
-    const variable = runResult.main.scope?.getVariable('결과')
+    const scope = await session
+        .addModule('main', `결과 = 거짓 을 숫자로 바꾸기`)
+        .run()
+    const variable = scope.getVariable('결과')
 
     assertInstanceOf(variable, NumberValue)
     assertEquals(variable.value, 0)
@@ -75,10 +75,10 @@ Deno.test('거짓을 숫자로 바꾸기', async () => {
 
 Deno.test('문자열 "참"을 참거짓으로 바꾸기', async () => {
     const session = new YaksokSession()
-    session.addModule('main', `결과 = "참" 을 참거짓으로 바꾸기`)
-
-    const runResult = await session.runModules(['main'])
-    const variable = runResult.main.scope?.getVariable('결과')
+    const scope = await session
+        .addModule('main', `결과 = "참" 을 참거짓으로 바꾸기`)
+        .run()
+    const variable = scope.getVariable('결과')
 
     assertInstanceOf(variable, BooleanValue)
     assertEquals(variable.value, true)
@@ -86,10 +86,10 @@ Deno.test('문자열 "참"을 참거짓으로 바꾸기', async () => {
 
 Deno.test('문자열 "거짓"을 참거짓으로 바꾸기', async () => {
     const session = new YaksokSession()
-    session.addModule('main', `결과 = "거짓" 을 참거짓으로 바꾸기`)
-
-    const runResult = await session.runModules(['main'])
-    const variable = runResult.main.scope?.getVariable('결과')
+    const scope = await session
+        .addModule('main', `결과 = "거짓" 을 참거짓으로 바꾸기`)
+        .run()
+    const variable = scope.getVariable('결과')
 
     assertInstanceOf(variable, BooleanValue)
     assertEquals(variable.value, false)
@@ -97,10 +97,10 @@ Deno.test('문자열 "거짓"을 참거짓으로 바꾸기', async () => {
 
 Deno.test('문자열 "true"를 참거짓으로 바꾸기', async () => {
     const session = new YaksokSession()
-    session.addModule('main', `결과 = "true" 를 참거짓으로 바꾸기`)
-
-    const runResult = await session.runModules(['main'])
-    const variable = runResult.main.scope?.getVariable('결과')
+    const scope = await session
+        .addModule('main', `결과 = "true" 를 참거짓으로 바꾸기`)
+        .run()
+    const variable = scope.getVariable('결과')
 
     assertInstanceOf(variable, BooleanValue)
     assertEquals(variable.value, true)
@@ -108,10 +108,10 @@ Deno.test('문자열 "true"를 참거짓으로 바꾸기', async () => {
 
 Deno.test('빈 문자열을 참거짓으로 바꾸기', async () => {
     const session = new YaksokSession()
-    session.addModule('main', `결과 = "" 을 참거짓으로 바꾸기`)
-
-    const runResult = await session.runModules(['main'])
-    const variable = runResult.main.scope?.getVariable('결과')
+    const scope = await session
+        .addModule('main', `결과 = "" 을 참거짓으로 바꾸기`)
+        .run()
+    const variable = scope.getVariable('결과')
 
     assertInstanceOf(variable, BooleanValue)
     assertEquals(variable.value, false)
@@ -119,10 +119,10 @@ Deno.test('빈 문자열을 참거짓으로 바꾸기', async () => {
 
 Deno.test('비어있지 않은 문자열을 참거짓으로 바꾸기', async () => {
     const session = new YaksokSession()
-    session.addModule('main', `결과 = "hello" 를 참거짓으로 바꾸기`)
-
-    const runResult = await session.runModules(['main'])
-    const variable = runResult.main.scope?.getVariable('결과')
+    const scope = await session
+        .addModule('main', `결과 = "hello" 를 참거짓으로 바꾸기`)
+        .run()
+    const variable = scope.getVariable('결과')
 
     assertInstanceOf(variable, BooleanValue)
     assertEquals(variable.value, true)
@@ -130,10 +130,10 @@ Deno.test('비어있지 않은 문자열을 참거짓으로 바꾸기', async ()
 
 Deno.test('숫자 0을 참거짓으로 바꾸기', async () => {
     const session = new YaksokSession()
-    session.addModule('main', `결과 = 0 을 참거짓으로 바꾸기`)
-
-    const runResult = await session.runModules(['main'])
-    const variable = runResult.main.scope?.getVariable('결과')
+    const scope = await session
+        .addModule('main', `결과 = 0 을 참거짓으로 바꾸기`)
+        .run()
+    const variable = scope.getVariable('결과')
 
     assertInstanceOf(variable, BooleanValue)
     assertEquals(variable.value, false)
@@ -141,10 +141,10 @@ Deno.test('숫자 0을 참거짓으로 바꾸기', async () => {
 
 Deno.test('숫자 1을 참거짓으로 바꾸기', async () => {
     const session = new YaksokSession()
-    session.addModule('main', `결과 = 1 을 참거짓으로 바꾸기`)
-
-    const runResult = await session.runModules(['main'])
-    const variable = runResult.main.scope?.getVariable('결과')
+    const scope = await session
+        .addModule('main', `결과 = 1 을 참거짓으로 바꾸기`)
+        .run()
+    const variable = scope.getVariable('결과')
 
     assertInstanceOf(variable, BooleanValue)
     assertEquals(variable.value, true)
@@ -152,10 +152,10 @@ Deno.test('숫자 1을 참거짓으로 바꾸기', async () => {
 
 Deno.test('참거짓을 문자열로 바꾸기', async () => {
     const session = new YaksokSession()
-    session.addModule('main', `결과 = 참 을 문자열로 바꾸기`)
-
-    const runResult = await session.runModules(['main'])
-    const variable = runResult.main.scope?.getVariable('결과')
+    const scope = await session
+        .addModule('main', `결과 = 참 을 문자열로 바꾸기`)
+        .run()
+    const variable = scope.getVariable('결과')
 
     assertInstanceOf(variable, StringValue)
     assertEquals(variable.value, '참')
@@ -163,17 +163,17 @@ Deno.test('참거짓을 문자열로 바꾸기', async () => {
 
 Deno.test('변수와 함께 사용', async () => {
     const session = new YaksokSession()
-    session.addModule(
-        'main',
-        `
+    const scope = await session
+        .addModule(
+            'main',
+            `
 나이_문자열 = "25"
 나이 = 나이_문자열 을 숫자로 바꾸기
 결과 = 나이 + 5
 `,
-    )
-
-    const runResult = await session.runModules(['main'])
-    const variable = runResult.main.scope?.getVariable('결과')
+        )
+        .run()
+    const variable = scope.getVariable('결과')
 
     assertInstanceOf(variable, NumberValue)
     assertEquals(variable.value, 30)
@@ -181,19 +181,20 @@ Deno.test('변수와 함께 사용', async () => {
 
 Deno.test('잘못된 문자열을 숫자로 바꾸기 시도', async () => {
     const session = new YaksokSession()
-    session.addModule('main', `결과 = "abc" 를 숫자로 바꾸기`)
-    const runResult = await session.runModules(['main'])
-    const result = runResult.main
-    assert(result.reason === 'error')
-    assertInstanceOf(result.errors?.[0], InvalidTypeCastError)
+    try {
+        await session.addModule('main', `결과 = "abc" 를 숫자로 바꾸기`).run()
+        unreachable()
+    } catch (error) {
+        assertInstanceOf(error, InvalidTypeCastError)
+    }
 })
 
 Deno.test('불리언으로 바꾸기 (별칭)', async () => {
     const session = new YaksokSession()
-    session.addModule('main', `결과 = 1 을 불리언으로 바꾸기`)
-
-    const runResult = await session.runModules(['main'])
-    const variable = runResult.main.scope?.getVariable('결과')
+    const scope = await session
+        .addModule('main', `결과 = 1 을 불리언으로 바꾸기`)
+        .run()
+    const variable = scope.getVariable('결과')
 
     assertInstanceOf(variable, BooleanValue)
     assertEquals(variable.value, true)

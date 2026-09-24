@@ -11,17 +11,12 @@ import { evaluateParams } from './function.ts'
 export class DeclareEvent extends Executable {
     static override friendlyName = '새 이벤트 만들기'
 
-    private eventId: string
-    private name: string
-
     constructor(
-        props: { eventId: string; name: string },
+        public eventId: string,
+        public name: string,
         public override tokens: Token[],
     ) {
         super()
-
-        this.eventId = props.eventId
-        this.name = props.name
     }
 
     override execute(_scope: Scope): Promise<void> {
@@ -36,37 +31,17 @@ export class DeclareEvent extends Executable {
 export class SubscribeEvent extends Executable {
     static override friendlyName = '이벤트 구독하기'
 
-    private eventId: string
-    private body: Block
-    private params: Record<string, Evaluable>
-    private target?: Evaluable
-    public callerScope?: Scope
-
     constructor(
-        props: {
-            eventId: string
-            body: Block
-            params: Record<string, Evaluable>
-            target?: Evaluable
-        },
+        private eventId: string,
+        private body: Block,
+        private argumentEvaluator: Record<string, Evaluable>,
         public override tokens: Token[],
     ) {
         super()
-
-        this.eventId = props.eventId
-        this.body = props.body
-        this.params = props.params
-        this.target = props.target
     }
 
     override async execute(scope: Scope): Promise<void> {
-        const param = await evaluateParams(this.params, scope)
-
-        if (this.target) {
-            param['자신'] = await this.target.execute(scope)
-        }
-
-        const bodyParentScope = this.callerScope ?? scope
+        const param = await evaluateParams(this.argumentEvaluator, scope)
         const session = scope.session
 
         session.aliveListeners.push(
@@ -75,7 +50,7 @@ export class SubscribeEvent extends Executable {
                     param,
                     async () => {
                         const subScope = new Scope({
-                            parent: bodyParentScope,
+                            parent: scope,
                             initialVariable: param,
                         })
 
@@ -103,10 +78,6 @@ export class SubscribeEvent extends Executable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        if (this.target) {
-            return this.target.validate(scope)
-        }
-
         return []
     }
 }
