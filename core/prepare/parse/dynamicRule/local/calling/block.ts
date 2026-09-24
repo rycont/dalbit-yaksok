@@ -5,6 +5,7 @@ import {
     EOL,
     FunctionInvoke,
     Identifier,
+    InvokingArguments,
     KeyValuePair,
     KeyValuePairSequence,
     Node,
@@ -34,7 +35,7 @@ export function createBlockRule(
         )
         .concat([EOL, Block])
 
-    function createArgument(block: Node) {
+    function createInvokingArguments(block: Node): InvokingArguments | null {
         if (!(block instanceof Block)) {
             return null
         }
@@ -45,39 +46,34 @@ export function createBlockRule(
 
         const [subnode] = block.subnode
 
-        const providedArguments =
+        const entries =
             subnode instanceof KeyValuePairSequence
-                ? Object.fromEntries(
+                ? new Map(
                       subnode.subnode.map((kvPair) => [
-                          kvPair.key,
+                          kvPair.key.toString(),
                           kvPair.subnode,
                       ]),
                   )
                 : subnode instanceof KeyValuePair
-                  ? { [subnode.key]: subnode.subnode }
+                  ? new Map([[subnode.key.toString(), subnode.subnode]])
                   : null
 
-        if (providedArguments === null) {
+        if (entries === null) {
             return null
         }
 
-        return providedArguments
+        return new InvokingArguments(entries, parameterScheme, block.tokens, [])
     }
 
     function factory(nodes: Node[], tokens: Token[]) {
         const parameterNode = nodes[nodes.length - 1]
-        const argumentEvaluator = createArgument(parameterNode)
+        const invokingArguments = createInvokingArguments(parameterNode)
 
-        if (argumentEvaluator === null) {
+        if (invokingArguments === null) {
             return null
         }
 
-        return new FunctionInvoke(
-            functionName,
-            argumentEvaluator,
-            parameterScheme,
-            tokens,
-        )
+        return new FunctionInvoke(functionName, invokingArguments, tokens)
     }
 
     return {

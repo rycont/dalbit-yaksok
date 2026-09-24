@@ -16,7 +16,9 @@ export function createCallingRules(
     range: FunctionDeclareRange,
 ): Rule[] {
     if (range.type === FunctionType.이벤트) {
-        return [createEventSubscriptionRules(headerParts, range)]
+        return [
+            createEventSubscriptionRules(headerParts, parameterScheme, range),
+        ]
     }
 
     const interleavingRule = createInterleavingRule(

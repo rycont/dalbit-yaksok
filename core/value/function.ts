@@ -23,10 +23,10 @@ export class FunctionObject extends ObjectValue implements RunnableObject {
         super()
     }
 
-    public async run(args: Record<string, ValueType>): Promise<ValueType> {
+    public async run(args: Map<string, ValueType>): Promise<ValueType> {
         const functionScope = new Scope({
             parent: this.declaredScope,
-            initialVariable: args,
+            initialVariable: Object.fromEntries(args.entries()),
         })
 
         try {
@@ -44,7 +44,7 @@ export class FunctionObject extends ObjectValue implements RunnableObject {
 }
 
 export interface RunnableObject extends ObjectValue {
-    readonly run: (args: Record<string, ValueType>) => Promise<ValueType>
+    readonly run: (args: Map<string, ValueType>) => Promise<ValueType>
     readonly name: string
     readonly invokeRules: Rule[]
 }

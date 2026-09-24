@@ -1,7 +1,6 @@
 import {
     type Extension,
     type ExtensionManifest,
-    type FunctionInvokingParams,
     ListValue,
     NumberValue,
     type ValueType,
@@ -92,7 +91,7 @@ CORRELATION
 
     executeFFI(
         code: string,
-        args: FunctionInvokingParams,
+        args: Map<string, ValueType>,
     ): ValueType | Promise<ValueType> {
         const action = code.trim()
 
@@ -185,7 +184,7 @@ CORRELATION
         }
     }
 
-    private assertListValue(value: ValueType): asserts value is ListValue {
+    private assertListValue(value?: ValueType): asserts value is ListValue {
         if (!(value instanceof ListValue)) {
             throw new Error('목록이 필요합니다')
         }
@@ -206,20 +205,21 @@ CORRELATION
     }
 
     private withNumbers(
-        args: FunctionInvokingParams,
+        args: Map<string, ValueType>,
         callback: (numbers: number[]) => ValueType,
     ): ValueType {
-        const { 목록 } = args
+        const 목록 = args.get('목록')
         this.assertListValue(목록)
         const numbers = this.extractNumbers(목록)
         return callback(numbers)
     }
 
     private withTwoNumberLists(
-        args: FunctionInvokingParams,
+        args: Map<string, ValueType>,
         callback: (numbersA: number[], numbersB: number[]) => ValueType,
     ): ValueType {
-        const { 가, 나 } = args
+        const 가 = args.get('가')
+        const 나 = args.get('나')
         this.assertListValue(가)
         this.assertListValue(나)
         const numbersA = this.extractNumbers(가)

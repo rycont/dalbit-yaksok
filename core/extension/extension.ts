@@ -1,4 +1,3 @@
-import { FunctionInvokingParams } from '../constant/type.ts'
 import { ValueType } from '../value/base.ts'
 
 import type { Scope } from '../executer/scope.ts'
@@ -29,7 +28,7 @@ export interface Extension {
      */
     executeFFI(
         code: string,
-        args: FunctionInvokingParams,
+        args: Map<string, ValueType>,
         callerScope: Scope,
     ): ValueType | Promise<ValueType>
     /**

@@ -58,12 +58,12 @@ Deno.test('여러 이벤트 구독 및 실행', async () => {
     // Run the module. It should register the event listener.
 
     session.eventCreation.sub('TEST_EVENT', (args, callback, terminate) => {
-        if (dalbitToJS(args.A) === '1') {
+        if (dalbitToJS(args.get('A')!) === '1') {
             callback()
             terminate()
         }
 
-        if (dalbitToJS(args.A) === '2') {
+        if (dalbitToJS(args.get('A')!) === '2') {
             setTimeout(() => {
                 callback()
                 terminate()

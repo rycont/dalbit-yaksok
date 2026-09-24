@@ -1,7 +1,6 @@
 import {
     type Extension,
     ExtensionManifest,
-    FunctionInvokingParams,
     ListValue,
     NumberValue,
     ValueType,
@@ -197,23 +196,24 @@ AVERAGE
 
     executeFFI(
         code: string,
-        args: FunctionInvokingParams,
+        args: Map<string, ValueType>,
     ): ValueType | Promise<ValueType> {
         const action = code.trim()
 
         switch (action) {
             case 'ABS': {
-                const { 값 } = args
+                const 값 = args.get('값')
                 this.assertNumber(값)
                 return new NumberValue(Math.abs(값.value))
             }
             case 'ROUND': {
-                const { 값 } = args
+                const 값 = args.get('값')
                 this.assertNumber(값)
                 return new NumberValue(Math.round(값.value))
             }
             case 'ROUND_N': {
-                const { 값, 숫자 } = args
+                const 값 = args.get('값')
+                const 숫자 = args.get('숫자')
                 this.assertNumber(값)
                 this.assertNumber(숫자)
                 return new NumberValue(
@@ -221,12 +221,13 @@ AVERAGE
                 )
             }
             case 'CEIL': {
-                const { 값 } = args
+                const 값 = args.get('값')
                 this.assertNumber(값)
                 return new NumberValue(Math.ceil(값.value))
             }
             case 'CEIL_N': {
-                const { 값, 숫자 } = args
+                const 값 = args.get('값')
+                const 숫자 = args.get('숫자')
                 this.assertNumber(값)
                 this.assertNumber(숫자)
                 return new NumberValue(
@@ -234,12 +235,13 @@ AVERAGE
                 )
             }
             case 'FLOOR': {
-                const { 값 } = args
+                const 값 = args.get('값')
                 this.assertNumber(값)
                 return new NumberValue(Math.floor(값.value))
             }
             case 'FLOOR_N': {
-                const { 값, 숫자 } = args
+                const 값 = args.get('값')
+                const 숫자 = args.get('숫자')
                 this.assertNumber(값)
                 this.assertNumber(숫자)
                 return new NumberValue(
@@ -247,79 +249,81 @@ AVERAGE
                 )
             }
             case 'SQUARE': {
-                const { 값 } = args
+                const 값 = args.get('값')
                 this.assertNumber(값)
                 return new NumberValue(값.value ** 2)
             }
             case 'SQRT': {
-                const { 값 } = args
+                const 값 = args.get('값')
                 this.assertNumber(값)
                 return new NumberValue(Math.sqrt(값.value))
             }
             case 'POWER': {
-                const { 밑, 지수 } = args
+                const 밑 = args.get('밑')
+                const 지수 = args.get('지수')
                 this.assertNumber(밑)
                 this.assertNumber(지수)
                 return new NumberValue(Math.pow(밑.value, 지수.value))
             }
             case 'LOG': {
-                const { 값 } = args
+                const 값 = args.get('값')
                 this.assertNumber(값)
                 return new NumberValue(Math.log(값.value))
             }
             case 'LOG10': {
-                const { 값 } = args
+                const 값 = args.get('값')
                 this.assertNumber(값)
                 return new NumberValue(Math.log10(값.value))
             }
             case 'LOG_BASE': {
-                const { 밑, 값 } = args
+                const 밑 = args.get('밑')
+                const 값 = args.get('값')
                 this.assertNumber(밑)
                 this.assertNumber(값)
                 return new NumberValue(Math.log(값.value) / Math.log(밑.value))
             }
             case 'SIN': {
-                const { 값 } = args
+                const 값 = args.get('값')
                 this.assertNumber(값)
                 return new NumberValue(Math.sin(값.value))
             }
             case 'COS': {
-                const { 값 } = args
+                const 값 = args.get('값')
                 this.assertNumber(값)
                 return new NumberValue(Math.cos(값.value))
             }
             case 'TAN': {
-                const { 값 } = args
+                const 값 = args.get('값')
                 this.assertNumber(값)
                 return new NumberValue(Math.tan(값.value))
             }
             case 'SIN_DEG': {
-                const { 각도 } = args
+                const 각도 = args.get('각도')
                 this.assertNumber(각도)
                 return new NumberValue(Math.sin((각도.value * Math.PI) / 180))
             }
             case 'COS_DEG': {
-                const { 각도 } = args
+                const 각도 = args.get('각도')
                 this.assertNumber(각도)
                 return new NumberValue(Math.cos((각도.value * Math.PI) / 180))
             }
             case 'TAN_DEG': {
-                const { 각도 } = args
+                const 각도 = args.get('각도')
                 this.assertNumber(각도)
                 return new NumberValue(Math.tan((각도.value * Math.PI) / 180))
             }
             case 'ASIN': {
-                const { 값 } = args
+                const 값 = args.get('값')
                 this.assertNumber(값)
                 return new NumberValue(Math.asin(값.value))
             }
             case 'ACOS': {
-                const { 값 } = args
+                const 값 = args.get('값')
                 this.assertNumber(값)
                 return new NumberValue(Math.acos(값.value))
             }
             case 'ATAN': {
-                const { 값 } = args
+                const 값 = args.get('값')
                 this.assertNumber(값)
                 return new NumberValue(Math.atan(값.value))
             }
@@ -330,25 +334,29 @@ AVERAGE
                 return new NumberValue(Math.E)
             }
             case 'MAX': {
-                const { 목록 } = args
+                const 목록 = args.get('목록')
                 this.assertListValue(목록)
                 const numbers = this.extractNumbers(목록)
                 return new NumberValue(Math.max(...numbers))
             }
             case 'MIN': {
-                const { 목록 } = args
+                const 목록 = args.get('목록')
                 this.assertListValue(목록)
                 const numbers = this.extractNumbers(목록)
                 return new NumberValue(Math.min(...numbers))
             }
             case 'MAX_TWO': {
-                const { 가, 나 } = args
+                const 가 = args.get('가')
+                const 나 = args.get('나')
+
                 this.assertNumber(가)
                 this.assertNumber(나)
                 return new NumberValue(Math.max(가.value, 나.value))
             }
             case 'MIN_TWO': {
-                const { 가, 나 } = args
+                const 가 = args.get('가')
+                const 나 = args.get('나')
+
                 this.assertNumber(가)
                 this.assertNumber(나)
                 return new NumberValue(Math.min(가.value, 나.value))
@@ -357,7 +365,9 @@ AVERAGE
                 return new NumberValue(Math.random())
             }
             case 'RANDOM_INT': {
-                const { 최소, 최대 } = args
+                const 최소 = args.get('최소')
+                const 최대 = args.get('최대')
+
                 this.assertNumber(최소)
                 this.assertNumber(최대)
                 const min = Math.ceil(최소.value)
@@ -367,29 +377,30 @@ AVERAGE
                 )
             }
             case 'MOD': {
-                const { 가, 나 } = args
+                const 가 = args.get('가')
+                const 나 = args.get('나')
                 this.assertNumber(가)
                 this.assertNumber(나)
                 return new NumberValue(가.value % 나.value)
             }
             case 'TO_RADIAN': {
-                const { 각도 } = args
+                const 각도 = args.get('각도')
                 this.assertNumber(각도)
                 return new NumberValue((각도.value * Math.PI) / 180)
             }
             case 'TO_DEGREE': {
-                const { 라디안 } = args
+                const 라디안 = args.get('라디안')
                 this.assertNumber(라디안)
                 return new NumberValue((라디안.value * 180) / Math.PI)
             }
             case 'SUM': {
-                const { 목록 } = args
+                const 목록 = args.get('목록')
                 this.assertListValue(목록)
                 const numbers = this.extractNumbers(목록)
                 return new NumberValue(numbers.reduce((a, b) => a + b, 0))
             }
             case 'AVERAGE': {
-                const { 목록 } = args
+                const 목록 = args.get('목록')
                 this.assertListValue(목록)
                 const numbers = this.extractNumbers(목록)
                 return new NumberValue(
@@ -420,13 +431,13 @@ AVERAGE
         return Math.floor(value * factor) / factor
     }
 
-    private assertNumber(value: ValueType): asserts value is NumberValue {
+    private assertNumber(value?: ValueType): asserts value is NumberValue {
         if (!(value instanceof NumberValue)) {
             throw new Error('숫자가 필요합니다')
         }
     }
 
-    private assertListValue(value: ValueType): asserts value is ListValue {
+    private assertListValue(value?: ValueType): asserts value is ListValue {
         if (!(value instanceof ListValue)) {
             throw new Error('목록이 필요합니다')
         }

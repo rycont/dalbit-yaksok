@@ -13,7 +13,6 @@ import {
     ErrorInFFIExecution,
     type Extension,
     type ExtensionManifest,
-    type FunctionInvokingParams,
     ListValue,
     NumberValue,
     PrimitiveValue,
@@ -51,7 +50,7 @@ export class QuickJS implements Extension {
 
     public executeFFI(
         bodyCode: string,
-        args: FunctionInvokingParams,
+        args: Map<string, ValueType>,
     ): ValueType {
         const wrappedCode = createWrapperCodeFromFFICall(bodyCode, args)
         const vm = this.createContext()
@@ -99,12 +98,13 @@ export class QuickJS implements Extension {
 
 function createWrapperCodeFromFFICall(
     bodyCode: string,
-    args: Record<string, ValueType>,
+    args: Map<string, ValueType>,
 ) {
-    const parameters = Object.keys(args)
-    const parameterValues = Object.values(args).map(
-        convertYaksokDataIntoQuickJSData,
-    )
+    const parameters = args.keys().toArray()
+    const parameterValues = args
+        .values()
+        .map(convertYaksokDataIntoQuickJSData)
+        .toArray()
 
     return `((${parameters.join(
         ', ',

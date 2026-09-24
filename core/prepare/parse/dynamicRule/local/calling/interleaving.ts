@@ -8,22 +8,20 @@ export function createInterleavingRule(
     functionHeader: FunctionHeaderPart[],
     parameterScheme: ParameterElement[],
 ): Rule {
-    const { pattern, evaluatorFactory } = createCallingPattern(functionHeader)
+    const { pattern, invokingArgumentsFactory } = createCallingPattern(
+        functionHeader,
+        parameterScheme,
+    )
     return {
         pattern,
         factory(nodes, tokens) {
-            const argumentEvaluator = evaluatorFactory(nodes)
+            const invokingArguments = invokingArgumentsFactory(nodes)
 
-            if (argumentEvaluator === null) {
+            if (invokingArguments === null) {
                 return null
             }
 
-            return new FunctionInvoke(
-                functionName,
-                argumentEvaluator,
-                parameterScheme,
-                tokens,
-            )
+            return new FunctionInvoke(functionName, invokingArguments, tokens)
         },
     }
 }

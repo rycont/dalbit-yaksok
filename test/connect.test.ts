@@ -297,7 +297,7 @@ Deno.test('Promise를 반환하는 FFI', async () => {
                     () => {
                         resolve(new NumberValue(0))
                     },
-                    (args.숫자 as NumberValue).value * 1000,
+                    (args.get('숫자') as NumberValue).value * 1000,
                 )
             })
         },

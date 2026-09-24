@@ -16,7 +16,12 @@ export enum NodeCapability {
     RETURN = 'RETURN',
 }
 
-export type SubnodeScheme = Record<string, Node> | Node[] | Node | unknown
+export type SubnodeScheme =
+    | Record<string, Node>
+    | Map<string, Node>
+    | Node[]
+    | Node
+    | unknown
 
 export class Node<SubnodeShape extends SubnodeScheme = unknown> {
     tokens: Token[] = []
@@ -133,7 +138,7 @@ export class Identifier extends Evaluable {
             if (e instanceof NotDefinedIdentifierError) {
                 try {
                     const functionObject = scope.getFunctionObject(this.value)
-                    const functionResult = await functionObject.run({})
+                    const functionResult = await functionObject.run(new Map())
 
                     assertValidReturnValue(
                         functionResult,

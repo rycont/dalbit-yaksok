@@ -5,7 +5,6 @@ import {
     Events,
     Extension,
     FFIRuntimeNotFound,
-    FunctionInvokingParams,
     MultipleFFIRuntimeError,
     Rule,
     Scope,
@@ -36,7 +35,7 @@ export class YaksokSession {
 
     public eventCreation: PubSub<{
         [key: string]: (
-            args: FunctionInvokingParams,
+            args: Map<string, ValueType>,
             callback: () => void,
             terminate: () => void,
             scope: Scope,
@@ -116,7 +115,7 @@ export class YaksokSession {
     public async runFFI(
         runtime: string,
         code: string,
-        args: Record<string, any>,
+        args: Map<string, ValueType>,
         callerScope: Scope,
     ): Promise<ValueType> {
         const availableExtensions = this.extensions.filter(

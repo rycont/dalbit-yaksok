@@ -5,8 +5,8 @@ import {
     ErrorOccurredWhileRunningFFIExecution,
     Evaluable,
     Executable,
-    FunctionInvokingParams,
     FunctionObject,
+    Identifier,
     MissingRequiredArgumentError,
     Node,
     NodeCapability,
@@ -14,6 +14,7 @@ import {
     Rule,
     Scope,
     Token,
+    UnexpectedArgumentError,
     ValueType,
     YaksokError,
 } from '@dalbit-yaksok/core'
@@ -110,46 +111,25 @@ export class DeclareFunction extends Executable<Block> {
     }
 }
 
-export class FunctionInvoke extends Evaluable {
+export class FunctionInvoke extends Evaluable<InvokingArguments> {
     static override friendlyName = '약속 사용하기'
-
-    private readonly optionalFiller: Record<string, EmptyValue>
 
     constructor(
         public readonly name: string,
-        private readonly argumentEvaluator: Record<string, Evaluable>,
-        private readonly parameterScheme: ParameterElement[],
+        public readonly invokingArguments: InvokingArguments,
         public override tokens: Token[],
     ) {
         super()
 
-        const optionalKeys = new Set(
-            parameterScheme.filter((p) => p.optional).map((p) => p.name),
-        )
-        const providedKeys = new Set(Object.keys(argumentEvaluator))
-
-        const missingOptionals = Array.from(
-            optionalKeys.difference(providedKeys),
-        )
-
-        this.optionalFiller = Object.fromEntries(
-            missingOptionals.map((key) => [key, new EmptyValue()]),
-        )
+        this.subnode = invokingArguments
     }
 
     override async execute(
-        definedScope: Scope,
-        argumentEvaluationScope: Scope = definedScope,
+        invokingScope: Scope,
+        declaredScope: Scope = invokingScope,
     ): Promise<ValueType> {
-        const evaluatedArgument = Object.assign(
-            await evaluateParams(
-                this.argumentEvaluator,
-                argumentEvaluationScope,
-            ),
-            this.optionalFiller,
-        )
-
-        const functionObject = definedScope.getFunctionObject(this.name)
+        const evaluatedArgument = await this.subnode.execute(invokingScope)
+        const functionObject = declaredScope.getFunctionObject(this.name)
 
         try {
             const returnValue = await functionObject.run(evaluatedArgument)
@@ -181,14 +161,66 @@ export class FunctionInvoke extends Evaluable {
     }
 
     override validate(
-        definedScope: Scope,
-        argumentEvaluationScope: Scope = definedScope,
+        invokingScope: Scope,
+        declaredScope: Scope = invokingScope,
     ): YaksokError[] {
-        const argumentErrors = Object.values(this.argumentEvaluator).flatMap(
-            (e) => e.validate(argumentEvaluationScope),
+        return this.invokingArguments.validate(invokingScope)
+    }
+}
+
+export class InvokingArguments extends Executable<Map<string, Evaluable>> {
+    private readonly optionalFiller: [string, ValueType][]
+
+    constructor(
+        public readonly entries: Map<string, Evaluable>,
+        public readonly parameterScheme: ParameterElement[],
+        public override readonly tokens: Token[],
+        public readonly parsingErrors: YaksokError[],
+    ) {
+        super()
+
+        this.subnode = new Map(entries.entries())
+
+        const optionalKeys = new Set(
+            parameterScheme.filter((p) => p.optional).map((p) => p.name),
+        )
+        const providedKeys = new Set(entries.keys())
+
+        const missingOptionals = Array.from(
+            optionalKeys.difference(providedKeys),
         )
 
-        const providedArguments = new Set(Object.keys(this.argumentEvaluator))
+        this.optionalFiller = missingOptionals.map((key) => [
+            key,
+            new EmptyValue(),
+        ])
+    }
+
+    override async execute(scope: Scope): Promise<Map<string, ValueType>> {
+        const args = new Map(
+            this.optionalFiller.concat(
+                await Promise.all(
+                    this.subnode
+                        .entries()
+                        .map<Promise<[string, ValueType]>>(async ([k, v]) => [
+                            k,
+                            await v.execute(scope),
+                        ])
+                        .toArray(),
+                ),
+            ),
+        )
+
+        return args
+    }
+
+    override validate(invokingScope: Scope): YaksokError[] {
+        const argumentErrors = this.subnode
+            .values()
+            .flatMap((e) => e.validate(invokingScope))
+
+        const providedArguments = new Set(this.subnode.keys())
+
         const requiredArguments = new Set(
             this.parameterScheme.filter((p) => !p.optional).map((p) => p.name),
         )
@@ -197,33 +229,35 @@ export class FunctionInvoke extends Evaluable {
             providedArguments,
         )
 
-        if (missingKeys.size === 0) {
-            return argumentErrors
-        }
+        const missingKeysError = missingKeys.size
+            ? [
+                  new MissingRequiredArgumentError({
+                      tokens: this.tokens,
+                      resource: {
+                          names: Array.from(missingKeys),
+                      },
+                  }),
+              ]
+            : []
 
-        const missingKeysError = new MissingRequiredArgumentError({
-            tokens: this.tokens,
-            resource: {
-                names: Array.from(missingKeys),
-            },
-        })
+        const knownKeys = new Set(this.parameterScheme.map((p) => p.name))
+        const unknownKeys = Array.from(providedArguments.difference(knownKeys))
 
-        return argumentErrors.concat([missingKeysError])
+        const unknownKeysError = unknownKeys.length
+            ? [
+                  new UnexpectedArgumentError({
+                      tokens: this.subnode.get(unknownKeys[0])!.tokens,
+                      resource: {
+                          names: unknownKeys,
+                      },
+                  }),
+              ]
+            : []
+
+        return argumentErrors
+            .toArray()
+            .concat(missingKeysError)
+            .concat(unknownKeysError)
+            .concat(this.parsingErrors)
     }
-}
-
-export async function evaluateParams(
-    params: {
-        [key: string]: Evaluable
-    },
-    scope: Scope,
-): Promise<{ [key: string]: ValueType }> {
-    const args: FunctionInvokingParams = {}
-
-    for (const key in params) {
-        const value = params[key]
-        args[key] = await value.execute(scope)
-    }
-
-    return args
 }

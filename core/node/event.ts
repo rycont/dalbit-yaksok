@@ -1,12 +1,14 @@
-import { Scope, YaksokError } from '@dalbit-yaksok/core'
 import {
+    Block,
     errorToMachineReadable,
+    Executable,
+    InvokingArguments,
     renderErrorString,
-} from '../error/render-error-string.ts'
-import { Token } from '../prepare/tokenize/token.ts'
-import { Evaluable, Executable } from './base.ts'
-import { Block } from './block.ts'
-import { evaluateParams } from './function.ts'
+    Scope,
+    Token,
+    ValueType,
+    YaksokError,
+} from '@dalbit-yaksok/core'
 
 export class DeclareEvent extends Executable {
     static override friendlyName = '새 이벤트 만들기'
@@ -28,20 +30,22 @@ export class DeclareEvent extends Executable {
     }
 }
 
-export class SubscribeEvent extends Executable {
+export class SubscribeEvent extends Executable<InvokingArguments> {
     static override friendlyName = '이벤트 구독하기'
 
     constructor(
-        private eventId: string,
-        private body: Block,
-        private argumentEvaluator: Record<string, Evaluable>,
-        public override tokens: Token[],
+        private readonly eventId: string,
+        private readonly body: Block,
+        invokingArguments: InvokingArguments,
+        public override readonly tokens: Token[],
     ) {
         super()
+
+        this.subnode = invokingArguments
     }
 
     override async execute(scope: Scope): Promise<void> {
-        const param = await evaluateParams(this.argumentEvaluator, scope)
+        const param = await this.subnode.execute(scope)
         const session = scope.session
 
         session.aliveListeners.push(
@@ -51,7 +55,7 @@ export class SubscribeEvent extends Executable {
                     async () => {
                         const subScope = new Scope({
                             parent: scope,
-                            initialVariable: param,
+                            initialVariable: Object.fromEntries(param),
                         })
 
                         try {
@@ -78,9 +82,18 @@ export class SubscribeEvent extends Executable {
         return Promise.resolve()
     }
 
-    override validate(scope: Scope): YaksokError[] {
-        return Object.values(this.argumentEvaluator).flatMap((v) =>
-            v.validate(scope),
-        )
+    override validate(invokingScope: Scope): YaksokError[] {
+        const subnodeErrors = this.subnode.validate(invokingScope)
+
+        const eventOccuredScope = new Scope({
+            parent: invokingScope,
+            initialVariable: Object.fromEntries(
+                this.subnode.entries.keys().map((k) => [k, new ValueType()]),
+            ),
+        })
+
+        const bodyErrors = this.body.validate(eventOccuredScope)
+
+        return subnodeErrors.concat(bodyErrors)
     }
 }
