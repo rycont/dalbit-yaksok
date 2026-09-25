@@ -114,7 +114,7 @@ for (const { a, b, operator } of WRONG_CASES_FOR_CALCULATION) {
 
         const errors: unknown[] = []
         const session = new YaksokSession({
-            stderr(_message, _machineReadable, error) {
+            stderr(_message, error) {
                 errors.push(error)
             },
         })
@@ -132,7 +132,7 @@ for (const { a, b, operator } of WRONG_CASES_FOR_COMPARISON) {
 
         const errors: unknown[] = []
         const session = new YaksokSession({
-            stderr(_message, _machineReadable, error) {
+            stderr(_message, error) {
                 errors.push(error)
             },
         })

@@ -7,8 +7,4 @@ export * from './loop.ts'
 export * from './mention.ts'
 export * from './prepare.ts'
 export * from './variable.ts'
-export {
-    type MachineReadableError,
-    errorToMachineReadable,
-    renderErrorString,
-} from './render-error-string.ts'
+export { renderErrorString } from './render-error-string.ts'

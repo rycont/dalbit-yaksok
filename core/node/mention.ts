@@ -41,7 +41,7 @@ export class MentionScope extends Evaluable<FunctionInvoke | Identifier> {
 
     constructor(
         public fileName: string,
-        private definedScope: Scope,
+        private declaredScope: Scope,
         subnode: FunctionInvoke | Identifier,
         public override tokens: Token[],
     ) {
@@ -52,7 +52,7 @@ export class MentionScope extends Evaluable<FunctionInvoke | Identifier> {
     override async execute(scope: Scope): Promise<ValueType> {
         try {
             if (this.subnode instanceof FunctionInvoke) {
-                return await this.subnode.execute(scope, this.definedScope)
+                return await this.subnode.execute(scope, this.declaredScope)
             }
 
             if (this.subnode instanceof SubscribeEvent) {
@@ -60,7 +60,7 @@ export class MentionScope extends Evaluable<FunctionInvoke | Identifier> {
                 return new EmptyValue()
             }
 
-            return await this.subnode.execute(this.definedScope)
+            return await this.subnode.execute(this.declaredScope)
         } catch (error) {
             if (error instanceof YaksokError) {
                 throw new ErrorInModuleError({
@@ -82,9 +82,9 @@ export class MentionScope extends Evaluable<FunctionInvoke | Identifier> {
 
     override validate(scope: Scope): YaksokError[] {
         if (this.subnode instanceof FunctionInvoke) {
-            return this.subnode.validate(this.definedScope, scope)
+            return this.subnode.validate(scope, this.declaredScope)
         } else {
-            return this.subnode.validate(this.definedScope)
+            return this.subnode.validate(this.declaredScope)
         }
     }
 }

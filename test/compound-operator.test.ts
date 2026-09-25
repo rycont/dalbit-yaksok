@@ -101,7 +101,7 @@ for (const { a, b, operator } of INVALID_CASES_FOR_COMPOUND_OPERATORS) {
 result ${operator} ${b}`.trim()
         const errors: unknown[] = []
         const session = new YaksokSession({
-            stderr(_message, _machineReadable, error) {
+            stderr(_message, error) {
                 errors.push(error)
             },
         })
@@ -117,7 +117,7 @@ Deno.test('Invalid compound operator in set to index', async () => {
 `
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })

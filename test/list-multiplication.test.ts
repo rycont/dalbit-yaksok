@@ -44,7 +44,7 @@ Deno.test('Number multiplied by list repeats list elements', async () => {
 Deno.test('List multiplication requires non-negative integers', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })
@@ -54,7 +54,7 @@ Deno.test('List multiplication requires non-negative integers', async () => {
 
     const errors2: unknown[] = []
     const session2 = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors2.push(error)
         },
     })

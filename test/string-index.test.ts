@@ -21,7 +21,7 @@ Deno.test('String allows indexing by number', async () => {
 Deno.test('String index must be a non-negative integer within bounds', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })
@@ -31,7 +31,7 @@ Deno.test('String index must be a non-negative integer within bounds', async () 
 
     const errors2: unknown[] = []
     const session2 = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors2.push(error)
         },
     })
@@ -41,7 +41,7 @@ Deno.test('String index must be a non-negative integer within bounds', async () 
 
     const errors3: unknown[] = []
     const session3 = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors3.push(error)
         },
     })

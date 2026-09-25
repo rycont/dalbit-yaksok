@@ -18,7 +18,7 @@ import { YaksokSession } from '../../core/mod.ts'
 Deno.test('Error raised in loop', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })
@@ -37,7 +37,7 @@ Deno.test('Error raised in loop', async () => {
 Deno.test('Error raised in list loop', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })
@@ -55,7 +55,7 @@ Deno.test('Error raised in list loop', async () => {
 Deno.test('Loop target is not enumerable', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })
@@ -73,7 +73,7 @@ Deno.test('Loop target is not enumerable', async () => {
 Deno.test('Range start is less than end', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })
@@ -85,7 +85,7 @@ Deno.test('Range start is less than end', async () => {
 Deno.test('Range start must be number', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })
@@ -97,7 +97,7 @@ Deno.test('Range start must be number', async () => {
 Deno.test('Range end must be number', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })
@@ -109,7 +109,7 @@ Deno.test('Range end must be number', async () => {
 Deno.test('Range start must be an integer', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })
@@ -119,7 +119,7 @@ Deno.test('Range start must be an integer', async () => {
 
     const errors2: unknown[] = []
     const session2 = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors2.push(error)
         },
     })
@@ -131,7 +131,7 @@ Deno.test('Range start must be an integer', async () => {
 Deno.test('Range end must be an integer', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })
@@ -143,7 +143,7 @@ Deno.test('Range end must be an integer', async () => {
 Deno.test('Index set target is must be indexable', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })
@@ -162,7 +162,7 @@ Deno.test('Index set target is must be indexable', async () => {
 Deno.test('Index get target is must be indexable', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })
@@ -179,7 +179,7 @@ Deno.test('Index get target is must be indexable', async () => {
 Deno.test('List out of range', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })
@@ -196,7 +196,7 @@ Deno.test('List out of range', async () => {
 Deno.test('List index must be number', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })
@@ -213,7 +213,7 @@ Deno.test('List index must be number', async () => {
 Deno.test('List index must be integer', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })
@@ -230,7 +230,7 @@ Deno.test('List index must be integer', async () => {
 Deno.test('List index must bigger than 0', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })
@@ -247,7 +247,7 @@ Deno.test('List index must bigger than 0', async () => {
 Deno.test('Loop Count is not a number', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })

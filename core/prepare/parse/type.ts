@@ -8,7 +8,9 @@ import type {
 
 import { Node, NodeCapability, Token } from '@dalbit-yaksok/core'
 
-export type NodeType = new (...args: any[]) => Node
+export type NodeType = (new (...args: any[]) => Node) & {
+    friendlyName: string
+}
 
 type PatternUnitWithValue<T extends NodeType | unknown = unknown> = {
     type: T

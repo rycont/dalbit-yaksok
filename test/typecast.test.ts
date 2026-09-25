@@ -182,7 +182,7 @@ Deno.test('변수와 함께 사용', async () => {
 Deno.test('잘못된 문자열을 숫자로 바꾸기 시도', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })

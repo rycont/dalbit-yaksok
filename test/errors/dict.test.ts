@@ -5,7 +5,7 @@ import { IndexKeyNotFoundError, YaksokSession } from '../../core/mod.ts'
 Deno.test('Key is not found in dictionary', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })
@@ -37,7 +37,7 @@ Deno.test('Key is not found in dictionary', async () => {
 Deno.test('Dict Compound Assignment Operation Error', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })

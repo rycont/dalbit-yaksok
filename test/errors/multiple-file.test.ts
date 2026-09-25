@@ -17,7 +17,7 @@ Deno.test('No files to run', async () => {
 // Deno.test('Error in importing module', async () => {
 //     const errors: unknown[] = []
 //     const session = new YaksokSession({
-//         stderr(_message, _machineReadable, error) {
+//         stderr(_message, error) {
 //             errors.push(error)
 //         },
 //     })
@@ -40,7 +40,7 @@ Deno.test('No files to run', async () => {
 Deno.test('Error in using module function', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })

@@ -6,7 +6,7 @@ import { BreakNotInLoopError } from '../../core/error/index.ts'
 Deno.test('반복의 밖에서는 `반복 그만`을 쓸 수 없음', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })

@@ -1,6 +1,5 @@
 import {
     Block,
-    errorToMachineReadable,
     Executable,
     InvokingArguments,
     renderErrorString,
@@ -62,11 +61,7 @@ export class SubscribeEvent extends Executable<InvokingArguments> {
                             await this.body.execute(subScope)
                         } catch (e) {
                             if (e instanceof YaksokError) {
-                                session.stderr(
-                                    renderErrorString(e),
-                                    errorToMachineReadable(e),
-                                    e,
-                                )
+                                session.stderr(renderErrorString(e), e)
                             }
                             resolve()
                         }

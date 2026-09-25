@@ -6,11 +6,7 @@ import { YaksokError } from '@dalbit-yaksok/core'
 
 export interface SessionConfig {
     stdout: (message: string) => void
-    stderr: (
-        message: string,
-        machineReadableError: MachineReadableError,
-        error: YaksokError,
-    ) => void
+    stderr: (message: string, error: YaksokError) => void
     events: Partial<Events>
     signal: AbortSignal | null
 }

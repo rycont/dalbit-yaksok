@@ -13,7 +13,7 @@ import { getTokensFromNodes } from '../../../../util/merge-tokens.ts'
 export function createMentioningRule(
     fileName: string,
     originalRule: Rule,
-    definedScope: Scope,
+    declaredScope: Scope,
 ): Rule {
     const mergedPattern = [
         {
@@ -27,11 +27,11 @@ export function createMentioningRule(
         pattern: mergedPattern,
         config: originalRule.config,
         flags: originalRule.flags,
-        factory: createFactory(fileName, originalRule, definedScope),
+        factory: createFactory(fileName, originalRule, declaredScope),
     }
 }
 
-function createFactory(fileName: string, rule: Rule, definedScope: Scope) {
+function createFactory(fileName: string, rule: Rule, declaredScope: Scope) {
     return (nodes: Node[], tokens: Token[]) => {
         const childNodes = nodes.slice(1)
         const childTokens = getTokensFromNodes(childNodes)
@@ -40,6 +40,6 @@ function createFactory(fileName: string, rule: Rule, definedScope: Scope) {
             | Identifier
             | FunctionInvoke
 
-        return new MentionScope(fileName, definedScope, child, tokens)
+        return new MentionScope(fileName, declaredScope, child, tokens)
     }
 }

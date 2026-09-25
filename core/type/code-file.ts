@@ -2,7 +2,6 @@ import * as v from 'valibot'
 
 import {
     Block,
-    errorToMachineReadable,
     Identifier,
     NotDefinedIdentifierError,
     parse,
@@ -22,6 +21,7 @@ import {
     inferTokenSplitpointsFromErrors,
 } from '../prepare/lex/infer-token-splitpoint.ts'
 import { createMentioningRule } from '../prepare/parse/dynamicRule/mention/create-mentioning-rules.ts'
+import { postprocessErrors } from '../error/postprocess/index.ts'
 
 export class CodeFile {
     readonly ast: Block
@@ -56,11 +56,7 @@ export class CodeFile {
         this.prepareErrors = validationErrors
 
         for (const error of validationErrors) {
-            session.stderr(
-                renderErrorString(error),
-                errorToMachineReadable(error),
-                error,
-            )
+            session.stderr(renderErrorString(error), error)
         }
     }
 
@@ -130,11 +126,7 @@ export class CodeFile {
                     e.codeFile = this
                 }
 
-                this.session.stderr(
-                    renderErrorString(e),
-                    errorToMachineReadable(e),
-                    e,
-                )
+                this.session.stderr(renderErrorString(e), e)
 
                 return rootScope
             }
@@ -152,12 +144,13 @@ function parseWithSession(code: string, session: YaksokSession) {
     let ast: ReturnType<typeof parse>
     let inferredSplitpoints: Splitpoint[] = []
     let tokens: Token[] | null = null
+    let validatingScope: Scope
 
     while (true) {
         tokens = tokenize(code, inferredSplitpoints)
         ast = parse(tokens, session)
 
-        const validatingScope = new Scope(
+        validatingScope = new Scope(
             session.baseScope
                 ? {
                       parent: session.baseScope,
@@ -200,5 +193,9 @@ function parseWithSession(code: string, session: YaksokSession) {
         seenSplitpointFingerprint.add(splitpointFingerprint)
     }
 
-    return { ast, validationErrors, tokens }
+    return {
+        ast,
+        validationErrors: postprocessErrors(validationErrors, tokens),
+        tokens,
+    }
 }

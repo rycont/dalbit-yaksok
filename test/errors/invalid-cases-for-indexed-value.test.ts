@@ -8,7 +8,7 @@ import { assertIsError } from '@std/assert'
 Deno.test('Tuple is immutable - cannot set value by index', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })
@@ -25,7 +25,7 @@ Deno.test('Tuple is immutable - cannot set value by index', async () => {
 Deno.test('Key for list fancy indexing is not a number', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })

@@ -17,7 +17,7 @@ import { QuickJS, QuickJSInternalError } from './mod.ts'
 Deno.test('Error in QuickJS', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })

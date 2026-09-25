@@ -8,7 +8,7 @@ import { YaksokSession } from '../../core/mod.ts'
 Deno.test('약속 안에서 발생한 오류', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })

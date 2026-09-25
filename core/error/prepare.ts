@@ -1,9 +1,20 @@
+import { NodeType } from '@dalbit-yaksok/core'
 import type { Node } from '../node/base.ts'
 import { TOKEN_TYPE, type Token } from '../prepare/tokenize/token.ts'
 import type { CodeFile } from '../type/code-file.ts'
 import type { Position } from '../type/position.ts'
 import { bold, dim, blue } from '../util/terminal.ts'
 import { tokenToText, YaksokError } from './common.ts'
+
+export class CannotUnderstandError extends YaksokError<{ nodeType: NodeType }> {
+    constructor(props: { tokens: Token[]; resource: { nodeType: NodeType } }) {
+        super(props)
+    }
+
+    override get message(): string {
+        return `${this.resource.nodeType.friendlyName}에서 ${blue(bold(this.tokens!.map((t) => t.value).join('')))} 부분을 이해할 수 없어요.`
+    }
+}
 
 export class CannotParseError extends YaksokError {
     constructor(props: {

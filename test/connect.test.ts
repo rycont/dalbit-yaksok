@@ -137,7 +137,7 @@ RRR
 Deno.test('올바르지 않은 연결 반환값: JS String', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })
@@ -172,7 +172,7 @@ SOMETHING
 Deno.test('올바르지 않은 연결 반환값: JS Object', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })
@@ -207,7 +207,7 @@ CODES
 Deno.test('연결 반환값이 없음', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })
@@ -242,7 +242,7 @@ CODES
 Deno.test('구현되지 않은 FFI', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
-        stderr(_message, _machineReadable, error) {
+        stderr(_message, error) {
             errors.push(error)
         },
     })
