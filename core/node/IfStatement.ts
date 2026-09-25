@@ -8,7 +8,7 @@ import type { Scope } from '../executer/scope.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 
 class StandaloneElseError extends YaksokError {
-    constructor(props: { tokens: Token[] }) {
+    constructor(props: { tokens: Token[]; scope: Scope }) {
         super(props)
         this.message = `"아니면"은 "만약" 조건문의 본문이 있어야 사용할 수 있어요.`
     }
@@ -79,7 +79,7 @@ export class ElseStatement extends Executable {
 
     override validate(scope: Scope): YaksokError[] {
         return [
-            new StandaloneElseError({ tokens: this.tokens }),
+            new StandaloneElseError({ tokens: this.tokens, scope }),
             ...this.body.validate(scope),
         ]
     }

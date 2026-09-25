@@ -6,7 +6,6 @@ import {
     Evaluable,
     Executable,
     FunctionObject,
-    Identifier,
     MissingRequiredArgumentError,
     Node,
     NodeCapability,
@@ -160,10 +159,7 @@ export class FunctionInvoke extends Evaluable<InvokingArguments> {
         }
     }
 
-    override validate(
-        invokingScope: Scope,
-        declaredScope: Scope = invokingScope,
-    ): YaksokError[] {
+    override validate(invokingScope: Scope): YaksokError[] {
         return this.invokingArguments.validate(invokingScope)
     }
 }
@@ -236,6 +232,7 @@ export class InvokingArguments extends Executable<Map<string, Evaluable>> {
                       resource: {
                           names: Array.from(missingKeys),
                       },
+                      scope: invokingScope,
                   }),
               ]
             : []
@@ -250,9 +247,14 @@ export class InvokingArguments extends Executable<Map<string, Evaluable>> {
                       resource: {
                           names: unknownKeys,
                       },
+                      scope: invokingScope,
                   }),
               ]
             : []
+
+        for (const e of this.parsingErrors) {
+            e.scope = invokingScope
+        }
 
         return argumentErrors
             .toArray()

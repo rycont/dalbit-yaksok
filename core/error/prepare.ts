@@ -6,13 +6,29 @@ import type { Position } from '../type/position.ts'
 import { bold, dim, blue } from '../util/terminal.ts'
 import { tokenToText, YaksokError } from './common.ts'
 
-export class CannotUnderstandError extends YaksokError<{ nodeType: NodeType }> {
-    constructor(props: { tokens: Token[]; resource: { nodeType: NodeType } }) {
+export class CannotUnderstandError extends YaksokError<{
+    nodeType: NodeType
+    additionalMessage?: string
+}> {
+    constructor(props: {
+        tokens: Token[]
+        resource: { nodeType: NodeType; additionalMessage?: string }
+    }) {
         super(props)
     }
 
     override get message(): string {
-        return `${this.resource.nodeType.friendlyName}에서 ${blue(bold(this.tokens!.map((t) => t.value).join('')))} 부분을 이해할 수 없어요.`
+        if (this.resource.additionalMessage) {
+            return this.resource.additionalMessage
+        }
+
+        return `${this.resource.nodeType.friendlyName}에서 ${blue(
+            bold(
+                this.tokens!.map((t) => t.value)
+                    .join('')
+                    .trim(),
+            ),
+        )} 부분을 실행할 수 없어요.`
     }
 }
 

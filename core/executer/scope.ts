@@ -7,14 +7,17 @@ import {
     YaksokSession,
     RunnableObject,
     Identifier,
+    DeclareEvent,
 } from '@dalbit-yaksok/core'
 
 export class Scope {
     variables: Record<string, ValueType>
     parent: Scope | null
 
-    public id: string = crypto.randomUUID()
-    public functions: Map<string, RunnableObject> = new Map()
+    public readonly id: string = crypto.randomUUID()
+    public readonly functions: Map<string, RunnableObject> = new Map()
+    public readonly events: Map<string, DeclareEvent> = new Map()
+
     public readonly session: YaksokSession
 
     constructor(

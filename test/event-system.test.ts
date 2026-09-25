@@ -21,10 +21,10 @@ Deno.test('이벤트 구독 및 실행', async () => {
 
     // Run the module. It should register the event listener.
 
-    session.eventCreation.sub('TEST_EVENT', (_, callback, terminate) => {
-        callback()
-        callback()
-        callback()
+    session.eventCreation.sub('TEST_EVENT', async (_, callback, terminate) => {
+        await callback()
+        await callback()
+        await callback()
 
         terminate()
     })
@@ -57,19 +57,22 @@ Deno.test('여러 이벤트 구독 및 실행', async () => {
 
     // Run the module. It should register the event listener.
 
-    session.eventCreation.sub('TEST_EVENT', (args, callback, terminate) => {
-        if (dalbitToJS(args.get('A')!) === '1') {
-            callback()
-            terminate()
-        }
-
-        if (dalbitToJS(args.get('A')!) === '2') {
-            setTimeout(() => {
-                callback()
+    session.eventCreation.sub(
+        'TEST_EVENT',
+        async (args, callback, terminate) => {
+            if (dalbitToJS(args.get('A')!) === '1') {
+                await callback()
                 terminate()
-            }, 100)
-        }
-    })
+            }
+
+            if (dalbitToJS(args.get('A')!) === '2') {
+                await new Promise((ok) => setTimeout(ok, 100))
+                await callback()
+
+                terminate()
+            }
+        },
+    )
 
     await codeFile.run()
 

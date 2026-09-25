@@ -1,3 +1,4 @@
+import { Scope } from '@dalbit-yaksok/core'
 import type { Token } from '../prepare/tokenize/token.ts'
 import { bold, blue, dim } from '../util/terminal.ts'
 
@@ -42,7 +43,11 @@ export class CallStackDepthExceededError extends YaksokError<
 export class UnexpectedArgumentError extends YaksokError<{
     names: string[]
 }> {
-    constructor(props: { tokens?: Token[]; resource: { names: string[] } }) {
+    constructor(props: {
+        tokens?: Token[]
+        resource: { names: string[] }
+        scope: Scope
+    }) {
         super(props)
         const { names } = props.resource
         this.message = `이 약속은 ${names
@@ -54,7 +59,11 @@ export class UnexpectedArgumentError extends YaksokError<{
 export class MissingRequiredArgumentError extends YaksokError<{
     names: string[]
 }> {
-    constructor(props: { tokens: Token[]; resource: { names: string[] } }) {
+    constructor(props: {
+        tokens: Token[]
+        resource: { names: string[] }
+        scope: Scope
+    }) {
         super(props)
         const { names } = props.resource
         this.message = `이 약속엔 ${names

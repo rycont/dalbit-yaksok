@@ -82,7 +82,9 @@ export class MentionScope extends Evaluable<FunctionInvoke | Identifier> {
 
     override validate(scope: Scope): YaksokError[] {
         if (this.subnode instanceof FunctionInvoke) {
-            return this.subnode.validate(scope, this.declaredScope)
+            return this.subnode.validate(scope)
+        } else if (this.subnode instanceof SubscribeEvent) {
+            return this.subnode.validate(scope)
         } else {
             return this.subnode.validate(this.declaredScope)
         }

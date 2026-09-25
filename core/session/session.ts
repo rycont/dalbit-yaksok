@@ -36,7 +36,7 @@ export class YaksokSession {
     public eventCreation: PubSub<{
         [key: string]: (
             args: Map<string, ValueType>,
-            callback: () => void,
+            callback: () => Promise<void>,
             terminate: () => void,
             scope: Scope,
         ) => void

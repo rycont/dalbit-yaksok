@@ -3,6 +3,7 @@ import {
     Executable,
     InvokingArguments,
     renderErrorString,
+    Rule,
     Scope,
     Token,
     ValueType,
@@ -15,12 +16,15 @@ export class DeclareEvent extends Executable {
     constructor(
         public eventId: string,
         public name: string,
+        public invokeRules: Rule[],
         public override tokens: Token[],
     ) {
         super()
     }
 
-    override execute(_scope: Scope): Promise<void> {
+    override execute(scope: Scope): Promise<void> {
+        scope.events.set(this.eventId, this)
+
         return Promise.resolve()
     }
 
@@ -63,7 +67,6 @@ export class SubscribeEvent extends Executable<InvokingArguments> {
                             if (e instanceof YaksokError) {
                                 session.stderr(renderErrorString(e), e)
                             }
-                            resolve()
                         }
                     },
                     () => {
@@ -73,8 +76,6 @@ export class SubscribeEvent extends Executable<InvokingArguments> {
                 ])
             }),
         )
-
-        return Promise.resolve()
     }
 
     override validate(invokingScope: Scope): YaksokError[] {

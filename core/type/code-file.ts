@@ -83,6 +83,7 @@ export class CodeFile {
 
         try {
             await executer(this.ast, rootScope)
+            await Promise.allSettled(this.session.aliveListeners)
 
             this._ranScope = rootScope
 
@@ -91,6 +92,15 @@ export class CodeFile {
                 .flatMap((v) =>
                     v.invokeRules.map((rule) =>
                         createMentioningRule(this.fileName, rule, rootScope),
+                    ),
+                )
+                .toArray()
+
+            const exportedEventRules = rootScope.events
+                .values()
+                .flatMap((n) =>
+                    n.invokeRules.map((r) =>
+                        createMentioningRule(this.fileName, r, rootScope),
                     ),
                 )
                 .toArray()
@@ -115,9 +125,9 @@ export class CodeFile {
                 rootScope,
             )
 
-            this._mentionRules = exportedFunctionRules.concat(
-                exportedVariableRules,
-            )
+            this._mentionRules = exportedFunctionRules
+                .concat(exportedVariableRules)
+                .concat(exportedEventRules)
 
             return rootScope
         } catch (e) {
