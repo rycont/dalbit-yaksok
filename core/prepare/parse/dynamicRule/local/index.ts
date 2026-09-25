@@ -15,7 +15,6 @@ import {
 
 import { getDeclareSignature } from './get-function-declare-ranges.ts'
 import { createCallingRules } from './calling/index.ts'
-import { createVerbalVariant } from './verbal-variant.ts'
 
 export function buildLocalRules(tokens: Token[]): DynamicRules {
     const ranges = getDeclareSignature(tokens)
@@ -114,7 +113,7 @@ const rangeToRules = (allTokens: Token[]) => (range: FunctionDeclareRange) => {
         }
     }
 
-    const rawHeaderParts = tokenGroups.map<FunctionHeaderPart>((g, i, a) => {
+    const headerParts = tokenGroups.map<FunctionHeaderPart>((g, i, a) => {
         const prevGroup = a[i - 1]
         const prevGroupLastToken = prevGroup
             ? prevGroup.tokens[prevGroup.tokens.length - 1]
@@ -134,7 +133,7 @@ const rangeToRules = (allTokens: Token[]) => (range: FunctionDeclareRange) => {
             return {
                 type: FunctionPartType.static,
                 isSuffix,
-                names: g.tokens.map((t) => t.value),
+                names: g.tokens,
             }
         }
 
@@ -162,16 +161,14 @@ const rangeToRules = (allTokens: Token[]) => (range: FunctionDeclareRange) => {
         }
     })
 
-    const functionName = rawHeaderParts
+    const functionName = headerParts
         .map((g) =>
             g.type === FunctionPartType.static
-                ? (g.isSuffix ? '' : ' ') + g.names[0]
+                ? (g.isSuffix ? '' : ' ') + g.names[0].value
                 : `(${g.params.map((p) => p.name).join(', ')})`,
         )
         .join('')
         .trim()
-
-    const headerParts = createVerbalVariant(rawHeaderParts)
 
     const parameterScheme = headerParts.flatMap((g) =>
         g.type === FunctionPartType.parameter ? g.params : [],
@@ -194,6 +191,7 @@ const rangeToRules = (allTokens: Token[]) => (range: FunctionDeclareRange) => {
                 parameterScheme,
                 range,
                 lineTokens,
+                headerParts,
             ),
         ],
         tokenRange: [range.line.start, range.line.end],

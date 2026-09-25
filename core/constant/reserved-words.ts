@@ -15,11 +15,3 @@ export const RESERVED_WORDS = new Set([
     '잠깐',
     '멈추기',
 ])
-
-// 함수 헤더의 정적 문구에서는 아래 예약어만 예외적으로 허용합니다.
-export const FUNCTION_HEADER_STATIC_RESERVED_WORDS_ALLOWLIST = new Set([
-    '고고',
-    '이고',
-    '거나',
-    '잠깐',
-])

@@ -29,7 +29,7 @@ export function createBlockRule(
             u(
                 Identifier,
                 v.object({
-                    value: v.picklist(part.names),
+                    value: v.picklist(part.names.map((n) => n.value)),
                 }),
             ),
         )

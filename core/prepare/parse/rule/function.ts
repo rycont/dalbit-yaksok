@@ -30,13 +30,7 @@ export const FUNCTION_RULES: Rule[] = [
         factory(nodes, tokens) {
             const [header, _, body] = nodes
 
-            return new DeclareFunction(
-                body,
-                header.name,
-                header.invokingRules,
-                header.parameterScheme,
-                tokens,
-            )
+            return new DeclareFunction(body, header, tokens)
         },
     }),
     r({
@@ -53,13 +47,7 @@ export const FUNCTION_RULES: Rule[] = [
             FFIBody,
         ],
         factory([header, __, body], tokens) {
-            return new DeclareFFI(
-                header.name,
-                body.code,
-                header.range.runtime,
-                header.invokingRules,
-                tokens,
-            )
+            return new DeclareFFI(header, body.code, tokens)
         },
     }),
     r({
@@ -74,12 +62,7 @@ export const FUNCTION_RULES: Rule[] = [
             ),
         ],
         factory([header], tokens) {
-            return new DeclareEvent(
-                header.range.id,
-                header.name,
-                header.invokingRules,
-                tokens,
-            )
+            return new DeclareEvent(header, tokens)
         },
     }),
 ]

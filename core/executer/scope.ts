@@ -8,7 +8,9 @@ import {
     RunnableObject,
     Identifier,
     DeclareEvent,
+    NotProperIdentifierNameToDefineError,
 } from '@dalbit-yaksok/core'
+import { RESERVED_WORDS } from '../constant/reserved-words.ts'
 
 export class Scope {
     variables: Record<string, ValueType>
@@ -44,7 +46,14 @@ export class Scope {
     }
 
     setVariable(name: string, value: ValueType) {
-        if (this.parent?.askSetVariable(name, value)) return
+        if (this.parent?.askSetVariable(name, value)) {
+            return
+        }
+
+        if (RESERVED_WORDS.has(name)) {
+            throw new NotProperIdentifierNameToDefineError()
+        }
+
         this.variables[name] = value
     }
 
@@ -94,6 +103,7 @@ export class Scope {
                 resource: {
                     name: functionObject.name,
                 },
+                scope: this,
             })
 
             throw errorInstance

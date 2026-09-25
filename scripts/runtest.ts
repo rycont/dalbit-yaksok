@@ -1,34 +1,51 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
 
 const session = new YaksokSession()
-
-await session
-    .addModule(
-        'device',
-        `
-이벤트(BUTTON_PRESSED), 버튼 눌렀을 때
-`,
-    )
-    .run()
-const codeFile = session.addModule(
+session.addModule(
     'main',
-    `
-상태 = "정지 중"
+    `약속, (음식)을/를 (사람)와/과 먹기
+    "맛있는 " + 음식 + ", " + 사람 + "의 입으로 모두 들어갑니다." 보여주기
 
-@device 버튼 눌렀을 때
-    만약 상태 == "정지 중" 이면
-        "출발" 보여주기
-        상태 = "가는 중"
-    아니면
-        "정지" 보여주기
-        상태 = "정지 중"
+"피자"를 "철수"와 먹기
+"햄버거"를 "영희"와 먹기
+"치킨"을 "형님"과 먹기
+"초밥"을 "동생"과 먹기
+
+먹을_음식 = "유부초밥"
+먹일_사람 = "현수"
+
+먹을_음식을 먹일_사람과 먹기
+
+5번 반복
+    또_다른_타겟 = "희준"
+    먹을_음식을 또_다른_타겟과 먹기
+
+먹을_음식을 (먹일_사람)과 먹기
+
+먹을_음식 = "대나무"
+
+(먹을_음식)을 먹일_사람과 먹기
+
+먹일_사람 = "지우"
+
+(먹을_음식)을 (먹일_사람)과 먹기
+
+약속, 지금/현재 시간 가져오기/말하기
+    "그건 제가 도와드릴 수 없어요" 보여주기
+
+지금 시간 가져오기
+지금 시간 말하기
+현재 시간 가져오기
+현재 시간 말하기
+
+약속, 지금/현재/지금의 밀리초 가져오기/말하기
+    "그것도 제가 도와드릴 순 없어요.." 보여주기
+
+지금 밀리초 가져오기
+지금 밀리초 말하기
+현재 밀리초 가져오기
+현재 밀리초 말하기
+지금의 밀리초 가져오기
+지금의 밀리초 말하기
 `,
 )
-
-session.eventCreation.sub('BUTTON_PRESSED', async (_, callback, terminate) => {
-    await callback()
-    await callback()
-    terminate()
-})
-
-await codeFile.run()

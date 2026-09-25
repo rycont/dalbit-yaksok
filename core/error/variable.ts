@@ -1,34 +1,21 @@
 import { YaksokError } from './common.ts'
-import { RESERVED_WORDS } from '../constant/reserved-words.ts'
 
-import { Node, Scope } from '@dalbit-yaksok/core'
+import { Node, Scope, Token } from '@dalbit-yaksok/core'
 import { bold, blue } from '../util/terminal.ts'
 
-export class NotProperIdentifierNameToDefineError extends YaksokError<{
-    texts: string[]
-}> {
-    constructor(props: { texts: string[] }) {
-        super({
-            resource: props,
-        })
+export class NotProperIdentifierNameToDefineError extends YaksokError {
+    constructor(props?: { token: Token; scope: Scope }) {
+        super({})
 
-        const matchedReservedWords = [...RESERVED_WORDS].filter((word) =>
-            props.texts.includes(word),
-        )
-
-        if (matchedReservedWords.length) {
-            this.message = `${bold(
-                blue(props.texts.join(' ').trim()),
-            )}에서 ${matchedReservedWords
-                .map((e) => `'${e}'`)
-                .map(bold)
-                .map(blue)
-                .join(', ')}는 변수나 약속의 이름으로 사용할 수 없어요.`
-            return
+        if (props) {
+            this.tokens = [props.token]
+            this.scope = props.scope
         }
+    }
 
-        this.message = `${bold(
-            blue(props.texts.join(' ')),
+    override get message(): string {
+        return `${bold(
+            blue(this.tokens![0].value),
         )}는 변수나 약속의 이름으로 사용할 수 없어요.`
     }
 }

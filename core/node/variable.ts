@@ -1,12 +1,13 @@
-import { YaksokError } from '../error/common.ts'
-import { Evaluable } from './base.ts'
-
-import type { Scope } from '../executer/scope.ts'
-import type { Token } from '../prepare/tokenize/token.ts'
-import type { ValueType } from '../value/base.ts'
-import { NumberValue } from '../value/primitive.ts'
-import { assignerToOperatorMap } from './operator.ts'
-import { assertValidIdentifierName } from '../util/assert-valid-identifier-name.ts'
+import {
+    assignerToOperatorMap,
+    Evaluable,
+    NotProperIdentifierNameToDefineError,
+    NumberValue,
+    Scope,
+    Token,
+    ValueType,
+    YaksokError,
+} from '@dalbit-yaksok/core'
 
 export class SetVariable extends Evaluable<Evaluable> {
     static override friendlyName = '변수 정하기'
@@ -18,7 +19,6 @@ export class SetVariable extends Evaluable<Evaluable> {
         public operator: string,
     ) {
         super()
-        assertValidIdentifierName(name, tokens[0])
         this.subnode = evaluator
     }
 
@@ -59,7 +59,15 @@ export class SetVariable extends Evaluable<Evaluable> {
 
     override validate(scope: Scope): YaksokError[] {
         const errors = this.subnode.validate(scope)
-        scope.setVariable(this.name, new NumberValue(0))
+
+        try {
+            scope.setVariable(this.name, new NumberValue(0))
+        } catch (e) {
+            if (e instanceof NotProperIdentifierNameToDefineError) {
+                e.scope = scope
+                e.tokens = this.tokens
+            }
+        }
 
         return errors
     }

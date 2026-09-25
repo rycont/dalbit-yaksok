@@ -28,7 +28,7 @@ export function createCallingPattern(
         return u(
             Identifier,
             v.object({
-                value: v.picklist(g.names),
+                value: v.picklist(g.names.map((n) => n.value)),
             }),
             v.metadata({
                 isSuffix: g.isSuffix,

@@ -1,35 +1,34 @@
 import {
     Block,
     Executable,
+    FunctionDeclareHeader,
     InvokingArguments,
     renderErrorString,
-    Rule,
     Scope,
     Token,
     ValueType,
     YaksokError,
 } from '@dalbit-yaksok/core'
+import { FunctionType } from '../prepare/parse/dynamicRule/local/type.ts'
 
 export class DeclareEvent extends Executable {
     static override friendlyName = '새 이벤트 만들기'
 
     constructor(
-        public eventId: string,
-        public name: string,
-        public invokeRules: Rule[],
+        public readonly header: FunctionDeclareHeader<FunctionType.이벤트>,
         public override tokens: Token[],
     ) {
         super()
     }
 
     override execute(scope: Scope): Promise<void> {
-        scope.events.set(this.eventId, this)
+        scope.events.set(this.header.range.id, this)
 
         return Promise.resolve()
     }
 
-    override validate(_scope: Scope): YaksokError[] {
-        return []
+    override validate(scope: Scope): YaksokError[] {
+        return this.header.validate(scope)
     }
 }
 
@@ -67,6 +66,7 @@ export class SubscribeEvent extends Executable<InvokingArguments> {
                             if (e instanceof YaksokError) {
                                 session.stderr(renderErrorString(e), e)
                             }
+                            resolve()
                         }
                     },
                     () => {

@@ -19,11 +19,13 @@ export class FunctionMustHaveOneOrMoreStringPartError extends YaksokError {
 }
 
 export class AlreadyDefinedFunctionError extends YaksokError {
-    constructor(props: { resource: { name: string } }) {
+    constructor(props: { resource: { name: string }; scope: Scope }) {
         super(props)
         this.message = `이미 ${bold(
             blue(`"${props.resource.name}"`),
         )}라는 약속(번역)이 있어요`
+
+        this.scope = props.scope
     }
 }
 

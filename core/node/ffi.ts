@@ -1,12 +1,13 @@
 import {
     Executable,
     Node,
-    Rule,
     Scope,
     Token,
     YaksokError,
     FFIObject,
+    FunctionDeclareHeader,
 } from '@dalbit-yaksok/core'
+import { FunctionType } from '../prepare/parse/dynamicRule/local/type.ts'
 
 export class FFIBody extends Node {
     static override friendlyName = '번역할 내용'
@@ -27,10 +28,8 @@ export class DeclareFFI extends Executable {
     static override friendlyName = '번역 만들기'
 
     constructor(
-        public name: string,
+        public readonly header: FunctionDeclareHeader<FunctionType.번역>,
         public body: string,
-        public runtime: string,
-        private invokeRules: Rule[],
         public override tokens: Token[],
     ) {
         super()
@@ -40,10 +39,10 @@ export class DeclareFFI extends Executable {
         try {
             scope.addFunctionObject(
                 new FFIObject(
-                    this.name,
+                    this.header.name,
                     this.body,
-                    this.runtime,
-                    this.invokeRules,
+                    this.header.range.runtime,
+                    this.header.invokingRules,
                     scope,
                 ),
             )
@@ -58,12 +57,13 @@ export class DeclareFFI extends Executable {
     }
 
     override validate(scope: Scope): YaksokError[] {
+        let declareErrors: YaksokError[] = []
         try {
             const ffiObject = new FFIObject(
-                this.name,
+                this.header.name,
                 this.body,
-                this.runtime,
-                this.invokeRules,
+                this.header.range.runtime,
+                this.header.invokingRules,
                 scope,
             )
 
@@ -71,12 +71,14 @@ export class DeclareFFI extends Executable {
         } catch (error) {
             if (error instanceof YaksokError) {
                 error.tokens = this.tokens
-                return [error]
+                declareErrors.push(error)
             } else {
                 throw error
             }
         }
 
-        return []
+        const headerErrors = this.header.validate(scope)
+
+        return declareErrors.concat(headerErrors)
     }
 }

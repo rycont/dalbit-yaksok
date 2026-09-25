@@ -9,6 +9,7 @@ import {
     MissingRequiredArgumentError,
     Node,
     NodeCapability,
+    NotProperIdentifierNameToDefineError,
     ParameterElement,
     Rule,
     Scope,
@@ -18,7 +19,13 @@ import {
     YaksokError,
 } from '@dalbit-yaksok/core'
 import { assertValidReturnValue } from '../util/assert-valid-return-value.ts'
-import { FunctionDeclareRange } from '../prepare/parse/dynamicRule/local/type.ts'
+import {
+    FunctionDeclareRange,
+    FunctionHeaderPart,
+    FunctionPartType,
+    FunctionType,
+} from '../prepare/parse/dynamicRule/local/type.ts'
+import { RESERVED_WORDS } from '../constant/reserved-words.ts'
 
 export class FunctionDeclareHeader<
     T extends FunctionDeclareRange['type'],
@@ -31,8 +38,24 @@ export class FunctionDeclareHeader<
             type: T
         },
         public override tokens: Token[],
+        public headerParts: FunctionHeaderPart[],
     ) {
         super()
+    }
+
+    override validate(scope: Scope): YaksokError[] {
+        const invalidNames = this.headerParts
+            .filter((p) => p.type === FunctionPartType.static)
+            .flatMap((p) => p.names.filter((n) => RESERVED_WORDS.has(n.value)))
+            .map(
+                (t) =>
+                    new NotProperIdentifierNameToDefineError({
+                        token: t,
+                        scope,
+                    }),
+            )
+
+        return invalidNames
     }
 }
 
@@ -42,9 +65,7 @@ export class DeclareFunction extends Executable<Block> {
 
     constructor(
         body: Block,
-        public name: string,
-        private invokeRules: Rule[],
-        private parameterScheme: ParameterElement[],
+        public readonly header: FunctionDeclareHeader<FunctionType.약속>,
         public override tokens: Token[],
     ) {
         super()
@@ -53,9 +74,9 @@ export class DeclareFunction extends Executable<Block> {
 
     override execute(scope: Scope): Promise<void> {
         const functionObject = new FunctionObject(
-            this.name,
+            this.header.name,
             this.subnode,
-            this.invokeRules,
+            this.header.invokingRules,
             scope,
         )
 
@@ -75,7 +96,7 @@ export class DeclareFunction extends Executable<Block> {
         const declarationErrors = []
 
         const params: Record<string, ValueType> = Object.fromEntries(
-            this.parameterScheme.map((p) => [
+            this.header.parameterScheme.map((p) => [
                 p.name,
                 p.optional ? new EmptyValue() : new ValueType(),
             ]),
@@ -89,9 +110,9 @@ export class DeclareFunction extends Executable<Block> {
         try {
             scope.addFunctionObject(
                 new FunctionObject(
-                    this.name,
+                    this.header.name,
                     this.subnode,
-                    this.invokeRules,
+                    this.header.invokingRules,
                     functionScope,
                 ),
             )
@@ -105,8 +126,9 @@ export class DeclareFunction extends Executable<Block> {
         }
 
         const bodyErrors = this.subnode.validate(functionScope)
+        const headerErrors = this.header.validate(scope)
 
-        return [...declarationErrors, ...bodyErrors]
+        return declarationErrors.concat(headerErrors).concat(bodyErrors)
     }
 }
 

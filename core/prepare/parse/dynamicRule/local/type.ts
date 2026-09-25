@@ -1,4 +1,5 @@
 import { ParameterElement } from '../../../../constant/type.ts'
+import { Token } from '@dalbit-yaksok/core'
 
 export enum FunctionType {
     약속 = '약속',
@@ -44,7 +45,7 @@ export enum FunctionPartType {
 export type FunctionStaticPart = {
     type: FunctionPartType.static
     isSuffix: boolean
-    names: string[]
+    names: Token[]
 }
 
 export type FunctionParameterPart = {

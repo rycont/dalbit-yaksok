@@ -99,7 +99,7 @@ export class CodeFile {
             const exportedEventRules = rootScope.events
                 .values()
                 .flatMap((n) =>
-                    n.invokeRules.map((r) =>
+                    n.header.invokingRules.map((r) =>
                         createMentioningRule(this.fileName, r, rootScope),
                     ),
                 )
