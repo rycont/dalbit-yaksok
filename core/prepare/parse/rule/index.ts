@@ -79,7 +79,11 @@ export const BASIC_RULES: Rule[][] = [
             ],
             factory: (nodes, tokens) => {
                 const sequence = nodes[1] as Sequence
-                return new ListLiteral(sequence.items, tokens)
+                return new ListLiteral(
+                    sequence.items,
+                    nodes[2] as Expression,
+                    tokens,
+                )
             },
         },
         {
@@ -499,10 +503,6 @@ export const ADVANCED_RULES: Rule[] = [
             const a = nodes[0] as Evaluable
             const b = nodes[2] as Evaluable
 
-            if (a instanceof Identifier && a.value === '약속') {
-                return null
-            }
-
             return new Sequence([a, b], tokens)
         },
     },
@@ -537,7 +537,8 @@ export const ADVANCED_RULES: Rule[] = [
                 value: ']',
             },
         ],
-        factory: (_nodes, tokens) => new ListLiteral([], tokens),
+        factory: (nodes, tokens) =>
+            new ListLiteral([], nodes[1] as Expression, tokens),
     },
     ...ASSIGNERS.map<Rule>((assigner) => ({
         pattern: [
@@ -988,7 +989,7 @@ export const ADVANCED_RULES: Rule[] = [
         ],
         factory: (nodes, tokens) => {
             const item = nodes[1] as Evaluable
-            return new ListLiteral([item], tokens)
+            return new ListLiteral([item], nodes[2] as Expression, tokens)
         },
     },
     ...DICT_RULES,

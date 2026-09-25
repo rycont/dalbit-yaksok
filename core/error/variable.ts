@@ -28,6 +28,7 @@ interface NotDefinedIdentifierErrorResource {
 export class NotDefinedIdentifierError extends YaksokError<NotDefinedIdentifierErrorResource> {
     constructor(props: {
         node?: Node
+        tokens?: Token[]
         scope: Scope
         resource: NotDefinedIdentifierErrorResource
         texts?: string[]
@@ -37,7 +38,7 @@ export class NotDefinedIdentifierError extends YaksokError<NotDefinedIdentifierE
 
     override get message(): string {
         const name =
-            this.tokens?.map((token) => token.value).join(' ') ||
+            this.tokens?.map((token) => token.value).join('') ||
             this.resource.name!
         const fixes = this.resource?.suggestedFixes
         const fixHint =

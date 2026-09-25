@@ -235,6 +235,8 @@ export class Expression<
 > extends Node<LeavesType> {
     static override friendlyName = '표현식'
 
+    public parsingErrors: YaksokError[] = []
+
     constructor(
         public override value: string,
         public override tokens: Token[],
@@ -247,6 +249,24 @@ export class Expression<
     }
 
     override validate(scope: Scope): YaksokError[] {
+        if (0 < this.parsingErrors.length) {
+            for (const error of this.parsingErrors) {
+                if (!error.scope) {
+                    error.scope = scope
+                }
+
+                if (!error.node) {
+                    error.node = this
+                }
+
+                if (!error.tokens) {
+                    error.tokens = this.tokens
+                }
+            }
+
+            return this.parsingErrors
+        }
+
         const error = new NotExecutableNodeError({
             tokens: this.tokens,
             scope,
@@ -254,5 +274,9 @@ export class Expression<
         })
 
         return [error]
+    }
+
+    public injectParsingError(parsingError: YaksokError) {
+        this.parsingErrors.push(parsingError)
     }
 }

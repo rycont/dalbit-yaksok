@@ -1,6 +1,7 @@
-import { Node, Rule } from '@dalbit-yaksok/core'
+import { BrokenBracketError, Node, Rule } from '@dalbit-yaksok/core'
 import { Expression } from '../../node/index.ts'
 import { callParseRecursively } from './srParse.ts'
+import { blue, bold } from '../../util/terminal.ts'
 
 const BRACKETS: Record<
     string,
@@ -10,27 +11,27 @@ const BRACKETS: Record<
     }
 > = {
     '{': {
-        shape: '{',
+        shape: '}',
         role: 'open',
     },
     '}': {
-        shape: '{',
+        shape: '{}',
         role: 'close',
     },
     '(': {
-        shape: '(',
+        shape: ')',
         role: 'open',
     },
     ')': {
-        shape: '(',
+        shape: ')',
         role: 'close',
     },
     '[': {
-        shape: '[',
+        shape: ')',
         role: 'open',
     },
     ']': {
-        shape: '[',
+        shape: ')',
         role: 'close',
     },
 }
@@ -58,7 +59,7 @@ export function parseBracket(rawNodes: Node[], externalPatterns: Rule[]) {
 }
 
 function createBracketMap(nodes: Node[]) {
-    const seekingStack: { char: string; node: Node }[] = []
+    const seekingStack: { char: string; node: Expression }[] = []
     const bracketRanges: [Node, Node][] = []
 
     for (let i = 0; i < nodes.length; i++) {
@@ -97,6 +98,16 @@ function createBracketMap(nodes: Node[]) {
             char: current.value,
             node: current,
         })
+    }
+
+    for (const item of seekingStack) {
+        item.node.injectParsingError(
+            new BrokenBracketError({
+                resource: {
+                    message: `닫는 괄호가 필요해요. 내용이 끝나면 ${bold(blue(BRACKETS[item.char].shape))}로 닫아주세요.`,
+                },
+            }),
+        )
     }
 
     return bracketRanges

@@ -17,6 +17,8 @@ import { YaksokError } from '../error/common.ts'
 import { NotExecutableNodeError } from '../error/unknown-node.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import { assignerToOperatorMap } from './operator.ts'
+import { BrokenBracketError, Expression } from '@dalbit-yaksok/core'
+import { blue, dim } from '../util/terminal.ts'
 
 export class Sequence extends Node {
     static override friendlyName = '나열된 값'
@@ -44,6 +46,7 @@ export class ListLiteral extends Evaluable<Evaluable[]> {
 
     constructor(
         items: Evaluable[],
+        public closingBracket: Expression | null,
         public override tokens: Token[],
     ) {
         super()
@@ -64,7 +67,19 @@ export class ListLiteral extends Evaluable<Evaluable[]> {
             .flatMap((item) => item.validate(scope))
             .filter((error): error is YaksokError => !!error)
 
-        return errors
+        const bracketErrors = this.closingBracket
+            ? []
+            : [
+                  new BrokenBracketError({
+                      resource: {
+                          message: `목록에는 닫는 괄호가 필요해요. 쉼표로 값을 나열하고 나서, ${blue(']')}로 목록을 닫아주세요.`,
+                      },
+                      node: this,
+                      scope,
+                  }),
+              ]
+
+        return errors.concat(bracketErrors)
     }
 }
 

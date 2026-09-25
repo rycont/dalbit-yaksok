@@ -1,4 +1,4 @@
-import { NodeType } from '@dalbit-yaksok/core'
+import { NodeType, Scope } from '@dalbit-yaksok/core'
 import type { Node } from '../node/base.ts'
 import { TOKEN_TYPE, type Token } from '../prepare/tokenize/token.ts'
 import type { CodeFile } from '../type/code-file.ts'
@@ -98,22 +98,27 @@ interface UnexpectedCharErrorResource {
 export class UnexpectedCharError extends YaksokError<UnexpectedCharErrorResource> {
     constructor(props: {
         resource: UnexpectedCharErrorResource
-        position?: Position
+        scope: Scope
+        node: Node
     }) {
         super(props)
-        this.message = `문자 ${props.resource.char}는 ${props.resource.parts}에 사용할 수 없어요.`
+        this.message = `${bold(blue(props.resource.char))}는 ${props.resource.parts}에 사용할 수 없어요.`
     }
 }
 
-export class UnexpectedNewlineError extends UnexpectedCharError {
-    constructor(props: { parts: string; position?: Position }) {
-        super({
-            resource: {
-                char: '줄바꿈',
-                parts: props.parts,
-            },
-        })
-        this.message = `${bold(blue(props.parts))}엔 줄바꿈을 사용할 수 없어요.`
+export class BrokenBracketError extends YaksokError<{
+    message: string
+}> {
+    constructor(props: {
+        scope?: Scope
+        node?: Node
+        resource: { message: string }
+    }) {
+        super(props || {})
+    }
+
+    override get message(): string {
+        return this.resource.message
     }
 }
 

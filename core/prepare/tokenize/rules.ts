@@ -1,7 +1,4 @@
-import {
-    UnexpectedEndOfCodeError,
-    UnexpectedNewlineError,
-} from '../../error/prepare.ts'
+import { UnexpectedEndOfCodeError } from '../../error/prepare.ts'
 import { Token, TOKEN_TYPE } from './token.ts'
 
 const OPERATORS = [
@@ -293,11 +290,6 @@ export const RULES: {
             let i = index + 1
 
             while (i < code.length && code[i] !== quote) {
-                if (code[i] === '\n') {
-                    throw new UnexpectedNewlineError({
-                        parts: '문자열',
-                    })
-                }
                 if (code[i] === '\\' && i + 1 < code.length) {
                     i += 2
                     continue

@@ -109,12 +109,12 @@ export function tokenizeTemplateString(sourceToken: Token) {
 
 function shiftTokensColumn(tokens: Token[], amount: number) {
     for (const token of tokens) {
-        token.position.column += amount
+        token.position.column += amount - 1
     }
 }
 
 function shiftTokensLine(tokens: Token[], amount: number) {
     for (const token of tokens) {
-        token.position.line += amount
+        token.position.line += amount - 1
     }
 }

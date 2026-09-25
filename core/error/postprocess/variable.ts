@@ -1,5 +1,6 @@
 import { Processor } from './type.ts'
 import {
+    NotDefinedIdentifierError,
     NotExecutableNodeError,
     NotProperIdentifierNameToDefineError,
     YaksokError,
@@ -21,7 +22,9 @@ export const prettifyVariableDeclaration: Processor = (errors, tokens) => {
     const nameErrors = errors.slice(0, equalSignError)
 
     if (nameErrors.length === 1) {
-        refinedErrors = refinedErrors.concat(nameErrors)
+        if (!(nameErrors[0] instanceof NotDefinedIdentifierError)) {
+            refinedErrors = refinedErrors.concat(nameErrors)
+        }
     } else {
         const firstToken = nameErrors[0].tokens![0]
         const firstTokenIndex = tokens.indexOf(firstToken)

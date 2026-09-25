@@ -8,12 +8,29 @@ import {
     ValueType,
 } from '@dalbit-yaksok/core'
 import { NotAcceptableSignal } from '../../prepare/parse/signal.ts'
+import { UnexpectedCharError, YaksokError } from '../../error/index.ts'
 
 export class StringStaticPart extends Expression {
     static override friendlyName = '문자'
 
     constructor(content: string, tokens: Token[]) {
         super(content, tokens)
+    }
+
+    override validate(scope: Scope): YaksokError[] {
+        return this.tokens
+            .filter((t) => t.value.includes('\n'))
+            .map(
+                () =>
+                    new UnexpectedCharError({
+                        scope,
+                        node: this,
+                        resource: {
+                            parts: '문자열',
+                            char: '줄바꿈',
+                        },
+                    }),
+            )
     }
 }
 
@@ -83,8 +100,6 @@ export class StringPartSequence extends Evaluable<
     }
 
     override validate(scope: Scope) {
-        return this.subnode
-            .filter((n) => n instanceof Evaluable)
-            .flatMap((n) => n.validate(scope))
+        return this.subnode.slice(1, -1).flatMap((n) => n.validate(scope))
     }
 }

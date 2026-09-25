@@ -1,8 +1,15 @@
 import { Token, YaksokError } from '@dalbit-yaksok/core'
 import { prettifyBrokenIf } from './if-statement.ts'
 import { prettifyVariableDeclaration } from './variable.ts'
+import { prettifyBrokenList } from './list.ts'
+import { mergeSequentialIdentifiers } from './identifier.ts'
 
-const PROCESSORS = [prettifyBrokenIf, prettifyVariableDeclaration]
+const PROCESSORS = [
+    prettifyBrokenIf,
+    prettifyVariableDeclaration,
+    prettifyBrokenList,
+    mergeSequentialIdentifiers,
+]
 
 export function postprocessErrors(errors: YaksokError[], tokens: Token[]) {
     const insufficientError = errors.find(

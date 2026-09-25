@@ -39,9 +39,10 @@ export class YaksokError<T = unknown> extends Error {
 
         this.position = props.position
         this.resource = (props.resource ?? null) as T
-        this.tokens = props.tokens
         this.scope = props.scope
         this.node = props.node
+
+        this.tokens = props.tokens || props.node?.tokens
     }
 }
 
