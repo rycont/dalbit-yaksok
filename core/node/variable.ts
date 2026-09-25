@@ -62,13 +62,18 @@ export class SetVariable extends Evaluable<Evaluable> {
 
         try {
             scope.setVariable(this.name, new NumberValue(0))
+            return errors
         } catch (e) {
             if (e instanceof NotProperIdentifierNameToDefineError) {
                 e.scope = scope
                 e.tokens = this.tokens
             }
-        }
 
-        return errors
+            if (e instanceof YaksokError) {
+                return errors.concat([e])
+            }
+
+            throw e
+        }
     }
 }

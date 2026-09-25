@@ -4,18 +4,18 @@ import { Node, Scope, Token } from '@dalbit-yaksok/core'
 import { bold, blue } from '../util/terminal.ts'
 
 export class NotProperIdentifierNameToDefineError extends YaksokError {
-    constructor(props?: { token: Token; scope: Scope }) {
+    constructor(props?: { tokens: Token[]; scope: Scope }) {
         super({})
 
         if (props) {
-            this.tokens = [props.token]
+            this.tokens = props.tokens
             this.scope = props.scope
         }
     }
 
     override get message(): string {
         return `${bold(
-            blue(this.tokens![0].value),
+            blue(this.tokens!.map((t) => t.value).join('')),
         )}는 변수나 약속의 이름으로 사용할 수 없어요.`
     }
 }

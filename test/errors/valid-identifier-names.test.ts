@@ -23,6 +23,7 @@ Deno.test('Valid identifier names', async () => {
 Deno.test('Invalid identifier name', async () => {
     const session = new YaksokSession()
     const codeFile = session.addModule('main', `멍멍*이 = 10`)
+
     assertIsError(
         codeFile.prepareErrors[0],
         NotProperIdentifierNameToDefineError,

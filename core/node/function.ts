@@ -50,7 +50,7 @@ export class FunctionDeclareHeader<
             .map(
                 (t) =>
                     new NotProperIdentifierNameToDefineError({
-                        token: t,
+                        tokens: [t],
                         scope,
                     }),
             )

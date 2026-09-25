@@ -4,6 +4,7 @@ import { Token } from '../prepare/tokenize/token.ts'
 import type { Node } from '../node/base.ts'
 import type { Mention } from '../node/mention.ts'
 import { blue, bold, dim } from '../util/terminal.ts'
+import { Scope } from '@dalbit-yaksok/core'
 
 export class UnknownNodeError extends YaksokError {
     constructor(props: { tokens: Token[] }) {
@@ -13,30 +14,20 @@ export class UnknownNodeError extends YaksokError {
     }
 }
 
-export class NotExecutableNodeError extends YaksokError<{
-    node: Node
-    message?: string
-}> {
-    constructor(props: {
-        tokens: Token[]
-        resource: { node: Node; message?: string }
-    }) {
+export class NotExecutableNodeError extends YaksokError {
+    constructor(props: { tokens: Token[]; scope: Scope; node: Node }) {
         super(props)
+        this.scope = props.scope
 
-        if (props.resource.message) {
-            this.message = props.resource.message
-        } else {
-            const tokenText = props.tokens
-                .map((t) => t.value)
-                .join('')
-                .replace('\n', '\\n')
-            const nodeName = (props.resource.node.constructor as typeof Node)
-                .friendlyName
+        const tokenText = props.tokens
+            .map((t) => t.value)
+            .join('')
+            .replace('\n', '\\n')
+        const nodeName = (props.node.constructor as typeof Node).friendlyName
 
-            this.message = `${blue(bold('"' + tokenText + '"'))}${dim(
-                `(${nodeName})`,
-            )}은 실행할 수 없는 코드예요.`
-        }
+        this.message = `${blue(bold('"' + tokenText + '"'))}${dim(
+            `(${nodeName})`,
+        )}은 실행할 수 없는 코드예요.`
     }
 }
 

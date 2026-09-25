@@ -28,13 +28,12 @@ export class Sequence extends Node {
         super()
     }
 
-    override validate(): YaksokError[] {
+    override validate(scope: Scope): YaksokError[] {
         return [
             new NotExecutableNodeError({
                 tokens: this.tokens,
-                resource: {
-                    node: this,
-                },
+                node: this,
+                scope,
             }),
         ]
     }

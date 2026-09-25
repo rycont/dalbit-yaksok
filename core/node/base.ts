@@ -246,10 +246,11 @@ export class Expression<
         return this.value
     }
 
-    override validate(): YaksokError[] {
+    override validate(scope: Scope): YaksokError[] {
         const error = new NotExecutableNodeError({
             tokens: this.tokens,
-            resource: { node: this },
+            scope,
+            node: this,
         })
 
         return [error]

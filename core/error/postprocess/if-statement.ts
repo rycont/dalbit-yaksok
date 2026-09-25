@@ -7,7 +7,6 @@ import {
 } from '@dalbit-yaksok/core'
 import { Processor } from './type.ts'
 import { blue, bold } from '../../util/terminal.ts'
-import { error } from 'node:console'
 
 export const prettifyBrokenIf: Processor = (errors, tokens) => {
     const conditionErrors = match(errors)
