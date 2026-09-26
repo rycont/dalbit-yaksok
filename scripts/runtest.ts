@@ -6,7 +6,7 @@ await session.extend(new QuickJS())
 
 const codeFile = session.addModule(
     'main',
-    `목록 = [3, 1, 4, 1, 5, 9]
+    `   목록 = [3, 1, 4, 1, 5, 9]
 목록 보여주기
 목록_길이 = 6  # TODO = 목록 길이
 반복 0~목록_길이-2 의 위치1 마다

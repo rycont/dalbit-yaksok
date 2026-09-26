@@ -12,6 +12,10 @@ interface LineRange {
 }
 
 export function parseIndent(nodes: Node[]): Node[] {
+    if (nodes[0] instanceof Indent) {
+        return nodes
+    }
+
     const linebreakIndexes = [-1]
         .concat(
             nodes.flatMap((current, index) => {
@@ -47,7 +51,9 @@ export function parseIndent(nodes: Node[]): Node[] {
             }
         })
 
-    return createIndentBlock(lineRanges).subnode
+    const parsed = createIndentBlock(lineRanges).subnode
+
+    return parsed
 }
 
 interface LevelGroup {
