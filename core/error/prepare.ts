@@ -72,7 +72,7 @@ export class IndentIsNotMultipleOf4Error extends YaksokError {
 export class IndentLevelMismatchError extends YaksokError {
     constructor(props: {
         scope?: Scope
-        tokens: Token[]
+        tokens?: Token[]
         resource: {
             expected?: number
         }

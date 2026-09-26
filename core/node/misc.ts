@@ -5,10 +5,7 @@ import type { Scope } from '../executer/scope.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import { StringValue } from '../value/primitive.ts'
 import { ValueType } from '../value/base.ts'
-import {
-    IndentIsNotMultipleOf4Error,
-    IndentLevelMismatchError,
-} from '@dalbit-yaksok/core'
+import { IndentIsNotMultipleOf4Error } from '@dalbit-yaksok/core'
 
 export class EOL extends Node {
     static override friendlyName = '줄바꿈'
@@ -28,6 +25,8 @@ export class Indent extends Node {
     public size: number
     public width: number
 
+    public parsingErrors: YaksokError[] = []
+
     constructor(token: Token) {
         super()
 
@@ -41,16 +40,13 @@ export class Indent extends Node {
     }
 
     override validate(scope?: Scope): YaksokError[] {
-        if (this.tokens[0].position.line === 1) {
-            return [
-                new IndentLevelMismatchError({
-                    resource: {
-                        expected: 0,
-                    },
-                    tokens: this.tokens,
-                    scope,
-                }),
-            ]
+        if (this.parsingErrors) {
+            for (const e of this.parsingErrors) {
+                e.scope = scope
+                e.tokens = this.tokens
+            }
+
+            return this.parsingErrors
         }
 
         if (this.width % 4 !== 0) {
@@ -65,6 +61,10 @@ export class Indent extends Node {
         }
 
         return []
+    }
+
+    public injectParsingError(parsingError: YaksokError) {
+        this.parsingErrors.push(parsingError)
     }
 }
 

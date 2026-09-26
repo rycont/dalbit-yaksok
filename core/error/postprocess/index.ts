@@ -4,13 +4,16 @@ import { prettifyVariableDeclaration } from './variable.ts'
 import { prettifyBrokenList } from './list.ts'
 import { mergeSequentialIdentifiers } from './identifier.ts'
 import { Processor } from './type.ts'
+import { prettifyIndentError } from './indent.ts'
 
-const PROCESSORS: Processor[] = [
+const LINE_PROCESSORS: Processor[] = [
     prettifyBrokenIf,
     prettifyVariableDeclaration,
     prettifyBrokenList,
     mergeSequentialIdentifiers,
 ]
+
+const GLOBAL_PROCESSORS: Processor[] = [prettifyIndentError]
 
 export function postprocessErrors(errors: YaksokError[], tokens: Token[]) {
     const insufficientError = errors.find(
@@ -25,14 +28,18 @@ export function postprocessErrors(errors: YaksokError[], tokens: Token[]) {
         return tokens.indexOf(a.tokens![0]) - tokens.indexOf(b.tokens![0])
     })
 
+    const globallyProcessed = GLOBAL_PROCESSORS.reduce((acc, processor) => {
+        return processor(acc, tokens)
+    }, sortedErrors)
+
     const errorGroups = Object.values(
         Object.groupBy(
-            sortedErrors,
+            globallyProcessed,
             (e) => e.tokens![0].position.line + e.scope!.id,
         ),
     ) as YaksokError[][]
 
-    return errorGroups.flatMap((group) => {
+    const lineProcessed = errorGroups.flatMap((group) => {
         const line = group[0].tokens![0].position.line!
 
         const lineTokenStartIndex = tokens.findIndex(
@@ -48,8 +55,10 @@ export function postprocessErrors(errors: YaksokError[], tokens: Token[]) {
             lineTokenEndIndex + 1,
         )
 
-        return PROCESSORS.reduce((acc, processor) => {
+        return LINE_PROCESSORS.reduce((acc, processor) => {
             return processor(acc, lineTokens)
         }, group)
     })
+
+    return lineProcessed
 }
