@@ -15,7 +15,8 @@ export function parse(tokens: Token[], session: YaksokSession): Block {
     const nodes = convertTokensToNodes(tokens, replacers)
 
     const indentedNodes = parseIndent(nodes)
-    console.log(indentedNodes)
+
+    // console.log(new Block(indentedNodes, []))
 
     const priorityParsedNodes = parseBracket(indentedNodes, rules)
     const childNodes = callParseRecursively(priorityParsedNodes, rules)

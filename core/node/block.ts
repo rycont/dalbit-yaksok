@@ -9,6 +9,8 @@ import type { Token } from '../prepare/tokenize/token.ts'
 export class Block extends Executable<Node[]> {
     static override friendlyName = '코드 덩어리'
 
+    public parsingErrors: YaksokError[] = []
+
     constructor(
         content: Node[],
         public override tokens: Token[],
@@ -43,6 +45,14 @@ export class Block extends Executable<Node[]> {
             .flatMap((child) => child.validate(scope))
             .filter((error) => error !== null)
 
-        return childErrors
+        for (const error of this.parsingErrors) {
+            error.scope = scope
+        }
+
+        return childErrors.concat(this.parsingErrors)
+    }
+
+    public injectParsingError(parsingError: YaksokError) {
+        this.parsingErrors.push(parsingError)
     }
 }

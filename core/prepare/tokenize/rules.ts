@@ -87,6 +87,10 @@ export const RULES: {
         type: TOKEN_TYPE.INDENT,
         starter: ['\t', ' '],
         parse: (code, index) => {
+            if (index && code[index - 1] !== '\n') {
+                return null
+            }
+
             if (code[index] === '\t') {
                 let i = index
                 while (i < code.length && code[i] === '\t') {

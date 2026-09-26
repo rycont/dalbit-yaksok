@@ -51,7 +51,8 @@ class Tokenizer {
                     const consumed = this.code.substring(this.index, newIndex)
 
                     if (
-                        rule.type === TOKEN_TYPE.NEW_LINE &&
+                        (rule.type === TOKEN_TYPE.NEW_LINE ||
+                            rule.type === TOKEN_TYPE.INDENT) &&
                         this.bracketDepth > 0
                     ) {
                         // Matched a NEW_LINE rule, and we are inside brackets.

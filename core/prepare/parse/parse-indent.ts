@@ -1,4 +1,10 @@
-import { Block, EOL, Indent, Node } from '@dalbit-yaksok/core'
+import {
+    Block,
+    EOL,
+    Indent,
+    IndentLevelMismatchError,
+    Node,
+} from '@dalbit-yaksok/core'
 
 interface LineRange {
     nodes: Node[]
@@ -6,24 +12,31 @@ interface LineRange {
 }
 
 export function parseIndent(nodes: Node[]): Node[] {
-    const linebreakIndexes = nodes.flatMap((current, index) => {
-        if (current instanceof EOL) {
-            return [index]
-        }
-        return []
-    })
+    const linebreakIndexes = [-1]
+        .concat(
+            nodes.flatMap((current, index) => {
+                if (current instanceof EOL) {
+                    return [index]
+                }
+                return []
+            }),
+        )
+        .concat(nodes.length - 1)
 
     const lineRanges: LineRange[] = Array.from(
         {
             length: linebreakIndexes.length - 1,
         },
-        (_, i) => nodes.slice(linebreakIndexes[i] + 1, linebreakIndexes[i + 1]),
+        (_, i) =>
+            nodes.slice(linebreakIndexes[i] + 1, linebreakIndexes[i + 1] + 1),
     )
-        .filter((lineNodes) => lineNodes.some((n) => !(n instanceof Indent)))
+        .filter((lineNodes) =>
+            lineNodes.slice(0, -1).some((n) => !(n instanceof Indent)),
+        )
         .map((lineNodes): LineRange => {
             if (lineNodes[0] instanceof Indent) {
                 return {
-                    nodes: lineNodes,
+                    nodes: lineNodes.slice(1),
                     indent: lineNodes[0].size,
                 }
             }
@@ -34,29 +47,72 @@ export function parseIndent(nodes: Node[]): Node[] {
             }
         })
 
-    createIndentBlock(lineRanges)
+    return createIndentBlock(lineRanges).subnode
+}
 
-    return nodes
+interface LevelGroup {
+    type: 'current' | 'higher'
+    ranges: LineRange[]
 }
 
 function createIndentBlock(lineRanges: LineRange[]): Block {
-    const level = lineRanges[0].indent
+    const currentLevel = lineRanges[0].indent
 
-    const currentLevelIndexes = lineRanges.flatMap((r, i) =>
-        r.indent === level ? [i] : [],
+    const levelGroups = lineRanges.slice(1).reduce(
+        (groups: LevelGroup[], current) => {
+            const lastGroup = groups[groups.length - 1]
+
+            if (current.indent === currentLevel) {
+                groups.push({
+                    type: 'current',
+                    ranges: [current],
+                })
+
+                return groups
+            }
+
+            if (lastGroup.type === 'higher') {
+                lastGroup.ranges.push(current)
+
+                return groups
+            }
+
+            groups.push({
+                type: 'higher',
+                ranges: [current],
+            })
+
+            return groups
+        },
+        [
+            {
+                type: 'current',
+                ranges: [lineRanges[0]],
+            },
+        ],
     )
 
-    const parsed = currentLevelIndexes.flatMap((levelIndex, i) => {
-        const prevIndex = currentLevelIndexes[i - 1]
+    let parsed = levelGroups.flatMap((levelGroup): Node[] => {
+        if (levelGroup.type === 'higher') {
+            const higherDepthBlock = createIndentBlock(levelGroup.ranges)
 
-        const higherDepthRanges = lineRanges.slice(prevIndex, levelIndex)
+            if (currentLevel + 1 !== levelGroup.ranges[0].indent) {
+                higherDepthBlock.injectParsingError(
+                    new IndentLevelMismatchError({
+                        resource: {
+                            expected: currentLevel + 1,
+                        },
+                        tokens: higherDepthBlock.tokens,
+                    }),
+                )
+            }
 
-        if (higherDepthRanges.length === 0) {
-            return lineRanges[levelIndex].nodes
+            return [higherDepthBlock, new EOL([])]
         }
 
-        const higherDepthBlock = createIndentBlock(higherDepthRanges)
+        return levelGroup.ranges.flatMap((lineRange) => lineRange.nodes)
     })
 
-    return new Block(parsed)
+    const tokens = parsed.flatMap((n) => n.tokens)
+    return new Block(parsed, tokens)
 }
