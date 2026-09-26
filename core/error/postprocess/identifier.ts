@@ -72,8 +72,6 @@ export const mergeSequentialIdentifiers: Processor = (errors, tokens) => {
             .join('')
             .trim()
 
-        console.log({ sequentialErrors })
-
         newErrors.fill(null, group.startError, group.endError + 1)
         newErrors[group.startError] = new NotDefinedIdentifierError({
             resource: {

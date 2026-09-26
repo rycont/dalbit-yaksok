@@ -9,8 +9,7 @@ Deno.test('Variable name is not a valid identifier', async () => {
     const session = new YaksokSession()
     const codeFile = session.addModule(
         'main',
-        `
-1이름 = "홍길동",
+        `1이름 = "홍길동"
 1이름 보여주기`,
     )
 

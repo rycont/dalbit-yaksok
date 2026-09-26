@@ -1,51 +1,69 @@
 import { Processor } from './type.ts'
 import {
-    NotDefinedIdentifierError,
     NotExecutableNodeError,
     NotProperIdentifierNameToDefineError,
+    Token,
+    TOKEN_TYPE,
     YaksokError,
 } from '@dalbit-yaksok/core'
 
 export const prettifyVariableDeclaration: Processor = (errors, tokens) => {
-    const equalSignError = errors.findIndex(
+    const equalSignErrorIndex = errors.findIndex(
         (error) =>
             error instanceof NotExecutableNodeError &&
             error.node?.value === '=',
     )
 
-    if (equalSignError === -1) {
+    if (equalSignErrorIndex === -1) {
         return errors
     }
 
-    let refinedErrors: YaksokError[] = []
+    const nameErrors = prettifyNameErrors(errors, equalSignErrorIndex, tokens)
+    const valueErrors = errors.slice(equalSignErrorIndex + 1)
 
-    const nameErrors = errors.slice(0, equalSignError)
+    return nameErrors.concat(valueErrors)
+}
 
-    if (nameErrors.length === 1) {
-        if (!(nameErrors[0] instanceof NotDefinedIdentifierError)) {
-            refinedErrors = refinedErrors.concat(nameErrors)
-        }
-    } else {
-        const firstToken = nameErrors[0].tokens![0]
-        const firstTokenIndex = tokens.indexOf(firstToken)
+function prettifyNameErrors(
+    errors: YaksokError[],
+    equalSignErrorIndex: number,
+    tokens: Token[],
+): YaksokError[] {
+    const nameErrors = errors.slice(0, equalSignErrorIndex)
 
-        const lastNameError = nameErrors[nameErrors.length - 1]
-        const lastToken =
-            lastNameError.tokens![lastNameError.tokens!.length - 1]
-        const lastTokenIndex = tokens.indexOf(lastToken)
+    const firstNameError = nameErrors[0]
+    const lastNameError = nameErrors[nameErrors.length - 1]
 
-        const nameTokens = tokens.slice(firstTokenIndex, lastTokenIndex + 1)
+    const nameTokenStartIndex = tokens.indexOf(firstNameError.tokens![0])
+    const nameTokenEndIndex = tokens.indexOf(
+        lastNameError.tokens![lastNameError.tokens!.length - 1],
+    )
 
-        refinedErrors = refinedErrors.concat(
-            new NotProperIdentifierNameToDefineError({
-                tokens: nameTokens,
-                scope: nameErrors[0].scope!,
-            }),
-        )
+    const equalSignErrorNode = errors[equalSignErrorIndex].node
+
+    const equalSignTokenStartIndex = tokens.indexOf(
+        equalSignErrorNode!.tokens[0],
+    )
+
+    const beforeTokens = tokens.slice(0, nameTokenStartIndex)
+
+    const afterTokens = tokens.slice(
+        nameTokenEndIndex + 1,
+        equalSignTokenStartIndex,
+    )
+
+    const allTokenCovered = beforeTokens
+        .concat(afterTokens)
+        .every((e) => e.type === TOKEN_TYPE.SPACE)
+
+    if (allTokenCovered) {
+        return []
     }
 
-    const valueErrors = errors.slice(equalSignError + 1)
-    refinedErrors = refinedErrors.concat(valueErrors)
-
-    return refinedErrors
+    return [
+        new NotProperIdentifierNameToDefineError({
+            scope: nameErrors[0].scope!,
+            tokens: tokens.slice(0, equalSignTokenStartIndex),
+        }),
+    ]
 }

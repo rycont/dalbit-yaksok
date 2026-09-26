@@ -3,12 +3,13 @@ import { prettifyBrokenIf } from './if-statement.ts'
 import { prettifyVariableDeclaration } from './variable.ts'
 import { prettifyBrokenList } from './list.ts'
 import { mergeSequentialIdentifiers } from './identifier.ts'
+import { Processor } from './type.ts'
 
-const PROCESSORS = [
+const PROCESSORS: Processor[] = [
+    mergeSequentialIdentifiers,
     prettifyBrokenIf,
     prettifyVariableDeclaration,
     prettifyBrokenList,
-    mergeSequentialIdentifiers,
 ]
 
 export function postprocessErrors(errors: YaksokError[], tokens: Token[]) {
@@ -32,8 +33,23 @@ export function postprocessErrors(errors: YaksokError[], tokens: Token[]) {
     ) as YaksokError[][]
 
     return errorGroups.flatMap((group) => {
+        const line = group[0].tokens![0].position.line!
+
+        const lineTokenStartIndex = tokens.findIndex(
+            (t) => line === t.position.line,
+        )
+
+        const lineTokenEndIndex = tokens.findLastIndex(
+            (t) => line === t.position.line,
+        )
+
+        const lineTokens = tokens.slice(
+            lineTokenStartIndex,
+            lineTokenEndIndex + 1,
+        )
+
         return PROCESSORS.reduce((acc, processor) => {
-            return processor(acc, tokens)
+            return processor(acc, lineTokens)
         }, group)
     })
 }
