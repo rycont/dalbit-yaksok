@@ -8,7 +8,7 @@ import {
 
 interface LineRange {
     nodes: Node[]
-    indent: number
+    indent: Indent | null
 }
 
 export function parseIndent(nodes: Node[]): Node[] {
@@ -37,13 +37,13 @@ export function parseIndent(nodes: Node[]): Node[] {
             if (lineNodes[0] instanceof Indent) {
                 return {
                     nodes: lineNodes.slice(1),
-                    indent: lineNodes[0].size,
+                    indent: lineNodes[0],
                 }
             }
 
             return {
                 nodes: lineNodes,
-                indent: 0,
+                indent: null,
             }
         })
 
@@ -62,7 +62,7 @@ function createIndentBlock(lineRanges: LineRange[]): Block {
         (groups: LevelGroup[], current) => {
             const lastGroup = groups[groups.length - 1]
 
-            if (current.indent === currentLevel) {
+            if (current.indent?.size === currentLevel?.size) {
                 groups.push({
                     type: 'current',
                     ranges: [current],
@@ -96,11 +96,18 @@ function createIndentBlock(lineRanges: LineRange[]): Block {
         if (levelGroup.type === 'higher') {
             const higherDepthBlock = createIndentBlock(levelGroup.ranges)
 
-            if (currentLevel + 1 !== levelGroup.ranges[0].indent) {
+            levelGroup.ranges
+                .flatMap((r) => r.indent?.validate() || [])
+                .forEach((e) => higherDepthBlock.injectParsingError(e))
+
+            if (
+                (currentLevel?.size || 0) + 1 !==
+                levelGroup.ranges[0].indent?.size
+            ) {
                 higherDepthBlock.injectParsingError(
                     new IndentLevelMismatchError({
                         resource: {
-                            expected: currentLevel + 1,
+                            expected: (currentLevel?.size || 0) + 1,
                         },
                         tokens: higherDepthBlock.tokens,
                     }),

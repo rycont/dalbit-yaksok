@@ -61,11 +61,11 @@ export class IndentIsNotMultipleOf4Error extends YaksokError {
     constructor(props: {
         tokens: Token[]
         resource: {
-            indent: number
+            width: number
         }
     }) {
         super(props)
-        this.message = `들여쓰기는 4의 배수여야 해요. ${props.resource.indent}는 4의 배수가 아니에요.`
+        this.message = `들여쓰기는 4의 배수여야 해요. ${props.resource.width}는 4의 배수가 아니에요.`
     }
 }
 

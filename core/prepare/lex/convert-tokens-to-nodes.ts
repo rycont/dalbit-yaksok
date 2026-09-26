@@ -49,7 +49,7 @@ function mapTokenToNode(token: Token) {
         case TOKEN_TYPE.OPERATOR:
             return new Operator(token.value, [token])
         case TOKEN_TYPE.INDENT:
-            return new Indent(token.value.length, [token])
+            return new Indent(token)
         case TOKEN_TYPE.IDENTIFIER:
             return new Identifier(token.value, [token])
         case TOKEN_TYPE.FFI_BODY:

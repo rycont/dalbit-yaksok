@@ -41,9 +41,9 @@ export class Block extends Executable<Node[]> {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        const childErrors = this.subnode
-            .flatMap((child) => child.validate(scope))
-            .filter((error) => error !== null)
+        const childErrors = this.subnode.flatMap((child) =>
+            child.validate(scope),
+        )
 
         for (const error of this.parsingErrors) {
             error.scope = scope

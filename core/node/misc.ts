@@ -5,6 +5,7 @@ import type { Scope } from '../executer/scope.ts'
 import type { Token } from '../prepare/tokenize/token.ts'
 import { StringValue } from '../value/primitive.ts'
 import { ValueType } from '../value/base.ts'
+import { IndentIsNotMultipleOf4Error } from '@dalbit-yaksok/core'
 
 export class EOL extends Node {
     static override friendlyName = '줄바꿈'
@@ -21,14 +22,33 @@ export class EOL extends Node {
 export class Indent extends Node {
     static override friendlyName = '들여쓰기'
 
-    constructor(
-        public size: number,
-        public override tokens: Token[],
-    ) {
+    public size: number
+    public width: number
+
+    constructor(token: Token) {
         super()
+
+        this.tokens = [token]
+
+        this.width = Array.from(token.value)
+            .map((t) => (t === '\t' ? 4 : 1))
+            .reduce((a, b) => a + b, 0)
+
+        this.size = Math.round(this.width / 4)
     }
 
     override validate(): YaksokError[] {
+        if (this.width % 4 !== 0) {
+            return [
+                new IndentIsNotMultipleOf4Error({
+                    resource: {
+                        width: this.width,
+                    },
+                    tokens: this.tokens,
+                }),
+            ]
+        }
+
         return []
     }
 }

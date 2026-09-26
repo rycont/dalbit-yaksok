@@ -101,13 +101,13 @@ export const RULES: {
 
             if (code[index] === ' ') {
                 let i = index
+
                 while (i < code.length && code[i] === ' ') {
                     i++
                 }
-                const spaces = i - index
-                if (spaces > 0 && spaces % 4 === 0) {
-                    return { value: '\t'.repeat(spaces / 4), newIndex: i }
-                }
+
+                const spaceString = code.slice(index, i)
+                return { value: spaceString, newIndex: i }
             }
 
             return null

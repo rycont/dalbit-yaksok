@@ -26,12 +26,12 @@ Deno.test('Error in QuickJS', async () => {
     const codeFile = session.addModule(
         'main',
         `번역(QuickJS), 에러 발생
-  ***
-      throw new Error('QuickJS Error')
-  ***
+***
+    throw new Error('QuickJS Error')
+***
 
-  에러 발생
-  `,
+에러 발생
+`,
     )
     await codeFile.run()
     assertIsError(errors[0], ErrorOccurredWhileRunningFFIExecution)
