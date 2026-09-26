@@ -60,8 +60,6 @@ export function parseIndent(nodes: Node[]): Node[] {
             }
         })
 
-    console.log(lineRanges)
-
     const parsed = createIndentBlock(lineRanges).subnode
 
     return parsed
