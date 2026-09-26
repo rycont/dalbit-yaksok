@@ -45,6 +45,15 @@ function prettifyNameErrors(
         equalSignErrorNode!.tokens[0],
     )
 
+    if (nameErrors.length !== 1) {
+        return [
+            new NotProperIdentifierNameToDefineError({
+                scope: nameErrors[0].scope!,
+                tokens: tokens.slice(0, equalSignTokenStartIndex),
+            }),
+        ]
+    }
+
     const beforeTokens = tokens.slice(0, nameTokenStartIndex)
 
     const afterTokens = tokens.slice(

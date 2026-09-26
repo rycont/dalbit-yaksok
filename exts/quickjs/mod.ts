@@ -23,6 +23,10 @@ import {
 import { dim } from './util.ts'
 
 export class QuickJS implements Extension {
+    private static BLOB_LOAD_PATH =
+        'https://unpkg.com/@jitl/quickjs-wasmfile-release-sync@0.31.0/dist/emscripten-module.wasm'
+    private static BLOB_CACHE_KEY = `quickjs-blob-cache-key:${QuickJS.BLOB_LOAD_PATH}`
+
     public manifest: ExtensionManifest = {
         ffiRunner: {
             runtimeName: 'QuickJS',
@@ -36,16 +40,28 @@ export class QuickJS implements Extension {
     ) {}
 
     async init(): Promise<void> {
-        const wasmPath =
-            'https://unpkg.com/@jitl/quickjs-wasmfile-release-sync@0.31.0/dist/emscripten-module.wasm'
-
-        const wasmModule = await WebAssembly.compileStreaming(fetch(wasmPath))
+        const wasmModule = await WebAssembly.compile(await this.loadBytes())
 
         const variant = newVariant(RELEASE_SYNC, {
             wasmModule,
         })
 
         this.instance = await newQuickJSWASMModuleFromVariant(variant)
+    }
+
+    private async loadBytes(): Promise<Uint8Array<ArrayBuffer>> {
+        const cached = localStorage.getItem(QuickJS.BLOB_CACHE_KEY)
+
+        if (cached) {
+            return Uint8Array.fromBase64(cached)
+        }
+
+        const wasmResource = await fetch(QuickJS.BLOB_LOAD_PATH)
+        const loaded = await wasmResource.bytes()
+
+        localStorage.setItem(QuickJS.BLOB_CACHE_KEY, loaded.toBase64())
+
+        return loaded
     }
 
     public executeFFI(

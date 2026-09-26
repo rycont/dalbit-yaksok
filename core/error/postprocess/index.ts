@@ -6,10 +6,10 @@ import { mergeSequentialIdentifiers } from './identifier.ts'
 import { Processor } from './type.ts'
 
 const PROCESSORS: Processor[] = [
-    mergeSequentialIdentifiers,
     prettifyBrokenIf,
     prettifyVariableDeclaration,
     prettifyBrokenList,
+    mergeSequentialIdentifiers,
 ]
 
 export function postprocessErrors(errors: YaksokError[], tokens: Token[]) {

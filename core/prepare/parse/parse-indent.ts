@@ -1,75 +1,62 @@
-import { Block, EOL, Indent, type Node } from '../../node/index.ts'
-import { getTokensFromNodes } from '../../util/merge-tokens.ts'
+import { Block, EOL, Indent, Node } from '@dalbit-yaksok/core'
 
-export function parseIndent(_tokens: Node[], indent = 0) {
-    const groups: Node[] = []
-    const tokens = removeSequentialEOL([..._tokens])
+interface LineRange {
+    nodes: Node[]
+    indent: number
+}
 
-    while (tokens.length) {
-        const token = tokens.shift()!
-        const prevToken = groups[groups.length - 1]
+export function parseIndent(nodes: Node[]): Node[] {
+    const linebreakIndexes = nodes.flatMap((current, index) => {
+        if (current instanceof EOL) {
+            return [index]
+        }
+        return []
+    })
 
-        if (token instanceof Indent) {
-            if (!(prevToken instanceof EOL)) {
-                continue
-            }
-
-            if (token.size !== indent + 1) {
-                continue
-            }
-
-            const blockTokens: Node[] = []
-
-            while (tokens.length) {
-                const currentToken = tokens.shift()!
-
-                // 다음 줄로 넘어갔는데
-                if (currentToken instanceof EOL) {
-                    // 첫 토큰이 들여쓰기면
-                    if (tokens[0] instanceof Indent) {
-                        // 들여쓰기가 같거나 더 깊으면
-                        if (tokens[0].size >= token.size) {
-                            blockTokens.push(currentToken)
-                            continue
-                        } else {
-                            break
-                        }
-                    } else {
-                        break
-                    }
-                } else {
-                    blockTokens.push(currentToken)
+    const lineRanges: LineRange[] = Array.from(
+        {
+            length: linebreakIndexes.length - 1,
+        },
+        (_, i) => nodes.slice(linebreakIndexes[i] + 1, linebreakIndexes[i + 1]),
+    )
+        .filter((lineNodes) => lineNodes.some((n) => !(n instanceof Indent)))
+        .map((lineNodes): LineRange => {
+            if (lineNodes[0] instanceof Indent) {
+                return {
+                    nodes: lineNodes,
+                    indent: lineNodes[0].size,
                 }
             }
 
-            const child = parseIndent(blockTokens, indent + 1)
-            const childTokens = getTokensFromNodes(child)
+            return {
+                nodes: lineNodes,
+                indent: 0,
+            }
+        })
 
-            groups.push(new Block(child, childTokens))
-            groups.push(new EOL([]))
-        } else {
-            groups.push(token)
-        }
-    }
+    createIndentBlock(lineRanges)
 
-    return groups
+    return nodes
 }
 
-function removeSequentialEOL(_tokens: Node[]) {
-    const tokens = [..._tokens]
-    let index = 0
+function createIndentBlock(lineRanges: LineRange[]): Block {
+    const level = lineRanges[0].indent
 
-    while (true) {
-        if (tokens[index] instanceof EOL && tokens[index + 1] instanceof EOL) {
-            tokens.splice(index, 1)
-        } else {
-            index++
+    const currentLevelIndexes = lineRanges.flatMap((r, i) =>
+        r.indent === level ? [i] : [],
+    )
+
+    const parsed = currentLevelIndexes.flatMap((levelIndex, i) => {
+        const prevIndex = currentLevelIndexes[i - 1]
+
+        const higherDepthRanges = lineRanges.slice(prevIndex, levelIndex)
+
+        if (higherDepthRanges.length === 0) {
+            return lineRanges[levelIndex].nodes
         }
 
-        if (index >= tokens.length) {
-            break
-        }
-    }
+        const higherDepthBlock = createIndentBlock(higherDepthRanges)
+    })
 
-    return tokens
+    return new Block(parsed)
 }
