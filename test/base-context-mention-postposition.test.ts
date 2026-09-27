@@ -21,11 +21,13 @@ Deno.test('base context variable used in mention with postposition splitting', a
     )
 
     // Module with a function that uses postposition '로'
-    session.addModule(
-        '처리기',
-        `약속, (데이터)로 처리하기
+    await session
+        .addModule(
+            '처리기',
+            `약속, (데이터)로 처리하기
     데이터 보여주기`,
-    )
+        )
+        .run()
 
     // Main module uses @mention with base context variable + postposition
     const codeFile = session.addModule('main', `@처리기 과일로 처리하기`)
@@ -50,11 +52,13 @@ Deno.test('base context variable does not leak into mentioned module exported ru
     session.useBaseScope(await session.addModule('base', `값 = 42`).run())
 
     // Module with a function using postposition
-    session.addModule(
-        '도구',
-        `약속, (데이터)로 출력하기
+    await session
+        .addModule(
+            '도구',
+            `약속, (데이터)로 출력하기
     데이터 보여주기`,
-    )
+        )
+        .run()
 
     // Main uses @mention with the base context variable + postposition
     const codeFile = session.addModule('main', `@도구 값로 출력하기`)

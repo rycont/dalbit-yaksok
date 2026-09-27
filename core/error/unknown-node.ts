@@ -32,14 +32,11 @@ export class NotExecutableNodeError extends YaksokError {
 }
 
 export class IncompleteMentionError extends YaksokError {
-    constructor(props: {
-        tokens: Token[]
-        resource: { node: Mention; message?: string }
-    }) {
+    constructor(props: { tokens: Token[]; node: Mention; scope: Scope }) {
         super(props)
 
         this.message = `${blue(
-            bold('@' + props.resource.node.value),
+            bold('@' + props.node.value),
         )}은 실행할 수 없어요. 이 뒤에 불러올 변수나 함수 이름을 적어주세요.`
     }
 }

@@ -27,9 +27,8 @@ export class Mention extends Node {
     override validate(scope: Scope): YaksokError[] {
         const error = new IncompleteMentionError({
             tokens: this.tokens,
-            resource: {
-                node: this,
-            },
+            scope,
+            node: this,
         })
 
         return [error]
