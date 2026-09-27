@@ -64,7 +64,6 @@ export function getDeclareSignature(tokens: Token[]): FunctionDeclareRange[] {
                             type: TOKEN_TYPE.OPENING_PARENTHESIS,
                         },
                         {
-                            type: TOKEN_TYPE.IDENTIFIER,
                             value: P.string.select('runtime'),
                         },
                         {
