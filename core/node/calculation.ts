@@ -84,6 +84,8 @@ export class NotExpression extends Evaluable<Evaluable> {
 export class Formula extends Evaluable<(Evaluable | Operator)[]> {
     static override friendlyName = '계산식'
 
+    public parsingErrors: YaksokError[] = []
+
     constructor(
         terms: (Evaluable | Operator)[],
         public override tokens: Token[],
@@ -153,9 +155,16 @@ export class Formula extends Evaluable<(Evaluable | Operator)[]> {
     }
 
     override validate(scope: Scope): YaksokError[] {
+        for (const parsingError of this.parsingErrors) {
+            parsingError.scope = scope
+            parsingError.node = this
+            parsingError.tokens = this.tokens
+        }
+
         return this.subnode
             .filter((term) => term instanceof Evaluable)
             .flatMap((term) => (term as Evaluable).validate(scope))
+            .concat(this.parsingErrors)
     }
 
     private toRPN(): (Evaluable | Operator)[] {
@@ -230,5 +239,9 @@ export class Formula extends Evaluable<(Evaluable | Operator)[]> {
         if (operator instanceof OrOperator) return 0
 
         return -1
+    }
+
+    public injectParsingError(parsingError: YaksokError) {
+        this.parsingErrors.push(parsingError)
     }
 }

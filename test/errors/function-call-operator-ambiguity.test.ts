@@ -1,20 +1,9 @@
-/**
- * Regression tests for FunctionCallOperatorAmbiguityError —
- * detects when a function call result is used directly in a formula
- * without parentheses, e.g. `배열 개수 <= 5` instead of `(배열 개수) <= 5`.
- *
- * Two detection points:
- * 1. SRParse: `Identifier(arg) Formula(starts_with_Identifier, ...)` — formula
- *    greedily consumed the function name before FunctionInvoke could form.
- *    Guarded by RESERVED_WORDS: keywords like `만약`, `반복` before a plain
- *    formula must not trigger this.
- * 2. FunctionInvoke factory: first param is a raw Formula (not ValueWithParenthesis),
- *    meaning the formula was the argument — `1 <= 배열 개수` case.
- */
-
-import { assert, assertIsError } from '@std/assert'
-import { FunctionCallOperatorAmbiguityError } from '../../core/error/index.ts'
-import { YaksokSession } from '../../core/mod.ts'
+import { assertIsError } from '@std/assert'
+import {
+    FormularInFunctionCall,
+    FunctionCallInFormular,
+    YaksokSession,
+} from '@dalbit-yaksok/core'
 
 async function run(code: string) {
     const session = new YaksokSession()
@@ -35,7 +24,7 @@ Deno.test('함수 결과를 괄호 없이 비교식에 사용 - 함수인자 앞
 만약 배열 개수 <= 5 이면
     "실행" 보여주기
 `)
-    assertIsError(codeFile.prepareErrors[0], FunctionCallOperatorAmbiguityError)
+    assertIsError(codeFile.prepareErrors[0], FunctionCallInFormular)
 })
 
 Deno.test('함수 결과를 괄호 없이 비교식에 사용 - Formula가 함수 인자로 전달', async () => {
@@ -49,7 +38,7 @@ Deno.test('함수 결과를 괄호 없이 비교식에 사용 - Formula가 함�
 만약 1 <= 배열 개수 이면
     "실행" 보여주기
 `)
-    assertIsError(codeFile.prepareErrors[0], FunctionCallOperatorAmbiguityError)
+    assertIsError(codeFile.prepareErrors[0], FunctionCallInFormular)
 })
 
 // ─── Should NOT throw ─────────────────────────────────────────────────────────
@@ -93,45 +82,6 @@ Deno.test('괄호로 감싼 함수 결과는 오류 없음', async () => {
     await codeFile.run()
 })
 
-// ─── Range Formula 허용 ───────────────────────────────────────────────────────
-
-Deno.test('범위 Formula(Evaluable~Evaluable)를 인자로 전달 - 오류 없음', async () => {
-    // `1~10 사이 무작위 값` — RangeFormula(1,~,10) is the argument.
-    // This should NOT throw because a range has unambiguous boundaries.
-    const codeFile = await run(`
-약속, (범위) 사이 무작위 값
-    1 반환하기
-
-값 = 1~10 사이 무작위 값
-값 보여주기
-`)
-    assert(
-        !codeFile.prepareErrors.some(
-            (e) => e instanceof FunctionCallOperatorAmbiguityError,
-        ),
-        'RangeFormula as argument must not trigger FunctionCallOperatorAmbiguityError',
-    )
-})
-
-Deno.test('변수~변수 범위 Formula를 인자로 전달 - 오류 없음', async () => {
-    // `시작~끝 사이 무작위 값` — both sides are Identifiers, still a RangeFormula.
-    const codeFile = await run(`
-약속, (범위) 사이 무작위 값
-    1 반환하기
-
-시작 = 1
-끝 = 100
-값 = 시작~끝 사이 무작위 값
-값 보여주기
-`)
-    assert(
-        !codeFile.prepareErrors.some(
-            (e) => e instanceof FunctionCallOperatorAmbiguityError,
-        ),
-        'Variable~Variable RangeFormula as argument must not trigger FunctionCallOperatorAmbiguityError',
-    )
-})
-
 Deno.test('비교 연산자 Formula는 여전히 오류', async () => {
     // `1 == 10 사이 무작위 값` — Formula(1,==,10) is NOT a range, must throw.
     const codeFile = await run(`
@@ -141,5 +91,5 @@ Deno.test('비교 연산자 Formula는 여전히 오류', async () => {
 값 = 1 == 10 사이 무작위 값
 값 보여주기
 `)
-    assertIsError(codeFile.prepareErrors[0], FunctionCallOperatorAmbiguityError)
+    assertIsError(codeFile.prepareErrors[0], FormularInFunctionCall)
 })

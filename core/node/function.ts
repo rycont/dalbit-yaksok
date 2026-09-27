@@ -5,6 +5,7 @@ import {
     ErrorOccurredWhileRunningFFIExecution,
     Evaluable,
     Executable,
+    FunctionMustHaveOneOrMoreStringPartError,
     FunctionObject,
     MissingRequiredArgumentError,
     Node,
@@ -55,7 +56,19 @@ export class FunctionDeclareHeader<
                     }),
             )
 
-        return invalidNames
+        const noStaticPartError = this.headerParts.some(
+            (p) => p.type === FunctionPartType.static,
+        )
+            ? []
+            : [
+                  new FunctionMustHaveOneOrMoreStringPartError({
+                      scope,
+                      node: this,
+                      tokens: this.tokens,
+                  }),
+              ]
+
+        return invalidNames.concat(noStaticPartError)
     }
 }
 

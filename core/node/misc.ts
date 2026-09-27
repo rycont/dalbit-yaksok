@@ -40,7 +40,7 @@ export class Indent extends Node {
     }
 
     override validate(scope?: Scope): YaksokError[] {
-        if (this.parsingErrors) {
+        if (this.parsingErrors.length !== 0) {
             for (const e of this.parsingErrors) {
                 e.scope = scope
                 e.tokens = this.tokens
@@ -56,6 +56,7 @@ export class Indent extends Node {
                         width: this.width,
                     },
                     tokens: this.tokens,
+                    scope,
                 }),
             ]
         }

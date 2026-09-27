@@ -77,7 +77,12 @@ export function createCallingPattern(
 
                     return destructured.concat([overflowError])
                 } else {
-                    return [[part.params[0].name, node as Evaluable] as const]
+                    const entry: [string, Evaluable] = [
+                        part.params[0].name,
+                        node as Evaluable,
+                    ]
+
+                    return [entry]
                 }
             },
         )

@@ -1,10 +1,15 @@
-import { NodeType, Scope } from '@dalbit-yaksok/core'
-import type { Node } from '../node/base.ts'
-import { TOKEN_TYPE, type Token } from '../prepare/tokenize/token.ts'
-import type { CodeFile } from '../type/code-file.ts'
-import type { Position } from '../type/position.ts'
-import { bold, dim, blue } from '../util/terminal.ts'
-import { tokenToText, YaksokError } from './common.ts'
+import {
+    CodeFile,
+    Node,
+    NodeType,
+    Position,
+    Scope,
+    Token,
+    YaksokError,
+} from '@dalbit-yaksok/core'
+
+import { blue, bold, dim } from '../util/terminal.ts'
+import { tokenToText } from './common.ts'
 
 export class CannotUnderstandError extends YaksokError<{
     nodeType: NodeType
@@ -60,6 +65,7 @@ export class CannotParseError extends YaksokError {
 export class IndentIsNotMultipleOf4Error extends YaksokError {
     constructor(props: {
         tokens: Token[]
+        scope?: Scope
         resource: {
             width: number
         }
@@ -140,39 +146,23 @@ export class UnexpectedEndOfCodeError extends YaksokError {
     }
 }
 
-export class FunctionCallOperatorAmbiguityError extends YaksokError {
-    constructor(props: { tokens: Token[] }) {
+export class FunctionCallInFormular extends YaksokError {
+    constructor(props: { tokens: Token[]; scope?: Scope; node?: Node }) {
         super(props)
-        const tokens = props.tokens.filter((t) => t.value !== '\n')
-        const expr = tokens.map((t) => t.value).join(' ')
+    }
 
-        const opIdx = tokens.findIndex((t) => t.type === TOKEN_TYPE.OPERATOR)
-        let example: string
-        if (opIdx > 0 && opIdx < tokens.length - 1) {
-            const left = tokens
-                .slice(0, opIdx)
-                .map((t) => t.value)
-                .join(' ')
-            const op = tokens[opIdx].value
-            const right = tokens
-                .slice(opIdx + 1)
-                .map((t) => t.value)
-                .join(' ')
-            // 함수 호출이 왼쪽인지 오른쪽인지 판단:
-            // 왼쪽이 식별자로만 이루어져 있으면 함수 호출이 왼쪽에 있는 경우
-            const leftIsCall = tokens
-                .slice(0, opIdx)
-                .every((t) => t.type === TOKEN_TYPE.IDENTIFIER)
-            if (leftIsCall) {
-                example = `(${left}) ${op} ${right}`
-            } else {
-                example = `${left} ${op} (${right})`
-            }
-        } else {
-            example = `(함수이름 인자) + 값`
-        }
+    override get message(): string {
+        return `계산 식에서 함수를 호출하려면 함수 코드 전부를 괄호로 한번 감싸주세요.`
+    }
+}
 
-        this.message = `함수 호출 결과를 연산식에 바로 쓸 수 없어요: '${expr}'. 연산식에서 사용하려는 함수 호출 전체를 괄호로 감싸세요. 예) ${example}`
+export class FormularInFunctionCall extends YaksokError {
+    constructor(props?: { tokens?: Token[]; scope?: Scope; node?: Node }) {
+        super(props || {})
+    }
+
+    override get message(): string {
+        return `함수 호출에서 계산 식을 인자로 전달하려면 계산 식 전체를 괄호로 한번 감싸주세요.`
     }
 }
 

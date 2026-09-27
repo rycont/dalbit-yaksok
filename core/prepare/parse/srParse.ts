@@ -1,14 +1,16 @@
-import { ADVANCED_RULES, BASIC_RULES } from './rule/index.ts'
+import {
+    Block,
+    EOL,
+    Formula,
+    FormularInFunctionCall,
+    Identifier,
+    Node,
+    Rule,
+} from '@dalbit-yaksok/core'
 
-import { Block } from '../../node/block.ts'
-
-import { Identifier, type Node } from '../../node/base.ts'
-import { Formula } from '../../node/calculation.ts'
-import { EOL } from '../../node/misc.ts'
-import { getTokensFromNodes } from '../../util/merge-tokens.ts'
-import { Rule } from './type.ts'
-import { FunctionCallOperatorAmbiguityError } from '../../error/prepare.ts'
 import { RESERVED_WORDS } from '../../constant/reserved-words.ts'
+import { getTokensFromNodes } from '../../util/merge-tokens.ts'
+import { BASIC_RULES, ADVANCED_RULES } from './rule/index.ts'
 import { Ruleset } from './ruleset.ts'
 import { NotAcceptableSignal } from './signal.ts'
 
@@ -44,36 +46,18 @@ export function SRParse(_nodes: Node[], ruleset: Ruleset) {
                 continue
             }
 
-            // 패턴 1: `Identifier(receiver) Identifier(funcArg) op X`에서
-            // BASIC_RULES가 `funcArg op X` → Formula를 먼저 reduce할 때
-            // receiver Identifier가 고아로 남는 경우를 감지
-            //
-            // 단, 앞에 있는 Identifier가 예약어(`만약`, `반복` 등)인 경우는
-            // 함수 인자가 아니라 키워드이므로 제외한다.
-            const prevNode = buffer[buffer.length - rule.pattern.length - 1]
-            if (
-                reduced instanceof Formula &&
-                stackSlice[0] instanceof Identifier &&
-                prevNode instanceof Identifier &&
-                !RESERVED_WORDS.has((prevNode as Identifier).value)
-            ) {
-                // 함수 이름이 여러 단어로 이루어진 경우(예: `현재 밀리초 가져오기`)
-                // prevNode 앞에 연속된 Identifier들도 함께 포함한다.
-                const startIdx = buffer.length - rule.pattern.length - 1
-                let funcStart = startIdx
-                while (
-                    funcStart > 0 &&
-                    buffer[funcStart - 1] instanceof Identifier &&
-                    !RESERVED_WORDS.has(
-                        (buffer[funcStart - 1] as Identifier).value,
-                    )
+            if (reduced instanceof Formula) {
+                const prev2Nodes = buffer.slice(
+                    -rule.pattern.length - 2,
+                    -rule.pattern.length,
+                )
+                const next2Nodes = leftNodes.slice(0, 2)
+
+                if (
+                    hasFunctionInvokeCollision(reduced, prev2Nodes, next2Nodes)
                 ) {
-                    funcStart--
+                    reduced.injectParsingError(new FormularInFunctionCall())
                 }
-                const funcNodes = buffer.slice(funcStart, startIdx + 1)
-                throw new FunctionCallOperatorAmbiguityError({
-                    tokens: getTokensFromNodes([...funcNodes, ...stackSlice]),
-                })
             }
 
             buffer.splice(-rule.pattern.length, rule.pattern.length, reduced)
@@ -143,4 +127,54 @@ export function callParseRecursively(
     }
 
     return parsedTokens
+}
+
+function hasFunctionInvokeCollision(
+    formula: Formula,
+    prev2Nodes: Node[],
+    next2Nodes: Node[],
+) {
+    if (isSequentialIdentifier(prev2Nodes)) {
+        return true
+    }
+
+    const lastPrev = prev2Nodes[prev2Nodes.length - 1]
+
+    if (isSequentialIdentifier(next2Nodes)) {
+        // 반복 [목록] 의 [반복자] << 이 경우에서 `이 [반복자]` 패턴에서 (Identifier Identifier)로 인식되는 문제 방지
+
+        if (
+            lastPrev &&
+            lastPrev instanceof Identifier &&
+            lastPrev.value === '반복'
+        ) {
+            return false
+        }
+
+        return true
+    }
+
+    if (isSequentialIdentifier([lastPrev, formula.subnode[0]])) {
+        return true
+    }
+
+    if (
+        isSequentialIdentifier([
+            formula.subnode[formula.subnode.length - 1],
+            next2Nodes[0],
+        ])
+    ) {
+        return true
+    }
+
+    return false
+}
+
+function isSequentialIdentifier(nodes: Node[]) {
+    return (
+        1 < nodes.length &&
+        nodes.every(
+            (n) => n instanceof Identifier && !RESERVED_WORDS.has(n.value),
+        )
+    )
 }

@@ -1,5 +1,4 @@
-import { Scope } from '@dalbit-yaksok/core'
-import type { Token } from '../prepare/tokenize/token.ts'
+import { Node, Scope, Token } from '@dalbit-yaksok/core'
 import { bold, blue, dim } from '../util/terminal.ts'
 
 import { YaksokError } from './common.ts'
@@ -12,7 +11,7 @@ export class CannotReturnOutsideFunctionError extends YaksokError {
 }
 
 export class FunctionMustHaveOneOrMoreStringPartError extends YaksokError {
-    constructor(props: { tokens: Token[] }) {
+    constructor(props: { tokens: Token[]; scope: Scope; node: Node }) {
         super(props)
         this.message = `약속(번역)을 선언할 때엔 적어도 하나의 고정되는 부분이 있어야 해요.`
     }
