@@ -44,7 +44,9 @@ export function parseIndent(nodes: Node[]): Node[] {
             nodes.slice(linebreakIndexes[i] + 1, linebreakIndexes[i + 1] + 1),
     )
         .filter((lineNodes) =>
-            lineNodes.slice(0, -1).some((n) => !(n instanceof Indent)),
+            lineNodes.some(
+                (n) => !(n instanceof Indent) || !(n instanceof EOL),
+            ),
         )
         .map((lineNodes): LineRange => {
             if (lineNodes[0] instanceof Indent) {

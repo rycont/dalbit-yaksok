@@ -6,6 +6,7 @@ import {
     Evaluable,
     Executable,
     FunctionMustHaveOneOrMoreStringPartError,
+    FunctionMustHaveSignature,
     FunctionObject,
     MissingRequiredArgumentError,
     Node,
@@ -56,19 +57,28 @@ export class FunctionDeclareHeader<
                     }),
             )
 
-        const noStaticPartError = this.headerParts.some(
-            (p) => p.type === FunctionPartType.static,
-        )
-            ? []
-            : [
-                  new FunctionMustHaveOneOrMoreStringPartError({
-                      scope,
-                      node: this,
-                      tokens: this.tokens,
-                  }),
-              ]
+        const signatureError =
+            this.headerParts.length === 0
+                ? [
+                      new FunctionMustHaveSignature({
+                          node: this,
+                          scope,
+                          tokens: this.tokens,
+                      }),
+                  ]
+                : this.headerParts.some(
+                        (p) => p.type === FunctionPartType.static,
+                    )
+                  ? []
+                  : [
+                        new FunctionMustHaveOneOrMoreStringPartError({
+                            scope,
+                            node: this,
+                            tokens: this.tokens,
+                        }),
+                    ]
 
-        return invalidNames.concat(noStaticPartError)
+        return invalidNames.concat(signatureError)
     }
 }
 

@@ -33,7 +33,7 @@ export function getDeclareSignature(tokens: Token[]): FunctionDeclareRange[] {
             const matched = match(line)
                 .returnType<
                     | (Omit<FunctionDeclareRange, 'line' | 'signature'> & {
-                          firstSignature: Token
+                          firstSignature: Token | null
                       })
                     | null
                 >()
@@ -86,6 +86,23 @@ export function getDeclareSignature(tokens: Token[]): FunctionDeclareRange[] {
                     [
                         {
                             type: TOKEN_TYPE.IDENTIFIER,
+                            value: '번역',
+                        },
+                        {
+                            type: TOKEN_TYPE.OPENING_PARENTHESIS,
+                        },
+                        ...P.array(),
+                    ],
+                    () => ({
+                        type: FunctionType.번역,
+                        firstSignature: null,
+                        runtime: null,
+                    }),
+                )
+                .with(
+                    [
+                        {
+                            type: TOKEN_TYPE.IDENTIFIER,
                             value: '이벤트',
                         },
                         {
@@ -124,7 +141,7 @@ export function getDeclareSignature(tokens: Token[]): FunctionDeclareRange[] {
                         end: linebreaks[index + 1],
                     },
                     signature: {
-                        start: tokens.indexOf(matched.firstSignature),
+                        start: linebreaks[index + 1],
                         end: linebreaks[index + 1],
                     },
                 } as FunctionDeclareRange,
