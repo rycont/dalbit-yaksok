@@ -12,13 +12,13 @@ export type NodeType = (new (...args: any[]) => Node) & {
     friendlyName: string
 }
 
-type PatternUnitWithValue<T extends NodeType | unknown = unknown> = {
+export type PatternUnitWithValue<T extends NodeType | unknown = unknown> = {
     type: T
     value?: string
     isSuffix?: boolean
 }
 
-export type InstancePipe<T extends NodeType> = SchemaWithPipe<
+export type InstancePipe<T extends NodeType = NodeType> = SchemaWithPipe<
     [
         InstanceSchema<T, undefined>,
         GenericSchema,

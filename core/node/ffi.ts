@@ -6,6 +6,7 @@ import {
     YaksokError,
     FFIObject,
     FunctionDeclareHeader,
+    MissingFunctionBody,
 } from '@dalbit-yaksok/core'
 import { FunctionType } from '../prepare/parse/dynamicRule/local/type.ts'
 
@@ -77,7 +78,9 @@ export class DeclareFFI extends Executable {
             }
         }
 
-        const headerErrors = this.header.validate(scope)
+        const headerErrors = this.header
+            .validate(scope)
+            .filter((e) => !(e instanceof MissingFunctionBody))
 
         return declareErrors.concat(headerErrors)
     }

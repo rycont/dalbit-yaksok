@@ -1,6 +1,12 @@
 import * as v from 'valibot'
 
-import type { Node, NodeType, Rule } from '@dalbit-yaksok/core'
+import type {
+    InstancePipe,
+    Node,
+    NodeType,
+    PatternUnitWithValue,
+    Rule,
+} from '@dalbit-yaksok/core'
 import { match, P } from 'ts-pattern'
 
 interface RuleWithPriority {
@@ -41,39 +47,21 @@ export class TrieNode {
         const validRules = rules.filter((r) => {
             const patternUnit = r.rule.pattern[r.rule.pattern.length - depth]
 
-            const matchResult = match(patternUnit)
-                .with(P.instanceOf(Function), () => true)
-                .with(
-                    {
-                        type: P.instanceOf(Function),
-                        value: currentDepthNode.value,
-                    },
-                    () => true,
-                )
-                .with(
-                    {
-                        type: P.instanceOf(Function),
-                        value: P.nonNullable,
-                    },
-                    () => false,
-                )
-                .with(
-                    {
-                        type: P.instanceOf(Function),
-                    },
-                    () => true,
-                )
-                .with(
-                    {
-                        kind: 'schema',
-                    },
-                    (r) => {
-                        return v.safeParse(r, currentDepthNode).success
-                    },
-                )
-                .otherwise(() => false)
+            if (patternUnit instanceof Function) {
+                return true
+            }
 
-            return matchResult
+            if (patternUnit.type instanceof Function) {
+                const unit = patternUnit as PatternUnitWithValue
+
+                if (!unit.value) {
+                    return true
+                }
+
+                return unit.value === currentDepthNode.value
+            }
+
+            return v.is(patternUnit as InstancePipe, currentDepthNode)
         })
 
         return validRules

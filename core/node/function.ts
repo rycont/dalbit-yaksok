@@ -8,6 +8,7 @@ import {
     FunctionMustHaveOneOrMoreStringPartError,
     FunctionMustHaveSignature,
     FunctionObject,
+    MissingFunctionBody,
     MissingRequiredArgumentError,
     Node,
     NodeCapability,
@@ -78,7 +79,12 @@ export class FunctionDeclareHeader<
                         }),
                     ]
 
-        return invalidNames.concat(signatureError)
+        return invalidNames.concat(signatureError).concat(
+            new MissingFunctionBody({
+                node: this,
+                scope,
+            }),
+        )
     }
 }
 
@@ -149,7 +155,9 @@ export class DeclareFunction extends Executable<Block> {
         }
 
         const bodyErrors = this.subnode.validate(functionScope)
-        const headerErrors = this.header.validate(scope)
+        const headerErrors = this.header
+            .validate(scope)
+            .filter((e) => !(e instanceof MissingFunctionBody))
 
         return declarationErrors.concat(headerErrors).concat(bodyErrors)
     }
