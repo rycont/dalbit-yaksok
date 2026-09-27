@@ -3,6 +3,7 @@ import {
     Executable,
     FunctionDeclareHeader,
     InvokingArguments,
+    MissingFunctionBody,
     renderErrorString,
     Scope,
     Token,
@@ -28,7 +29,9 @@ export class DeclareEvent extends Executable {
     }
 
     override validate(scope: Scope): YaksokError[] {
-        return this.header.validate(scope)
+        return this.header
+            .validate(scope)
+            .filter((e) => !(e instanceof MissingFunctionBody))
     }
 }
 
