@@ -45,7 +45,7 @@ export function parseIndent(nodes: Node[]): Node[] {
     )
         .filter((lineNodes) =>
             lineNodes.some(
-                (n) => !(n instanceof Indent) || !(n instanceof EOL),
+                (n) => !(n instanceof Indent) && !(n instanceof EOL),
             ),
         )
         .map((lineNodes): LineRange => {

@@ -6,12 +6,15 @@ await session.extend(new QuickJS())
 
 const codeFile = session.addModule(
     'main',
-    `번역(QuickJS), 에러 발생
-***
-    throw new Error('QuickJS Error')
-***
+    `횟수 = 0
 
-에러 발생
+20번 반복
+	횟수 보여주기
+    횟수 == 10 보여주기
+	횟수 = 횟수 + 1
+
+	만약 횟수 == 10 이면
+		반복 그만
 `,
 )
 
