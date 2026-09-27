@@ -21,6 +21,7 @@ export class Scope {
     public readonly events: Map<string, DeclareEvent> = new Map()
 
     public readonly session: YaksokSession
+    private _finalized = false
 
     constructor(
         config: (
@@ -45,6 +46,14 @@ export class Scope {
         }
     }
 
+    public get finalized(): boolean {
+        return this.finalized
+    }
+
+    public finalize(): void {
+        this._finalized = true
+    }
+
     setVariable(name: string, value: ValueType) {
         if (this.parent?.askSetVariable(name, value)) {
             return
@@ -58,12 +67,19 @@ export class Scope {
     }
 
     askSetVariable(name: string, value: ValueType): boolean {
+        if (this._finalized) {
+            return false
+        }
+
         if (name in this.variables) {
             this.variables[name] = value
             return true
         }
 
-        if (this.parent) return this.parent.askSetVariable(name, value)
+        if (this.parent) {
+            return this.parent.askSetVariable(name, value)
+        }
+
         return false
     }
 
@@ -108,6 +124,7 @@ export class Scope {
 
             throw errorInstance
         }
+
         this.functions.set(functionObject.name, functionObject)
     }
 

@@ -7,10 +7,8 @@ await session.extend(new QuickJS())
 const codeFile = session.addModule(
     'main',
     `
-배열 = [5, 3, 8, 1]
-반복 0
-    만약 배열[i] > 배열[i + 1] 이면
-        '악' 보여주기`,
+결과3 = 1 == 1 아니다
+결과3 보여주기`,
 )
 
 await codeFile.run()

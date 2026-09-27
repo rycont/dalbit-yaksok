@@ -268,6 +268,33 @@ export const BASIC_RULES: Rule[][] = [
         {
             pattern: [
                 {
+                    type: Evaluable,
+                },
+                {
+                    type: Operator,
+                },
+                {
+                    type: Evaluable,
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const left = nodes[0] as Evaluable
+                const operator = nodes[1] as Operator
+                const right = nodes[2] as Evaluable
+
+                if (left instanceof Formula) {
+                    return new Formula(
+                        [...left.subnode, operator, right],
+                        tokens,
+                    )
+                }
+
+                return new Formula([left, operator, right], tokens)
+            },
+        },
+        {
+            pattern: [
+                {
                     type: Operator,
                     value: '!=',
                 },
@@ -455,35 +482,6 @@ export const BASIC_RULES: Rule[][] = [
             factory: (nodes, tokens) => {
                 const evaluable = nodes[0] as Evaluable
                 return new NotExpression(evaluable, tokens)
-            },
-        },
-    ],
-    [
-        {
-            pattern: [
-                {
-                    type: Evaluable,
-                },
-                {
-                    type: Operator,
-                },
-                {
-                    type: Evaluable,
-                },
-            ],
-            factory: (nodes, tokens) => {
-                const left = nodes[0] as Evaluable
-                const operator = nodes[1] as Operator
-                const right = nodes[2] as Evaluable
-
-                if (left instanceof Formula) {
-                    return new Formula(
-                        [...left.subnode, operator, right],
-                        tokens,
-                    )
-                }
-
-                return new Formula([left, operator, right], tokens)
             },
         },
     ],

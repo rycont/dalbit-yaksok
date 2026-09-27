@@ -109,18 +109,14 @@ Deno.test('재대입 후 parent scope에 반영됨', async () => {
         stdout() {},
     })
 
-    session.useBaseScope(await session.addModule('base', '값 = 5').run())
+    const baseScope = await session.addModule('base', '값 = 5').run()
+    session.useBaseScope(baseScope)
 
     const codeFile = session.addModule('main', '값 = 값 + 10')
-    await codeFile.run()
+    const childScope = await codeFile.run()
 
-    // 런타임 재대입은 parent scope chain을 타고 올라가 실제 값을 갱신함 (노트북 시맨틱)
-    const baseContextScope = session.baseScope
-    assertEquals(
-        (baseContextScope?.variables['값'] as NumberValue)?.value,
-        15,
-        'parent scope의 값이 15로 갱신됨 (런타임 재대입은 parent에 반영)',
-    )
+    assertEquals((baseScope.variables['값'] as NumberValue).value, 5)
+    assertEquals((childScope.variables['값'] as NumberValue).value, 15)
 })
 
 Deno.test('복합 대입 연산자로 재대입', async () => {

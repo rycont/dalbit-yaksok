@@ -85,6 +85,8 @@ export class CodeFile {
             await executer(this.ast, rootScope)
             await Promise.allSettled(this.session.aliveListeners)
 
+            rootScope.finalize()
+
             this._ranScope = rootScope
 
             const exportedFunctionRules = rootScope.functions
