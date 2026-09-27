@@ -18,7 +18,7 @@
         "exts/math",
         "exts/statistics"
     ],
-    "version": "7.0.0-RC.3",
+    "version": "7.0.0-RC.4",
     "tasks": {
         "apply-version": "deno run --allow-read --allow-write scripts/apply-version.ts && deno task fmt",
         "fmt": "deno run -A npm:oxfmt@0.63.0 .",

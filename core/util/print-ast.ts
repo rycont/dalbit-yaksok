@@ -1,6 +1,5 @@
 import { Node, Scope } from '@dalbit-yaksok/core'
 import { bold, border, dim } from './terminal.ts'
-import { string } from 'valibot'
 
 export function printTree(node: Node): string {
     const traitKeys = Array.from(

@@ -1,5 +1,4 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
-import { QuickJS } from '@dalbit-yaksok/quickjs'
 
 const session = new YaksokSession()
 

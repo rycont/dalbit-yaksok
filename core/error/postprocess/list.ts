@@ -1,4 +1,3 @@
-import { match } from 'ts-pattern'
 import { Processor } from './type.ts'
 import {
     BrokenBracketError,

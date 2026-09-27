@@ -1,24 +1,26 @@
 import {
+    assignerToOperatorMap,
+    BrokenBracketError,
+    Evaluable,
+    Executable,
+    Expression,
+    IndexedValue,
     ListIndexTypeError,
+    ListValue,
+    Node,
+    NotExecutableNodeError,
+    NumberValue,
+    Scope,
     StringIndexOutOfRangeError,
+    StringValue,
     TargetIsNotIndexedValueError,
-} from '../error/indexed.ts'
-
-import { Scope } from '../executer/scope.ts'
-import { ValueType } from '../value/base.ts'
-import { TupleNotMutableError } from '../error/indexed.ts'
-import { IndexedValue } from '../value/indexed.ts'
-import { ListValue } from '../value/list.ts'
-import { TupleValue } from '../value/tuple.ts'
-import { NumberValue, StringValue } from '../value/primitive.ts'
-import { Evaluable, Executable, Node } from './base.ts'
-
-import { YaksokError } from '../error/common.ts'
-import { NotExecutableNodeError } from '../error/unknown-node.ts'
-import type { Token } from '../prepare/tokenize/token.ts'
-import { assignerToOperatorMap } from './operator.ts'
-import { BrokenBracketError, Expression } from '@dalbit-yaksok/core'
-import { blue, dim } from '../util/terminal.ts'
+    Token,
+    TupleNotMutableError,
+    TupleValue,
+    ValueType,
+    YaksokError,
+} from '@dalbit-yaksok/core'
+import { blue } from '../util/terminal.ts'
 
 export class Sequence extends Node {
     static override friendlyName = '나열된 값'

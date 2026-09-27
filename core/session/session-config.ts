@@ -1,8 +1,4 @@
-import type { Scope } from '../executer/scope.ts'
-import type { Token } from '../prepare/tokenize/token.ts'
-import type { Position } from '../type/position.ts'
-import type { MachineReadableError } from '../error/render-error-string.ts'
-import { YaksokError } from '@dalbit-yaksok/core'
+import { Position, Scope, Token, YaksokError } from '@dalbit-yaksok/core'
 
 export interface SessionConfig {
     stdout: (message: string) => void

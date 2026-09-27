@@ -1,5 +1,4 @@
 {
-    "name": "test",
     "exports": "./index.test.ts",
     "tasks": {
         "test": "deno test --allow-read index.test.ts && deno test --allow-net --allow-read --ignore=codes --parallel",
