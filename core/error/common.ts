@@ -77,7 +77,7 @@ export function operatorToText(operator: Operator) {
 export function tokenToText(token: Token) {
     const type = TOKEN_TYPE_TO_TEXT[token.type]
     const text = token.value.replace('\n', dim('줄바꿈'))
-    return `${bold(`'${text}'`)}${dim(`(${type})`)}`
+    return `${blue(bold(`'${text}'`))}${dim(`(${type})`)}`
 }
 
 export function expressionToText(node: Expression) {

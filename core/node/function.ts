@@ -14,6 +14,7 @@ import {
     NodeCapability,
     NotProperIdentifierNameToDefineError,
     ParameterElement,
+    RequiredParametersShouldPriorError,
     Rule,
     Scope,
     Token,
@@ -33,6 +34,8 @@ import { RESERVED_WORDS } from '../constant/reserved-words.ts'
 export class FunctionDeclareHeader<
     T extends FunctionDeclareRange['type'],
 > extends Node {
+    private injectedErrors: YaksokError[] = []
+
     constructor(
         public name: string,
         public invokingRules: Rule[],
@@ -46,7 +49,33 @@ export class FunctionDeclareHeader<
         super()
     }
 
+    public injectError(error: YaksokError) {
+        this.injectedErrors.push(error)
+    }
+
     override validate(scope: Scope): YaksokError[] {
+        const firstOptionalParameter = this.parameterScheme.findIndex(
+            (s) => s.optional,
+        )
+        const lastRequiredParameter = this.parameterScheme.findLastIndex(
+            (s) => !s.optional,
+        )
+
+        const isInvalidOrder =
+            lastRequiredParameter !== -1 &&
+            firstOptionalParameter !== -1 &&
+            firstOptionalParameter < lastRequiredParameter
+
+        const parameterOrderErrors = isInvalidOrder
+            ? [
+                  new RequiredParametersShouldPriorError({
+                      tokens: this.parameterScheme[lastRequiredParameter]
+                          .tokens,
+                      scope,
+                  }),
+              ]
+            : []
+
         const invalidNames = this.headerParts
             .filter((p) => p.type === FunctionPartType.static)
             .flatMap((p) => p.names.filter((n) => RESERVED_WORDS.has(n.value)))
@@ -79,12 +108,21 @@ export class FunctionDeclareHeader<
                         }),
                     ]
 
-        return invalidNames.concat(signatureError).concat(
-            new MissingFunctionBody({
-                node: this,
-                scope,
-            }),
-        )
+        for (const e of this.injectedErrors) {
+            e.scope = scope
+            e.node = this
+        }
+
+        return this.injectedErrors
+            .concat(parameterOrderErrors)
+            .concat(invalidNames)
+            .concat(signatureError)
+            .concat(
+                new MissingFunctionBody({
+                    node: this,
+                    scope,
+                }),
+            )
     }
 }
 

@@ -5,6 +5,7 @@ import {
     ParameterElement,
     Token,
     TOKEN_TYPE,
+    UnexpectedTokenError,
 } from '@dalbit-yaksok/core'
 
 import {
@@ -32,13 +33,15 @@ export function buildLocalRules(tokens: Token[]): DynamicRules {
 const rangeToRules = (allTokens: Token[]) => (range: FunctionDeclareRange) => {
     const signatureTokens = allTokens.slice(
         range.signature.start,
-        range.signature.end + 1,
+        range.signature.end,
     )
 
     const tokenGroups: {
         type: FunctionPartType
         tokens: Token[]
     }[] = []
+
+    const notParsableTokens: Token[] = []
 
     for (const token of signatureTokens) {
         if (token.type === TOKEN_TYPE.SPACE) {
@@ -111,6 +114,8 @@ const rangeToRules = (allTokens: Token[]) => (range: FunctionDeclareRange) => {
             lastGroup.tokens.push(token)
             continue
         }
+
+        notParsableTokens.push(token)
     }
 
     const headerParts = tokenGroups.map<FunctionHeaderPart>((g, i, a) => {
@@ -183,17 +188,28 @@ const rangeToRules = (allTokens: Token[]) => (range: FunctionDeclareRange) => {
 
     const lineTokens = allTokens.slice(range.line.start, range.line.end + 1)
 
+    const declareNode = new FunctionDeclareHeader(
+        functionName,
+        invokingRules,
+        parameterScheme,
+        range,
+        lineTokens,
+        headerParts,
+    )
+
+    if (0 < notParsableTokens.length) {
+        declareNode.injectError(
+            new UnexpectedTokenError({
+                resource: {
+                    parts: '약속 이름',
+                },
+                tokens: notParsableTokens,
+            }),
+        )
+    }
+
     const replacer: DirectReplacer = {
-        nodes: [
-            new FunctionDeclareHeader(
-                functionName,
-                invokingRules,
-                parameterScheme,
-                range,
-                lineTokens,
-                headerParts,
-            ),
-        ],
+        nodes: [declareNode],
         tokenRange: [range.line.start, range.line.end],
     }
 
