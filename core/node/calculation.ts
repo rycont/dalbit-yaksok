@@ -156,9 +156,9 @@ export class Formula extends Evaluable<(Evaluable | Operator)[]> {
 
     override validate(scope: Scope): YaksokError[] {
         for (const parsingError of this.parsingErrors) {
-            parsingError.scope = scope
-            parsingError.node = this
-            parsingError.tokens = this.tokens
+            parsingError.scope ||= scope
+            parsingError.node ||= this
+            parsingError.tokens ||= this.tokens
         }
 
         return this.subnode

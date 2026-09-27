@@ -146,23 +146,13 @@ export class UnexpectedEndOfCodeError extends YaksokError {
     }
 }
 
-export class FunctionCallInFormular extends YaksokError {
+export class AmbiguousFormulaBoundary extends YaksokError {
     constructor(props: { tokens: Token[]; scope?: Scope; node?: Node }) {
         super(props)
     }
 
     override get message(): string {
-        return `계산 식에서 함수를 호출하려면 함수 코드 전부를 괄호로 한번 감싸주세요.`
-    }
-}
-
-export class FormularInFunctionCall extends YaksokError {
-    constructor(props?: { tokens?: Token[]; scope?: Scope; node?: Node }) {
-        super(props || {})
-    }
-
-    override get message(): string {
-        return `함수 호출에서 계산 식을 인자로 전달하려면 계산 식 전체를 괄호로 한번 감싸주세요.`
+        return `약속과 계산의 경계가 명확하지 않아요. 약속과 계산의 결과에 괄호를 씌워서 명확히 해주세요.`
     }
 }
 

@@ -1,5 +1,6 @@
 import { match, P } from 'ts-pattern'
 import {
+    AmbiguousFormulaBoundary,
     CannotUnderstandError,
     IfStatement,
     NotDefinedIdentifierError,
@@ -76,7 +77,7 @@ export const prettifyBrokenIf: Processor = (errors, tokens) => {
                     },
                     tokens: P.nonNullable.and(P.select('openTokens')),
                 }),
-                ...P.array(),
+                ...P.array().select('condition'),
                 P.instanceOf(NotDefinedIdentifierError).and({
                     resource: {
                         name: '이면',
@@ -84,7 +85,14 @@ export const prettifyBrokenIf: Processor = (errors, tokens) => {
                     tokens: P.nonNullable.and(P.select('closeTokens')),
                 }),
             ],
-            ({ openTokens, closeTokens }) => {
+            ({ openTokens, closeTokens, condition }) => {
+                const boundaryCondition = condition.find(
+                    (e) => e instanceof AmbiguousFormulaBoundary,
+                )
+                if (boundaryCondition) {
+                    return [boundaryCondition]
+                }
+
                 const firstTokenIndex =
                     tokens.indexOf(openTokens[openTokens.length - 1]) + 1
                 const lastTokenIndex = tokens.indexOf(closeTokens[0]) - 1

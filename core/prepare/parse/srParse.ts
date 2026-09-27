@@ -1,8 +1,8 @@
 import {
+    AmbiguousFormulaBoundary,
     Block,
     EOL,
     Formula,
-    FormularInFunctionCall,
     Identifier,
     Node,
     Rule,
@@ -51,12 +51,21 @@ export function SRParse(_nodes: Node[], ruleset: Ruleset) {
                     -rule.pattern.length - 2,
                     -rule.pattern.length,
                 )
+
                 const next2Nodes = leftNodes.slice(0, 2)
 
-                if (
-                    hasFunctionInvokeCollision(reduced, prev2Nodes, next2Nodes)
-                ) {
-                    reduced.injectParsingError(new FormularInFunctionCall())
+                const collisionNodes = hasFunctionInvokeCollision(
+                    reduced,
+                    prev2Nodes,
+                    next2Nodes,
+                )
+
+                if (collisionNodes) {
+                    reduced.injectParsingError(
+                        new AmbiguousFormulaBoundary({
+                            tokens: collisionNodes.flatMap((n) => n.tokens),
+                        }),
+                    )
                 }
             }
 
@@ -135,7 +144,7 @@ function hasFunctionInvokeCollision(
     next2Nodes: Node[],
 ) {
     if (isSequentialIdentifier(prev2Nodes)) {
-        return true
+        return prev2Nodes
     }
 
     const lastPrev = prev2Nodes[prev2Nodes.length - 1]
@@ -151,20 +160,22 @@ function hasFunctionInvokeCollision(
             return false
         }
 
-        return true
+        return next2Nodes
     }
 
-    if (isSequentialIdentifier([lastPrev, formula.subnode[0]])) {
-        return true
+    const leftAndPrev = [lastPrev, formula.subnode[0]]
+
+    if (isSequentialIdentifier(leftAndPrev)) {
+        return leftAndPrev
     }
 
-    if (
-        isSequentialIdentifier([
-            formula.subnode[formula.subnode.length - 1],
-            next2Nodes[0],
-        ])
-    ) {
-        return true
+    const rightAndNext = [
+        formula.subnode[formula.subnode.length - 1],
+        next2Nodes[0],
+    ]
+
+    if (isSequentialIdentifier(rightAndNext)) {
+        return rightAndNext
     }
 
     return false

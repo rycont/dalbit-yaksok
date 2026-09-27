@@ -1,9 +1,5 @@
 import { assertIsError } from '@std/assert'
-import {
-    FormularInFunctionCall,
-    FunctionCallInFormular,
-    YaksokSession,
-} from '@dalbit-yaksok/core'
+import { AmbiguousFormulaBoundary, YaksokSession } from '@dalbit-yaksok/core'
 
 async function run(code: string) {
     const session = new YaksokSession()
@@ -24,7 +20,7 @@ Deno.test('함수 결과를 괄호 없이 비교식에 사용 - 함수인자 앞
 만약 배열 개수 <= 5 이면
     "실행" 보여주기
 `)
-    assertIsError(codeFile.prepareErrors[0], FunctionCallInFormular)
+    assertIsError(codeFile.prepareErrors[0], AmbiguousFormulaBoundary)
 })
 
 Deno.test('함수 결과를 괄호 없이 비교식에 사용 - Formula가 함수 인자로 전달', async () => {
@@ -38,7 +34,7 @@ Deno.test('함수 결과를 괄호 없이 비교식에 사용 - Formula가 함�
 만약 1 <= 배열 개수 이면
     "실행" 보여주기
 `)
-    assertIsError(codeFile.prepareErrors[0], FunctionCallInFormular)
+    assertIsError(codeFile.prepareErrors[0], AmbiguousFormulaBoundary)
 })
 
 // ─── Should NOT throw ─────────────────────────────────────────────────────────
@@ -91,5 +87,5 @@ Deno.test('비교 연산자 Formula는 여전히 오류', async () => {
 값 = 1 == 10 사이 무작위 값
 값 보여주기
 `)
-    assertIsError(codeFile.prepareErrors[0], FormularInFunctionCall)
+    assertIsError(codeFile.prepareErrors[0], AmbiguousFormulaBoundary)
 })
