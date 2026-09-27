@@ -23,21 +23,3 @@ export function cleanFloatingPointError(value: number): number {
     // 이렇게 하면 0.09999999999999998 같은 값이 0.1로 정리됨
     return parseFloat(value.toPrecision(15))
 }
-
-/**
- * 더 강력한 정리: 소수점 특정 자리에서 반올림
- * @param value 정리할 숫자
- * @param precision 소수점 자리수 (기본: 10)
- */
-export function roundToPrecision(
-    value: number,
-    precision: number = 10,
-): number {
-    if (!Number.isFinite(value)) {
-        return value
-    }
-
-    return Number(
-        `${Math.round(Number(`${value}e${precision}`))}e-${precision}`,
-    )
-}

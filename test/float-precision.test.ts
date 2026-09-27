@@ -1,8 +1,5 @@
 import { assertEquals } from '@std/assert'
-import {
-    cleanFloatingPointError,
-    roundToPrecision,
-} from '../core/util/float-precision.ts'
+import { cleanFloatingPointError } from '../core/util/float-precision.ts'
 
 Deno.test('cleanFloatingPointError - 기본 부동소수점 오류 수정', () => {
     // 0.3 - 0.2 케이스 (실제로 부동소수점 오류가 발생하는 케이스)
@@ -33,14 +30,6 @@ Deno.test('cleanFloatingPointError - NaN과 Infinity 처리', () => {
     assertEquals(Number.isNaN(cleanFloatingPointError(NaN)), true)
     assertEquals(cleanFloatingPointError(Infinity), Infinity)
     assertEquals(cleanFloatingPointError(-Infinity), -Infinity)
-})
-
-Deno.test('roundToPrecision - 특정 자리수 반올림', () => {
-    const result = 0.2 - 0.1
-    assertEquals(roundToPrecision(result, 10), 0.1)
-    assertEquals(roundToPrecision(1.23456789012345, 5), 1.23457)
-    assertEquals(roundToPrecision(1.23456789012345, 10), 1.2345678901)
-    assertEquals(roundToPrecision(1.005, 2), 1.01)
 })
 
 Deno.test('실제 케이스 - 음수 결과', () => {
