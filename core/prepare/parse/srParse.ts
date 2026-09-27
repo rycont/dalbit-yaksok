@@ -105,13 +105,13 @@ export function reduce(nodes: Node[], rule: Rule) {
 }
 
 export function callParseRecursively(
-    _tokens: Node[],
+    nodes: Node[],
     externalPatterns: Rule[],
 ): Node[] {
-    let parsedTokens = [..._tokens]
+    let parsedNodes = [...nodes]
 
-    for (let i = 0; i < parsedTokens.length; i++) {
-        const token = parsedTokens[i]
+    for (let i = 0; i < parsedNodes.length; i++) {
+        const token = parsedNodes[i]
 
         if (token instanceof Block) {
             token.subnode = callParseRecursively(
@@ -126,8 +126,8 @@ export function callParseRecursively(
 
     loop1: while (true) {
         for (const ruleset of rulesets) {
-            const result = SRParse(parsedTokens, ruleset)
-            parsedTokens = result.nodes
+            const result = SRParse(parsedNodes, ruleset)
+            parsedNodes = result.nodes
 
             if (result.changed) continue loop1
         }
@@ -135,7 +135,7 @@ export function callParseRecursively(
         break
     }
 
-    return parsedTokens
+    return parsedNodes
 }
 
 function hasFunctionInvokeCollision(

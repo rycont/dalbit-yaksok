@@ -60,6 +60,38 @@ import { FUNCTION_RULES } from './function.ts'
 import { ASSIGNERS } from '../../tokenize/rules.ts'
 
 export const BASIC_RULES: Rule[][] = [
+    [
+        {
+            pattern: [
+                {
+                    type: Evaluable,
+                },
+                {
+                    type: Expression,
+                    value: '[',
+                },
+                {
+                    type: Evaluable,
+                },
+                {
+                    type: Expression,
+                    value: ']',
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const target = nodes[0] as Evaluable<
+                    unknown,
+                    IndexedValue | StringValue
+                >
+                const index = nodes[2] as Evaluable<
+                    unknown,
+                    StringValue | NumberValue
+                >
+
+                return new IndexFetch(target, index, tokens)
+            },
+        },
+    ],
     STRING_RULES,
     FUNCTION_RULES,
     [
@@ -157,36 +189,6 @@ export const BASIC_RULES: Rule[][] = [
                 return comma
             },
         },
-        {
-            pattern: [
-                {
-                    type: Evaluable,
-                },
-                {
-                    type: Expression,
-                    value: '[',
-                },
-                {
-                    type: Evaluable,
-                },
-                {
-                    type: Expression,
-                    value: ']',
-                },
-            ],
-            factory: (nodes, tokens) => {
-                const target = nodes[0] as Evaluable<
-                    unknown,
-                    IndexedValue | StringValue
-                >
-                const index = nodes[2] as Evaluable<
-                    unknown,
-                    StringValue | NumberValue
-                >
-
-                return new IndexFetch(target, index, tokens)
-            },
-        },
     ],
     [
         {
@@ -261,33 +263,6 @@ export const BASIC_RULES: Rule[][] = [
             factory: (nodes, tokens) => {
                 const item = nodes[1] as Evaluable
                 return new ValueWithParenthesis(item, tokens)
-            },
-        },
-        {
-            pattern: [
-                {
-                    type: Evaluable,
-                },
-                {
-                    type: Operator,
-                },
-                {
-                    type: Evaluable,
-                },
-            ],
-            factory: (nodes, tokens) => {
-                const left = nodes[0] as Evaluable
-                const operator = nodes[1] as Operator
-                const right = nodes[2] as Evaluable
-
-                if (left instanceof Formula) {
-                    return new Formula(
-                        [...left.subnode, operator, right],
-                        tokens,
-                    )
-                }
-
-                return new Formula([left, operator, right], tokens)
             },
         },
         {
@@ -480,6 +455,35 @@ export const BASIC_RULES: Rule[][] = [
             factory: (nodes, tokens) => {
                 const evaluable = nodes[0] as Evaluable
                 return new NotExpression(evaluable, tokens)
+            },
+        },
+    ],
+    [
+        {
+            pattern: [
+                {
+                    type: Evaluable,
+                },
+                {
+                    type: Operator,
+                },
+                {
+                    type: Evaluable,
+                },
+            ],
+            factory: (nodes, tokens) => {
+                const left = nodes[0] as Evaluable
+                const operator = nodes[1] as Operator
+                const right = nodes[2] as Evaluable
+
+                if (left instanceof Formula) {
+                    return new Formula(
+                        [...left.subnode, operator, right],
+                        tokens,
+                    )
+                }
+
+                return new Formula([left, operator, right], tokens)
             },
         },
     ],
