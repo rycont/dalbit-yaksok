@@ -141,7 +141,9 @@ export function getDeclareSignature(tokens: Token[]): FunctionDeclareRange[] {
                         end: linebreaks[index + 1],
                     },
                     signature: {
-                        start: linebreaks[index + 1],
+                        start: matched.firstSignature
+                            ? tokens.indexOf(matched.firstSignature)
+                            : linebreaks[index + 1],
                         end: linebreaks[index + 1],
                     },
                 } as FunctionDeclareRange,

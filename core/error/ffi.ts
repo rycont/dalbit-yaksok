@@ -48,8 +48,8 @@ export class ErrorOccurredWhileRunningFFIExecution extends YaksokError {
         super(props)
         this.child = props.child
 
-        this.message = `번역 ${bold(
-            blue('("' + props.ffiName + '")'),
-        )}을 실행 중에 문제가 발생했어요.`
+        this.message = `${bold(
+            blue(props.ffiName),
+        )}을 실행하는 중에 문제가 발생했어요.`
     }
 }
