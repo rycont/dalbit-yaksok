@@ -16,7 +16,8 @@
         "test",
         "exts/quickjs",
         "exts/math",
-        "exts/statistics"
+        "exts/statistics",
+        "sidekick/pattern"
     ],
     "version": "7.0.0-RC.4",
     "tasks": {

@@ -1,0 +1,5 @@
+{
+    "name": "@dalbit-yaksok/pattern",
+    "exports": "./mod.ts",
+    "version": "7.0.0-RC.4"
+}
