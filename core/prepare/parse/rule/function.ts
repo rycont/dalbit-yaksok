@@ -1,4 +1,3 @@
-import * as v from 'valibot'
 import {
     FunctionDeclareHeader,
     DeclareFunction,
@@ -7,23 +6,20 @@ import {
     EOL,
     r,
     FFIBody,
-    u,
     DeclareFFI,
     DeclareEvent,
 } from '@dalbit-yaksok/core'
+import { j } from '@dalbit-yaksok/pattern'
 import { FunctionType } from '../dynamicRule/local/type.ts'
 
 export const FUNCTION_RULES: Rule[] = [
     r({
         pattern: [
-            u(
-                FunctionDeclareHeader<FunctionType.약속>,
-                v.object({
-                    range: v.object({
-                        type: v.literal(FunctionType.약속),
-                    }),
+            j.instance(FunctionDeclareHeader<FunctionType.약속>).fields({
+                range: j.fields({
+                    type: j.literal(FunctionType.약속),
                 }),
-            ),
+            }),
             EOL,
             Block,
         ],

@@ -1,13 +1,4 @@
-import * as v from 'valibot'
-
-import type {
-    InstancePipe,
-    Node,
-    NodeType,
-    PatternUnitWithValue,
-    Rule,
-} from '@dalbit-yaksok/core'
-import { match, P } from 'ts-pattern'
+import type { Node, NodeType, Rule } from '@dalbit-yaksok/core'
 
 interface RuleWithPriority {
     priority: number
@@ -47,21 +38,7 @@ export class TrieNode {
         const validRules = rules.filter((r) => {
             const patternUnit = r.rule.pattern[r.rule.pattern.length - depth]
 
-            if (patternUnit instanceof Function) {
-                return true
-            }
-
-            if (patternUnit.type instanceof Function) {
-                const unit = patternUnit as PatternUnitWithValue
-
-                if (!unit.value) {
-                    return true
-                }
-
-                return unit.value === currentDepthNode.value
-            }
-
-            return v.is(patternUnit as InstancePipe, currentDepthNode)
+            return !!patternUnit.run(currentDepthNode)
         })
 
         return validRules
@@ -132,28 +109,8 @@ function rulesToTries(rules: RuleWithPriority[], depth = 1): TrieNode[] {
             continue
         }
 
-        const topNodePatternUnit = r.rule.pattern[r.rule.pattern.length - depth]
-
-        const topNodeClass = match(topNodePatternUnit)
-            .with(P.instanceOf(Function), (f) => f)
-            .with(
-                {
-                    type: P.instanceOf(Function).select(),
-                },
-                (f) => f,
-            )
-            .with(
-                {
-                    type: 'instance',
-                    class: P.select(),
-                },
-                (f) => f,
-            )
-            .otherwise(() => null) as NodeType
-
-        if (!topNodeClass) {
-            throw new Error('Cannot process pattern unit of above kind')
-        }
+        const topNodeClass =
+            r.rule.pattern[r.rule.pattern.length - depth].metadata.shape
 
         const bucketContent = ruleBucketsByNodeClass.get(topNodeClass)
 

@@ -1,50 +1,10 @@
-import * as v from 'valibot'
-import type {
-    GenericSchema,
-    InstanceSchema,
-    SchemaWithPipe,
-    MetadataAction,
-} from 'valibot'
-
 import { Node, NodeCapability, Token } from '@dalbit-yaksok/core'
+import { ClassType, MatchBuilder } from '@dalbit-yaksok/pattern'
 
-export type NodeType = (new (...args: any[]) => Node) & {
-    friendlyName: string
-}
-
-export type PatternUnitWithValue<T extends NodeType | unknown = unknown> = {
-    type: T
-    value?: string
-    isSuffix?: boolean
-}
-
-export type InstancePipe<T extends NodeType = NodeType> = SchemaWithPipe<
-    [
-        InstanceSchema<T, undefined>,
-        GenericSchema,
-        MetadataAction<
-            GenericSchema,
-            {
-                isSuffix?: boolean
-            }
-        >,
-    ]
+type PatternUnit<Shape extends ClassType = ClassType> = MatchBuilder<
+    Shape,
+    unknown
 >
-
-export function instancePipe<T extends NodeType>(
-    classType: T,
-    ...refine: unknown[]
-): InstancePipe<T> {
-    //@ts-ignore
-    return v.pipe(v.instance(classType), ...refine)
-}
-
-export const u = instancePipe
-
-export type PatternUnit<T extends NodeType = NodeType> =
-    | T
-    | InstancePipe<T>
-    | PatternUnitWithValue<T>
 
 export interface DirectReplacer {
     tokenRange: [number, number]
@@ -55,9 +15,7 @@ export interface Rule<T extends PatternUnit[] = PatternUnit[]> {
     pattern: T
     factory: (
         nodes: {
-            [K in keyof T]: T[K] extends PatternUnit<infer U extends NodeType>
-                ? InstanceType<U>
-                : Node
+            [K in keyof T]: T[K] extends PatternUnit<infer U> ? U : Node
         },
         tokens: Token[],
         rule: Rule,
@@ -94,7 +52,7 @@ export enum CompletionGroup {
 // `after` 와 `inside` 는 아직 아무도 읽지 않습니다
 export type StatementVisibility =
     | 'always'
-    | { after: NodeType }
+    | { after: ClassType }
     | { inside: NodeCapability }
 
 export interface SuggestableStatement {
