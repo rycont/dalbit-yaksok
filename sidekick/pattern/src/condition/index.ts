@@ -4,17 +4,14 @@ import { FieldCondition } from './field.ts'
 import { InstanceCondition } from './instance.ts'
 import { LiteralCondition } from './literal.ts'
 import { SelectCondition } from './select.ts'
+import { EnumCondition } from './enum.ts'
 
 type ChainInput<C> = C extends Chain<infer U, unknown> ? U : unknown
-type ChainSelectName<C> =
-    C extends Chain<unknown, infer U extends string>
-        ? string extends U
-            ? never
-            : U
-        : never
 
 export class Chain<InputShape, SelectShape> {
     private paths: MatchCondition[] = []
+
+    declare private readonly _: InputShape
 
     public static [FieldCondition.methodName]<
         const EntryType extends Record<string, Chain<unknown, unknown>>,
@@ -24,10 +21,13 @@ export class Chain<InputShape, SelectShape> {
 
     public [FieldCondition.methodName]<
         const EntryType extends {
-            [key in keyof Partial<InputShape>]: Chain<InputShape[key], never>
+            [key in keyof Partial<InputShape>]: Chain<
+                Partial<InputShape[key]>,
+                unknown
+            >
         },
     >(entries: EntryType) {
-        const condition = FieldCondition.create(entries)
+        const condition = new FieldCondition(entries)
         this.paths.push(condition)
 
         return this as Chain<
@@ -36,7 +36,17 @@ export class Chain<InputShape, SelectShape> {
             },
             SelectShape & {
                 [
-                    key in keyof EntryType as ChainSelectName<EntryType[key]>
+                    key in keyof EntryType as EntryType[key] extends Chain<
+                        unknown,
+                        true
+                    >
+                        ? key
+                        : EntryType[key] extends Chain<
+                                unknown,
+                                infer U extends string
+                            >
+                          ? U
+                          : never
                 ]: ChainInput<EntryType[key]>
             }
         >
@@ -49,7 +59,7 @@ export class Chain<InputShape, SelectShape> {
     }
 
     public [InstanceCondition.methodName]<T extends ClassType>(classType: T) {
-        const condition = InstanceCondition.create(classType)
+        const condition = new InstanceCondition(classType)
         this.paths.push(condition)
 
         return this as unknown as Chain<
@@ -67,7 +77,7 @@ export class Chain<InputShape, SelectShape> {
     public [LiteralCondition.methodName]<
         const LiteralType extends string | number | boolean,
     >(literal: LiteralType) {
-        const condition = LiteralCondition.create(literal)
+        const condition = new LiteralCondition(literal)
         this.paths.push(condition)
 
         return this as unknown as Chain<LiteralType, SelectShape>
@@ -77,11 +87,38 @@ export class Chain<InputShape, SelectShape> {
         return new Chain().select(name)
     }
 
-    public [SelectCondition.methodName]<const T extends string>(name: T) {
-        const condition = new SelectCondition(name)
+    public [SelectCondition.methodName]<
+        const T extends string,
+        const RefineReturnType,
+        const R extends (v: InputShape) => RefineReturnType,
+    >(name: T, refine: R): Chain<RefineReturnType, T>
+    public [SelectCondition.methodName]<const T extends string>(
+        name: T,
+    ): Chain<InputShape, T>
+    public [SelectCondition.methodName](): Chain<InputShape, true>
+    public [SelectCondition.methodName](name?: string, refine?: () => unknown) {
+        const condition = new SelectCondition(name, refine)
         this.paths.push(condition)
 
-        return this as unknown as Chain<InputShape, T>
+        return this as unknown
+    }
+
+    public static [EnumCondition.methodName]<const Options extends string[]>(
+        options: Options,
+    ) {
+        return new Chain().enum(options)
+    }
+
+    public [EnumCondition.methodName]<Options extends string[]>(
+        options: Options,
+    ) {
+        const condition = new EnumCondition(options)
+        this.paths.push(condition)
+
+        return this as unknown as Chain<
+            InputShape & Options[number],
+            SelectCondition
+        >
     }
 
     public buildField(accessor: string, requester: GlobalRequester) {
@@ -93,12 +130,13 @@ export class Chain<InputShape, SelectShape> {
     public build() {
         const inputName = '$input'
         const selectJarName = '$select'
+        const argArrayName = '$a'
 
         const args = new Map<string, unknown>()
 
         const requester: GlobalRequester = {
             newArg: (value: unknown) => {
-                const name = `$a[${args.size}]`
+                const name = `${argArrayName}[${args.size}]`
                 args.set(name, value)
 
                 return name
@@ -108,6 +146,16 @@ export class Chain<InputShape, SelectShape> {
             },
         }
 
-        return this.buildField(inputName, requester)
+        const body = `const ${selectJarName} = {};\n${this.buildField(inputName, requester)}\nreturn ${selectJarName}`
+
+        const func = Chain.buildCache.getOrInsertComputed(body, () => {
+            return new Function(argArrayName, inputName, body)
+        }) as (arg1: unknown, input: unknown) => SelectShape | false
+
+        console.log(body)
+
+        return { id: args.values().toArray(), func }
     }
+
+    static buildCache = new Map<string, Function>()
 }

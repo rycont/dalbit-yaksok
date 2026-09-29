@@ -9,17 +9,12 @@ class Something {
 
 const j = Chain
 
-const e = j.field({
-    notFound: j.literal(100),
-})
-
 const r = j.instance(Something).field({
-    name: j.literal(0).select('hi'),
-    nested: e,
+    name: j.enum(['sample', 'Sample']).select('firstletter', (s) => s[0]),
+    nested: j.field({
+        what: j.literal('are'),
+    }),
 })
 
-const g = j.instance(Something).field({
-    name: j.literal('Sample').select('hi'),
-})
-
-console.log(r.build())
+const built = r.build()
+const matchResult = built.func(built.id, new Something())
