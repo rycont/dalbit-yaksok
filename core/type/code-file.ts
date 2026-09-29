@@ -10,7 +10,6 @@ import {
     Scope,
     Token,
     tokenize,
-    u,
     YaksokError,
     YaksokSession,
 } from '@dalbit-yaksok/core'

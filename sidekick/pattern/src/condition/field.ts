@@ -1,11 +1,14 @@
 import { GlobalRequester, MatchCondition } from './base.ts'
+import type { Chain } from './index.ts'
 
 export class FieldCondition extends MatchCondition {
-    static create(entries: Record<string, MatchCondition>) {
+    public static methodName = 'field' as const
+
+    static create(entries: Record<string, Chain<unknown, unknown>>) {
         return new FieldCondition(entries)
     }
 
-    constructor(private entries: Record<string, MatchCondition>) {
+    constructor(private entries: Record<string, Chain<unknown, unknown>>) {
         super()
     }
 
@@ -16,7 +19,7 @@ export class FieldCondition extends MatchCondition {
         return Object.entries(this.entries)
             .map(([fieldName, field]) => {
                 const subAccessor = `${accessor}.${fieldName}`
-                return field.toCode(subAccessor, requester)
+                return field.buildField(subAccessor, requester)
             })
             .join('\n')
     }

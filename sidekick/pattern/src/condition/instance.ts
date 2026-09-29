@@ -2,7 +2,9 @@ import { ClassType } from '../common.ts'
 import { GlobalRequester, MatchCondition } from './base.ts'
 
 export class InstanceCondition extends MatchCondition {
-    static create(classType: ClassType) {
+    public static methodName = 'instance' as const
+
+    static create(classType: ClassType): MatchCondition {
         return new InstanceCondition(classType)
     }
 
@@ -16,7 +18,7 @@ export class InstanceCondition extends MatchCondition {
     ): string {
         const argName = requester.newArg(this.classType)
 
-        const statement = `if(!(${accessor}) instanceof ${argName}) {
+        const statement = `if(!(${accessor} instanceof ${argName})) {
     return false
 }`
 
