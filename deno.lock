@@ -9,7 +9,7 @@
     "npm:@codemirror/commands@^6.11.0": "6.11.0",
     "npm:@codemirror/state@^6.7.1": "6.7.1",
     "npm:@codemirror/view@^6.43.9": "6.43.9",
-    "npm:@deno/vite-plugin@^1.0.6": "1.0.6_vite@5.4.21__@types+node@20.19.43_@types+node@20.19.43",
+    "npm:@deno/vite-plugin@^1.0.6": "1.0.6_vite@5.4.21_@types+node@20.19.43",
     "npm:@deno/vite-plugin@^2.0.3": "2.0.3_vite@8.2.2",
     "npm:@solidjs/web@^2.0.0-rc.1": "2.0.0-rc.1_solid-js@2.0.0-rc.1",
     "npm:@vanilla-extract/css@^1.21.2": "1.21.2",
@@ -26,13 +26,12 @@
     "npm:quickjs-emscripten@0.31": "0.31.0",
     "npm:solid-js@^2.0.0-rc.1": "2.0.0-rc.1",
     "npm:ts-pattern@^5.9.0": "5.9.0",
-    "npm:typedoc-plugin-markdown@4.2.10": "4.2.10_typedoc@0.27.4__typescript@5.7.3",
-    "npm:typedoc-vitepress-theme@^1.1.1": "1.1.2_typedoc-plugin-markdown@4.2.10__typedoc@0.27.4___typescript@5.7.3_typedoc@0.27.4__typescript@5.7.3",
+    "npm:typedoc-plugin-markdown@4.2.10": "4.2.10_typedoc@0.27.4",
+    "npm:typedoc-vitepress-theme@^1.1.1": "1.1.2_typedoc-plugin-markdown@4.2.10_typedoc@0.27.4",
     "npm:typedoc@0.27.4": "0.27.4_typescript@5.7.3",
-    "npm:valibot@^1.5.0": "1.5.0",
-    "npm:vite-plugin-solid@^3.0.0-next.27": "3.0.0-next.27_@solidjs+web@2.0.0-rc.1__solid-js@2.0.0-rc.1_solid-js@2.0.0-rc.1_vite@8.2.2",
+    "npm:vite-plugin-solid@^3.0.0-next.27": "3.0.0-next.27_@solidjs+web@2.0.0-rc.1_solid-js@2.0.0-rc.1_vite@8.2.2",
     "npm:vite@^8.2.2": "8.2.2",
-    "npm:vitepress-plugin-mermaid@^2.0.17": "2.0.17_mermaid@11.12.1__cytoscape@3.33.1_vitepress@1.6.4__@types+node@20.19.43_@types+node@20.19.43",
+    "npm:vitepress-plugin-mermaid@^2.0.17": "2.0.17_mermaid@11.12.1_vitepress@1.6.4_@types+node@20.19.43",
     "npm:vitepress-sidebar@^1.29.0": "1.33.0",
     "npm:vitepress@*": "1.6.4_@types+node@20.19.43",
     "npm:vitepress@^1.6.3": "1.6.4_@types+node@20.19.43",
@@ -427,7 +426,7 @@
         "w3c-keyname"
       ]
     },
-    "@deno/vite-plugin@1.0.6_vite@5.4.21__@types+node@20.19.43_@types+node@20.19.43": {
+    "@deno/vite-plugin@1.0.6_vite@5.4.21_@types+node@20.19.43": {
       "integrity": "sha512-Sh5XqvFuKAwjARTesi0n6xRpEXm1V0UeqKh+SxIrexCofxOaieNDMqXZD02RiZCg0mrJ43V8eCMuVrDfq6mLmg==",
       "dependencies": [
         "vite@5.4.21_@types+node@20.19.43"
@@ -1284,7 +1283,7 @@
     "@solidjs/signals@2.0.0-rc.1": {
       "integrity": "sha512-KQpgUbn9xuzFaXupwej9MvUnQV+H6wcCgvrERf+dygco3T9JWP9S02g/UoYwwmJ6Vh+LE1b82ZlSHYR2Bd1O8A=="
     },
-    "@solidjs/vite-plugin@3.0.0-next.31_@solidjs+web@2.0.0-rc.1__solid-js@2.0.0-rc.1_solid-js@2.0.0-rc.1_vite@8.2.2": {
+    "@solidjs/vite-plugin@3.0.0-next.31_@solidjs+web@2.0.0-rc.1_solid-js@2.0.0-rc.1_vite@8.2.2": {
       "integrity": "sha512-iS9zz4MdzQwZyXGtEYKxFu9fHjX6fs0CWWQTQZ54xaaPKPOcv1sXJtxZ+th7EsmGlmeUNP0jBYoB9qxkd47tiQ==",
       "dependencies": [
         "@ampproject/remapping",
@@ -1674,7 +1673,7 @@
         "vite@8.2.2"
       ]
     },
-    "@vitejs/plugin-vue@5.2.4_vite@5.4.21__@types+node@20.19.43_vue@3.5.24__typescript@5.9.3_@types+node@20.19.43": {
+    "@vitejs/plugin-vue@5.2.4_vite@5.4.21_vue@3.5.24_@types+node@20.19.43": {
       "integrity": "sha512-7Yx/SXSOcQq5HiiV3orevHUFn+pmMB4cgbEkDYgnkUWb0WfeQ/wa2yFv6D5ICiCQOVpjA7vYDXrC7AGO8yjDHA==",
       "dependencies": [
         "vite@5.4.21_@types+node@20.19.43",
@@ -1765,7 +1764,7 @@
         "csstype"
       ]
     },
-    "@vue/server-renderer@3.5.24_vue@3.5.24__typescript@5.9.3_typescript@5.9.3": {
+    "@vue/server-renderer@3.5.24_vue@3.5.24_typescript@5.9.3": {
       "integrity": "sha512-Yh2j2Y4G/0/4z/xJ1Bad4mxaAk++C2v4kaa8oSYTMJBJ00/ndPuxCnWeot0/7/qafQFLh5pr6xeV6SdMcE/G1w==",
       "dependencies": [
         "@vue/compiler-ssr",
@@ -3808,13 +3807,13 @@
     "tslib@2.8.1": {
       "integrity": "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w=="
     },
-    "typedoc-plugin-markdown@4.2.10_typedoc@0.27.4__typescript@5.7.3": {
+    "typedoc-plugin-markdown@4.2.10_typedoc@0.27.4": {
       "integrity": "sha512-PLX3pc1/7z13UJm4TDE9vo9jWGcClFUErXXtd5LdnoLjV6mynPpqZLU992DwMGFSRqJFZeKbVyqlNNeNHnk2tQ==",
       "dependencies": [
         "typedoc"
       ]
     },
-    "typedoc-vitepress-theme@1.1.2_typedoc-plugin-markdown@4.2.10__typedoc@0.27.4___typescript@5.7.3_typedoc@0.27.4__typescript@5.7.3": {
+    "typedoc-vitepress-theme@1.1.2_typedoc-plugin-markdown@4.2.10_typedoc@0.27.4": {
       "integrity": "sha512-hQvCZRr5uKDqY1bRuY1+eNTNn6d4TE4OP5pnw65Y7WGgajkJW9X1/lVJK2UJpcwCmwkdjw1QIO49H9JQlxWhhw==",
       "dependencies": [
         "typedoc-plugin-markdown"
@@ -3898,9 +3897,6 @@
       "integrity": "sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==",
       "bin": true
     },
-    "valibot@1.5.0": {
-      "integrity": "sha512-nil6AkP2TChWL43Z5uJ6GTxX01CUA+g8LWUM+N/rB9NBbkUMaUsi9PUNzlUPgoKASgmx9f7eGOYpJ04/fSa6FQ=="
-    },
     "validate-html-nesting@1.2.4": {
       "integrity": "sha512-doQi7e8EJ2OWneSG1aZpJluS6A49aZM0+EICXWKm1i6WvqTLmq0tpUcImc4KTWG50mORO0C4YDBtOCSYvElftw=="
     },
@@ -3929,7 +3925,7 @@
       ],
       "bin": true
     },
-    "vite-plugin-solid@3.0.0-next.27_@solidjs+web@2.0.0-rc.1__solid-js@2.0.0-rc.1_solid-js@2.0.0-rc.1_vite@8.2.2": {
+    "vite-plugin-solid@3.0.0-next.27_@solidjs+web@2.0.0-rc.1_solid-js@2.0.0-rc.1_vite@8.2.2": {
       "integrity": "sha512-bDzjIIplkSDH73BiGP9pbPR3ZnjeUA18SAYugLhqDCy4u0bl3qdrETstxrXuo2vHXLB0VD9rvOr0iesZBBul4Q==",
       "dependencies": [
         "@solidjs/vite-plugin"
@@ -3974,7 +3970,7 @@
         "vite@8.2.2"
       ]
     },
-    "vitepress-plugin-mermaid@2.0.17_mermaid@11.12.1__cytoscape@3.33.1_vitepress@1.6.4__@types+node@20.19.43_@types+node@20.19.43": {
+    "vitepress-plugin-mermaid@2.0.17_mermaid@11.12.1_vitepress@1.6.4_@types+node@20.19.43": {
       "integrity": "sha512-IUzYpwf61GC6k0XzfmAmNrLvMi9TRrVRMsUyCA8KNXhg/mQ1VqWnO0/tBVPiX5UoKF1mDUwqn5QV4qAJl6JnUg==",
       "dependencies": [
         "mermaid",
@@ -4042,7 +4038,7 @@
     "vscode-uri@3.0.8": {
       "integrity": "sha512-AyFQ0EVmsOZOlAnxoFOGOq1SQDWAB7C6aqMGS23svWAllfOaxbuFvcT8D1i8z3Gyn8fraVeZNNmN6e9bxxXkKw=="
     },
-    "vue-demi@0.14.10_vue@3.5.24__typescript@5.9.3_typescript@5.9.3": {
+    "vue-demi@0.14.10_vue@3.5.24_typescript@5.9.3": {
       "integrity": "sha512-nMZBOwuzabUO0nLgIcc6rycZEebF6eeUfaiQx9+WSk8e29IbLvPU9feI6tqW4kTo3hvoYAJkMh8n8D0fuISphg==",
       "dependencies": [
         "vue"
@@ -4225,8 +4221,7 @@
     "members": {
       "core": {
         "dependencies": [
-          "npm:ts-pattern@^5.9.0",
-          "npm:valibot@^1.5.0"
+          "npm:ts-pattern@^5.9.0"
         ]
       },
       "docs": {

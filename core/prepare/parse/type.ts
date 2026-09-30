@@ -1,9 +1,14 @@
 import { Node, NodeCapability, Token } from '@dalbit-yaksok/core'
-import { ClassType, MatchBuilder } from '@dalbit-yaksok/pattern'
+import { ClassType, Matcher } from '@dalbit-yaksok/pattern'
 
-type PatternUnit<Shape extends ClassType = ClassType> = MatchBuilder<
-    Shape,
-    unknown
+type NodeType = new (...args: any[]) => Node
+
+type PatternUnit<Shape extends NodeType = NodeType> = Matcher<
+    unknown,
+    {
+        classShape: Shape
+        isSuffix?: boolean
+    }
 >
 
 export interface DirectReplacer {
@@ -15,7 +20,9 @@ export interface Rule<T extends PatternUnit[] = PatternUnit[]> {
     pattern: T
     factory: (
         nodes: {
-            [K in keyof T]: T[K] extends PatternUnit<infer U> ? U : Node
+            [K in keyof T]: T[K] extends PatternUnit<infer U extends NodeType>
+                ? U
+                : Node
         },
         tokens: Token[],
         rule: Rule,

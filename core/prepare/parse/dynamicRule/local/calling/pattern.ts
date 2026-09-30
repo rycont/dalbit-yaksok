@@ -1,5 +1,3 @@
-import * as v from 'valibot'
-
 import {
     Evaluable,
     Identifier,
@@ -7,33 +5,31 @@ import {
     ListLiteral,
     Node,
     ParameterElement,
-    PatternUnit,
     TooManyArgumentsError,
     TupleLiteral,
-    u,
     YaksokError,
 } from '@dalbit-yaksok/core'
 
 import { FunctionHeaderPart, FunctionPartType } from '../type.ts'
+import { j } from '@dalbit-yaksok/pattern'
 
 export function createCallingPattern(
     functionHeader: FunctionHeaderPart[],
     parameterScheme: ParameterElement[],
 ) {
-    const pattern = functionHeader.map((g): PatternUnit => {
+    const pattern = functionHeader.map((g) => {
         if (g.type === FunctionPartType.parameter) {
-            return Evaluable
+            return j.instance(Evaluable)
         }
 
-        return u(
-            Identifier,
-            v.object({
-                value: v.picklist(g.names.map((n) => n.value)),
-            }),
-            v.metadata({
+        return j
+            .instance(Identifier)
+            .field({
+                value: j.enum(g.names.map((n) => n.value)),
+            })
+            .meta({
                 isSuffix: g.isSuffix,
-            }),
-        )
+            })
     })
 
     function invokingArgumentsFactory(nodes: Node[]) {

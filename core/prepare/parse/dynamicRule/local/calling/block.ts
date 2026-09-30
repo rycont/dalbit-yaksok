@@ -1,5 +1,3 @@
-import * as v from 'valibot'
-
 import {
     Block,
     EOL,
@@ -13,9 +11,9 @@ import {
     PatternUnit,
     Rule,
     Token,
-    u,
 } from '@dalbit-yaksok/core'
 import { FunctionHeaderPart, FunctionStaticPart } from '../type.ts'
+import { j } from '@dalbit-yaksok/pattern'
 
 export function createBlockRule(
     functionName: string,
@@ -25,15 +23,12 @@ export function createBlockRule(
     const staticParts = functionHeader.slice(0, -1) as FunctionStaticPart[]
 
     const signaturePattern = staticParts
-        .map<PatternUnit>((part) =>
-            u(
-                Identifier,
-                v.object({
-                    value: v.picklist(part.names.map((n) => n.value)),
-                }),
-            ),
+        .map<PatternUnit<Node>>((part) =>
+            j.instance(Identifier).field({
+                value: j.enum(part.names.map((n) => n.value)),
+            }),
         )
-        .concat([EOL, Block])
+        .concat([j.instance(EOL), j.instance(Block)])
 
     function createInvokingArguments(block: Node): InvokingArguments | null {
         if (!(block instanceof Block)) {

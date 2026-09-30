@@ -1,5 +1,3 @@
-import * as v from 'valibot'
-
 import {
     Block,
     Identifier,
@@ -21,6 +19,7 @@ import {
 } from '../prepare/lex/infer-token-splitpoint.ts'
 import { createMentioningRule } from '../prepare/parse/dynamicRule/mention/create-mentioning-rules.ts'
 import { postprocessErrors } from '../error/postprocess/index.ts'
+import { j } from '@dalbit-yaksok/pattern'
 
 export class CodeFile {
     readonly ast: Block
@@ -110,14 +109,9 @@ export class CodeFile {
                 this.fileName,
                 {
                     pattern: [
-                        u(
-                            Identifier,
-                            v.object({
-                                value: v.picklist(
-                                    Object.keys(rootScope.variables),
-                                ),
-                            }),
-                        ),
+                        j.instance(Identifier).field({
+                            value: j.enum(Object.keys(rootScope.variables)),
+                        }),
                     ],
                     factory([node]) {
                         return node

@@ -1,2 +1,2 @@
-export { type MatchBuilder, MatchBuilder as j } from './src/match-builder.ts'
 export type { ClassType } from './src/common.ts'
+export { Chain as j, type Matcher } from './src/condition/index.ts'
