@@ -1,9 +1,18 @@
 import { Node, NodeCapability, Token } from '@dalbit-yaksok/core'
-import { ClassType, Matcher } from '@dalbit-yaksok/pattern'
+import { ClassType, Chain, Matcher } from '@dalbit-yaksok/pattern'
 
-type NodeType = new (...args: any[]) => Node
+// type NodeType = new (...args: any[]) => Node
 
-type PatternUnit<Shape extends NodeType = NodeType> = Matcher<
+type PatternUnit<Shape extends Node> = Matcher<
+    unknown,
+    {
+        classShape: Shape
+        isSuffix?: boolean
+    }
+>
+
+type PatternUnitChain<Shape extends Node> = Chain<
+    unknown,
     unknown,
     {
         classShape: Shape
@@ -16,26 +25,35 @@ export interface DirectReplacer {
     nodes: Node[]
 }
 
-export interface Rule<T extends PatternUnit[] = PatternUnit[]> {
-    pattern: T
+interface Rule<NodeSequence extends Node[]> {
+    pattern: {
+        [K in keyof NodeSequence]: PatternUnit<NodeSequence[K]>
+    }
     factory: (
         nodes: {
-            [K in keyof T]: T[K] extends PatternUnit<infer U extends NodeType>
-                ? U
-                : Node
+            [K in keyof NodeSequence]: NodeSequence[K]
         },
         tokens: Token[],
-        rule: Rule,
     ) => Node | null
-    config?: Record<string, unknown> & {
-        statement?: SuggestableStatement | true
-        exported?: boolean
-    }
-    flags?: RULE_FLAGS[]
+    isStatement?: boolean
 }
 
-export function r<const T extends PatternUnit[]>(rule: Rule<T>): Rule {
-    return rule as Rule
+export function r<NodeSequence extends Node[] = Node[]>(
+    props: Omit<Rule<NodeSequence>, 'pattern'> & {
+        pattern: {
+            [K in keyof NodeSequence]: PatternUnitChain<NodeSequence[K]>
+        }
+    },
+): Rule<NodeSequence> {
+    const compiled = props.pattern.map((p) =>
+        p.compile(),
+    ) as Rule<NodeSequence>['pattern']
+
+    return {
+        factory: props.factory,
+        isStatement: props.isStatement,
+        pattern: compiled,
+    }
 }
 
 export interface DynamicRules {

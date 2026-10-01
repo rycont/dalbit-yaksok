@@ -83,7 +83,7 @@ export class Chain<InputShape, SelectShape, MetaShape> {
             InstanceType<T>,
             SelectShape,
             MetaShape & {
-                classShape: T
+                classShape: InstanceType<T>
             }
         >
     }
