@@ -4,11 +4,13 @@ import {
     Mention,
     MentionScope,
     Node,
+    r,
     Rule,
     Scope,
     Token,
 } from '@dalbit-yaksok/core'
 import { getTokensFromNodes } from '../../../../util/merge-tokens.ts'
+import { j } from '@dalbit-yaksok/pattern'
 
 export function createMentioningRule(
     fileName: string,
@@ -16,19 +18,14 @@ export function createMentioningRule(
     declaredScope: Scope,
 ): Rule {
     const mergedPattern = [
-        {
-            type: Mention,
-            value: fileName,
-        },
+        j.instance(Mention).field({ value: j.literal(fileName) }),
         ...originalRule.pattern,
     ]
 
-    return {
+    return r({
         pattern: mergedPattern,
-        config: originalRule.config,
-        flags: originalRule.flags,
         factory: createFactory(fileName, originalRule, declaredScope),
-    }
+    })
 }
 
 function createFactory(fileName: string, rule: Rule, declaredScope: Scope) {

@@ -9,8 +9,11 @@ import {
     Identifier,
     DeclareEvent,
     NotProperIdentifierNameToDefineError,
+    Node,
+    r,
 } from '@dalbit-yaksok/core'
 import { RESERVED_WORDS } from '../constant/reserved-words.ts'
+import { j } from '@dalbit-yaksok/pattern'
 
 export class Scope {
     variables: Record<string, ValueType>
@@ -146,19 +149,18 @@ export class Scope {
         throw errorInstance
     }
 
-    public *getExportedRules(): Generator<Rule> {
+    public *getExportedRules(): Generator<Rule<Node[]>> {
         yield* this.parent?.getExportedRules() || []
-        yield* Object.keys(this.variables).map<Rule>((v) => ({
-            pattern: [
-                {
-                    type: Identifier,
-                    value: v,
+        yield* Object.keys(this.variables).map((v) =>
+            r<Node[]>({
+                pattern: [
+                    j.instance(Identifier).field({ value: j.literal(v) }),
+                ],
+                factory([node]) {
+                    return node
                 },
-            ],
-            factory([node]) {
-                return node
-            },
-        }))
+            }),
+        )
         yield* this.functions.values().flatMap((v) => v.invokeRules)
     }
 }

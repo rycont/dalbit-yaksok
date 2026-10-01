@@ -1,9 +1,16 @@
-import { Block, EOL, Evaluable, Identifier } from '../../../node/index.ts'
-import { ListLoop } from '../../../node/listLoop.ts'
-import { CompletionGroup, Rule } from '../type.ts'
+import { j } from '@dalbit-yaksok/pattern'
+import {
+    Block,
+    EOL,
+    Evaluable,
+    Identifier,
+    ListLoop,
+    r,
+    Rule,
+} from '@dalbit-yaksok/core'
 
 export const LIST_LOOP_RULES: Rule[] = [
-    {
+    r({
         pattern: [
             j.instance(Identifier).field({ value: j.literal('반복') }),
             j.instance(Evaluable),
@@ -20,15 +27,9 @@ export const LIST_LOOP_RULES: Rule[] = [
 
             return new ListLoop(list, name, body, tokens)
         },
-        config: {
-            statement: {
-                name: '목록에서 하나 하나 반복하기',
-                group: CompletionGroup.LOOP,
-                visibility: 'always',
-            },
-        },
-    },
-    {
+        isStatement: true,
+    }),
+    r({
         pattern: [
             j.instance(Evaluable),
             j.instance(Identifier).field({ value: j.literal('의') }),
@@ -45,9 +46,9 @@ export const LIST_LOOP_RULES: Rule[] = [
 
             return new ListLoop(list, name, body, tokens)
         },
-        config: { statement: true },
-    },
-    {
+        isStatement: true,
+    }),
+    r({
         pattern: [
             j.instance(Evaluable),
             j.instance(Identifier).field({ value: j.literal('의') }),
@@ -64,6 +65,6 @@ export const LIST_LOOP_RULES: Rule[] = [
 
             return new ListLoop(list, name, body, tokens)
         },
-        config: { statement: true },
-    },
+        isStatement: true,
+    }),
 ]

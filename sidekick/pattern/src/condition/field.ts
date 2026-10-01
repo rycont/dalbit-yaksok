@@ -5,10 +5,6 @@ import type { Chain } from './index.ts'
 export class FieldCondition extends MatchCondition {
     public static methodName = 'field' as const
 
-    static create(entries: Record<string, Chain<unknown, unknown, unknown>>) {
-        return new FieldCondition(entries)
-    }
-
     constructor(
         private entries: Record<string, Chain<unknown, unknown, unknown>>,
     ) {

@@ -34,25 +34,13 @@ export class StringStaticPart extends Expression {
     }
 }
 
-export class StringInterpolationPart extends Evaluable<Evaluable> {
-    static override friendlyName = '문자열 끼워넣기 식'
-
-    constructor(
-        content: Evaluable,
-        public override tokens: Token[],
-    ) {
-        super()
-        this.subnode = content
-    }
-}
-
 export class StringPartSequence extends Evaluable<
-    (StringStaticPart | StringInterpolationPart)[]
+    (StringStaticPart | Evaluable)[]
 > {
     static override friendlyName = '문자'
 
     constructor(
-        content: (StringStaticPart | StringInterpolationPart | Expression)[],
+        content: (StringStaticPart | Evaluable | Expression)[],
         public override tokens: Token[],
     ) {
         if (StringPartSequence.isBroken(content)) {
@@ -87,9 +75,7 @@ export class StringPartSequence extends Evaluable<
         return result
     }
 
-    public static isBroken(
-        content: (StringStaticPart | StringInterpolationPart)[],
-    ) {
+    public static isBroken(content: (StringStaticPart | Evaluable)[]): boolean {
         return content.some(
             (p, index) =>
                 p instanceof Expression &&
@@ -99,7 +85,7 @@ export class StringPartSequence extends Evaluable<
         )
     }
 
-    override validate(scope: Scope) {
+    public override validate(scope: Scope): YaksokError[] {
         return this.subnode.slice(1, -1).flatMap((n) => n.validate(scope))
     }
 }

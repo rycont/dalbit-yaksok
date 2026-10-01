@@ -1,4 +1,4 @@
-import { FunctionInvoke, Rule, ParameterElement } from '@dalbit-yaksok/core'
+import { FunctionInvoke, Rule, ParameterElement, r } from '@dalbit-yaksok/core'
 
 import { FunctionHeaderPart } from '../type.ts'
 import { createCallingPattern } from './pattern.ts'
@@ -12,7 +12,7 @@ export function createInterleavingRule(
         functionHeader,
         parameterScheme,
     )
-    return {
+    return r({
         pattern,
         factory(nodes, tokens) {
             const invokingArguments = invokingArgumentsFactory(nodes)
@@ -23,5 +23,5 @@ export function createInterleavingRule(
 
             return new FunctionInvoke(functionName, invokingArguments, tokens)
         },
-    }
+    })
 }

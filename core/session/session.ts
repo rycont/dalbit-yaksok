@@ -6,6 +6,7 @@ import {
     Extension,
     FFIRuntimeNotFound,
     MultipleFFIRuntimeError,
+    Node,
     Rule,
     Scope,
     SessionConfig,
@@ -160,7 +161,7 @@ export class YaksokSession {
         }
     }
 
-    public getMentionRules(): Rule[] {
+    public getMentionRules(): Rule<Node[]>[] {
         return Object.values(this.files).flatMap(
             (codeFile) => codeFile.mentionRules || [],
         )

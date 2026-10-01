@@ -7,12 +7,13 @@ import {
     KeyValuePair,
     KeyValuePairSequence,
     NumberLiteral,
+    r,
     Rule,
 } from '@dalbit-yaksok/core'
 import { j } from '@dalbit-yaksok/pattern'
 
 export const DICT_RULES: Rule[] = [
-    {
+    r({
         pattern: [
             j.instance(Identifier),
             j.instance(Expression).field({ value: j.literal(':') }),
@@ -24,8 +25,8 @@ export const DICT_RULES: Rule[] = [
 
             return new KeyValuePair(name, entry, tokens)
         },
-    },
-    {
+    }),
+    r({
         pattern: [
             j.instance(NumberLiteral),
             j.instance(Expression).field({ value: j.literal(':') }),
@@ -37,8 +38,8 @@ export const DICT_RULES: Rule[] = [
 
             return new KeyValuePair(keyLiteral.toNumber(), entry, tokens)
         },
-    },
-    {
+    }),
+    r({
         pattern: [
             j.instance(KeyValuePair),
             j.instance(Expression).field({ value: j.literal(',') }),
@@ -49,8 +50,8 @@ export const DICT_RULES: Rule[] = [
 
             return pair
         },
-    },
-    {
+    }),
+    r({
         pattern: [j.instance(KeyValuePair), j.instance(EOL)],
         factory: (nodes, tokens) => {
             const pair = nodes[0]
@@ -58,8 +59,8 @@ export const DICT_RULES: Rule[] = [
 
             return pair
         },
-    },
-    {
+    }),
+    r({
         pattern: [j.instance(KeyValuePairSequence), j.instance(EOL)],
         factory: (nodes, tokens) => {
             const pair = nodes[0]
@@ -67,8 +68,8 @@ export const DICT_RULES: Rule[] = [
 
             return pair
         },
-    },
-    {
+    }),
+    r({
         pattern: [
             j.instance(KeyValuePairSequence),
             j.instance(Expression).field({ value: j.literal(',') }),
@@ -79,8 +80,8 @@ export const DICT_RULES: Rule[] = [
 
             return pair
         },
-    },
-    {
+    }),
+    r({
         pattern: [j.instance(KeyValuePair), j.instance(KeyValuePair)],
         factory: (nodes, tokens) => {
             const left = nodes[0]
@@ -89,8 +90,8 @@ export const DICT_RULES: Rule[] = [
             const pairs = [left, right]
             return new KeyValuePairSequence(pairs, tokens)
         },
-    },
-    {
+    }),
+    r({
         pattern: [j.instance(KeyValuePairSequence), j.instance(KeyValuePair)],
         factory: (nodes, tokens) => {
             const left = nodes[0]
@@ -98,8 +99,8 @@ export const DICT_RULES: Rule[] = [
             const pairs = [...left.subnode, right]
             return new KeyValuePairSequence(pairs, tokens)
         },
-    },
-    {
+    }),
+    r({
         pattern: [
             j.instance(Expression).field({ value: j.literal('{') }),
             j.instance(KeyValuePairSequence),
@@ -109,8 +110,8 @@ export const DICT_RULES: Rule[] = [
             const sequence = nodes[1]
             return new DictLiteral(sequence.subnode, tokens)
         },
-    },
-    {
+    }),
+    r({
         pattern: [
             j.instance(Expression).field({ value: j.literal('{') }),
             j.instance(KeyValuePair),
@@ -120,8 +121,8 @@ export const DICT_RULES: Rule[] = [
             const pair = nodes[1]
             return new DictLiteral([pair], tokens)
         },
-    },
-    {
+    }),
+    r({
         pattern: [
             j.instance(Expression).field({ value: j.literal('{') }),
             j.instance(Expression).field({ value: j.literal('}') }),
@@ -129,5 +130,5 @@ export const DICT_RULES: Rule[] = [
         factory: (_, tokens) => {
             return new DictLiteral([], tokens)
         },
-    },
+    }),
 ]

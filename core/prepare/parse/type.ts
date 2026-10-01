@@ -1,17 +1,20 @@
 import { Node, NodeCapability, Token } from '@dalbit-yaksok/core'
 import { ClassType, Chain, Matcher } from '@dalbit-yaksok/pattern'
 
-// type NodeType = new (...args: any[]) => Node
-
-type PatternUnit<Shape extends Node> = Matcher<
+export type PatternUnit<Shape extends Node> = Matcher<
     unknown,
     {
-        classShape: Shape
-        isSuffix?: boolean
-    }
+        classShape: new () => Shape
+    } & (
+        | undefined
+        | {
+              isSuffix: boolean
+              nameOptions: string[]
+          }
+    )
 >
 
-type PatternUnitChain<Shape extends Node> = Chain<
+export type PatternUnitChain<Shape extends Node> = Chain<
     unknown,
     unknown,
     {
@@ -25,7 +28,7 @@ export interface DirectReplacer {
     nodes: Node[]
 }
 
-interface Rule<NodeSequence extends Node[]> {
+export interface Rule<NodeSequence extends Node[] = Node[]> {
     pattern: {
         [K in keyof NodeSequence]: PatternUnit<NodeSequence[K]>
     }
@@ -34,6 +37,7 @@ interface Rule<NodeSequence extends Node[]> {
             [K in keyof NodeSequence]: NodeSequence[K]
         },
         tokens: Token[],
+        rule: Rule<NodeSequence>,
     ) => Node | null
     isStatement?: boolean
 }
@@ -41,23 +45,25 @@ interface Rule<NodeSequence extends Node[]> {
 export function r<NodeSequence extends Node[] = Node[]>(
     props: Omit<Rule<NodeSequence>, 'pattern'> & {
         pattern: {
-            [K in keyof NodeSequence]: PatternUnitChain<NodeSequence[K]>
+            [K in keyof NodeSequence]:
+                | PatternUnitChain<NodeSequence[K]>
+                | PatternUnit<NodeSequence[K]>
         }
     },
-): Rule<NodeSequence> {
+): Rule<Node[]> {
     const compiled = props.pattern.map((p) =>
-        p.compile(),
-    ) as Rule<NodeSequence>['pattern']
+        'compile' in p ? p.compile() : p,
+    )
 
     return {
         factory: props.factory,
         isStatement: props.isStatement,
         pattern: compiled,
-    }
+    } as unknown as Rule
 }
 
 export interface DynamicRules {
-    rules: Rule[]
+    rules: Rule<Node[]>[]
     replacers: DirectReplacer[]
 }
 

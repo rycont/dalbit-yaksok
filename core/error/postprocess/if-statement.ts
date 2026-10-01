@@ -2,10 +2,10 @@ import { match, P } from 'ts-pattern'
 import {
     AmbiguousFormulaBoundary,
     CannotUnderstandError,
-    IfStatement,
     NotDefinedIdentifierError,
     TOKEN_TYPE,
 } from '@dalbit-yaksok/core'
+
 import { Processor } from './type.ts'
 import { blue, bold } from '../../util/terminal.ts'
 
@@ -51,7 +51,6 @@ export const prettifyBrokenIf: Processor = (errors, tokens) => {
                         new CannotUnderstandError({
                             tokens: conditionTokens,
                             resource: {
-                                nodeType: IfStatement,
                                 additionalMessage: `${blue(bold('만약'))}의 다음 줄에 네 칸을 띄고 실행할 코드를 작성 해주세요.`,
                             },
                         }),
@@ -62,7 +61,6 @@ export const prettifyBrokenIf: Processor = (errors, tokens) => {
                     new CannotUnderstandError({
                         tokens: statementTokens,
                         resource: {
-                            nodeType: IfStatement,
                             additionalMessage: `다음 줄에 적은 코드를 언제 실행할 지 ${blue(bold('만약'))}과 ${blue(bold('이면'))} 사이에 적어주세요.`,
                         },
                     }),
@@ -105,7 +103,6 @@ export const prettifyBrokenIf: Processor = (errors, tokens) => {
                 return [
                     new CannotUnderstandError({
                         tokens: errorRangeTokens,
-                        resource: { nodeType: IfStatement },
                     }),
                 ]
             },

@@ -8,7 +8,8 @@ import {
     KeyValuePairSequence,
     Node,
     ParameterElement,
-    PatternUnit,
+    PatternUnitChain,
+    r,
     Rule,
     Token,
 } from '@dalbit-yaksok/core'
@@ -23,7 +24,7 @@ export function createBlockRule(
     const staticParts = functionHeader.slice(0, -1) as FunctionStaticPart[]
 
     const signaturePattern = staticParts
-        .map<PatternUnit<Node>>((part) =>
+        .map<PatternUnitChain<Node>>((part) =>
             j.instance(Identifier).field({
                 value: j.enum(part.names.map((n) => n.value)),
             }),
@@ -71,8 +72,8 @@ export function createBlockRule(
         return new FunctionInvoke(functionName, invokingArguments, tokens)
     }
 
-    return {
+    return r({
         pattern: signaturePattern,
         factory,
-    }
+    })
 }

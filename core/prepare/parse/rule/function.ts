@@ -16,10 +16,12 @@ export const FUNCTION_RULES: Rule[] = [
     r({
         pattern: [
             j.instance(FunctionDeclareHeader<FunctionType.약속>).field({
-                range: j.field(j.instance(j.literal(FunctionType.약속))),
+                range: j.field({
+                    type: j.literal(FunctionType.약속),
+                }),
             }),
-            EOL,
-            Block,
+            j.instance(EOL),
+            j.instance(Block),
         ],
         factory(nodes, tokens) {
             const [header, _, body] = nodes
@@ -29,14 +31,13 @@ export const FUNCTION_RULES: Rule[] = [
     }),
     r({
         pattern: [
-            u(
-                FunctionDeclareHeader<FunctionType.번역>,
-                v.object({
-                    range: v.object(j.instance(v.literal(FunctionType.번역))),
+            j.instance(FunctionDeclareHeader<FunctionType.번역>).field({
+                range: j.field({
+                    type: j.literal(FunctionType.번역),
                 }),
-            ),
-            EOL,
-            FFIBody,
+            }),
+            j.instance(EOL),
+            j.instance(FFIBody),
         ],
         factory([header, __, body], tokens) {
             return new DeclareFFI(header, body.code, tokens)
@@ -44,12 +45,11 @@ export const FUNCTION_RULES: Rule[] = [
     }),
     r({
         pattern: [
-            u(
-                FunctionDeclareHeader<FunctionType.이벤트>,
-                v.object({
-                    range: v.object(j.instance(v.literal(FunctionType.이벤트))),
+            j.instance(FunctionDeclareHeader<FunctionType.이벤트>).field({
+                range: j.field({
+                    type: j.literal(FunctionType.이벤트),
                 }),
-            ),
+            }),
         ],
         factory([header], tokens) {
             return new DeclareEvent(header, tokens)

@@ -2,41 +2,33 @@ import {
     Evaluable,
     Expression,
     Rule,
-    StringInterpolationPart,
     StringStaticPart,
+    StringPartSequence,
+    r,
 } from '@dalbit-yaksok/core'
-import { StringPartSequence } from '../../../node/primitive-literals/string.ts'
+import { j } from '@dalbit-yaksok/pattern'
 
 export const STRING_RULES: Rule[] = [
-    {
+    r({
         pattern: [
             j.instance(Expression).field({ value: j.literal('"') }),
             j.instance(StringStaticPart),
         ],
         factory(nodes, tokens) {
-            return new StringPartSequence(
-                nodes,
-                tokens,
-            )
+            return new StringPartSequence(nodes, tokens)
         },
-    },
-    {
+    }),
+    r({
         pattern: [
             j.instance(Expression).field({ value: j.literal("'") }),
             j.instance(StringStaticPart),
         ],
         factory(nodes, tokens) {
-            return new StringPartSequence(
-                nodes,
-                tokens,
-            )
+            return new StringPartSequence(nodes, tokens)
         },
-    },
-    {
-        pattern: [
-            j.instance(StringPartSequence),
-            j.instance(StringStaticPart),
-        ],
+    }),
+    r({
+        pattern: [j.instance(StringPartSequence), j.instance(StringStaticPart)],
         factory(nodes, tokens) {
             const sequence = nodes[0]
             const staticPart = nodes[1]
@@ -45,20 +37,17 @@ export const STRING_RULES: Rule[] = [
                 tokens,
             )
         },
-    },
-    {
+    }),
+    r({
         pattern: [
             j.instance(StringStaticPart),
             j.instance(Expression).field({ value: j.literal('"') }),
         ],
         factory(nodes, tokens) {
-            return new StringPartSequence(
-                nodes
-                tokens,
-            )
+            return new StringPartSequence(nodes, tokens)
         },
-    },
-    {
+    }),
+    r({
         pattern: [
             j.instance(StringPartSequence),
             j.instance(Expression).field({ value: j.literal('"') }),
@@ -71,8 +60,8 @@ export const STRING_RULES: Rule[] = [
                 tokens,
             )
         },
-    },
-    {
+    }),
+    r({
         pattern: [
             j.instance(StringPartSequence),
             j.instance(Expression).field({ value: j.literal("'") }),
@@ -85,13 +74,13 @@ export const STRING_RULES: Rule[] = [
                 tokens,
             )
         },
-    },
-    {
+    }),
+    r({
         pattern: [
             j.instance(StringPartSequence),
             j.instance(Expression).field({ value: j.literal('{') }),
             j.instance(Evaluable),
-            j.instance(Expression)
+            j.instance(Expression),
         ],
         factory(nodes, tokens) {
             const sequence = nodes[0]
@@ -101,5 +90,5 @@ export const STRING_RULES: Rule[] = [
                 tokens,
             )
         },
-    },
+    }),
 ]

@@ -1,4 +1,5 @@
-import type { Node, NodeType, Rule } from '@dalbit-yaksok/core'
+import type { Node, Rule } from '@dalbit-yaksok/core'
+import { ClassType } from '@dalbit-yaksok/pattern'
 
 interface RuleWithPriority {
     priority: number
@@ -7,12 +8,12 @@ interface RuleWithPriority {
 
 export class TrieNode {
     constructor(
-        private nodeKey: NodeType,
+        private nodeKey: ClassType,
         private rules: RuleWithPriority[],
         private children: TrieNode[] | null,
     ) {}
 
-    private nodeTrieCache = new WeakMap<NodeType, TrieNode[]>()
+    private nodeTrieCache = new WeakMap<ClassType, TrieNode[]>()
 
     public discover(nodes: Node[], depth = 1): RuleWithPriority[] {
         if (nodes.length < depth) {
@@ -38,7 +39,7 @@ export class TrieNode {
         const validRules = rules.filter((r) => {
             const patternUnit = r.rule.pattern[r.rule.pattern.length - depth]
 
-            return !!patternUnit.run(currentDepthNode)
+            return !!patternUnit.func(patternUnit.id, currentDepthNode)
         })
 
         return validRules
@@ -49,7 +50,7 @@ export class TrieNode {
             return []
         }
 
-        const nodeClass = node.constructor as NodeType
+        const nodeClass = node.constructor as ClassType
 
         const cached = this.nodeTrieCache.get(nodeClass)
 
@@ -102,7 +103,7 @@ export class Ruleset {
 }
 
 function rulesToTries(rules: RuleWithPriority[], depth = 1): TrieNode[] {
-    const ruleBucketsByNodeClass = new Map<NodeType, RuleWithPriority[]>()
+    const ruleBucketsByNodeClass = new Map<ClassType, RuleWithPriority[]>()
 
     for (const r of rules) {
         if (r.rule.pattern.length < depth) {
@@ -110,7 +111,7 @@ function rulesToTries(rules: RuleWithPriority[], depth = 1): TrieNode[] {
         }
 
         const topNodeClass =
-            r.rule.pattern[r.rule.pattern.length - depth].metadata.shape
+            r.rule.pattern[r.rule.pattern.length - depth].meta.classShape
 
         const bucketContent = ruleBucketsByNodeClass.get(topNodeClass)
 

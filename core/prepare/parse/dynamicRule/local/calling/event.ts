@@ -2,11 +2,15 @@ import {
     Block,
     EOL,
     ParameterElement,
+    r,
     Rule,
+    PatternUnitChain,
     SubscribeEvent,
+    Node,
 } from '@dalbit-yaksok/core'
 import { FunctionHeaderPart, 이벤트DeclareRange } from '../type.ts'
 import { createCallingPattern } from './pattern.ts'
+import { j } from '@dalbit-yaksok/pattern'
 
 export function createEventSubscriptionRules(
     headerParts: FunctionHeaderPart[],
@@ -18,8 +22,11 @@ export function createEventSubscriptionRules(
         parameterScheme,
     )
 
-    return {
-        pattern: pattern.concat([EOL, Block]),
+    return r({
+        pattern: (pattern as PatternUnitChain<Node>[]).concat([
+            j.instance(EOL),
+            j.instance(Block),
+        ]),
         factory(nodes, tokens) {
             const invokingArguments = invokingArgumentsFactory(
                 nodes.slice(0, -2),
@@ -33,5 +40,5 @@ export function createEventSubscriptionRules(
 
             return new SubscribeEvent(range.id, body, invokingArguments, tokens)
         },
-    }
+    })
 }

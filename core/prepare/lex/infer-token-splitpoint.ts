@@ -1,7 +1,6 @@
 import {
     Brand,
-    InstancePipe,
-    NodeType,
+    Node,
     NotDefinedIdentifierError,
     PatternUnit,
     Rule,
@@ -118,10 +117,10 @@ function inferSplitpointByLine(
     }
 
     const intersectingRules = Array.from(
-        intersectAll<Rule>(
+        intersectAll<Rule<Node[]>>(
             inferredPrefixes.map(
                 (inferredPrefix) =>
-                    new Set<Rule>(
+                    new Set<Rule<Node[]>>(
                         inferredPrefix.candidates.flatMap(
                             (candidate) => candidate.rules!,
                         ),
@@ -170,20 +169,12 @@ function inferSplitpointByLine(
     return chosenPrefixes
 }
 
-function inferNameGroup(patternUnit: PatternUnit): [string[]] | [] {
-    if (!v.getMetadata(patternUnit as InstancePipe<NodeType>).isSuffix) {
+function inferNameGroup(patternUnit: PatternUnit<Node>): [string[]] | [] {
+    if (!patternUnit.meta.isSuffix) {
         return []
     }
 
-    return [
-        (
-            (
-                (patternUnit as InstancePipe<NodeType>).pipe.find(
-                    (p) => p.type === 'object',
-                ) as v.ObjectSchema<Record<string, v.GenericSchema>, undefined>
-            )?.entries?.value as v.PicklistSchema<[], undefined>
-        )?.options,
-    ]
+    return [patternUnit.meta.nameOptions]
 }
 
 function intersectAll<T>(sets: Set<T>[]): Set<T> {

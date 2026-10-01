@@ -1,8 +1,10 @@
 import {
     Block,
     Identifier,
+    Node,
     NotDefinedIdentifierError,
     parse,
+    r,
     renderErrorString,
     Rule,
     Scope,
@@ -107,7 +109,7 @@ export class CodeFile {
 
             const exportedVariableRules = createMentioningRule(
                 this.fileName,
-                {
+                r<Node[]>({
                     pattern: [
                         j.instance(Identifier).field({
                             value: j.enum(Object.keys(rootScope.variables)),
@@ -116,7 +118,7 @@ export class CodeFile {
                     factory([node]) {
                         return node
                     },
-                },
+                }),
                 rootScope,
             )
 

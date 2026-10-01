@@ -3,7 +3,6 @@ import {
     Block,
     BooleanLiteral,
     Break,
-    CompletionGroup,
     ConditionalLoop,
     Continue,
     DivideOperator,
@@ -19,29 +18,33 @@ import {
     GreaterThanOrEqualOperator,
     Identifier,
     IfStatement,
+    IndexedValue,
     IndexFetch,
     IntegerDivideOperator,
     LessThanOperator,
     LessThanOrEqualOperator,
     ListLiteral,
+    ListValue,
     Loop,
     MinusOperator,
     ModularOperator,
     MultiplyOperator,
-    NodeCapability,
     NotEqualOperator,
     NotExpression,
+    NumberValue,
     Operator,
     OrOperator,
     PlusOperator,
     PowerOperator,
     Print,
+    r,
     RangeOperator,
     ReturnStatement,
     Rule,
     Sequence,
     SetToIndex,
     SetVariable,
+    StringValue,
     TupleLiteral,
     TypeCast,
     TypeCastTarget,
@@ -49,17 +52,17 @@ import {
     ValueWithParenthesis,
 } from '@dalbit-yaksok/core'
 
-import { COUNT_LOOP_RULES } from './count-loop.ts'
 import { DICT_RULES } from './dict.ts'
 import { LIST_LOOP_RULES } from './list-loop.ts'
 import { STRING_RULES } from './template-string.ts'
 import { FUNCTION_RULES } from './function.ts'
 import { ASSIGNERS } from '../../tokenize/rules.ts'
 import { j } from '@dalbit-yaksok/pattern'
+import { COUNT_LOOP_RULES } from './count-loop.ts'
 
 export const BASIC_RULES: Rule[][] = [
     [
-        {
+        r({
             pattern: [
                 j.instance(Evaluable),
                 j.instance(Expression).field({ value: j.literal('[') }),
@@ -67,17 +70,23 @@ export const BASIC_RULES: Rule[][] = [
                 j.instance(Expression).field({ value: j.literal(']') }),
             ],
             factory: (nodes, tokens) => {
-                const target = nodes[0]
-                const index = nodes[2]
+                const target = nodes[0] as Evaluable<
+                    unknown,
+                    IndexedValue | StringValue
+                >
+                const index = nodes[2] as Evaluable<
+                    unknown,
+                    StringValue | NumberValue | ListValue
+                >
 
                 return new IndexFetch(target, index, tokens)
             },
-        },
+        }),
     ],
     STRING_RULES,
     FUNCTION_RULES,
     [
-        {
+        r({
             pattern: [
                 j.instance(Expression).field({ value: j.literal('[') }),
                 j.instance(Sequence),
@@ -87,50 +96,44 @@ export const BASIC_RULES: Rule[][] = [
                 const sequence = nodes[1]
                 return new ListLiteral(sequence.items, nodes[2], tokens)
             },
-        },
-        {
+        }),
+        r({
             pattern: [
                 j.instance(Identifier).field({ value: j.literal('비어있음') }),
             ],
             factory: (_, tokens) => {
                 return new EmptyLiteral(tokens)
             },
-        },
-        ...['참', '맞음'].map(
-            (keyword) =>
-                ({
-                    pattern: [
-                        j
-                            .instance(Identifier)
-                            .field({ value: j.literal(keyword) }),
-                    ],
-                    factory: (_nodes, tokens) => {
-                        return new BooleanLiteral(true, tokens)
-                    },
-                }) as Rule,
+        }),
+        ...['참', '맞음'].map((keyword) =>
+            r({
+                pattern: [
+                    j.instance(Identifier).field({ value: j.literal(keyword) }),
+                ],
+                factory: (_nodes, tokens) => {
+                    return new BooleanLiteral(true, tokens)
+                },
+            }),
         ),
-        ...['거짓', '아님'].map(
-            (keyword) =>
-                ({
-                    pattern: [
-                        j
-                            .instance(Identifier)
-                            .field({ value: j.literal(keyword) }),
-                    ],
-                    factory: (_nodes, tokens) => {
-                        return new BooleanLiteral(false, tokens)
-                    },
-                }) as Rule,
+        ...['거짓', '아님'].map((keyword) =>
+            r({
+                pattern: [
+                    j.instance(Identifier).field({ value: j.literal(keyword) }),
+                ],
+                factory: (_nodes, tokens) => {
+                    return new BooleanLiteral(false, tokens)
+                },
+            }),
         ),
-        {
+        r({
             pattern: [j.instance(EOL), j.instance(EOL)],
             factory: (nodes, tokens) => {
                 const eol = nodes[0]
                 eol.tokens = tokens
                 return eol
             },
-        },
-        {
+        }),
+        r({
             pattern: [
                 j.instance(Expression).field({ value: j.literal(',') }),
                 j.instance(EOL),
@@ -141,17 +144,17 @@ export const BASIC_RULES: Rule[][] = [
                 comma.tokens = tokens
                 return comma
             },
-        },
+        }),
     ],
     [
-        {
+        r({
             pattern: [
                 j.instance(Expression).field({ value: j.literal('(') }),
                 j.instance(Expression).field({ value: j.literal(')') }),
             ],
             factory: (_nodes, tokens) => new TupleLiteral([], tokens),
-        },
-        {
+        }),
+        r({
             pattern: [
                 j.instance(Expression).field({ value: j.literal('(') }),
                 j.instance(Sequence),
@@ -161,8 +164,8 @@ export const BASIC_RULES: Rule[][] = [
                 const sequence = nodes[1]
                 return new TupleLiteral(sequence.items, tokens)
             },
-        },
-        {
+        }),
+        r({
             pattern: [
                 j.instance(Expression).field({ value: j.literal('(') }),
                 j.instance(Evaluable),
@@ -173,8 +176,8 @@ export const BASIC_RULES: Rule[][] = [
                 const item = nodes[1]
                 return new TupleLiteral([item], tokens)
             },
-        },
-        {
+        }),
+        r({
             pattern: [
                 j.instance(Expression).field({ value: j.literal('(') }),
                 j.instance(Evaluable),
@@ -184,8 +187,8 @@ export const BASIC_RULES: Rule[][] = [
                 const item = nodes[1]
                 return new ValueWithParenthesis(item, tokens)
             },
-        },
-        {
+        }),
+        r({
             pattern: [
                 j.instance(Evaluable),
                 j.instance(Operator),
@@ -205,86 +208,86 @@ export const BASIC_RULES: Rule[][] = [
 
                 return new Formula([left, operator, right], tokens)
             },
-        },
-        {
+        }),
+        r({
             pattern: [j.instance(Operator).field({ value: j.literal('!=') })],
             factory: (_nodes, tokens) => new NotEqualOperator(tokens),
-        },
-        {
+        }),
+        r({
             pattern: [j.instance(Operator).field({ value: j.literal('==') })],
             factory: (_nodes, tokens) => new EqualOperator(tokens),
-        },
-        {
+        }),
+        r({
             pattern: [j.instance(Operator).field({ value: j.literal('>') })],
             factory: (_nodes, tokens) => new GreaterThanOperator(tokens),
-        },
-        {
+        }),
+        r({
             pattern: [j.instance(Operator).field({ value: j.literal('<') })],
             factory: (_nodes, tokens) => new LessThanOperator(tokens),
-        },
-        {
+        }),
+        r({
             pattern: [j.instance(Operator).field({ value: j.literal('>=') })],
             factory: (_nodes, tokens) => new GreaterThanOrEqualOperator(tokens),
-        },
-        {
+        }),
+        r({
             pattern: [j.instance(Operator).field({ value: j.literal('<=') })],
             factory: (_nodes, tokens) => new LessThanOrEqualOperator(tokens),
-        },
-        {
+        }),
+        r({
             pattern: [j.instance(Operator).field({ value: j.literal('//') })],
             factory: (_nodes, tokens) => new IntegerDivideOperator(tokens),
-        },
-        {
+        }),
+        r({
             pattern: [j.instance(Operator).field({ value: j.literal('%') })],
             factory: (_nodes, tokens) => new ModularOperator(tokens),
-        },
-        {
+        }),
+        r({
             pattern: [j.instance(Operator).field({ value: j.literal('**') })],
             factory: (_nodes, tokens) => new PowerOperator(tokens),
-        },
-        {
+        }),
+        r({
             pattern: [j.instance(Operator).field({ value: j.literal('/') })],
             factory: (_nodes, tokens) => new DivideOperator(tokens),
-        },
-        {
+        }),
+        r({
             pattern: [j.instance(Operator).field({ value: j.literal('*') })],
             factory: (_nodes, tokens) => new MultiplyOperator(tokens),
-        },
-        {
+        }),
+        r({
             pattern: [j.instance(Operator).field({ value: j.literal('+') })],
             factory: (nodes, tokens) => new PlusOperator(tokens),
-        },
-        {
+        }),
+        r({
             pattern: [j.instance(Operator).field({ value: j.literal('-') })],
             factory: (nodes, tokens) => new MinusOperator(tokens),
-        },
-        {
+        }),
+        r({
             pattern: [
                 j.instance(Identifier).field({ value: j.literal('이고') }),
             ],
             factory: (_nodes, tokens) => new AndOperator(tokens),
-        },
-        {
+        }),
+        r({
             pattern: [j.instance(Identifier).field({ value: j.literal('고') })],
             factory: (_nodes, tokens) => new AndOperator(tokens),
-        },
-        {
+        }),
+        r({
             pattern: [
                 j.instance(Identifier).field({ value: j.literal('이거나') }),
             ],
             factory: (_nodes, tokens) => new OrOperator(tokens),
-        },
-        {
+        }),
+        r({
             pattern: [
                 j.instance(Identifier).field({ value: j.literal('거나') }),
             ],
             factory: (_nodes, tokens) => new OrOperator(tokens),
-        },
-        {
+        }),
+        r({
             pattern: [j.instance(Operator).field({ value: j.literal('~') })],
             factory: (_nodes, tokens) => new RangeOperator(tokens),
-        },
-        {
+        }),
+        r({
             pattern: [
                 j.instance(Expression).field({ value: j.literal('!') }),
                 j.instance(Evaluable),
@@ -293,8 +296,8 @@ export const BASIC_RULES: Rule[][] = [
                 const evaluable = nodes[1]
                 return new NotExpression(evaluable, tokens)
             },
-        },
-        {
+        }),
+        r({
             pattern: [
                 j.instance(Evaluable),
                 j.instance(Identifier).field({ value: j.literal('아니다') }),
@@ -303,12 +306,12 @@ export const BASIC_RULES: Rule[][] = [
                 const evaluable = nodes[0]
                 return new NotExpression(evaluable, tokens)
             },
-        },
+        }),
     ],
 ]
 
 export const ADVANCED_RULES: Rule[] = [
-    {
+    r({
         pattern: [
             j.instance(Evaluable),
             j.instance(Expression).field({ value: j.literal(',') }),
@@ -320,8 +323,8 @@ export const ADVANCED_RULES: Rule[] = [
 
             return new Sequence([a, b], tokens)
         },
-    },
-    {
+    }),
+    r({
         pattern: [
             j.instance(Sequence),
             j.instance(Expression).field({ value: j.literal(',') }),
@@ -333,69 +336,55 @@ export const ADVANCED_RULES: Rule[] = [
 
             return new Sequence([...a.items, b], tokens)
         },
-    },
-    {
+    }),
+    r({
         pattern: [
             j.instance(Expression).field({ value: j.literal('[') }),
             j.instance(Expression).field({ value: j.literal(']') }),
         ],
         factory: (nodes, tokens) => new ListLiteral([], nodes[1], tokens),
-    },
-    ...ASSIGNERS.map<Rule>((assigner) => ({
-        pattern: [
-            j.instance(IndexFetch),
-            j.instance(Expression).field({ value: j.literal(assigner) }),
-            j.instance(Evaluable),
-        ],
-        factory: (nodes, tokens) => {
-            const target = nodes[0]
-            const operator = nodes[1]
-            const value = nodes[2]
+    }),
+    ...ASSIGNERS.map<Rule>((assigner) =>
+        r({
+            pattern: [
+                j.instance(IndexFetch),
+                j.instance(Expression).field({ value: j.literal(assigner) }),
+                j.instance(Evaluable),
+            ],
+            factory: (nodes, tokens) => {
+                const target = nodes[0]
+                const operator = nodes[1]
+                const value = nodes[2]
 
-            return new SetToIndex(target, value, operator.value, tokens)
-        },
-        config: {
-            statement:
-                assigner === '='
-                    ? {
-                          name: '목록 안의 값 바꾸기',
-                          group: CompletionGroup.DATA,
-                          visibility: 'always',
-                      }
-                    : true,
-        },
-    })),
-    ...ASSIGNERS.map<Rule>((assigner) => ({
-        pattern: [
-            j.instance(Identifier),
-            j.instance(Expression).field({ value: j.literal(assigner) }),
-            j.instance(Evaluable),
-        ],
-        factory: (nodes, tokens) => {
-            const name = nodes[0].value
-            const operator = nodes[1]
-            const value = nodes[2]
+                return new SetToIndex(target, value, operator.value, tokens)
+            },
+            isStatement: true,
+        }),
+    ),
+    ...ASSIGNERS.map<Rule>((assigner) =>
+        r({
+            pattern: [
+                j.instance(Identifier),
+                j.instance(Expression).field({ value: j.literal(assigner) }),
+                j.instance(Evaluable),
+            ],
+            factory: (nodes, tokens) => {
+                const name = nodes[0].value
+                const operator = nodes[1]
+                const value = nodes[2]
 
-            return new SetVariable(name, value, tokens, operator.value)
-        },
-        config: {
-            statement:
-                assigner === '='
-                    ? {
-                          name: '변수에 값 넣기',
-                          group: CompletionGroup.DATA,
-                          visibility: 'always',
-                      }
-                    : true,
-        },
-    })),
-    {
+                return new SetVariable(name, value, tokens, operator.value)
+            },
+            isStatement: true,
+        }),
+    ),
+    r({
         pattern: [
             j.instance(IfStatement),
             j.instance(EOL),
             j.instance(ElseIfStatement),
         ],
-        factory: ([ifStatement, _, elseIfStatement], tokens) => {
+        factory: ([ifStatement, __, elseIfStatement], tokens) => {
             const elseIfCase = elseIfStatement.elseIfCase
             ifStatement.cases.push(elseIfCase)
 
@@ -403,15 +392,15 @@ export const ADVANCED_RULES: Rule[] = [
 
             return ifStatement
         },
-        config: { statement: true },
-    },
-    {
+        isStatement: true,
+    }),
+    r({
         pattern: [
             j.instance(IfStatement),
             j.instance(EOL),
             j.instance(ElseStatement),
         ],
-        factory: ([ifStatement, _, elseStatement], tokens) => {
+        factory: ([ifStatement, __, elseStatement], tokens) => {
             const elseCase = {
                 body: elseStatement.body,
             }
@@ -421,9 +410,9 @@ export const ADVANCED_RULES: Rule[] = [
 
             return ifStatement
         },
-        config: { statement: true },
-    },
-    {
+        isStatement: true,
+    }),
+    r({
         pattern: [
             j.instance(Identifier).field({ value: j.literal('아니면') }),
             j.instance(Identifier).field({ value: j.literal('만약') }),
@@ -438,15 +427,9 @@ export const ADVANCED_RULES: Rule[] = [
 
             return new ElseIfStatement({ condition, body }, tokens)
         },
-        config: {
-            statement: {
-                name: '아니면 만약',
-                group: CompletionGroup.FLOW,
-                visibility: { after: IfStatement },
-            },
-        },
-    },
-    {
+        isStatement: true,
+    }),
+    r({
         pattern: [
             j.instance(Identifier).field({ value: j.literal('아니면') }),
             j.instance(EOL),
@@ -457,15 +440,9 @@ export const ADVANCED_RULES: Rule[] = [
 
             return new ElseStatement(body, tokens)
         },
-        config: {
-            statement: {
-                name: '아니면',
-                group: CompletionGroup.FLOW,
-                visibility: { after: IfStatement },
-            },
-        },
-    },
-    {
+        isStatement: true,
+    }),
+    r({
         pattern: [
             j.instance(Identifier).field({ value: j.literal('만약') }),
             j.instance(Evaluable),
@@ -479,15 +456,9 @@ export const ADVANCED_RULES: Rule[] = [
 
             return new IfStatement([{ condition, body }], tokens)
         },
-        config: {
-            statement: {
-                name: '만약',
-                group: CompletionGroup.FLOW,
-                visibility: 'always',
-            },
-        },
-    },
-    {
+        isStatement: true,
+    }),
+    r({
         pattern: [
             j.instance(Evaluable),
             j.instance(Identifier).field({ value: j.literal('의') }),
@@ -498,9 +469,9 @@ export const ADVANCED_RULES: Rule[] = [
             const value = nodes[0]
             return new TypeOf(value, tokens)
         },
-    },
+    }),
     ...createTypeCastRules(),
-    {
+    r({
         pattern: [
             j.instance(Evaluable),
             j.instance(Identifier).field({ value: j.literal('보여주기') }),
@@ -509,15 +480,9 @@ export const ADVANCED_RULES: Rule[] = [
             const value = nodes[0]
             return new Print(value, tokens)
         },
-        config: {
-            statement: {
-                name: '보여주기',
-                group: CompletionGroup.OUTPUT,
-                visibility: 'always',
-            },
-        },
-    },
-    {
+        isStatement: true,
+    }),
+    r({
         pattern: [
             j.instance(Evaluable),
             j.instance(Identifier).field({ value: j.literal('반환하기') }),
@@ -526,30 +491,18 @@ export const ADVANCED_RULES: Rule[] = [
             const value = nodes[0]
             return new ReturnStatement(tokens, value)
         },
-        config: {
-            statement: {
-                name: '값 돌려주기',
-                group: CompletionGroup.FUNCTION,
-                visibility: { inside: NodeCapability.RETURN },
-            },
-        },
-    },
-    {
+        isStatement: true,
+    }),
+    r({
         pattern: [
             j.instance(Identifier).field({ value: j.literal('반환하기') }),
         ],
         factory: (_nodes, tokens) => {
             return new ReturnStatement(tokens)
         },
-        config: {
-            statement: {
-                name: '약속 끝내기',
-                group: CompletionGroup.FUNCTION,
-                visibility: { inside: NodeCapability.RETURN },
-            },
-        },
-    },
-    {
+        isStatement: true,
+    }),
+    r({
         pattern: [
             j.instance(Identifier).field({ value: j.literal('약속') }),
             j.instance(Identifier).field({ value: j.literal('그만') }),
@@ -557,63 +510,45 @@ export const ADVANCED_RULES: Rule[] = [
         factory: (_nodes, tokens) => {
             return new ReturnStatement(tokens)
         },
-        config: { statement: true },
-    },
-    {
+        isStatement: true,
+    }),
+    r({
         pattern: [
             j.instance(Identifier).field({ value: j.literal('반복') }),
             j.instance(EOL),
             j.instance(Block),
         ],
         factory: (nodes, tokens) => new Loop(nodes[2], tokens),
-        config: {
-            statement: {
-                name: '계속 반복하기',
-                group: CompletionGroup.LOOP,
-                visibility: 'always',
-            },
-        },
-    },
-    {
+        isStatement: true,
+    }),
+    r({
         pattern: [
             j.instance(Identifier).field({ value: j.literal('반복하기') }),
             j.instance(EOL),
             j.instance(Block),
         ],
         factory: (nodes, tokens) => new Loop(nodes[2], tokens),
-        config: { statement: true },
-    },
-    {
+        isStatement: true,
+    }),
+    r({
         pattern: [
             j.instance(Identifier).field({ value: j.literal('반복') }),
             j.instance(Identifier).field({ value: j.literal('그만') }),
         ],
         factory: (_nodes, tokens) => new Break(tokens),
-        config: {
-            statement: {
-                name: '반복 멈추기',
-                group: CompletionGroup.LOOP,
-                visibility: { inside: NodeCapability.LOOP_CONTROL },
-            },
-        },
-    },
-    {
+        isStatement: true,
+    }),
+    r({
         pattern: [
             j.instance(Identifier).field({ value: j.literal('다음') }),
             j.instance(Identifier).field({ value: j.literal('반복') }),
         ],
         factory: (_nodes, tokens) => new Continue(tokens),
-        config: {
-            statement: {
-                name: '다음 것으로 넘어가기',
-                group: CompletionGroup.LOOP,
-                visibility: { inside: NodeCapability.LOOP_CONTROL },
-            },
-        },
-    },
+        isStatement: true,
+    }),
     ...LIST_LOOP_RULES,
     ...COUNT_LOOP_RULES,
-    {
+    r({
         pattern: [
             j.instance(Identifier).field({ value: j.literal('반복') }),
             j.instance(Evaluable),
@@ -626,15 +561,9 @@ export const ADVANCED_RULES: Rule[] = [
             const body = nodes[4]
             return new ConditionalLoop(condition, body, tokens)
         },
-        config: {
-            statement: {
-                name: '맞는 동안 반복하기',
-                group: CompletionGroup.LOOP,
-                visibility: 'always',
-            },
-        },
-    },
-    {
+        isStatement: true,
+    }),
+    r({
         pattern: [
             j.instance(Expression).field({ value: j.literal('[') }),
             j.instance(Evaluable),
@@ -644,7 +573,7 @@ export const ADVANCED_RULES: Rule[] = [
             const item = nodes[1]
             return new ListLiteral([item], nodes[2], tokens)
         },
-    },
+    }),
     ...DICT_RULES,
 ]
 
@@ -683,29 +612,8 @@ function createTypeCastRules(): Rule[] {
     for (const particle of particles) {
         for (const { keywords, target, split } of targetTypes) {
             for (const keyword of keywords) {
-                rules.push({
-                    pattern: [
-                        j.instance(Evaluable),
-                        j
-                            .instance(Identifier)
-                            .field({ value: j.literal(particle) }),
-                        j
-                            .instance(Identifier)
-                            .field({ value: j.literal(keyword) }),
-                        j
-                            .instance(Identifier)
-                            .field({ value: j.literal('바꾸기') }),
-                    ],
-                    factory: (nodes, tokens) => {
-                        const value = nodes[0]
-                        return new TypeCast(value, target, tokens)
-                    },
-                })
-            }
-
-            if (split) {
-                for (const [head, tail] of split) {
-                    rules.push({
+                rules.push(
+                    r({
                         pattern: [
                             j.instance(Evaluable),
                             j
@@ -713,10 +621,7 @@ function createTypeCastRules(): Rule[] {
                                 .field({ value: j.literal(particle) }),
                             j
                                 .instance(Identifier)
-                                .field({ value: j.literal(head) }),
-                            j
-                                .instance(Identifier)
-                                .field({ value: j.literal(tail) }),
+                                .field({ value: j.literal(keyword) }),
                             j
                                 .instance(Identifier)
                                 .field({ value: j.literal('바꾸기') }),
@@ -725,7 +630,35 @@ function createTypeCastRules(): Rule[] {
                             const value = nodes[0]
                             return new TypeCast(value, target, tokens)
                         },
-                    })
+                    }),
+                )
+            }
+
+            if (split) {
+                for (const [head, tail] of split) {
+                    rules.push(
+                        r({
+                            pattern: [
+                                j.instance(Evaluable),
+                                j
+                                    .instance(Identifier)
+                                    .field({ value: j.literal(particle) }),
+                                j
+                                    .instance(Identifier)
+                                    .field({ value: j.literal(head) }),
+                                j
+                                    .instance(Identifier)
+                                    .field({ value: j.literal(tail) }),
+                                j
+                                    .instance(Identifier)
+                                    .field({ value: j.literal('바꾸기') }),
+                            ],
+                            factory: (nodes, tokens) => {
+                                const value = nodes[0]
+                                return new TypeCast(value, target, tokens)
+                            },
+                        }),
+                    )
                 }
             }
         }

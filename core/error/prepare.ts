@@ -1,7 +1,6 @@
 import {
     CodeFile,
     Node,
-    NodeType,
     Position,
     Scope,
     Token,
@@ -12,22 +11,21 @@ import { blue, bold, dim } from '../util/terminal.ts'
 import { tokenToText } from './common.ts'
 
 export class CannotUnderstandError extends YaksokError<{
-    nodeType: NodeType
     additionalMessage?: string
 }> {
     constructor(props: {
         tokens: Token[]
-        resource: { nodeType: NodeType; additionalMessage?: string }
+        resource?: { additionalMessage?: string }
     }) {
         super(props)
     }
 
     override get message(): string {
-        if (this.resource.additionalMessage) {
+        if (this.resource?.additionalMessage) {
             return this.resource.additionalMessage
         }
 
-        return `${this.resource.nodeType.friendlyName}에서 ${blue(
+        return `${blue(
             bold(
                 this.tokens!.map((t) => t.value)
                     .join('')

@@ -29,6 +29,7 @@ export function createCallingPattern(
             })
             .meta({
                 isSuffix: g.isSuffix,
+                nameOptions: g.names.map((n) => n.value),
             })
     })
 
