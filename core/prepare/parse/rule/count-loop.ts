@@ -1,31 +1,26 @@
-import { CountLoop } from '../../../node/count-loop.ts'
-import { Block, EOL, Evaluable, Identifier } from '../../../node/index.ts'
-import { CompletionGroup, Rule } from '../type.ts'
+import { j } from '@dalbit-yaksok/pattern'
+import {
+    Block,
+    CompletionGroup,
+    CountLoop,
+    EOL,
+    Evaluable,
+    Identifier,
+    Rule,
+} from '@dalbit-yaksok/core'
 
 export const COUNT_LOOP_RULES: Rule[] = [
     {
         pattern: [
-            {
-                type: Identifier,
-                value: '반복',
-            },
-            {
-                type: Evaluable,
-            },
-            {
-                type: Identifier,
-                value: '번',
-            },
-            {
-                type: EOL,
-            },
-            {
-                type: Block,
-            },
+            j.instance(Identifier).field({ value: j.literal('반복') }),
+            j.instance(Evaluable),
+            j.instance(Identifier).field({ value: j.literal('번') }),
+            j.instance(EOL),
+            j.instance(Block),
         ],
         factory: (nodes, tokens) => {
-            const list = nodes[1] as Evaluable
-            const body = nodes[4] as Block
+            const list = nodes[1]
+            const body = nodes[4]
 
             return new CountLoop(list, body, tokens)
         },
@@ -39,27 +34,15 @@ export const COUNT_LOOP_RULES: Rule[] = [
     },
     {
         pattern: [
-            {
-                type: Evaluable,
-            },
-            {
-                type: Identifier,
-                value: '번',
-            },
-            {
-                type: Identifier,
-                value: '반복',
-            },
-            {
-                type: EOL,
-            },
-            {
-                type: Block,
-            },
+            j.instance(Evaluable),
+            j.instance(Identifier).field({ value: j.literal('번') }),
+            j.instance(Identifier).field({ value: j.literal('반복') }),
+            j.instance(EOL),
+            j.instance(Block),
         ],
         factory: (nodes, tokens) => {
-            const list = nodes[0] as Evaluable
-            const body = nodes[4] as Block
+            const list = nodes[0]
+            const body = nodes[4]
 
             return new CountLoop(list, body, tokens)
         },
@@ -67,27 +50,15 @@ export const COUNT_LOOP_RULES: Rule[] = [
     },
     {
         pattern: [
-            {
-                type: Evaluable,
-            },
-            {
-                type: Identifier,
-                value: '번',
-            },
-            {
-                type: Identifier,
-                value: '반복하기',
-            },
-            {
-                type: EOL,
-            },
-            {
-                type: Block,
-            },
+            j.instance(Evaluable),
+            j.instance(Identifier).field({ value: j.literal('번') }),
+            j.instance(Identifier).field({ value: j.literal('반복하기') }),
+            j.instance(EOL),
+            j.instance(Block),
         ],
         factory: (nodes, tokens) => {
-            const list = nodes[0] as Evaluable
-            const body = nodes[4] as Block
+            const list = nodes[0]
+            const body = nodes[4]
 
             return new CountLoop(list, body, tokens)
         },

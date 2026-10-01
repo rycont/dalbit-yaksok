@@ -10,50 +10,36 @@ import { StringPartSequence } from '../../../node/primitive-literals/string.ts'
 export const STRING_RULES: Rule[] = [
     {
         pattern: [
-            {
-                type: Expression,
-                value: '"',
-            },
-            {
-                type: StringStaticPart,
-            },
+            j.instance(Expression).field({ value: j.literal('"') }),
+            j.instance(StringStaticPart),
         ],
         factory(nodes, tokens) {
             return new StringPartSequence(
-                nodes as [Expression, StringStaticPart],
+                nodes,
                 tokens,
             )
         },
     },
     {
         pattern: [
-            {
-                type: Expression,
-                value: "'",
-            },
-            {
-                type: StringStaticPart,
-            },
+            j.instance(Expression).field({ value: j.literal("'") }),
+            j.instance(StringStaticPart),
         ],
         factory(nodes, tokens) {
             return new StringPartSequence(
-                nodes as [Expression, StringStaticPart],
+                nodes,
                 tokens,
             )
         },
     },
     {
         pattern: [
-            {
-                type: StringPartSequence,
-            },
-            {
-                type: StringStaticPart,
-            },
+            j.instance(StringPartSequence),
+            j.instance(StringStaticPart),
         ],
         factory(nodes, tokens) {
-            const sequence = nodes[0] as StringPartSequence
-            const staticPart = nodes[1] as StringStaticPart
+            const sequence = nodes[0]
+            const staticPart = nodes[1]
             return new StringPartSequence(
                 sequence.subnode.concat([staticPart]),
                 tokens,
@@ -62,34 +48,24 @@ export const STRING_RULES: Rule[] = [
     },
     {
         pattern: [
-            {
-                type: StringStaticPart,
-            },
-            {
-                type: Expression,
-                value: '"',
-            },
+            j.instance(StringStaticPart),
+            j.instance(Expression).field({ value: j.literal('"') }),
         ],
         factory(nodes, tokens) {
             return new StringPartSequence(
-                nodes as [StringStaticPart, Expression],
+                nodes
                 tokens,
             )
         },
     },
     {
         pattern: [
-            {
-                type: StringPartSequence,
-            },
-            {
-                type: Expression,
-                value: '"',
-            },
+            j.instance(StringPartSequence),
+            j.instance(Expression).field({ value: j.literal('"') }),
         ],
         factory(nodes, tokens) {
-            const sequence = nodes[0] as StringPartSequence
-            const staticPart = nodes[1] as StringStaticPart
+            const sequence = nodes[0]
+            const staticPart = nodes[1]
             return new StringPartSequence(
                 sequence.subnode.concat([staticPart]),
                 tokens,
@@ -98,17 +74,12 @@ export const STRING_RULES: Rule[] = [
     },
     {
         pattern: [
-            {
-                type: StringPartSequence,
-            },
-            {
-                type: Expression,
-                value: "'",
-            },
+            j.instance(StringPartSequence),
+            j.instance(Expression).field({ value: j.literal("'") }),
         ],
         factory(nodes, tokens) {
-            const sequence = nodes[0] as StringPartSequence
-            const staticPart = nodes[1] as StringStaticPart
+            const sequence = nodes[0]
+            const staticPart = nodes[1]
             return new StringPartSequence(
                 sequence.subnode.concat([staticPart]),
                 tokens,
@@ -117,24 +88,14 @@ export const STRING_RULES: Rule[] = [
     },
     {
         pattern: [
-            {
-                type: StringPartSequence,
-            },
-            {
-                type: Expression,
-                value: '{',
-            },
-            {
-                type: Evaluable,
-            },
-            {
-                type: Expression,
-                value: '}',
-            },
+            j.instance(StringPartSequence),
+            j.instance(Expression).field({ value: j.literal('{') }),
+            j.instance(Evaluable),
+            j.instance(Expression)
         ],
         factory(nodes, tokens) {
-            const sequence = nodes[0] as StringPartSequence
-            const evaluable = nodes[2] as StringInterpolationPart
+            const sequence = nodes[0]
+            const evaluable = nodes[2]
             return new StringPartSequence(
                 sequence.subnode.concat([evaluable]),
                 tokens,

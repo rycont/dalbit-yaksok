@@ -5,35 +5,18 @@ import { CompletionGroup, Rule } from '../type.ts'
 export const LIST_LOOP_RULES: Rule[] = [
     {
         pattern: [
-            {
-                type: Identifier,
-                value: '반복',
-            },
-            {
-                type: Evaluable,
-            },
-            {
-                type: Identifier,
-                value: '의',
-            },
-            {
-                type: Identifier,
-            },
-            {
-                type: Identifier,
-                value: '마다',
-            },
-            {
-                type: EOL,
-            },
-            {
-                type: Block,
-            },
+            j.instance(Identifier).field({ value: j.literal('반복') }),
+            j.instance(Evaluable),
+            j.instance(Identifier).field({ value: j.literal('의') }),
+            j.instance(Identifier),
+            j.instance(Identifier).field({ value: j.literal('마다') }),
+            j.instance(EOL),
+            j.instance(Block),
         ],
         factory: (nodes, tokens) => {
-            const list = nodes[1] as Evaluable
-            const name = (nodes[3] as Identifier).value
-            const body = nodes[6] as Block
+            const list = nodes[1]
+            const name = nodes[3].value
+            const body = nodes[6]
 
             return new ListLoop(list, name, body, tokens)
         },
@@ -47,35 +30,18 @@ export const LIST_LOOP_RULES: Rule[] = [
     },
     {
         pattern: [
-            {
-                type: Evaluable,
-            },
-            {
-                type: Identifier,
-                value: '의',
-            },
-            {
-                type: Identifier,
-            },
-            {
-                type: Identifier,
-                value: '마다',
-            },
-            {
-                type: Identifier,
-                value: '반복하기',
-            },
-            {
-                type: EOL,
-            },
-            {
-                type: Block,
-            },
+            j.instance(Evaluable),
+            j.instance(Identifier).field({ value: j.literal('의') }),
+            j.instance(Identifier),
+            j.instance(Identifier).field({ value: j.literal('마다') }),
+            j.instance(Identifier).field({ value: j.literal('반복하기') }),
+            j.instance(EOL),
+            j.instance(Block),
         ],
         factory: (nodes, tokens) => {
-            const list = nodes[0] as Evaluable
-            const name = (nodes[2] as Identifier).value
-            const body = nodes[6] as Block
+            const list = nodes[0]
+            const name = nodes[2].value
+            const body = nodes[6]
 
             return new ListLoop(list, name, body, tokens)
         },
@@ -83,35 +49,18 @@ export const LIST_LOOP_RULES: Rule[] = [
     },
     {
         pattern: [
-            {
-                type: Evaluable,
-            },
-            {
-                type: Identifier,
-                value: '의',
-            },
-            {
-                type: Identifier,
-            },
-            {
-                type: Identifier,
-                value: '마다',
-            },
-            {
-                type: Identifier,
-                value: '반복',
-            },
-            {
-                type: EOL,
-            },
-            {
-                type: Block,
-            },
+            j.instance(Evaluable),
+            j.instance(Identifier).field({ value: j.literal('의') }),
+            j.instance(Identifier),
+            j.instance(Identifier).field({ value: j.literal('마다') }),
+            j.instance(Identifier).field({ value: j.literal('반복') }),
+            j.instance(EOL),
+            j.instance(Block),
         ],
         factory: (nodes, tokens) => {
-            const list = nodes[0] as Evaluable
-            const name = (nodes[2] as Identifier).value
-            const body = nodes[6] as Block
+            const list = nodes[0]
+            const name = nodes[2].value
+            const body = nodes[6]
 
             return new ListLoop(list, name, body, tokens)
         },

@@ -19,7 +19,6 @@ import {
     GreaterThanOrEqualOperator,
     Identifier,
     IfStatement,
-    IndexedValue,
     IndexFetch,
     IntegerDivideOperator,
     LessThanOperator,
@@ -32,7 +31,6 @@ import {
     NodeCapability,
     NotEqualOperator,
     NotExpression,
-    NumberValue,
     Operator,
     OrOperator,
     PlusOperator,
@@ -44,7 +42,6 @@ import {
     Sequence,
     SetToIndex,
     SetVariable,
-    StringValue,
     TupleLiteral,
     TypeCast,
     TypeCastTarget,
@@ -58,35 +55,20 @@ import { LIST_LOOP_RULES } from './list-loop.ts'
 import { STRING_RULES } from './template-string.ts'
 import { FUNCTION_RULES } from './function.ts'
 import { ASSIGNERS } from '../../tokenize/rules.ts'
+import { j } from '@dalbit-yaksok/pattern'
 
 export const BASIC_RULES: Rule[][] = [
     [
         {
             pattern: [
-                {
-                    type: Evaluable,
-                },
-                {
-                    type: Expression,
-                    value: '[',
-                },
-                {
-                    type: Evaluable,
-                },
-                {
-                    type: Expression,
-                    value: ']',
-                },
+                j.instance(Evaluable),
+                j.instance(Expression).field({ value: j.literal('[') }),
+                j.instance(Evaluable),
+                j.instance(Expression).field({ value: j.literal(']') }),
             ],
             factory: (nodes, tokens) => {
-                const target = nodes[0] as Evaluable<
-                    unknown,
-                    IndexedValue | StringValue
-                >
-                const index = nodes[2] as Evaluable<
-                    unknown,
-                    StringValue | NumberValue
-                >
+                const target = nodes[0]
+                const index = nodes[2]
 
                 return new IndexFetch(target, index, tokens)
             },
@@ -97,33 +79,18 @@ export const BASIC_RULES: Rule[][] = [
     [
         {
             pattern: [
-                {
-                    type: Expression,
-                    value: '[',
-                },
-                {
-                    type: Sequence,
-                },
-                {
-                    type: Expression,
-                    value: ']',
-                },
+                j.instance(Expression).field({ value: j.literal('[') }),
+                j.instance(Sequence),
+                j.instance(Expression).field({ value: j.literal(']') }),
             ],
             factory: (nodes, tokens) => {
-                const sequence = nodes[1] as Sequence
-                return new ListLiteral(
-                    sequence.items,
-                    nodes[2] as Expression,
-                    tokens,
-                )
+                const sequence = nodes[1]
+                return new ListLiteral(sequence.items, nodes[2], tokens)
             },
         },
         {
             pattern: [
-                {
-                    type: Identifier,
-                    value: '비어있음',
-                },
+                j.instance(Identifier).field({ value: j.literal('비어있음') }),
             ],
             factory: (_, tokens) => {
                 return new EmptyLiteral(tokens)
@@ -133,10 +100,9 @@ export const BASIC_RULES: Rule[][] = [
             (keyword) =>
                 ({
                     pattern: [
-                        {
-                            type: Identifier,
-                            value: keyword,
-                        },
+                        j
+                            .instance(Identifier)
+                            .field({ value: j.literal(keyword) }),
                     ],
                     factory: (_nodes, tokens) => {
                         return new BooleanLiteral(true, tokens)
@@ -147,10 +113,9 @@ export const BASIC_RULES: Rule[][] = [
             (keyword) =>
                 ({
                     pattern: [
-                        {
-                            type: Identifier,
-                            value: keyword,
-                        },
+                        j
+                            .instance(Identifier)
+                            .field({ value: j.literal(keyword) }),
                     ],
                     factory: (_nodes, tokens) => {
                         return new BooleanLiteral(false, tokens)
@@ -158,32 +123,20 @@ export const BASIC_RULES: Rule[][] = [
                 }) as Rule,
         ),
         {
-            pattern: [
-                {
-                    type: EOL,
-                },
-                {
-                    type: EOL,
-                },
-            ],
+            pattern: [j.instance(EOL), j.instance(EOL)],
             factory: (nodes, tokens) => {
-                const eol = nodes[0] as EOL
+                const eol = nodes[0]
                 eol.tokens = tokens
                 return eol
             },
         },
         {
             pattern: [
-                {
-                    type: Expression,
-                    value: ',',
-                },
-                {
-                    type: EOL,
-                },
+                j.instance(Expression).field({ value: j.literal(',') }),
+                j.instance(EOL),
             ],
             factory: (nodes, tokens) => {
-                const comma = nodes[0] as Expression
+                const comma = nodes[0]
 
                 comma.tokens = tokens
                 return comma
@@ -193,94 +146,55 @@ export const BASIC_RULES: Rule[][] = [
     [
         {
             pattern: [
-                {
-                    type: Expression,
-                    value: '(',
-                },
-                {
-                    type: Expression,
-                    value: ')',
-                },
+                j.instance(Expression).field({ value: j.literal('(') }),
+                j.instance(Expression).field({ value: j.literal(')') }),
             ],
             factory: (_nodes, tokens) => new TupleLiteral([], tokens),
         },
         {
             pattern: [
-                {
-                    type: Expression,
-                    value: '(',
-                },
-                {
-                    type: Sequence,
-                },
-                {
-                    type: Expression,
-                    value: ')',
-                },
+                j.instance(Expression).field({ value: j.literal('(') }),
+                j.instance(Sequence),
+                j.instance(Expression).field({ value: j.literal(')') }),
             ],
             factory: (nodes, tokens) => {
-                const sequence = nodes[1] as Sequence
+                const sequence = nodes[1]
                 return new TupleLiteral(sequence.items, tokens)
             },
         },
         {
             pattern: [
-                {
-                    type: Expression,
-                    value: '(',
-                },
-                {
-                    type: Evaluable,
-                },
-                {
-                    type: Expression,
-                    value: ',',
-                },
-                {
-                    type: Expression,
-                    value: ')',
-                },
+                j.instance(Expression).field({ value: j.literal('(') }),
+                j.instance(Evaluable),
+                j.instance(Expression).field({ value: j.literal(',') }),
+                j.instance(Expression).field({ value: j.literal(')') }),
             ],
             factory: (nodes, tokens) => {
-                const item = nodes[1] as Evaluable
+                const item = nodes[1]
                 return new TupleLiteral([item], tokens)
             },
         },
         {
             pattern: [
-                {
-                    type: Expression,
-                    value: '(',
-                },
-                {
-                    type: Evaluable,
-                },
-                {
-                    type: Expression,
-                    value: ')',
-                },
+                j.instance(Expression).field({ value: j.literal('(') }),
+                j.instance(Evaluable),
+                j.instance(Expression).field({ value: j.literal(')') }),
             ],
             factory: (nodes, tokens) => {
-                const item = nodes[1] as Evaluable
+                const item = nodes[1]
                 return new ValueWithParenthesis(item, tokens)
             },
         },
         {
             pattern: [
-                {
-                    type: Evaluable,
-                },
-                {
-                    type: Operator,
-                },
-                {
-                    type: Evaluable,
-                },
+                j.instance(Evaluable),
+                j.instance(Operator),
+                j.instance(Evaluable),
             ],
             factory: (nodes, tokens) => {
-                const left = nodes[0] as Evaluable
-                const operator = nodes[1] as Operator
-                const right = nodes[2] as Evaluable
+                const left = nodes[0]
+                const operator = nodes[1]
+                const right = nodes[2]
 
                 if (left instanceof Formula) {
                     return new Formula(
@@ -293,194 +207,100 @@ export const BASIC_RULES: Rule[][] = [
             },
         },
         {
-            pattern: [
-                {
-                    type: Operator,
-                    value: '!=',
-                },
-            ],
+            pattern: [j.instance(Operator).field({ value: j.literal('!=') })],
             factory: (_nodes, tokens) => new NotEqualOperator(tokens),
         },
         {
-            pattern: [
-                {
-                    type: Operator,
-                    value: '==',
-                },
-            ],
+            pattern: [j.instance(Operator).field({ value: j.literal('==') })],
             factory: (_nodes, tokens) => new EqualOperator(tokens),
         },
         {
-            pattern: [
-                {
-                    type: Operator,
-                    value: '>',
-                },
-            ],
+            pattern: [j.instance(Operator).field({ value: j.literal('>') })],
             factory: (_nodes, tokens) => new GreaterThanOperator(tokens),
         },
         {
-            pattern: [
-                {
-                    type: Operator,
-                    value: '<',
-                },
-            ],
+            pattern: [j.instance(Operator).field({ value: j.literal('<') })],
             factory: (_nodes, tokens) => new LessThanOperator(tokens),
         },
         {
-            pattern: [
-                {
-                    type: Operator,
-                    value: '>=',
-                },
-            ],
+            pattern: [j.instance(Operator).field({ value: j.literal('>=') })],
             factory: (_nodes, tokens) => new GreaterThanOrEqualOperator(tokens),
         },
         {
-            pattern: [
-                {
-                    type: Operator,
-                    value: '<=',
-                },
-            ],
+            pattern: [j.instance(Operator).field({ value: j.literal('<=') })],
             factory: (_nodes, tokens) => new LessThanOrEqualOperator(tokens),
         },
         {
-            pattern: [
-                {
-                    type: Operator,
-                    value: '//',
-                },
-            ],
+            pattern: [j.instance(Operator).field({ value: j.literal('//') })],
             factory: (_nodes, tokens) => new IntegerDivideOperator(tokens),
         },
         {
-            pattern: [
-                {
-                    type: Operator,
-                    value: '%',
-                },
-            ],
+            pattern: [j.instance(Operator).field({ value: j.literal('%') })],
             factory: (_nodes, tokens) => new ModularOperator(tokens),
         },
         {
-            pattern: [
-                {
-                    type: Operator,
-                    value: '**',
-                },
-            ],
+            pattern: [j.instance(Operator).field({ value: j.literal('**') })],
             factory: (_nodes, tokens) => new PowerOperator(tokens),
         },
         {
-            pattern: [
-                {
-                    type: Operator,
-                    value: '/',
-                },
-            ],
+            pattern: [j.instance(Operator).field({ value: j.literal('/') })],
             factory: (_nodes, tokens) => new DivideOperator(tokens),
         },
         {
-            pattern: [
-                {
-                    type: Operator,
-                    value: '*',
-                },
-            ],
+            pattern: [j.instance(Operator).field({ value: j.literal('*') })],
             factory: (_nodes, tokens) => new MultiplyOperator(tokens),
         },
         {
-            pattern: [
-                {
-                    type: Operator,
-                    value: '+',
-                },
-            ],
+            pattern: [j.instance(Operator).field({ value: j.literal('+') })],
             factory: (nodes, tokens) => new PlusOperator(tokens),
         },
         {
-            pattern: [
-                {
-                    type: Operator,
-                    value: '-',
-                },
-            ],
+            pattern: [j.instance(Operator).field({ value: j.literal('-') })],
             factory: (nodes, tokens) => new MinusOperator(tokens),
         },
         {
             pattern: [
-                {
-                    type: Identifier,
-                    value: '이고',
-                },
+                j.instance(Identifier).field({ value: j.literal('이고') }),
             ],
             factory: (_nodes, tokens) => new AndOperator(tokens),
         },
         {
-            pattern: [
-                {
-                    type: Identifier,
-                    value: '고',
-                },
-            ],
+            pattern: [j.instance(Identifier).field({ value: j.literal('고') })],
             factory: (_nodes, tokens) => new AndOperator(tokens),
         },
         {
             pattern: [
-                {
-                    type: Identifier,
-                    value: '이거나',
-                },
+                j.instance(Identifier).field({ value: j.literal('이거나') }),
             ],
             factory: (_nodes, tokens) => new OrOperator(tokens),
         },
         {
             pattern: [
-                {
-                    type: Identifier,
-                    value: '거나',
-                },
+                j.instance(Identifier).field({ value: j.literal('거나') }),
             ],
             factory: (_nodes, tokens) => new OrOperator(tokens),
         },
         {
-            pattern: [
-                {
-                    type: Operator,
-                    value: '~',
-                },
-            ],
+            pattern: [j.instance(Operator).field({ value: j.literal('~') })],
             factory: (_nodes, tokens) => new RangeOperator(tokens),
         },
         {
             pattern: [
-                {
-                    type: Expression,
-                    value: '!',
-                },
-                {
-                    type: Evaluable,
-                },
+                j.instance(Expression).field({ value: j.literal('!') }),
+                j.instance(Evaluable),
             ],
             factory: (nodes, tokens) => {
-                const evaluable = nodes[1] as Evaluable
+                const evaluable = nodes[1]
                 return new NotExpression(evaluable, tokens)
             },
         },
         {
             pattern: [
-                {
-                    type: Evaluable,
-                },
-                {
-                    type: Identifier,
-                    value: '아니다',
-                },
+                j.instance(Evaluable),
+                j.instance(Identifier).field({ value: j.literal('아니다') }),
             ],
             factory: (nodes, tokens) => {
-                const evaluable = nodes[0] as Evaluable
+                const evaluable = nodes[0]
                 return new NotExpression(evaluable, tokens)
             },
         },
@@ -490,75 +310,47 @@ export const BASIC_RULES: Rule[][] = [
 export const ADVANCED_RULES: Rule[] = [
     {
         pattern: [
-            {
-                type: Evaluable,
-            },
-            {
-                type: Expression,
-                value: ',',
-            },
-            {
-                type: Evaluable,
-            },
+            j.instance(Evaluable),
+            j.instance(Expression).field({ value: j.literal(',') }),
+            j.instance(Evaluable),
         ],
         factory: (nodes, tokens) => {
-            const a = nodes[0] as Evaluable
-            const b = nodes[2] as Evaluable
+            const a = nodes[0]
+            const b = nodes[2]
 
             return new Sequence([a, b], tokens)
         },
     },
     {
         pattern: [
-            {
-                type: Sequence,
-            },
-            {
-                type: Expression,
-                value: ',',
-            },
-            {
-                type: Evaluable,
-            },
+            j.instance(Sequence),
+            j.instance(Expression).field({ value: j.literal(',') }),
+            j.instance(Evaluable),
         ],
         factory: (nodes, tokens) => {
-            const a = nodes[0] as Sequence
-            const b = nodes[2] as Evaluable
+            const a = nodes[0]
+            const b = nodes[2]
 
             return new Sequence([...a.items, b], tokens)
         },
     },
     {
         pattern: [
-            {
-                type: Expression,
-                value: '[',
-            },
-            {
-                type: Expression,
-                value: ']',
-            },
+            j.instance(Expression).field({ value: j.literal('[') }),
+            j.instance(Expression).field({ value: j.literal(']') }),
         ],
-        factory: (nodes, tokens) =>
-            new ListLiteral([], nodes[1] as Expression, tokens),
+        factory: (nodes, tokens) => new ListLiteral([], nodes[1], tokens),
     },
     ...ASSIGNERS.map<Rule>((assigner) => ({
         pattern: [
-            {
-                type: IndexFetch,
-            },
-            {
-                type: Expression,
-                value: assigner,
-            },
-            {
-                type: Evaluable,
-            },
+            j.instance(IndexFetch),
+            j.instance(Expression).field({ value: j.literal(assigner) }),
+            j.instance(Evaluable),
         ],
         factory: (nodes, tokens) => {
-            const target = nodes[0] as IndexFetch
-            const operator = nodes[1] as Expression
-            const value = nodes[2] as Evaluable
+            const target = nodes[0]
+            const operator = nodes[1]
+            const value = nodes[2]
 
             return new SetToIndex(target, value, operator.value, tokens)
         },
@@ -575,21 +367,14 @@ export const ADVANCED_RULES: Rule[] = [
     })),
     ...ASSIGNERS.map<Rule>((assigner) => ({
         pattern: [
-            {
-                type: Identifier,
-            },
-            {
-                type: Expression,
-                value: assigner,
-            },
-            {
-                type: Evaluable,
-            },
+            j.instance(Identifier),
+            j.instance(Expression).field({ value: j.literal(assigner) }),
+            j.instance(Evaluable),
         ],
         factory: (nodes, tokens) => {
-            const name = (nodes[0] as Identifier).value
-            const operator = nodes[1] as Expression
-            const value = nodes[2] as Evaluable
+            const name = nodes[0].value
+            const operator = nodes[1]
+            const value = nodes[2]
 
             return new SetVariable(name, value, tokens, operator.value)
         },
@@ -606,23 +391,11 @@ export const ADVANCED_RULES: Rule[] = [
     })),
     {
         pattern: [
-            {
-                type: IfStatement,
-            },
-            {
-                type: EOL,
-            },
-            {
-                type: ElseIfStatement,
-            },
+            j.instance(IfStatement),
+            j.instance(EOL),
+            j.instance(ElseIfStatement),
         ],
-        factory: (nodes, tokens) => {
-            const [ifStatement, _, elseIfStatement] = nodes as [
-                IfStatement,
-                EOL,
-                ElseIfStatement,
-            ]
-
+        factory: ([ifStatement, _, elseIfStatement], tokens) => {
             const elseIfCase = elseIfStatement.elseIfCase
             ifStatement.cases.push(elseIfCase)
 
@@ -634,23 +407,11 @@ export const ADVANCED_RULES: Rule[] = [
     },
     {
         pattern: [
-            {
-                type: IfStatement,
-            },
-            {
-                type: EOL,
-            },
-            {
-                type: ElseStatement,
-            },
+            j.instance(IfStatement),
+            j.instance(EOL),
+            j.instance(ElseStatement),
         ],
-        factory: (nodes, tokens) => {
-            const [ifStatement, _, elseStatement] = nodes as [
-                IfStatement,
-                EOL,
-                ElseStatement,
-            ]
-
+        factory: ([ifStatement, _, elseStatement], tokens) => {
             const elseCase = {
                 body: elseStatement.body,
             }
@@ -664,31 +425,16 @@ export const ADVANCED_RULES: Rule[] = [
     },
     {
         pattern: [
-            {
-                type: Identifier,
-                value: '아니면',
-            },
-            {
-                type: Identifier,
-                value: '만약',
-            },
-            {
-                type: Evaluable,
-            },
-            {
-                type: Identifier,
-                value: '이면',
-            },
-            {
-                type: EOL,
-            },
-            {
-                type: Block,
-            },
+            j.instance(Identifier).field({ value: j.literal('아니면') }),
+            j.instance(Identifier).field({ value: j.literal('만약') }),
+            j.instance(Evaluable),
+            j.instance(Identifier).field({ value: j.literal('이면') }),
+            j.instance(EOL),
+            j.instance(Block),
         ],
         factory: (nodes, tokens) => {
-            const condition = nodes[2] as Evaluable
-            const body = nodes[5] as Block
+            const condition = nodes[2]
+            const body = nodes[5]
 
             return new ElseIfStatement({ condition, body }, tokens)
         },
@@ -702,19 +448,12 @@ export const ADVANCED_RULES: Rule[] = [
     },
     {
         pattern: [
-            {
-                type: Identifier,
-                value: '아니면',
-            },
-            {
-                type: EOL,
-            },
-            {
-                type: Block,
-            },
+            j.instance(Identifier).field({ value: j.literal('아니면') }),
+            j.instance(EOL),
+            j.instance(Block),
         ],
         factory: (nodes, tokens) => {
-            const body = nodes[2] as Block
+            const body = nodes[2]
 
             return new ElseStatement(body, tokens)
         },
@@ -728,27 +467,15 @@ export const ADVANCED_RULES: Rule[] = [
     },
     {
         pattern: [
-            {
-                type: Identifier,
-                value: '만약',
-            },
-            {
-                type: Evaluable,
-            },
-            {
-                type: Identifier,
-                value: '이면',
-            },
-            {
-                type: EOL,
-            },
-            {
-                type: Block,
-            },
+            j.instance(Identifier).field({ value: j.literal('만약') }),
+            j.instance(Evaluable),
+            j.instance(Identifier).field({ value: j.literal('이면') }),
+            j.instance(EOL),
+            j.instance(Block),
         ],
         factory: (nodes, tokens) => {
-            const condition = nodes[1] as Evaluable
-            const body = nodes[4] as Block
+            const condition = nodes[1]
+            const body = nodes[4]
 
             return new IfStatement([{ condition, body }], tokens)
         },
@@ -762,40 +489,24 @@ export const ADVANCED_RULES: Rule[] = [
     },
     {
         pattern: [
-            {
-                type: Evaluable,
-            },
-            {
-                type: Identifier,
-                value: '의',
-            },
-            {
-                type: Identifier,
-                value: '값',
-            },
-            {
-                type: Identifier,
-                value: '종류',
-            },
+            j.instance(Evaluable),
+            j.instance(Identifier).field({ value: j.literal('의') }),
+            j.instance(Identifier).field({ value: j.literal('값') }),
+            j.instance(Identifier).field({ value: j.literal('종류') }),
         ],
         factory: (nodes, tokens) => {
-            const value = nodes[0] as Evaluable
+            const value = nodes[0]
             return new TypeOf(value, tokens)
         },
     },
     ...createTypeCastRules(),
     {
         pattern: [
-            {
-                type: Evaluable,
-            },
-            {
-                type: Identifier,
-                value: '보여주기',
-            },
+            j.instance(Evaluable),
+            j.instance(Identifier).field({ value: j.literal('보여주기') }),
         ],
         factory: (nodes, tokens) => {
-            const value = nodes[0] as Evaluable
+            const value = nodes[0]
             return new Print(value, tokens)
         },
         config: {
@@ -808,16 +519,11 @@ export const ADVANCED_RULES: Rule[] = [
     },
     {
         pattern: [
-            {
-                type: Evaluable,
-            },
-            {
-                type: Identifier,
-                value: '반환하기',
-            },
+            j.instance(Evaluable),
+            j.instance(Identifier).field({ value: j.literal('반환하기') }),
         ],
         factory: (nodes, tokens) => {
-            const value = nodes[0] as Evaluable
+            const value = nodes[0]
             return new ReturnStatement(tokens, value)
         },
         config: {
@@ -830,10 +536,7 @@ export const ADVANCED_RULES: Rule[] = [
     },
     {
         pattern: [
-            {
-                type: Identifier,
-                value: '반환하기',
-            },
+            j.instance(Identifier).field({ value: j.literal('반환하기') }),
         ],
         factory: (_nodes, tokens) => {
             return new ReturnStatement(tokens)
@@ -848,14 +551,8 @@ export const ADVANCED_RULES: Rule[] = [
     },
     {
         pattern: [
-            {
-                type: Identifier,
-                value: '약속',
-            },
-            {
-                type: Identifier,
-                value: '그만',
-            },
+            j.instance(Identifier).field({ value: j.literal('약속') }),
+            j.instance(Identifier).field({ value: j.literal('그만') }),
         ],
         factory: (_nodes, tokens) => {
             return new ReturnStatement(tokens)
@@ -864,18 +561,11 @@ export const ADVANCED_RULES: Rule[] = [
     },
     {
         pattern: [
-            {
-                type: Identifier,
-                value: '반복',
-            },
-            {
-                type: EOL,
-            },
-            {
-                type: Block,
-            },
+            j.instance(Identifier).field({ value: j.literal('반복') }),
+            j.instance(EOL),
+            j.instance(Block),
         ],
-        factory: (nodes, tokens) => new Loop(nodes[2] as Block, tokens),
+        factory: (nodes, tokens) => new Loop(nodes[2], tokens),
         config: {
             statement: {
                 name: '계속 반복하기',
@@ -886,30 +576,17 @@ export const ADVANCED_RULES: Rule[] = [
     },
     {
         pattern: [
-            {
-                type: Identifier,
-                value: '반복하기',
-            },
-            {
-                type: EOL,
-            },
-            {
-                type: Block,
-            },
+            j.instance(Identifier).field({ value: j.literal('반복하기') }),
+            j.instance(EOL),
+            j.instance(Block),
         ],
-        factory: (nodes, tokens) => new Loop(nodes[2] as Block, tokens),
+        factory: (nodes, tokens) => new Loop(nodes[2], tokens),
         config: { statement: true },
     },
     {
         pattern: [
-            {
-                type: Identifier,
-                value: '반복',
-            },
-            {
-                type: Identifier,
-                value: '그만',
-            },
+            j.instance(Identifier).field({ value: j.literal('반복') }),
+            j.instance(Identifier).field({ value: j.literal('그만') }),
         ],
         factory: (_nodes, tokens) => new Break(tokens),
         config: {
@@ -922,14 +599,8 @@ export const ADVANCED_RULES: Rule[] = [
     },
     {
         pattern: [
-            {
-                type: Identifier,
-                value: '다음',
-            },
-            {
-                type: Identifier,
-                value: '반복',
-            },
+            j.instance(Identifier).field({ value: j.literal('다음') }),
+            j.instance(Identifier).field({ value: j.literal('반복') }),
         ],
         factory: (_nodes, tokens) => new Continue(tokens),
         config: {
@@ -944,27 +615,15 @@ export const ADVANCED_RULES: Rule[] = [
     ...COUNT_LOOP_RULES,
     {
         pattern: [
-            {
-                type: Identifier,
-                value: '반복',
-            },
-            {
-                type: Evaluable,
-            },
-            {
-                type: Identifier,
-                value: '동안',
-            },
-            {
-                type: EOL,
-            },
-            {
-                type: Block,
-            },
+            j.instance(Identifier).field({ value: j.literal('반복') }),
+            j.instance(Evaluable),
+            j.instance(Identifier).field({ value: j.literal('동안') }),
+            j.instance(EOL),
+            j.instance(Block),
         ],
         factory: (nodes, tokens) => {
-            const condition = nodes[1] as Evaluable
-            const body = nodes[4] as Block
+            const condition = nodes[1]
+            const body = nodes[4]
             return new ConditionalLoop(condition, body, tokens)
         },
         config: {
@@ -977,21 +636,13 @@ export const ADVANCED_RULES: Rule[] = [
     },
     {
         pattern: [
-            {
-                type: Expression,
-                value: '[',
-            },
-            {
-                type: Evaluable,
-            },
-            {
-                type: Expression,
-                value: ']',
-            },
+            j.instance(Expression).field({ value: j.literal('[') }),
+            j.instance(Evaluable),
+            j.instance(Expression).field({ value: j.literal(']') }),
         ],
         factory: (nodes, tokens) => {
-            const item = nodes[1] as Evaluable
-            return new ListLiteral([item], nodes[2] as Expression, tokens)
+            const item = nodes[1]
+            return new ListLiteral([item], nodes[2], tokens)
         },
     },
     ...DICT_RULES,
@@ -1034,13 +685,19 @@ function createTypeCastRules(): Rule[] {
             for (const keyword of keywords) {
                 rules.push({
                     pattern: [
-                        { type: Evaluable },
-                        { type: Identifier, value: particle },
-                        { type: Identifier, value: keyword },
-                        { type: Identifier, value: '바꾸기' },
+                        j.instance(Evaluable),
+                        j
+                            .instance(Identifier)
+                            .field({ value: j.literal(particle) }),
+                        j
+                            .instance(Identifier)
+                            .field({ value: j.literal(keyword) }),
+                        j
+                            .instance(Identifier)
+                            .field({ value: j.literal('바꾸기') }),
                     ],
                     factory: (nodes, tokens) => {
-                        const value = nodes[0] as Evaluable
+                        const value = nodes[0]
                         return new TypeCast(value, target, tokens)
                     },
                 })
@@ -1050,14 +707,22 @@ function createTypeCastRules(): Rule[] {
                 for (const [head, tail] of split) {
                     rules.push({
                         pattern: [
-                            { type: Evaluable },
-                            { type: Identifier, value: particle },
-                            { type: Identifier, value: head },
-                            { type: Identifier, value: tail },
-                            { type: Identifier, value: '바꾸기' },
+                            j.instance(Evaluable),
+                            j
+                                .instance(Identifier)
+                                .field({ value: j.literal(particle) }),
+                            j
+                                .instance(Identifier)
+                                .field({ value: j.literal(head) }),
+                            j
+                                .instance(Identifier)
+                                .field({ value: j.literal(tail) }),
+                            j
+                                .instance(Identifier)
+                                .field({ value: j.literal('바꾸기') }),
                         ],
                         factory: (nodes, tokens) => {
-                            const value = nodes[0] as Evaluable
+                            const value = nodes[0]
                             return new TypeCast(value, target, tokens)
                         },
                     })

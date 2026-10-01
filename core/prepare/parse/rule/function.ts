@@ -15,10 +15,8 @@ import { FunctionType } from '../dynamicRule/local/type.ts'
 export const FUNCTION_RULES: Rule[] = [
     r({
         pattern: [
-            j.instance(FunctionDeclareHeader<FunctionType.약속>).fields({
-                range: j.fields({
-                    type: j.literal(FunctionType.약속),
-                }),
+            j.instance(FunctionDeclareHeader<FunctionType.약속>).field({
+                range: j.field(j.instance(j.literal(FunctionType.약속))),
             }),
             EOL,
             Block,
@@ -34,9 +32,7 @@ export const FUNCTION_RULES: Rule[] = [
             u(
                 FunctionDeclareHeader<FunctionType.번역>,
                 v.object({
-                    range: v.object({
-                        type: v.literal(FunctionType.번역),
-                    }),
+                    range: v.object(j.instance(v.literal(FunctionType.번역))),
                 }),
             ),
             EOL,
@@ -51,9 +47,7 @@ export const FUNCTION_RULES: Rule[] = [
             u(
                 FunctionDeclareHeader<FunctionType.이벤트>,
                 v.object({
-                    range: v.object({
-                        type: v.literal(FunctionType.이벤트),
-                    }),
+                    range: v.object(j.instance(v.literal(FunctionType.이벤트))),
                 }),
             ),
         ],
