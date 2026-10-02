@@ -4,10 +4,7 @@
     "exports": "./src/index.ts",
     "compilerOptions": {
         "strict": true,
-        "lib": ["DOM", "DOM.Iterable", "ESNext"],
-        "jsx": "react-jsx",
-        "jsxImportSource": "@solidjs/web",
-        "isolatedModules": true
+        "lib": ["DOM", "DOM.Iterable", "ESNext"]
     },
     "tasks": {
         "dev": "deno run -A npm:vite@^8.2.2 serve --config dev/vite.config.ts",

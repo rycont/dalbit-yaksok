@@ -21,8 +21,5 @@ export default defineConfig(({ mode }) => ({
                       formats: ['es'],
                       fileName: 'index',
                   },
-                  rollupOptions: {
-                      external: ['solid-js', 'solid-js/web', '@solidjs/web'],
-                  },
               },
 }))
