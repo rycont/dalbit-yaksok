@@ -65,7 +65,6 @@ export class Executable<T extends SubnodeScheme = unknown> extends Node<T> {
     protected async onRunChild({
         scope,
         childTokens,
-        skipReport = false,
     }: {
         scope: Scope
         childTokens: Token[]
@@ -75,34 +74,21 @@ export class Executable<T extends SubnodeScheme = unknown> extends Node<T> {
             return
         }
 
-        if (scope.session.signal?.aborted) {
+        if (scope.session.runtimeContext?.abort?.signal.aborted) {
             throw new AbortedSessionSignal(childTokens)
         }
 
         await scope.session.tick()
 
-        if (!skipReport && childTokens.length) {
-            this.reportRunningCode(childTokens, scope)
-        }
-    }
+        const throttle = scope.session.runtimeContext?.throttle ?? 0
 
-    private reportRunningCode(childTokens: Token[], scope: Scope) {
-        const startPosition = childTokens[0].position
-        const endToken = childTokens[childTokens.length - 1]
-        const endPosition = {
-            line: endToken.position.line,
-            column: endToken.position.column + endToken.value.length,
+        if (
+            0 < throttle &&
+            scope.codeFile &&
+            scope.session.runtimeContext?.entry.has(scope.codeFile)
+        ) {
+            await new Promise((ok) => setTimeout(ok, throttle))
         }
-
-        scope.session?.pubsub.pub('runningCode', [
-            {
-                line: startPosition.line,
-                column: startPosition.column,
-            },
-            endPosition,
-            scope,
-            childTokens,
-        ])
     }
 }
 

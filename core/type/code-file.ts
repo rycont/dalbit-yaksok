@@ -22,6 +22,7 @@ import {
 import { createMentioningRule } from '../prepare/parse/dynamicRule/mention/create-mentioning-rules.ts'
 import { postprocessErrors } from '../error/postprocess/index.ts'
 import { j } from '@dalbit-yaksok/pattern'
+import { RuntimeContext } from '../executer/context.ts'
 
 export class CodeFile {
     readonly ast: Block
@@ -68,7 +69,7 @@ export class CodeFile {
         return this._mentionRules
     }
 
-    public async run(): Promise<Scope> {
+    public async run(runtimeContext?: Partial<RuntimeContext>): Promise<Scope> {
         if (this.prepareErrors.length !== 0) {
             throw new Error('오류가 존재하는 CodeFile은 실행할 수 없습니다.')
         }
@@ -79,10 +80,21 @@ export class CodeFile {
 
         const rootScope = new Scope({
             session: this.session,
+            codeFile: this,
         })
 
         try {
-            await executer(this.ast, rootScope)
+            await this.session.withRuntimeContext(
+                () => executer(this.ast, rootScope),
+                runtimeContext?.entry
+                    ? (runtimeContext as Partial<RuntimeContext> &
+                          Pick<RuntimeContext, 'entry'>)
+                    : {
+                          ...runtimeContext,
+                          entry: new Set([this]),
+                      },
+            )
+
             await Promise.allSettled(this.session.aliveListeners)
 
             rootScope.finalize()

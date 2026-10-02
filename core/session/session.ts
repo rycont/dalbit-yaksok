@@ -2,35 +2,32 @@ import {
     AlreadyRegisteredModuleError,
     CodeFile,
     ErrorInFFIExecution,
-    Events,
     Extension,
     FFIRuntimeNotFound,
     MultipleFFIRuntimeError,
     Node,
     Rule,
     Scope,
-    SessionConfig,
     ValueType,
+    YaksokError,
 } from '@dalbit-yaksok/core'
 
 import { PubSub } from '../util/pubsub.ts'
-import { DEFAULT_SESSION_CONFIG } from './session-config.ts'
+import { RuntimeContext } from '../executer/context.ts'
 
 const THREAD_YIELD_INTERVAL = 300
 
 export class YaksokSession {
     public id: string = crypto.randomUUID()
 
-    public runningPromise: Promise<void> | null = null
-
-    public stdout: SessionConfig['stdout']
-    public stderr: SessionConfig['stderr']
+    public stdout: (message: string) => void
+    public stderr: (message: string, error: YaksokError) => void
 
     public extensions: Extension[] = []
     public baseScope: Scope | null = null
-    public signal: AbortSignal | null = null
-    public pubsub: PubSub<Events> = new PubSub<Events>()
+
     public files: Record<string, CodeFile> = {}
+    public runtimeContext: RuntimeContext | null = null
 
     private tickCounter = 0
 
@@ -45,20 +42,17 @@ export class YaksokSession {
 
     public aliveListeners: Promise<void>[] = []
 
-    constructor(config: Partial<SessionConfig> = {}) {
-        const resolvedConfig = { ...DEFAULT_SESSION_CONFIG, ...config }
-
-        for (const _event in resolvedConfig.events) {
-            const event = _event as keyof Events
-            this.pubsub.sub(
-                event as keyof Events,
-                resolvedConfig.events[event as keyof Events]!,
-            )
-        }
-
-        this.stdout = resolvedConfig.stdout
-        this.stderr = resolvedConfig.stderr
-        this.signal = resolvedConfig.signal ?? null
+    constructor({
+        stderr = (message: string) => {
+            console.error(message)
+        },
+        stdout = console.log,
+    }: Partial<{
+        stdout: YaksokSession['stdout']
+        stderr: YaksokSession['stderr']
+    }> = {}) {
+        this.stdout = stdout
+        this.stderr = stderr
     }
 
     addModule(moduleName: string, code: string): CodeFile {
@@ -98,19 +92,44 @@ export class YaksokSession {
     async runModules<const T extends string[]>(
         fileNames: T,
     ): Promise<Record<T[number], PromiseSettledResult<Scope>>> {
-        await this.runningPromise
-
-        const runningPromise = Promise.allSettled(
-            fileNames.map((n) => this.files[n].run()),
+        const codeFiles = fileNames.map((n) => this.files[n])
+        const run = await this.withRuntimeContext(
+            (c) =>
+                Promise.allSettled(
+                    codeFiles.map((codeFile) => codeFile.run(c)),
+                ),
+            {
+                entry: new Set(codeFiles),
+            },
         )
 
-        this.runningPromise = runningPromise.then(() => {})
-
         const entries = Object.fromEntries(
-            (await runningPromise).map((r, i) => [fileNames[i], r]),
+            run.map((r, i) => [fileNames[i], r]),
         ) as Record<T[number], PromiseSettledResult<Scope>>
 
         return entries
+    }
+
+    public withRuntimeContext<T>(
+        func: (content: RuntimeContext) => Promise<T>,
+        providedContext: Partial<RuntimeContext> &
+            Pick<RuntimeContext, 'entry'>,
+    ): Promise<T> {
+        if (this.runtimeContext && this.runtimeContext !== providedContext) {
+            throw new Error('이전에 실행한 세션이 아직 종료되지 않았습니다.')
+        }
+
+        const context = {
+            throttle: providedContext.throttle ?? 0,
+            abort: new AbortController(),
+            entry: providedContext.entry,
+        }
+
+        this.runtimeContext = context
+
+        return func(context).finally(() => {
+            this.runtimeContext = null
+        })
     }
 
     public async runFFI(

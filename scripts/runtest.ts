@@ -2,26 +2,24 @@ import { YaksokSession } from '@dalbit-yaksok/core'
 
 const session = new YaksokSession()
 
-// Base context with a list variable
-session.useBaseScope(
-    await session
-        .addModule(
-            'base',
-            `과일 = ["사과", "바나나", "딸기", "사과", "딸기", "사과"]`,
-        )
-        .run(),
-)
-
-// Module with a function that uses postposition '로'
 await session
     .addModule(
-        '처리기',
-        `약속, (데이터)로 처리하기
-    데이터 보여주기`,
+        'A',
+        `약속, 샤갈하기
+    "인생 샤~갈~~!" 보여주기
+    "여기가 아무리 길어도" 보여주기
+    "스로틀은 안걸림" 보여주기`,
     )
     .run()
 
-// Main module uses @mention with base context variable + postposition
-const codeFile = session.addModule('main', `@처리기 과일로 처리하기`)
+await session
+    .addModule(
+        'B',
+        `10번 반복
+    @A 샤갈하기
 
-await codeFile.run()
+"스로틀은 실제 런이 붙은 파일에만" 보여주기`,
+    )
+    .run({
+        throttle: 100,
+    })

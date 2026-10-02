@@ -11,6 +11,7 @@ import {
     NotProperIdentifierNameToDefineError,
     Node,
     r,
+    CodeFile,
 } from '@dalbit-yaksok/core'
 import { RESERVED_WORDS } from '../constant/reserved-words.ts'
 import { j } from '@dalbit-yaksok/pattern'
@@ -24,11 +25,14 @@ export class Scope {
     public readonly events: Map<string, DeclareEvent> = new Map()
 
     public readonly session: YaksokSession
+    public readonly codeFile?: CodeFile
+
     private _finalized = false
 
     constructor(
         config: (
             | {
+                  codeFile?: CodeFile
                   session: YaksokSession
               }
             | {
@@ -42,10 +46,12 @@ export class Scope {
 
         if ('session' in config) {
             this.parent = config.session.baseScope
+            this.codeFile = config.codeFile
             this.session = config.session
         } else {
             this.parent = config.parent
             this.session = config.parent.session
+            this.codeFile = config.parent.codeFile
         }
     }
 

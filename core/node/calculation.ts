@@ -122,10 +122,6 @@ export class Formula extends Evaluable<(Evaluable | Operator)[]> {
                 stack.push({
                     thunk: async () => {
                         const result = await item.call(leftThunk, rightThunk)
-                        await this.onRunChild({
-                            scope,
-                            childTokens: combinedTokens,
-                        })
                         return result
                     },
                     tokens: combinedTokens,
@@ -133,10 +129,6 @@ export class Formula extends Evaluable<(Evaluable | Operator)[]> {
             } else {
                 stack.push({
                     thunk: async () => {
-                        await this.onRunChild({
-                            scope,
-                            childTokens: item.tokens,
-                        })
                         return item.execute(scope)
                     },
                     tokens: item.tokens,
