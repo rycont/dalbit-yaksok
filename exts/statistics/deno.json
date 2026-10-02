@@ -1,5 +1,5 @@
 {
-    "version": "7.0.0-RC.5",
+    "version": "7.0.0-RC.6",
     "name": "@dalbit-yaksok/statistics",
     "exports": "./mod.ts",
     "imports": {}

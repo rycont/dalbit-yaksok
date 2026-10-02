@@ -6,6 +6,6 @@
     },
     "name": "@dalbit-yaksok/core",
     "exports": "./mod.ts",
-    "version": "7.0.0-RC.5",
+    "version": "7.0.0-RC.6",
     "imports": { "ts-pattern": "npm:ts-pattern@^5.9.0" }
 }

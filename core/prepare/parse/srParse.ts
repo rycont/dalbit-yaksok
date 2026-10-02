@@ -14,8 +14,8 @@ import { BASIC_RULES, ADVANCED_RULES } from './rule/index.ts'
 import { Ruleset } from './ruleset.ts'
 import { NotAcceptableSignal } from './signal.ts'
 
-export function SRParse(_nodes: Node[], ruleset: Ruleset) {
-    const leftNodes = [..._nodes]
+export function SRParse(nodes: Node[], ruleset: Ruleset) {
+    let cursor = 0
     const buffer: Node[] = []
 
     let changed = false
@@ -27,7 +27,7 @@ export function SRParse(_nodes: Node[], ruleset: Ruleset) {
             const isStatement = !!rule.isStatement
 
             if (isStatement) {
-                const nextNode = leftNodes[0]
+                const nextNode = nodes[cursor]
                 if (nextNode && !(nextNode instanceof EOL)) continue
 
                 const lastNode = buffer[buffer.length - rule.pattern.length - 1]
@@ -52,7 +52,7 @@ export function SRParse(_nodes: Node[], ruleset: Ruleset) {
                     -rule.pattern.length,
                 )
 
-                const next2Nodes = leftNodes.slice(0, 2)
+                const next2Nodes = nodes.slice(cursor, cursor + 2)
 
                 const collisionNodes = hasFunctionInvokeCollision(
                     reduced,
@@ -75,8 +75,10 @@ export function SRParse(_nodes: Node[], ruleset: Ruleset) {
             continue nodeloop
         }
 
-        if (leftNodes.length === 0) break
-        buffer.push(leftNodes.shift()!)
+        if (cursor === nodes.length) break
+        buffer.push(nodes[cursor]!)
+
+        cursor++
     }
 
     return {

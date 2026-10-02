@@ -1,6 +1,6 @@
 {
     "name": "@dalbit-yaksok/editor",
-    "version": "7.0.0-RC.5",
+    "version": "7.0.0-RC.6",
     "exports": "./src/index.ts",
     "imports": {
         "solid-js": "npm:solid-js@^2.0.0-rc.1",
