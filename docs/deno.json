@@ -6,6 +6,7 @@
         "ansi-to-html": "npm:ansi-to-html@^0.7.2",
         "mermaid": "npm:mermaid@^11.8.1",
         "monaco-editor": "npm:monaco-editor@^0.52.2",
+        "ts-pattern": "npm:ts-pattern@^5.9.0",
         "typedoc": "npm:typedoc@0.27.4",
         "typedoc-plugin-markdown": "npm:typedoc-plugin-markdown@4.2.10",
         "typedoc-vitepress-theme": "npm:typedoc-vitepress-theme@^1.1.1",

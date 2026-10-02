@@ -2,10 +2,6 @@
     "name": "@dalbit-yaksok/editor",
     "version": "7.0.0",
     "exports": "./src/index.ts",
-    "imports": {
-        "solid-js": "npm:solid-js@^2.0.0-rc.1",
-        "@solidjs/web": "npm:@solidjs/web@^2.0.0-rc.1"
-    },
     "compilerOptions": {
         "strict": true,
         "lib": ["DOM", "DOM.Iterable", "ESNext"],

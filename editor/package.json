@@ -9,10 +9,6 @@
         ".": "./src/index.ts"
     },
     "sideEffects": false,
-    "peerDependencies": {
-        "@solidjs/web": "^2.0.0-rc.1",
-        "solid-js": "^2.0.0-rc.1"
-    },
     "dependencies": {
         "@codemirror/autocomplete": "^6.20.3",
         "@codemirror/commands": "^6.11.0",
@@ -21,12 +17,9 @@
     },
     "devDependencies": {
         "@deno/vite-plugin": "^2.0.3",
-        "@solidjs/web": "^2.0.0-rc.1",
         "@vanilla-extract/css": "^1.21.2",
         "@vanilla-extract/vite-plugin": "^5.2.6",
-        "solid-js": "^2.0.0-rc.1",
-        "vite": "^8.2.2",
-        "vite-plugin-solid": "^3.0.0-next.27"
+        "vite": "^8.2.2"
     },
     "engines": {
         "node": ">=20"
