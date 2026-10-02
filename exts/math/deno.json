@@ -1,5 +1,5 @@
 {
-    "version": "7.0.0-RC.6",
+    "version": "7.0.0",
     "name": "@dalbit-yaksok/math",
     "exports": "./mod.ts",
     "imports": {}
