@@ -1,5 +1,6 @@
 export interface GlobalRequester {
     newArg(content: unknown): string
+    newVar(): string
     selectJar(): string
 }
 

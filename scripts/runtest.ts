@@ -1,25 +1,31 @@
-import { YaksokSession } from '@dalbit-yaksok/core'
+import { TOKEN_TYPE, tokenize } from '@dalbit-yaksok/core'
+import { j } from '@dalbit-yaksok/pattern'
 
-const session = new YaksokSession()
+const c = j.list([
+    j.field({
+        type: j.literal(TOKEN_TYPE.IDENTIFIER),
+        value: j.literal('약속'),
+    }),
+    j.field({
+        type: j.literal(TOKEN_TYPE.COMMA),
+    }),
+    j.space().select('s'),
+    j.field({
+        value: j.literal('를'),
+    }),
+    j.space().select('r'),
+    j.field({
+        type: j.literal(TOKEN_TYPE.IDENTIFIER),
+        value: j.literal('먹기'),
+    }),
+])
 
-await session
-    .addModule(
-        'A',
-        `약속, 샤갈하기
-    "인생 샤~갈~~!" 보여주기
-    "여기가 아무리 길어도" 보여주기
-    "스로틀은 안걸림" 보여주기`,
-    )
-    .run()
+const matcher = c.compile()
+const r = matcher.func(
+    matcher.id,
+    tokenize(`약속, (음식)을/를 (사람)와/과 먹기`),
+)
 
-await session
-    .addModule(
-        'B',
-        `10번 반복
-    @A 샤갈하기
-
-"스로틀은 실제 런이 붙은 파일에만" 보여주기`,
-    )
-    .run({
-        throttle: 100,
-    })
+if (r) {
+    console.log(r.s)
+}

@@ -1,16 +1,31 @@
-import { ClassType } from '@dalbit-yaksok/pattern'
+import type { ClassType } from '@dalbit-yaksok/pattern'
+import type { Prettify } from '@dalbit-yaksok/core'
 import { GlobalRequester, MatchCondition } from './base.ts'
 import { FieldCondition } from './field.ts'
 import { InstanceCondition } from './instance.ts'
 import { LiteralCondition } from './literal.ts'
 import { SelectCondition } from './select.ts'
 import { EnumCondition } from './enum.ts'
+import { ListCondition } from './list.ts'
+import { SpaceCondition } from './space.ts'
 
-type ChainInput<C> = C extends Chain<infer U, unknown, unknown> ? U : unknown
+type ChainInput<C> =
+    C extends Chain<infer U, unknown, unknown>
+        ? unknown extends U
+            ? never
+            : U
+        : never
+type ChainSelect<C> =
+    C extends Chain<unknown, infer U extends string, unknown> ? U : never
+
 export type Matcher<SelectShape, MetaShape> = {
     id: unknown
     meta: MetaShape
-    func: (arg1: unknown, input: unknown) => SelectShape | false
+    func: (
+        arg1: unknown,
+        input: unknown,
+        selectJar?: unknown,
+    ) => SelectShape | false
 }
 
 type FieldInstanceType<InputShape, SelectShape, MetaShape, EntryType> = Chain<
@@ -50,11 +65,89 @@ type InstanceChainType<
     }
 >
 
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
+    k: infer I,
+) => void
+    ? I
+    : never
+
+type ListChainType<
+    _InputShape,
+    _SelectShape,
+    MetaShape,
+    Subchains extends Chain<unknown, unknown, unknown>[],
+> = Chain<
+    {
+        [K in keyof Subchains]: ChainInput<Subchains[K]>
+    },
+    Prettify<
+        UnionToIntersection<
+            {
+                [K in keyof Subchains]: ChainSelect<Subchains[K]> extends never
+                    ? {}
+                    : {
+                          [P in ChainSelect<Subchains[K]>]: ChainInput<
+                              Subchains[K]
+                          >
+                      }
+            }[number]
+        >
+    >,
+    MetaShape
+>
+
 export class Chain<InputShape, SelectShape, MetaShape> {
     private paths: MatchCondition[] = []
     private metaContent: unknown = {}
 
     declare private readonly _: InputShape
+
+    public static [ListCondition.methodName]<
+        const Subchains extends Chain<unknown, unknown, unknown>[],
+    >(
+        subchains: Subchains,
+    ): ListChainType<unknown, unknown, unknown, Subchains> {
+        return new Chain().list(subchains)
+    }
+
+    public [ListCondition.methodName]<
+        const Subchains extends Chain<unknown, unknown, unknown>[],
+    >(
+        subchains: Subchains,
+    ): ListChainType<InputShape, SelectShape, MetaShape, Subchains> {
+        const condition = new ListCondition(subchains)
+        this.paths.push(condition)
+
+        return this as unknown as ListChainType<
+            InputShape,
+            SelectShape,
+            MetaShape,
+            Subchains
+        >
+    }
+
+    public static [SpaceCondition.methodName](): Chain<
+        unknown[],
+        unknown,
+        unknown
+    > {
+        return new Chain().space()
+    }
+
+    public [SpaceCondition.methodName](): Chain<
+        unknown[],
+        SelectShape,
+        MetaShape
+    > {
+        const condition = new SpaceCondition()
+        this.paths.push(condition)
+
+        this.metaContent = Object.assign({}, this.metaContent, {
+            spread: true,
+        })
+
+        return this as unknown as Chain<unknown[], SelectShape, MetaShape>
+    }
 
     public static [FieldCondition.methodName]<
         const EntryType extends Record<
@@ -197,6 +290,7 @@ export class Chain<InputShape, SelectShape, MetaShape> {
         const argArrayName = '$a'
 
         const args = new Map<string, unknown>()
+        let variableCounter = 0
 
         const requester: GlobalRequester = {
             newArg: (value: unknown) => {
@@ -205,15 +299,23 @@ export class Chain<InputShape, SelectShape, MetaShape> {
 
                 return name
             },
+            newVar: () => {
+                return `$v${variableCounter++}`
+            },
             selectJar: () => {
                 return selectJarName
             },
         }
 
-        const body = `const ${selectJarName} = {};\n${this.buildField(inputName, requester)}\nreturn ${selectJarName}`
+        const body = `${this.buildField(inputName, requester)}\nreturn ${selectJarName}`
 
         const func = Chain.functionObjectCache.getOrInsertComputed(body, () => {
-            return new Function(argArrayName, inputName, body)
+            return new Function(
+                argArrayName,
+                inputName,
+                `${selectJarName} = {}`,
+                body,
+            )
         })
 
         const builtCaller = {
