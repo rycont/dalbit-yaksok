@@ -3981,11 +3981,6 @@
       "npm:@codemirror/view@^6.43.9"
     ],
     "members": {
-      "core": {
-        "dependencies": [
-          "npm:ts-pattern@^5.9.0"
-        ]
-      },
       "docs": {
         "dependencies": [
           "npm:@deno/vite-plugin@^1.0.6",

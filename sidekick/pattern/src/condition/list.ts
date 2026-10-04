@@ -56,7 +56,7 @@ export class ListCondition extends MatchCondition {
                 continue
             }
 
-            if(${isSpacing}) {
+            if(${isSpacing} !== -1) {
                 ${cursor}++
                 continue
             }
@@ -64,7 +64,13 @@ export class ListCondition extends MatchCondition {
             return false
         }
 
-        if(!(${i} === ${submatchers}.length && ${cursor} === ${accessor}.length)) {
+        if(${i} !== ${submatchers}.length && !(${isSpacing} === -1 && ${i} === ${submatchers}.length - 1)) {
+            return false
+        }
+
+        if(${isSpacing} !== -1) {
+            ${submatchers}[${i} - 1].func(${submatchers}[${i} - 1].id, ${accessor}.slice(${isSpacing}), ${selectJar})
+        } else if(${cursor} !== ${accessor}.length) {
             return false
         }
         `

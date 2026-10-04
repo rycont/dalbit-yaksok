@@ -7,7 +7,3 @@ export interface ParameterElement {
     optional: boolean
     tokens: Token[]
 }
-
-export type Prettify<T> = {
-    [K in keyof T]: T[K]
-} & {}

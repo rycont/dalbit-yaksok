@@ -1,4 +1,5 @@
-import { signals } from '../common.ts'
+import type { Chain } from '@dalbit-yaksok/pattern'
+import { ChainShape, KeyPlaceholder, signals, UpdateShape } from '../common.ts'
 import { GlobalRequester, MatchCondition } from './base.ts'
 
 export class SelectCondition extends MatchCondition {
@@ -9,6 +10,27 @@ export class SelectCondition extends MatchCondition {
         private refine?: () => unknown,
     ) {
         super()
+    }
+
+    static creater<C extends Chain>(chain: C) {
+        return <T extends string>(name?: T, refine?: () => unknown) => {
+            return chain.pipe<
+                UpdateShape<
+                    ChainShape<C>,
+                    {
+                        Select: string extends T
+                            ? {
+                                  [
+                                      key in KeyPlaceholder
+                                  ]: ChainShape<C>['Input']
+                              }
+                            : {
+                                  [key in T]: ChainShape<C>['Input']
+                              }
+                    }
+                >
+            >(new SelectCondition(name, refine))
+        }
     }
 
     public override createStatement(

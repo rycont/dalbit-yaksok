@@ -1,31 +1,47 @@
-import { TOKEN_TYPE, tokenize } from '@dalbit-yaksok/core'
+import { Identifier, YaksokSession } from '@dalbit-yaksok/core'
 import { j } from '@dalbit-yaksok/pattern'
 
-const c = j.list([
-    j.field({
-        type: j.literal(TOKEN_TYPE.IDENTIFIER),
-        value: j.literal('약속'),
-    }),
-    j.field({
-        type: j.literal(TOKEN_TYPE.COMMA),
-    }),
-    j.space().select('s'),
-    j.field({
-        value: j.literal('를'),
-    }),
-    j.space().select('r'),
-    j.field({
-        type: j.literal(TOKEN_TYPE.IDENTIFIER),
-        value: j.literal('먹기'),
-    }),
-])
+// await new YaksokSession()
+//     .addModule(
+//         'main',
+//         `약속, 회전설정
+//     "rotate" 반환하기
 
-const matcher = c.compile()
-const r = matcher.func(
-    matcher.id,
-    tokenize(`약속, (음식)을/를 (사람)와/과 먹기`),
-)
+// (회전설정) + 회전설정 * 3 보여주기
+// `,
+//     )
+//     .run()
 
-if (r) {
-    console.log(r.s)
-}
+const s = j.literal('예>?').select()
+
+const r = j.instance(Identifier).field({
+    value: j.literal('예>?').select('임'),
+    tokens: j.select(),
+})
+
+// const t = [
+//     { type: 'IDENTIFIER', value: '약속', position: { line: 1, column: 1 } },
+//     { type: 'COMMA', value: ',', position: { line: 1, column: 3 } },
+//     {
+//         type: 'IDENTIFIER',
+//         value: '회전설정',
+//         position: { line: 1, column: 5 },
+//     },
+// ]
+
+// const yaksokPattern = j
+//     .type<Token[]>()
+//     .list([
+//         j.field({
+//             type: j.literal(TOKEN_TYPE.IDENTIFIER),
+//             value: j.literal('약속'),
+//         }),
+//         j.field({
+//             type: j.literal(TOKEN_TYPE.COMMA),
+//         }),
+//         j.select('firstSignature'),
+//         j.space(),
+//     ])
+//     .compile()
+
+// console.log(yaksokPattern.func(yaksokPattern.id, t))

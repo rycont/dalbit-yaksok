@@ -1,8 +1,131 @@
-import { match, P } from 'ts-pattern'
-
 import { Token, TOKEN_TYPE } from '@dalbit-yaksok/core'
+import { j } from '@dalbit-yaksok/pattern'
 
 import { FunctionDeclareRange, FunctionType } from './type.ts'
+
+const yaksokPattern = j
+    .type<Token[]>()
+    .list([
+        j.field({
+            type: j.literal(TOKEN_TYPE.IDENTIFIER),
+            value: j.literal('약속'),
+        }),
+        j.field({
+            type: j.literal(TOKEN_TYPE.COMMA),
+        }),
+        j.select('firstSignature'),
+        j.space(),
+    ])
+    .compile()
+
+const 번역Pattern = j
+    .type<Token[]>()
+    .list([
+        j.field({
+            type: j.literal(TOKEN_TYPE.IDENTIFIER),
+            value: j.literal('번역'),
+        }),
+        j.field({
+            type: j.literal(TOKEN_TYPE.OPENING_PARENTHESIS),
+        }),
+        j.field({
+            value: j.select('runtime'),
+        }),
+        j.field({
+            type: j.literal(TOKEN_TYPE.CLOSING_PARENTHESIS),
+        }),
+        j.field({
+            type: j.literal(TOKEN_TYPE.COMMA),
+        }),
+        j.select('firstSignature'),
+        j.space(),
+    ])
+    .compile()
+
+const incomplete번역Pattern = j
+    .type<Token[]>()
+    .list([
+        j.field({
+            type: j.literal(TOKEN_TYPE.IDENTIFIER),
+            value: j.literal('번역'),
+        }),
+        j.field({
+            type: j.literal(TOKEN_TYPE.OPENING_PARENTHESIS),
+        }),
+        j.space(),
+    ])
+    .compile()
+
+const eventPattern = j
+    .type<Token[]>()
+    .list([
+        j.field({
+            type: j.literal(TOKEN_TYPE.IDENTIFIER),
+            value: j.literal('이벤트'),
+        }),
+        j.field({
+            type: j.literal(TOKEN_TYPE.OPENING_PARENTHESIS),
+        }),
+        j.field({
+            type: j.literal(TOKEN_TYPE.IDENTIFIER),
+            value: j.select('id'),
+        }),
+        j.field({
+            type: j.literal(TOKEN_TYPE.CLOSING_PARENTHESIS),
+        }),
+        j.field({
+            type: j.literal(TOKEN_TYPE.COMMA),
+        }),
+        j.select('firstSignature'),
+        j.space(),
+    ])
+    .compile()
+
+function jMatch(line: Token[]) {
+    const yaksokPatternTest = yaksokPattern.func(yaksokPattern.id, line)
+
+    if (yaksokPatternTest) {
+        return {
+            type: FunctionType.약속,
+            firstSignature: yaksokPatternTest.firstSignature,
+        }
+    }
+
+    const 번역PatternTest = 번역Pattern.func(번역Pattern.id, line)
+
+    if (번역PatternTest) {
+        return {
+            type: FunctionType.번역,
+            firstSignature: 번역PatternTest.firstSignature,
+            runtime: 번역PatternTest.runtime,
+        }
+    }
+
+    const incomplete번역PatternTest = incomplete번역Pattern.func(
+        incomplete번역Pattern.id,
+        line,
+    )
+
+    if (incomplete번역PatternTest) {
+        return {
+            type: FunctionType.번역,
+            firstSignature: null,
+            runtime: null,
+        }
+    }
+
+    const eventPatternTest = eventPattern.func(eventPattern.id, line)
+
+    if (eventPatternTest) {
+        return {
+            type: FunctionType.이벤트,
+            id: eventPatternTest.id,
+            firstSignature: eventPatternTest.firstSignature,
+        }
+    }
+
+    return null
+}
 
 export function getDeclareSignature(tokens: Token[]): FunctionDeclareRange[] {
     const linebreaks = [-1]
@@ -30,103 +153,7 @@ export function getDeclareSignature(tokens: Token[]): FunctionDeclareRange[] {
 
     const signatures: FunctionDeclareRange[] = lineTokens.flatMap(
         (line, index) => {
-            const matched = match(line)
-                .returnType<
-                    | (Omit<FunctionDeclareRange, 'line' | 'signature'> & {
-                          firstSignature: Token | null
-                      })
-                    | null
-                >()
-                .with(
-                    [
-                        {
-                            type: TOKEN_TYPE.IDENTIFIER,
-                            value: '약속',
-                        },
-                        {
-                            type: TOKEN_TYPE.COMMA,
-                        },
-                        P._.select('firstSignature'),
-                        ...P.array(),
-                    ],
-                    ({ firstSignature }) => ({
-                        type: FunctionType.약속,
-                        firstSignature,
-                    }),
-                )
-                .with(
-                    [
-                        {
-                            type: TOKEN_TYPE.IDENTIFIER,
-                            value: '번역',
-                        },
-                        {
-                            type: TOKEN_TYPE.OPENING_PARENTHESIS,
-                        },
-                        {
-                            value: P.string.select('runtime'),
-                        },
-                        {
-                            type: TOKEN_TYPE.CLOSING_PARENTHESIS,
-                        },
-                        {
-                            type: TOKEN_TYPE.COMMA,
-                        },
-                        P._.select('firstSignature'),
-                        ...P.array(),
-                    ],
-                    ({ runtime, firstSignature }) => ({
-                        type: FunctionType.번역,
-                        firstSignature,
-                        runtime,
-                    }),
-                )
-                .with(
-                    [
-                        {
-                            type: TOKEN_TYPE.IDENTIFIER,
-                            value: '번역',
-                        },
-                        {
-                            type: TOKEN_TYPE.OPENING_PARENTHESIS,
-                        },
-                        ...P.array(),
-                    ],
-                    () => ({
-                        type: FunctionType.번역,
-                        firstSignature: null,
-                        runtime: null,
-                    }),
-                )
-                .with(
-                    [
-                        {
-                            type: TOKEN_TYPE.IDENTIFIER,
-                            value: '이벤트',
-                        },
-                        {
-                            type: TOKEN_TYPE.OPENING_PARENTHESIS,
-                        },
-                        {
-                            type: TOKEN_TYPE.IDENTIFIER,
-                            value: P.string.select('id'),
-                        },
-                        {
-                            type: TOKEN_TYPE.CLOSING_PARENTHESIS,
-                        },
-                        {
-                            type: TOKEN_TYPE.COMMA,
-                        },
-                        P._.select('firstSignature'),
-                        ...P.array(),
-                    ],
-                    ({ id, firstSignature }) => ({
-                        type: FunctionType.이벤트,
-                        id,
-                        firstSignature,
-                    }),
-                )
-                .otherwise(() => null)
+            const matched = jMatch(line)
 
             if (matched === null) {
                 return []

@@ -1,5 +1,4 @@
 import type { ClassType } from '@dalbit-yaksok/pattern'
-import type { Prettify } from '@dalbit-yaksok/core'
 import { GlobalRequester, MatchCondition } from './base.ts'
 import { FieldCondition } from './field.ts'
 import { InstanceCondition } from './instance.ts'
@@ -8,268 +7,145 @@ import { SelectCondition } from './select.ts'
 import { EnumCondition } from './enum.ts'
 import { ListCondition } from './list.ts'
 import { SpaceCondition } from './space.ts'
+import { ExistCondition } from './exist.ts'
+import { ChainShapeBase, UpdateShape } from '../common.ts'
 
-type ChainInput<C> =
-    C extends Chain<infer U, unknown, unknown>
-        ? unknown extends U
-            ? never
-            : U
-        : never
-type ChainSelect<C> =
-    C extends Chain<unknown, infer U extends string, unknown> ? U : never
-
-export type Matcher<SelectShape, MetaShape> = {
+export type Matcher<Shape extends ChainShapeBase> = {
     id: unknown
-    meta: MetaShape
+    meta: Shape['Meta']
     func: (
         arg1: unknown,
         input: unknown,
         selectJar?: unknown,
-    ) => SelectShape | false
+    ) => Shape['Select'] | false
 }
 
-type FieldInstanceType<InputShape, SelectShape, MetaShape, EntryType> = Chain<
-    InputShape & {
-        [key in keyof EntryType]: ChainInput<EntryType[key]>
-    },
-    SelectShape & {
-        [
-            key in keyof EntryType as EntryType[key] extends Chain<
-                unknown,
-                true,
-                unknown
-            >
-                ? key
-                : EntryType[key] extends Chain<
-                        unknown,
-                        infer U extends string,
-                        unknown
-                    >
-                  ? U
-                  : never
-        ]: ChainInput<EntryType[key]>
-    },
-    MetaShape
->
+export class Chain<
+    Shape extends ChainShapeBase<unknown> = ChainShapeBase<unknown>,
+> {
+    declare private readonly _: Shape['Input']
 
-type InstanceChainType<
-    _InputShape,
-    SelectShape,
-    MetaShape,
-    T extends ClassType,
-> = Chain<
-    InstanceType<T>,
-    SelectShape,
-    MetaShape & {
-        classShape: InstanceType<T>
+    constructor(
+        private paths: MatchCondition[] = [],
+        private metaContent: unknown = {},
+    ) {}
+
+    public static type() {
+        return new Chain()
     }
->
 
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
-    k: infer I,
-) => void
-    ? I
-    : never
+    public static [ExistCondition.methodName]() {
+        return new Chain().exist()
+    }
 
-type ListChainType<
-    _InputShape,
-    _SelectShape,
-    MetaShape,
-    Subchains extends Chain<unknown, unknown, unknown>[],
-> = Chain<
-    {
-        [K in keyof Subchains]: ChainInput<Subchains[K]>
-    },
-    Prettify<
-        UnionToIntersection<
-            {
-                [K in keyof Subchains]: ChainSelect<Subchains[K]> extends never
-                    ? {}
-                    : {
-                          [P in ChainSelect<Subchains[K]>]: ChainInput<
-                              Subchains[K]
-                          >
-                      }
-            }[number]
-        >
-    >,
-    MetaShape
->
+    public [ExistCondition.methodName]() {
+        const condition = new ExistCondition()
+        this.paths.push(condition)
+    }
 
-export class Chain<InputShape, SelectShape, MetaShape> {
-    private paths: MatchCondition[] = []
-    private metaContent: unknown = {}
-
-    declare private readonly _: InputShape
-
-    public static [ListCondition.methodName]<
-        const Subchains extends Chain<unknown, unknown, unknown>[],
-    >(
-        subchains: Subchains,
-    ): ListChainType<unknown, unknown, unknown, Subchains> {
+    public static [ListCondition.methodName](subchains) {
         return new Chain().list(subchains)
     }
 
-    public [ListCondition.methodName]<
-        const Subchains extends Chain<unknown, unknown, unknown>[],
-    >(
-        subchains: Subchains,
-    ): ListChainType<InputShape, SelectShape, MetaShape, Subchains> {
+    public [ListCondition.methodName](subchains) {
         const condition = new ListCondition(subchains)
         this.paths.push(condition)
-
-        return this as unknown as ListChainType<
-            InputShape,
-            SelectShape,
-            MetaShape,
-            Subchains
-        >
     }
 
-    public static [SpaceCondition.methodName](): Chain<
-        unknown[],
-        unknown,
-        unknown
-    > {
+    public static [SpaceCondition.methodName]() {
         return new Chain().space()
     }
 
-    public [SpaceCondition.methodName](): Chain<
-        unknown[],
-        SelectShape,
-        MetaShape
-    > {
+    public [SpaceCondition.methodName]() {
         const condition = new SpaceCondition()
         this.paths.push(condition)
 
         this.metaContent = Object.assign({}, this.metaContent, {
             spread: true,
         })
-
-        return this as unknown as Chain<unknown[], SelectShape, MetaShape>
     }
 
-    public static [FieldCondition.methodName]<
-        const EntryType extends Record<
-            string,
-            Chain<unknown, unknown, unknown>
-        >,
-    >(
-        entries: EntryType,
-    ): FieldInstanceType<unknown, unknown, unknown, EntryType> {
+    public static [FieldCondition.methodName](entries) {
         return new Chain().field(entries)
     }
 
-    public [FieldCondition.methodName]<
-        const EntryType extends {
-            [key in keyof Partial<InputShape>]: Chain<
-                Partial<InputShape[key]>,
-                unknown,
-                unknown
-            >
-        },
-    >(
-        entries: EntryType,
-    ): FieldInstanceType<InputShape, SelectShape, MetaShape, EntryType> {
-        const condition = new FieldCondition(entries)
-        this.paths.push(condition)
-
-        return this as FieldInstanceType<
-            InputShape,
-            SelectShape,
-            MetaShape,
-            EntryType
-        >
+    public get [FieldCondition.methodName]() {
+        return FieldCondition.creater(this)
     }
 
-    public static [InstanceCondition.methodName]<T extends ClassType>(
-        classType: T,
-    ): InstanceChainType<unknown, unknown, unknown, T> {
+    public pipe<NewShape extends ChainShapeBase>(c: MatchCondition) {
+        return new Chain<NewShape>(this.paths.concat(c), this.metaContent)
+    }
+
+    public static [InstanceCondition.methodName]<
+        InputClassType extends ClassType,
+    >(classType: InputClassType) {
         return new Chain().instance(classType)
     }
 
-    public [InstanceCondition.methodName]<T extends ClassType>(
-        classType: T,
-    ): InstanceChainType<InputShape, SelectShape, MetaShape, T> {
+    public [InstanceCondition.methodName]<InputClassType extends ClassType>(
+        classType: InputClassType,
+    ) {
         const condition = new InstanceCondition(classType)
-        this.paths.push(condition)
 
-        this.metaContent = Object.assign({}, this.metaContent, {
-            classShape: classType,
-        })
-
-        return this as unknown as InstanceChainType<
-            InputShape,
-            SelectShape,
-            MetaShape,
-            T
-        >
+        return new Chain<
+            UpdateShape<
+                Shape,
+                {
+                    Input: InstanceType<InputClassType>
+                    Meta: Shape['Meta'] & {
+                        classShape: InputClassType
+                    }
+                }
+            >
+        >(
+            this.paths.concat(condition),
+            Object.assign({}, this.metaContent, {
+                classShape: classType,
+            }),
+        )
     }
 
     public static [LiteralCondition.methodName]<
-        const LiteralType extends string | number | boolean,
-    >(literal: LiteralType): Chain<LiteralType, unknown, unknown> {
+        LiteralType extends string | number | boolean,
+    >(literal: LiteralType) {
         return new Chain().literal(literal)
     }
 
     public [LiteralCondition.methodName]<
-        const LiteralType extends string | number | boolean,
-    >(literal: LiteralType): Chain<LiteralType, SelectShape, MetaShape> {
+        LiteralType extends string | number | boolean,
+    >(literal: LiteralType) {
         const condition = new LiteralCondition(literal)
-        this.paths.push(condition)
 
-        return this as unknown as Chain<LiteralType, SelectShape, MetaShape>
+        return new Chain<
+            UpdateShape<
+                Shape,
+                {
+                    Input: Shape['Input'] & LiteralType
+                }
+            >
+        >(this.paths.concat(condition), this.metaContent)
     }
 
-    public static [SelectCondition.methodName]<const T extends string>(
-        name: string,
-    ): Chain<unknown, T, unknown> {
-        return new Chain().select(name) as Chain<unknown, T, unknown>
+    public static [SelectCondition.methodName]<R>(name?: string) {
+        return new Chain<ChainShapeBase<R>>().select(name)
     }
 
-    public [SelectCondition.methodName]<
-        const T extends string,
-        const RefineReturnType,
-        const R extends (v: InputShape) => RefineReturnType,
-    >(name: T, refine: R): Chain<RefineReturnType, T, MetaShape>
-    public [SelectCondition.methodName]<const T extends string>(
-        name: T,
-    ): Chain<InputShape, T, MetaShape>
-    public [SelectCondition.methodName](): Chain<InputShape, true, MetaShape>
-    public [SelectCondition.methodName](
-        name?: string,
-        refine?: () => unknown,
-    ): unknown {
-        const condition = new SelectCondition(name, refine)
-        this.paths.push(condition)
-
-        return this as unknown
+    public get [SelectCondition.methodName]() {
+        return SelectCondition.creater(this)
     }
 
-    public static [EnumCondition.methodName]<const Options extends string[]>(
-        options: Options,
-    ): Chain<Options[number], unknown, unknown> {
+    public static [EnumCondition.methodName](options: string[]) {
         return new Chain().enum(options)
     }
 
-    public [EnumCondition.methodName]<Options extends string[]>(
-        options: Options,
-    ): Chain<InputShape & Options[number], SelectShape, MetaShape> {
+    public [EnumCondition.methodName](options: string[]) {
         const condition = new EnumCondition(options)
         this.paths.push(condition)
-
-        return this as unknown as Chain<
-            InputShape & Options[number],
-            SelectShape,
-            MetaShape
-        >
     }
 
-    public meta<const T extends {}>(
-        content: T,
-    ): Chain<InputShape, SelectShape, MetaShape & T> {
+    public meta(content) {
         this.metaContent = Object.assign({}, this.metaContent, content)
-        return this as unknown as Chain<InputShape, SelectShape, MetaShape & T>
     }
 
     public buildField(accessor: string, requester: GlobalRequester): string {
@@ -280,7 +156,7 @@ export class Chain<InputShape, SelectShape, MetaShape> {
 
     private callerCache: ReturnType<(typeof this)['compile']> | null = null
 
-    public compile(): Matcher<SelectShape, MetaShape> {
+    public compile(): Matcher<Shape> {
         if (this.callerCache) {
             return this.callerCache
         }
