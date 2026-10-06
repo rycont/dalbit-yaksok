@@ -34,118 +34,48 @@ export class Chain<
         return new Chain()
     }
 
-    public static [ExistCondition.methodName]() {
-        return new Chain().exist()
+    public static get [ExistCondition.methodName]() {
+        return new Chain().exist
     }
 
-    public [ExistCondition.methodName]() {
-        const condition = new ExistCondition()
-        this.paths.push(condition)
+    public get [ExistCondition.methodName]() {
+        return ExistCondition.creater(this)
     }
 
-    public static [ListCondition.methodName](subchains) {
-        return new Chain().list(subchains)
+    public static get [LiteralCondition.methodName]() {
+        return new Chain().literal
     }
 
-    public [ListCondition.methodName](subchains) {
-        const condition = new ListCondition(subchains)
-        this.paths.push(condition)
+    public get [LiteralCondition.methodName]() {
+        return LiteralCondition.creater(this)
     }
 
-    public static [SpaceCondition.methodName]() {
-        return new Chain().space()
-    }
-
-    public [SpaceCondition.methodName]() {
-        const condition = new SpaceCondition()
-        this.paths.push(condition)
-
-        this.metaContent = Object.assign({}, this.metaContent, {
-            spread: true,
-        })
-    }
-
-    public static [FieldCondition.methodName](entries) {
-        return new Chain().field(entries)
+    public static get [FieldCondition.methodName]() {
+        return new Chain().field
     }
 
     public get [FieldCondition.methodName]() {
         return FieldCondition.creater(this)
     }
 
-    public pipe<NewShape extends ChainShapeBase>(c: MatchCondition) {
-        return new Chain<NewShape>(this.paths.concat(c), this.metaContent)
+    public static get [InstanceCondition.methodName]() {
+        return new Chain().instance
     }
 
-    public static [InstanceCondition.methodName]<
-        InputClassType extends ClassType,
-    >(classType: InputClassType) {
-        return new Chain().instance(classType)
+    public get [InstanceCondition.methodName]() {
+        return InstanceCondition.creater(this)
     }
 
-    public [InstanceCondition.methodName]<InputClassType extends ClassType>(
-        classType: InputClassType,
-    ) {
-        const condition = new InstanceCondition(classType)
-
-        return new Chain<
-            UpdateShape<
-                Shape,
-                {
-                    Input: InstanceType<InputClassType>
-                    Meta: Shape['Meta'] & {
-                        classShape: InputClassType
-                    }
-                }
-            >
-        >(
-            this.paths.concat(condition),
-            Object.assign({}, this.metaContent, {
-                classShape: classType,
-            }),
-        )
-    }
-
-    public static [LiteralCondition.methodName]<
-        LiteralType extends string | number | boolean,
-    >(literal: LiteralType) {
-        return new Chain().literal(literal)
-    }
-
-    public [LiteralCondition.methodName]<
-        LiteralType extends string | number | boolean,
-    >(literal: LiteralType) {
-        const condition = new LiteralCondition(literal)
-
-        return new Chain<
-            UpdateShape<
-                Shape,
-                {
-                    Input: Shape['Input'] & LiteralType
-                }
-            >
-        >(this.paths.concat(condition), this.metaContent)
-    }
-
-    public static [SelectCondition.methodName]<R>(name?: string) {
-        return new Chain<ChainShapeBase<R>>().select(name)
+    public static get [SelectCondition.methodName]() {
+        return new Chain().select
     }
 
     public get [SelectCondition.methodName]() {
         return SelectCondition.creater(this)
     }
 
-    public static [EnumCondition.methodName](options: string[]) {
-        return new Chain().enum(options)
-    }
-
-    public [EnumCondition.methodName](options: string[]) {
-        const condition = new EnumCondition(options)
-        this.paths.push(condition)
-    }
-
-    public meta(content) {
-        this.metaContent = Object.assign({}, this.metaContent, content)
+    public pipe<NewShape extends ChainShapeBase>(c: MatchCondition) {
+        return new Chain<NewShape>(this.paths.concat(c), this.metaContent)
     }
 
     public buildField(accessor: string, requester: GlobalRequester): string {

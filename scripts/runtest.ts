@@ -1,4 +1,8 @@
-import { Identifier, YaksokSession } from '@dalbit-yaksok/core'
+import {
+    Identifier,
+    NotDefinedIdentifierError,
+    YaksokSession,
+} from '@dalbit-yaksok/core'
 import { j } from '@dalbit-yaksok/pattern'
 
 // await new YaksokSession()
@@ -12,11 +16,11 @@ import { j } from '@dalbit-yaksok/pattern'
 //     )
 //     .run()
 
-const s = j.literal('예>?').select()
-
-const r = j.instance(Identifier).field({
-    value: j.literal('예>?').select('임'),
-    tokens: j.select(),
+const r = j.instance(NotDefinedIdentifierError).field({
+    resource: j.field({
+        name: j.literal('ㅇㅇ'),
+    }),
+    tokens: j.exist().select('openTokens'),
 })
 
 // const t = [

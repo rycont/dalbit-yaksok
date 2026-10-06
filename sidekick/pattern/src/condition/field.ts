@@ -2,11 +2,18 @@ import {
     ChainShape,
     ChainShapeBase,
     KeyPlaceholder,
+    Prettify,
     signals,
     UpdateShape,
 } from '../common.ts'
 import { GlobalRequester, MatchCondition } from './base.ts'
 import type { Chain } from './index.ts'
+
+type UnionToIntersection<T> = (T extends any ? (x: T) => any : never) extends (
+    x: infer R,
+) => any
+    ? R
+    : never
 
 export class FieldCondition extends MatchCondition {
     public static methodName = 'field' as const
@@ -30,22 +37,25 @@ export class FieldCondition extends MatchCondition {
                     ChainShape<C>,
                     {
                         Input: ChainShape<C>['Input'] & {
-                            [K in keyof EntryType]: ChainShape<
-                                EntryType[K]
-                            >['Input']
+                            [
+                                K in keyof EntryType as undefined extends EntryType[K]
+                                    ? never
+                                    : K
+                            ]: ChainShape<EntryType[K]>['Input']
                         }
-
-                        Select: {
-                            [K in keyof EntryType]: {
-                                [
-                                    K2 in keyof ChainShape<
-                                        EntryType[K]
-                                    >['Select'] as KeyPlaceholder extends K2
-                                        ? K
-                                        : K2
-                                ]: ChainShape<EntryType[K]>['Select'][K2]
-                            }
-                        }[keyof EntryType]
+                        Select: UnionToIntersection<
+                            {
+                                [K in keyof EntryType]: {
+                                    [
+                                        K2 in keyof ChainShape<
+                                            EntryType[K]
+                                        >['Select'] as KeyPlaceholder extends K2
+                                            ? K
+                                            : K2
+                                    ]: ChainShape<EntryType[K]>['Select'][K2]
+                                }
+                            }[keyof EntryType]
+                        >
                     }
                 >
             >(new FieldCondition(entries))
