@@ -1,14 +1,11 @@
-import type { ClassType } from '@dalbit-yaksok/pattern'
 import { GlobalRequester, MatchCondition } from './base.ts'
 import { FieldCondition } from './field.ts'
 import { InstanceCondition } from './instance.ts'
 import { LiteralCondition } from './literal.ts'
 import { SelectCondition } from './select.ts'
-import { EnumCondition } from './enum.ts'
 import { ListCondition } from './list.ts'
-import { SpaceCondition } from './space.ts'
 import { ExistCondition } from './exist.ts'
-import { ChainShapeBase, UpdateShape } from '../common.ts'
+import { ChainShapeBase } from '../common.ts'
 
 export type Matcher<Shape extends ChainShapeBase> = {
     id: unknown
@@ -72,6 +69,14 @@ export class Chain<
 
     public get [SelectCondition.methodName]() {
         return SelectCondition.creater(this)
+    }
+
+    public static get [ListCondition.methodName]() {
+        return new Chain().list
+    }
+
+    public get [ListCondition.methodName]() {
+        return ListCondition.creater(this)
     }
 
     public pipe<NewShape extends ChainShapeBase>(c: MatchCondition) {

@@ -1,11 +1,29 @@
 import { Chain } from '@dalbit-yaksok/pattern'
 import { GlobalRequester, MatchCondition } from './base.ts'
+import { ChainShape, UpdateShape } from '../common.ts'
 
 export class ListCondition extends MatchCondition {
     public static methodName = 'list' as const
 
-    constructor(public subchains: Chain<unknown, unknown, unknown>[]) {
+    constructor(public subchains: Chain[]) {
         super()
+    }
+
+    static creater<C extends Chain>(chain: C) {
+        return <const Subchains extends Chain[]>(subchains: Subchains) => {
+            return chain.pipe<
+                UpdateShape<
+                    ChainShape<C>,
+                    {
+                        Select: {
+                            [K in keyof Subchains]: ChainShape<
+                                Subchains[K]
+                            >['Input']
+                        }
+                    }
+                >
+            >(new ListCondition(subchains))
+        }
     }
 
     public override createStatement(
