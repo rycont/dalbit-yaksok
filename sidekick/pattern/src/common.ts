@@ -10,6 +10,10 @@ export const signals = {
     RequestFieldName,
 }
 
+export type TypePlaceholderExists = symbol & {
+    _type: 'type_placeholder_exists'
+}
+
 export type TypePlaceholder = symbol & {
     _type: 'type_placeholder'
 }

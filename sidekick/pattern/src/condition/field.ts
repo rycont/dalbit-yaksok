@@ -4,6 +4,8 @@ import {
     KeyPlaceholder,
     Prettify,
     signals,
+    TypePlaceholder,
+    TypePlaceholderExists,
     UpdateShape,
 } from '../common.ts'
 import { GlobalRequester, MatchCondition } from './base.ts'
@@ -14,6 +16,36 @@ type UnionToIntersection<T> = (T extends any ? (x: T) => any : never) extends (
 ) => any
     ? R
     : never
+
+type MergeValues<T> = UnionToIntersection<T[keyof T]>
+
+type SelectFromEntries<EntryType, OriginChain> = Prettify<
+    MergeValues<{
+        [
+            K in keyof EntryType as [unknown] extends ChainShape<
+                EntryType[K]
+            >['Select']
+                ? never
+                : K
+        ]: {
+            [
+                K2 in keyof ChainShape<
+                    EntryType[K]
+                >['Select'] as K2 extends KeyPlaceholder ? K : K2
+            ]: ChainShape<EntryType[K]>['Select'][K2] extends TypePlaceholder
+                ? K extends keyof ChainShape<OriginChain>['Input']
+                    ? ChainShape<OriginChain>['Input'][K]
+                    : never
+                : ChainShape<
+                        EntryType[K]
+                    >['Select'][K2] extends TypePlaceholderExists
+                  ? K extends keyof ChainShape<OriginChain>['Input']
+                      ? NonNullable<ChainShape<OriginChain>['Input'][K]>
+                      : never
+                  : ChainShape<EntryType[K]>['Select'][K2]
+        }
+    }>
+>
 
 export class FieldCondition extends MatchCondition {
     public static methodName = 'field' as const
@@ -26,7 +58,11 @@ export class FieldCondition extends MatchCondition {
         return <
             EntryType extends {
                 [K in keyof Partial<ChainShape<C>['Input']>]: Chain<
-                    ChainShapeBase<ChainShape<C>['Input'][K]>
+                    ChainShapeBase<
+                        | ChainShape<C>['Input'][K]
+                        | TypePlaceholder
+                        | TypePlaceholderExists
+                    >
                 >
             },
         >(
@@ -44,17 +80,7 @@ export class FieldCondition extends MatchCondition {
                             ]: ChainShape<EntryType[K]>['Input']
                         }
                         Select: UnionToIntersection<
-                            {
-                                [K in keyof EntryType]: {
-                                    [
-                                        K2 in keyof ChainShape<
-                                            EntryType[K]
-                                        >['Select'] as KeyPlaceholder extends K2
-                                            ? K
-                                            : K2
-                                    ]: ChainShape<EntryType[K]>['Select'][K2]
-                                }
-                            }[keyof EntryType]
+                            SelectFromEntries<EntryType, C>
                         >
                     }
                 >

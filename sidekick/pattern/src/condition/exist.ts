@@ -1,4 +1,8 @@
-import { ChainShape, UpdateShape } from '../common.ts'
+import {
+    ChainShape,
+    TypePlaceholderExists,
+    UpdateShape,
+} from '../common.ts'
 import { GlobalRequester, MatchCondition } from './base.ts'
 import { Chain } from './index.ts'
 
@@ -15,7 +19,9 @@ export class ExistCondition extends MatchCondition {
                 UpdateShape<
                     ChainShape<C>,
                     {
-                        Input: ChainShape<C>['Input']
+                        Input: ChainShape<C>['Input'] extends unknown
+                            ? TypePlaceholderExists
+                            : ChainShape<C>['Input']
                     }
                 >
             >(new ExistCondition())
