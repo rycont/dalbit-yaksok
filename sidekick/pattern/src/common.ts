@@ -1,5 +1,11 @@
 import type { Chain } from '@dalbit-yaksok/pattern'
 
+export type UnionToIntersection<T> = (
+    T extends any ? (x: T) => any : never
+) extends (x: infer R) => any
+    ? R
+    : never
+
 export type ClassType<T extends unknown = unknown> = new (...args: any[]) => T
 
 class RequestFieldName {

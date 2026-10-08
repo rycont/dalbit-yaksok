@@ -1,6 +1,12 @@
 import { Chain } from '@dalbit-yaksok/pattern'
 import { GlobalRequester, MatchCondition } from './base.ts'
-import { ChainShape, UpdateShape } from '../common.ts'
+import {
+    ChainShape,
+    KeyPlaceholder,
+    Prettify,
+    UnionToIntersection,
+    UpdateShape,
+} from '../common.ts'
 
 export class ListCondition extends MatchCondition {
     public static methodName = 'list' as const
@@ -15,11 +21,23 @@ export class ListCondition extends MatchCondition {
                 UpdateShape<
                     ChainShape<C>,
                     {
-                        Select: {
-                            [K in keyof Subchains]: ChainShape<
-                                Subchains[K]
-                            >['Input']
-                        }
+                        Select: Prettify<
+                            UnionToIntersection<
+                                {
+                                    [K in keyof Subchains]: {
+                                        [
+                                            K2 in keyof ChainShape<
+                                                Subchains[K]
+                                            >['Select'] as K2 extends KeyPlaceholder
+                                                ? K
+                                                : K2
+                                        ]: ChainShape<
+                                            Subchains[K]
+                                        >['Select'][K2]
+                                    }
+                                }[number]
+                            >
+                        >
                     }
                 >
             >(new ListCondition(subchains))

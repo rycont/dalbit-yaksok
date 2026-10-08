@@ -6,16 +6,11 @@ import {
     signals,
     TypePlaceholder,
     TypePlaceholderExists,
+    UnionToIntersection,
     UpdateShape,
 } from '../common.ts'
 import { GlobalRequester, MatchCondition } from './base.ts'
 import type { Chain } from './index.ts'
-
-type UnionToIntersection<T> = (T extends any ? (x: T) => any : never) extends (
-    x: infer R,
-) => any
-    ? R
-    : never
 
 type MergeValues<T> = UnionToIntersection<T[keyof T]>
 

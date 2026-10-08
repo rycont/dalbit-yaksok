@@ -18,15 +18,16 @@ export class SelectCondition extends MatchCondition {
                 UpdateShape<
                     ChainShape<C>,
                     {
-                        Select: string extends T
-                            ? {
-                                  [
-                                      key in KeyPlaceholder
-                                  ]: ChainShape<C>['Input']
-                              }
-                            : {
-                                  [key in T]: ChainShape<C>['Input']
-                              }
+                        Select: ChainShape<C>['Select'] &
+                            (string extends T
+                                ? {
+                                      [
+                                          key in KeyPlaceholder
+                                      ]: ChainShape<C>['Input']
+                                  }
+                                : {
+                                      [key in T]: ChainShape<C>['Input']
+                                  })
                     }
                 >
             >(new SelectCondition(name, refine))
