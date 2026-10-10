@@ -1,9 +1,4 @@
-import {
-    ChainShape,
-    ChainShapeBase,
-    ClassType,
-    UpdateShape,
-} from '../common.ts'
+import { ChainShape, ClassType, UpdateShape } from '../common.ts'
 import { GlobalRequester, MatchCondition } from './base.ts'
 import { Chain } from './index.ts'
 

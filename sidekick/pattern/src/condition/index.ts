@@ -6,6 +6,7 @@ import { SelectCondition } from './select.ts'
 import { ListCondition } from './list.ts'
 import { ExistCondition } from './exist.ts'
 import { ChainShapeBase } from '../common.ts'
+import { SpaceCondition } from './space.ts'
 
 export type Matcher<Shape extends ChainShapeBase> = {
     id: unknown
@@ -27,8 +28,8 @@ export class Chain<
         private metaContent: unknown = {},
     ) {}
 
-    public static type() {
-        return new Chain()
+    public static type<T>() {
+        return new Chain<ChainShapeBase<T>>()
     }
 
     public static get [ExistCondition.methodName]() {
@@ -77,6 +78,14 @@ export class Chain<
 
     public get [ListCondition.methodName]() {
         return ListCondition.creater(this)
+    }
+
+    public static get [SpaceCondition.methodName]() {
+        return new Chain().space
+    }
+
+    public get [SpaceCondition.methodName]() {
+        return SpaceCondition.creater(this)
     }
 
     public pipe<NewShape extends ChainShapeBase>(c: MatchCondition) {

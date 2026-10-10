@@ -2,9 +2,13 @@ import { Chain } from '@dalbit-yaksok/pattern'
 import { GlobalRequester, MatchCondition } from './base.ts'
 import {
     ChainShape,
+    ChainShapeBase,
     KeyPlaceholder,
+    PlaceholderTraits,
     Prettify,
+    TypePlaceholder,
     UnionToIntersection,
+    UnpackTypePlaceholder,
     UpdateShape,
 } from '../common.ts'
 
@@ -15,7 +19,7 @@ export class ListCondition extends MatchCondition {
         super()
     }
 
-    static creater<C extends Chain>(chain: C) {
+    static creater<R, C extends Chain<ChainShapeBase<R[]>>>(chain: C) {
         return <const Subchains extends Chain[]>(subchains: Subchains) => {
             return chain.pipe<
                 UpdateShape<
@@ -33,7 +37,18 @@ export class ListCondition extends MatchCondition {
                                                 : K2
                                         ]: ChainShape<
                                             Subchains[K]
-                                        >['Select'][K2]
+                                        >['Select'][K2] extends TypePlaceholder
+                                            ? UnpackTypePlaceholder<
+                                                  ChainShape<C>['Input'][number],
+                                                  PlaceholderTraits<
+                                                      ChainShape<
+                                                          Subchains[K]
+                                                      >['Select'][K2]
+                                                  >
+                                              >
+                                            : ChainShape<
+                                                  Subchains[K]
+                                              >['Select'][K2]
                                     }
                                 }[number]
                             >

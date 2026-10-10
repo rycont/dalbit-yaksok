@@ -2,11 +2,12 @@ import {
     ChainShape,
     ChainShapeBase,
     KeyPlaceholder,
+    PlaceholderTraits,
     Prettify,
     signals,
     TypePlaceholder,
-    TypePlaceholderExists,
     UnionToIntersection,
+    UnpackTypePlaceholder,
     UpdateShape,
 } from '../common.ts'
 import { GlobalRequester, MatchCondition } from './base.ts'
@@ -17,9 +18,9 @@ type MergeValues<T> = UnionToIntersection<T[keyof T]>
 type SelectFromEntries<EntryType, OriginChain> = Prettify<
     MergeValues<{
         [
-            K in keyof EntryType as [unknown] extends ChainShape<
-                EntryType[K]
-            >['Select']
+            K in keyof EntryType & keyof ChainShape<OriginChain>['Input'] as [
+                unknown,
+            ] extends ChainShape<EntryType[K]>['Select']
                 ? never
                 : K
         ]: {
@@ -28,25 +29,18 @@ type SelectFromEntries<EntryType, OriginChain> = Prettify<
                     EntryType[K]
                 >['Select'] as K2 extends KeyPlaceholder ? K : K2
             ]: ChainShape<EntryType[K]>['Select'][K2] extends TypePlaceholder
-                ? K extends keyof ChainShape<OriginChain>['Input']
-                    ? ChainShape<OriginChain>['Input'][K]
-                    : never
-                : ChainShape<
-                        EntryType[K]
-                    >['Select'][K2] extends TypePlaceholderExists
-                  ? K extends keyof ChainShape<OriginChain>['Input']
-                      ? NonNullable<ChainShape<OriginChain>['Input'][K]>
-                      : never
-                  : ChainShape<EntryType[K]>['Select'][K2]
+                ? UnpackTypePlaceholder<
+                      ChainShape<OriginChain>['Input'][K],
+                      PlaceholderTraits<ChainShape<EntryType[K]>['Select'][K2]>
+                  >
+                : ChainShape<EntryType[K]>['Select'][K2]
         }
     }>
 >
 
 type EntriesFromChain<C> = {
     [K in keyof Partial<ChainShape<C>['Input']>]: Chain<
-        ChainShapeBase<
-            ChainShape<C>['Input'][K] | TypePlaceholder | TypePlaceholderExists
-        >
+        ChainShapeBase<ChainShape<C>['Input'][K] | TypePlaceholder>
     >
 }
 

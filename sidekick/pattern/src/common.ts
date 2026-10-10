@@ -16,13 +16,43 @@ export const signals = {
     RequestFieldName,
 }
 
-export type TypePlaceholderExists = symbol & {
-    _type: 'type_placeholder_exists'
+export type ValueTraits = {
+    exists: 'exists'
+    multiple: 'multiple'
 }
 
-export type TypePlaceholder = symbol & {
+export type TypePlaceholder<
+    Traits extends (keyof ValueTraits)[] = (keyof Partial<ValueTraits>)[],
+> = symbol & {
     _type: 'type_placeholder'
+    traits: Traits
 }
+
+export type PlaceholderTraits<P extends TypePlaceholder> =
+    P extends TypePlaceholder<infer U> ? U : never
+
+export type ApplyTrait<
+    Trait extends keyof ValueTraits,
+    V,
+> = Trait extends ValueTraits['exists']
+    ? NonNullable<V>
+    : Trait extends ValueTraits['multiple']
+      ? V[]
+      : never
+
+export type UnpackTypePlaceholder<
+    V,
+    Traits extends (keyof ValueTraits)[],
+> = [] extends Traits
+    ? V
+    : Traits extends [
+            infer FirstTrait extends keyof ValueTraits,
+            ...infer Left extends (keyof ValueTraits)[],
+        ]
+      ? UnpackTypePlaceholder<ApplyTrait<FirstTrait, V>, Left>
+      : never
+
+export type Fallback<T, Fallbacked> = [unknown] extends T ? Fallbacked : T
 
 export type KeyPlaceholder = symbol & {
     _type: 'key_placeholder'

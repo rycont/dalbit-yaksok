@@ -1,5 +1,12 @@
 import type { Chain } from '@dalbit-yaksok/pattern'
-import { ChainShape, KeyPlaceholder, signals, UpdateShape } from '../common.ts'
+import {
+    ChainShape,
+    Fallback,
+    KeyPlaceholder,
+    signals,
+    TypePlaceholder,
+    UpdateShape,
+} from '../common.ts'
 import { GlobalRequester, MatchCondition } from './base.ts'
 
 export class SelectCondition extends MatchCondition {
@@ -18,16 +25,11 @@ export class SelectCondition extends MatchCondition {
                 UpdateShape<
                     ChainShape<C>,
                     {
-                        Select: ChainShape<C>['Select'] &
-                            (string extends T
-                                ? {
-                                      [
-                                          key in KeyPlaceholder
-                                      ]: ChainShape<C>['Input']
-                                  }
-                                : {
-                                      [key in T]: ChainShape<C>['Input']
-                                  })
+                        Select: ChainShape<C>['Select'] & {
+                            [
+                                key in string extends T ? KeyPlaceholder : T
+                            ]: Fallback<ChainShape<C>['Input'], TypePlaceholder>
+                        }
                     }
                 >
             >(new SelectCondition(name, refine))
