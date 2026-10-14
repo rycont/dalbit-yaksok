@@ -20,7 +20,7 @@ export class SelectCondition extends MatchCondition {
     }
 
     static creater<C extends Chain>(chain: C) {
-        return <T extends string>(name?: T, refine?: () => unknown) => {
+        return <R, T extends string>(name?: T, refine?: () => unknown) => {
             return chain.pipe<
                 UpdateShape<
                     ChainShape<C>,
@@ -29,7 +29,8 @@ export class SelectCondition extends MatchCondition {
                             [
                                 key in string extends T ? KeyPlaceholder : T
                             ]: Fallback<ChainShape<C>['Input'], TypePlaceholder>
-                        }
+                        },
+                        ParentInput: R
                     }
                 >
             >(new SelectCondition(name, refine))

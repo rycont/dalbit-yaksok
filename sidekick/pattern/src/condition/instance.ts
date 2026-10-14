@@ -19,6 +19,9 @@ export class InstanceCondition extends MatchCondition {
                     {
                         Input: ChainShape<C>['Input'] &
                             InstanceType<InputClassType>
+                        Meta: ChainShape<C>['Meta'] & {
+                            classShape: InstanceType<InputClassType>
+                        }
                     }
                 >
             >(new InstanceCondition(classType))

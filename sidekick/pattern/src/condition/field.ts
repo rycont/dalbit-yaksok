@@ -1,6 +1,7 @@
 import {
     ChainShape,
     ChainShapeBase,
+    Fallback,
     KeyPlaceholder,
     PlaceholderTraits,
     Prettify,
@@ -15,12 +16,12 @@ import type { Chain } from './index.ts'
 
 type MergeValues<T> = UnionToIntersection<T[keyof T]>
 
-type SelectFromEntries<EntryType, OriginChain> = Prettify<
+type SelectFromEntries<EntryType, OriginInput> = Prettify<
     MergeValues<{
         [
-            K in keyof EntryType & keyof ChainShape<OriginChain>['Input'] as [
-                unknown,
-            ] extends ChainShape<EntryType[K]>['Select']
+            K in keyof EntryType as [unknown] extends ChainShape<
+                EntryType[K]
+            >['Select']
                 ? never
                 : K
         ]: {
@@ -30,7 +31,9 @@ type SelectFromEntries<EntryType, OriginChain> = Prettify<
                 >['Select'] as K2 extends KeyPlaceholder ? K : K2
             ]: ChainShape<EntryType[K]>['Select'][K2] extends TypePlaceholder
                 ? UnpackTypePlaceholder<
-                      ChainShape<OriginChain>['Input'][K],
+                      OriginInput extends { [key in K]: unknown }
+                          ? OriginInput[K]
+                          : never,
                       PlaceholderTraits<ChainShape<EntryType[K]>['Select'][K2]>
                   >
                 : ChainShape<EntryType[K]>['Select'][K2]
@@ -40,21 +43,32 @@ type SelectFromEntries<EntryType, OriginChain> = Prettify<
 
 type EntriesFromChain<C> = {
     [K in keyof Partial<ChainShape<C>['Input']>]: Chain<
-        ChainShapeBase<ChainShape<C>['Input'][K] | TypePlaceholder>
+        ChainShapeBase<
+            | {
+                  [
+                      K2 in keyof Partial<ChainShape<C>['Input'][K]>
+                  ]: ChainShape<C>['Input'][K][K2]
+              }
+            | TypePlaceholder
+        >
     >
 }
 
-type NewShapeFromEntries<C extends Chain, EntryType> = UpdateShape<
-    ChainShape<C>,
+type NewShapeFromEntries<ParentInput, EntryType> = UpdateShape<
+    ChainShapeBase<ParentInput>,
     {
-        Input: ChainShape<C>['Input'] & {
+        Input: ParentInput & {
             [
-                K in keyof EntryType as undefined extends EntryType[K]
-                    ? never
-                    : K
-            ]: ChainShape<EntryType[K]>['Input']
+                K in keyof EntryType as unknown extends EntryType[K] ? never : K
+            ]: Fallback<
+                ChainShape<EntryType[K]>['Input'],
+                ParentInput extends { [key in K]: unknown }
+                    ? ParentInput[K]
+                    : unknown
+            >
         }
-        Select: UnionToIntersection<SelectFromEntries<EntryType, C>>
+        Select: UnionToIntersection<SelectFromEntries<EntryType, ParentInput>>
+        ParentInput: ParentInput
     }
 >
 
@@ -65,13 +79,11 @@ export class FieldCondition extends MatchCondition {
         super()
     }
 
-    static creater<C extends Chain>(
-        chain: C,
-    ): <EntryType extends EntriesFromChain<C>>(
-        entries: EntryType,
-    ) => Chain<NewShapeFromEntries<C, EntryType>> {
-        return <EntryType extends EntriesFromChain<C>>(entries: EntryType) => {
-            return chain.pipe<NewShapeFromEntries<C, EntryType>>(
+    static creater<C extends Chain>(chain: C) {
+        return <ParentInput, EntryType extends EntriesFromChain<C>>(
+            entries: EntryType,
+        ) => {
+            return chain.pipe<NewShapeFromEntries<ParentInput, EntryType>>(
                 new FieldCondition(entries),
             )
         }

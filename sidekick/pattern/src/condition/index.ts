@@ -7,6 +7,7 @@ import { ListCondition } from './list.ts'
 import { ExistCondition } from './exist.ts'
 import { ChainShapeBase } from '../common.ts'
 import { SpaceCondition } from './space.ts'
+import { EnumCondition } from './enum.ts'
 
 export type Matcher<Shape extends ChainShapeBase> = {
     id: unknown
@@ -88,8 +89,22 @@ export class Chain<
         return SpaceCondition.creater(this)
     }
 
-    public pipe<NewShape extends ChainShapeBase>(c: MatchCondition) {
-        return new Chain<NewShape>(this.paths.concat(c), this.metaContent)
+    public static get [EnumCondition.methodName]() {
+        return new Chain().enum
+    }
+
+    public get [EnumCondition.methodName]() {
+        return EnumCondition.creater(this)
+    }
+
+    public pipe<NewShape extends ChainShapeBase>(
+        c: MatchCondition,
+        m?: unknown,
+    ) {
+        return new Chain<NewShape>(
+            this.paths.concat(c),
+            Object.assign({}, this.metaContent, m),
+        )
     }
 
     public buildField(accessor: string, requester: GlobalRequester): string {

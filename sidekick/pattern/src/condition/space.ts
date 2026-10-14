@@ -16,15 +16,13 @@ export class SpaceCondition extends MatchCondition {
     }
 
     static creater<C extends Chain>(chain: C) {
-        return () => {
+        return <R>() => {
             return chain.pipe<
                 UpdateShape<
                     ChainShape<C>,
                     {
-                        Input: Fallback<
-                            ChainShape<C>['Input'],
-                            TypePlaceholder<[ValueTraits['multiple']]>
-                        >
+                        Input: ChainShape<C>['Input'],
+                        ParentInput: R
                     }
                 >
             >(new SpaceCondition())

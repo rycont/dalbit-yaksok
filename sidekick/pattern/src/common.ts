@@ -66,10 +66,12 @@ export interface ChainShapeBase<
     InputShape = unknown,
     SelectShape = unknown,
     MetaShape = unknown,
+    ParentInputShape = unknown
 > {
     Input: InputShape
     Select: SelectShape
     Meta: MetaShape
+    ParentInput: ParentInputShape
 }
 
 export type ChainShape<C> = C extends Chain<infer U> ? U : never

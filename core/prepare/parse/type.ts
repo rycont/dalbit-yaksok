@@ -1,26 +1,35 @@
 import { Node, NodeCapability, Token } from '@dalbit-yaksok/core'
-import { ClassType, Chain, Matcher } from '@dalbit-yaksok/pattern'
+import {
+    ClassType,
+    Chain,
+    Matcher,
+    ChainShapeBase,
+} from '@dalbit-yaksok/pattern'
 
 export type PatternUnit<Shape extends Node> = Matcher<
-    unknown,
-    {
-        classShape: new () => Shape
-    } & (
-        | undefined
-        | {
-              isSuffix: boolean
-              nameOptions: string[]
-          }
-    )
+    ChainShapeBase<
+        unknown,
+        {
+            classShape: new () => Shape
+        } & (
+            | undefined
+            | {
+                  isSuffix: boolean
+                  nameOptions: string[]
+              }
+        )
+    >
 >
 
 export type PatternUnitChain<Shape extends Node> = Chain<
-    unknown,
-    unknown,
-    {
-        classShape: Shape
-        isSuffix?: boolean
-    }
+    ChainShapeBase<
+        unknown,
+        unknown,
+        {
+            classShape: Shape
+            isSuffix?: boolean
+        }
+    >
 >
 
 export interface DirectReplacer {

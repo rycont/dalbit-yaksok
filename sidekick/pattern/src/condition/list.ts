@@ -19,12 +19,25 @@ export class ListCondition extends MatchCondition {
         super()
     }
 
-    static creater<R, C extends Chain<ChainShapeBase<R[]>>>(chain: C) {
-        return <const Subchains extends Chain[]>(subchains: Subchains) => {
+    static creater<const R, const C extends Chain<ChainShapeBase<R[]>>>(chain: C) {
+        return <const Subchains extends Chain<ChainShapeBase<unknown, unknown, unknown, ChainShape<C>['Input'][number]>>[]>(subchains: Subchains) => {
             return chain.pipe<
                 UpdateShape<
                     ChainShape<C>,
                     {
+                        Input: {
+                            [K in keyof Subchains]: ChainShape<
+                                Subchains[K]
+                            >['Input'] extends TypePlaceholder
+                                ? UnpackTypePlaceholder<
+                                      ChainShape<C>['Input'][number],
+                                      PlaceholderTraits<
+                                          ChainShape<Subchains[K]>['Input']
+                                      >
+                                  >
+                                : ChainShape<C>['Input'][number] &
+                                      ChainShape<Subchains[K]>['Input']
+                        }
                         Select: Prettify<
                             UnionToIntersection<
                                 {
