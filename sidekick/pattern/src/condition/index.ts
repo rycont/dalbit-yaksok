@@ -20,7 +20,8 @@ export type Matcher<Shape extends ChainShapeBase> = {
 }
 
 export class Chain<
-    Shape extends ChainShapeBase<unknown> = ChainShapeBase<unknown>,
+    const R,
+    const Shape extends ChainShapeBase<unknown, unknown, unknown, R>
 > {
     declare private readonly _: Shape['Input']
 
@@ -30,7 +31,7 @@ export class Chain<
     ) {}
 
     public static type<T>() {
-        return new Chain<ChainShapeBase<T>>()
+        return new Chain<T, ChainShapeBase<T, unknown, unknown, T>>()
     }
 
     public static get [ExistCondition.methodName]() {
@@ -97,11 +98,11 @@ export class Chain<
         return EnumCondition.creater(this)
     }
 
-    public pipe<NewShape extends ChainShapeBase>(
+    public pipe<const R, const NewShape extends ChainShapeBase<unknown, unknown, unknown, R>>(
         c: MatchCondition,
         m?: unknown,
     ) {
-        return new Chain<NewShape>(
+        return new Chain<R, NewShape>(
             this.paths.concat(c),
             Object.assign({}, this.metaContent, m),
         )

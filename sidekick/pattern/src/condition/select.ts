@@ -1,10 +1,9 @@
 import type { Chain } from '@dalbit-yaksok/pattern'
 import {
     ChainShape,
-    Fallback,
+    ChainShapeBase,
     KeyPlaceholder,
     signals,
-    TypePlaceholder,
     UpdateShape,
 } from '../common.ts'
 import { GlobalRequester, MatchCondition } from './base.ts'
@@ -19,8 +18,11 @@ export class SelectCondition extends MatchCondition {
         super()
     }
 
-    static creater<C extends Chain>(chain: C) {
-        return <R, T extends string>(name?: T, refine?: () => unknown) => {
+    static creater<const R, C extends Chain<R, ChainShapeBase<unknown, unknown, unknown, R>>>(chain: C) {
+        return <T extends string>(
+            name?: T,
+            refine?: () => unknown,
+        ) => {
             return chain.pipe<
                 UpdateShape<
                     ChainShape<C>,
@@ -28,8 +30,8 @@ export class SelectCondition extends MatchCondition {
                         Select: ChainShape<C>['Select'] & {
                             [
                                 key in string extends T ? KeyPlaceholder : T
-                            ]: Fallback<ChainShape<C>['Input'], TypePlaceholder>
-                        },
+                            ]: ChainShape<C>['Input']
+                        }
                         ParentInput: R
                     }
                 >

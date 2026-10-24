@@ -1,7 +1,6 @@
 import {
     ChainShape,
     ChainShapeBase,
-    Fallback,
     KeyPlaceholder,
     PlaceholderTraits,
     Prettify,
@@ -9,7 +8,6 @@ import {
     TypePlaceholder,
     UnionToIntersection,
     UnpackTypePlaceholder,
-    UpdateShape,
 } from '../common.ts'
 import { GlobalRequester, MatchCondition } from './base.ts'
 import type { Chain } from './index.ts'
@@ -43,49 +41,48 @@ type SelectFromEntries<EntryType, OriginInput> = Prettify<
 
 type EntriesFromChain<C> = {
     [K in keyof Partial<ChainShape<C>['Input']>]: Chain<
-        ChainShapeBase<
-            | {
+        unknown,
+        ChainShapeBase<{
                   [
                       K2 in keyof Partial<ChainShape<C>['Input'][K]>
                   ]: ChainShape<C>['Input'][K][K2]
               }
-            | TypePlaceholder
         >
     >
 }
 
-type NewShapeFromEntries<ParentInput, EntryType> = UpdateShape<
-    ChainShapeBase<ParentInput>,
-    {
-        Input: ParentInput & {
-            [
-                K in keyof EntryType as unknown extends EntryType[K] ? never : K
-            ]: Fallback<
-                ChainShape<EntryType[K]>['Input'],
-                ParentInput extends { [key in K]: unknown }
-                    ? ParentInput[K]
-                    : unknown
-            >
-        }
-        Select: UnionToIntersection<SelectFromEntries<EntryType, ParentInput>>
-        ParentInput: ParentInput
-    }
->
+// type NewShapeFromEntries<R, Input, EntryType> = ChainShapeBase<
+//     {
+//         [
+//             K in keyof EntryType as unknown extends EntryType[K] ? never : K
+//         ]: ChainShape<EntryType[K]>['Input']
+//     },
+//     UnionToIntersection<SelectFromEntries<EntryType, Input>>,
+//     unknown,
+//     R
+// >
 
 export class FieldCondition extends MatchCondition {
     public static methodName = 'field' as const
 
-    constructor(private entries: Record<string, Chain>) {
+    constructor(
+        private entries: Record<string, Chain<unknown, ChainShapeBase<unknown>>>,
+    ) {
         super()
     }
 
-    static creater<C extends Chain>(chain: C) {
-        return <ParentInput, EntryType extends EntriesFromChain<C>>(
-            entries: EntryType,
-        ) => {
-            return chain.pipe<NewShapeFromEntries<ParentInput, EntryType>>(
-                new FieldCondition(entries),
-            )
+    static creater<
+        const C extends Chain<unknown, ChainShapeBase<unknown, unknown, unknown, unknown>>,
+    >(chain: C) {
+        return <const RT, EntryType extends EntriesFromChain<C>>(entries: EntryType) => {
+            return chain.pipe<RT, {
+                Input: unknown,
+                Meta: unknown,
+                Select: unknown,
+                ParentInput: RT
+            }
+                // NewShapeFromEntries<R, ChainShape<C>['Input'], EntryType>
+            >(new FieldCondition(entries))
         }
     }
 

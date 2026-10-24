@@ -3,69 +3,68 @@ import { GlobalRequester, MatchCondition } from './base.ts'
 import {
     ChainShape,
     ChainShapeBase,
-    KeyPlaceholder,
-    PlaceholderTraits,
-    Prettify,
-    TypePlaceholder,
-    UnionToIntersection,
-    UnpackTypePlaceholder,
     UpdateShape,
 } from '../common.ts'
 
 export class ListCondition extends MatchCondition {
     public static methodName = 'list' as const
 
-    constructor(public subchains: Chain[]) {
+    constructor(public subchains: Chain<unknown, ChainShapeBase<unknown>>[]) {
         super()
     }
 
-    static creater<const R, const C extends Chain<ChainShapeBase<R[]>>>(chain: C) {
-        return <const Subchains extends Chain<ChainShapeBase<unknown, unknown, unknown, ChainShape<C>['Input'][number]>>[]>(subchains: Subchains) => {
+    static creater<const R, const C extends Chain<R[], ChainShapeBase<R[], unknown, unknown, R[]>>>(
+        chain: C,
+    ) {
+        return <
+            const Subchains extends Chain<
+                RS,
+                ChainShapeBase<
+                    unknown,
+                    unknown,
+                    unknown,
+                    RS
+                >
+            >[],
+            const RS = ChainShape<C>['Input'][number],
+        >(
+            subchains: Subchains,
+        ) => {
             return chain.pipe<
                 UpdateShape<
                     ChainShape<C>,
                     {
                         Input: {
-                            [K in keyof Subchains]: ChainShape<
-                                Subchains[K]
-                            >['Input'] extends TypePlaceholder
-                                ? UnpackTypePlaceholder<
-                                      ChainShape<C>['Input'][number],
-                                      PlaceholderTraits<
-                                          ChainShape<Subchains[K]>['Input']
-                                      >
-                                  >
-                                : ChainShape<C>['Input'][number] &
-                                      ChainShape<Subchains[K]>['Input']
+                            [K in keyof Subchains]:  ChainShape<Subchains[K]>['Input']
                         }
-                        Select: Prettify<
-                            UnionToIntersection<
-                                {
-                                    [K in keyof Subchains]: {
-                                        [
-                                            K2 in keyof ChainShape<
-                                                Subchains[K]
-                                            >['Select'] as K2 extends KeyPlaceholder
-                                                ? K
-                                                : K2
-                                        ]: ChainShape<
-                                            Subchains[K]
-                                        >['Select'][K2] extends TypePlaceholder
-                                            ? UnpackTypePlaceholder<
-                                                  ChainShape<C>['Input'][number],
-                                                  PlaceholderTraits<
-                                                      ChainShape<
-                                                          Subchains[K]
-                                                      >['Select'][K2]
-                                                  >
-                                              >
-                                            : ChainShape<
-                                                  Subchains[K]
-                                              >['Select'][K2]
-                                    }
-                                }[number]
-                            >
-                        >
+                        // Select: Prettify<
+                        //     UnionToIntersection<
+                        //         {
+                        //             [K in keyof Subchains]: {
+                        //                 [
+                        //                     K2 in keyof ChainShape<
+                        //                         Subchains[K]
+                        //                     >['Select'] as K2 extends KeyPlaceholder
+                        //                         ? K
+                        //                         : K2
+                        //                 ]: ChainShape<
+                        //                     Subchains[K]
+                        //                 >['Select'][K2] extends TypePlaceholder
+                        //                     ? UnpackTypePlaceholder<
+                        //                           ChainShape<C>['Input'][number],
+                        //                           PlaceholderTraits<
+                        //                               ChainShape<
+                        //                                   Subchains[K]
+                        //                               >['Select'][K2]
+                        //                           >
+                        //                       >
+                        //                     : ChainShape<
+                        //                           Subchains[K]
+                        //                       >['Select'][K2]
+                        //             }
+                        //         }[number]
+                        //     >
+                        // >
                     }
                 >
             >(new ListCondition(subchains))

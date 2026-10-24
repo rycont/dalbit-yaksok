@@ -74,7 +74,7 @@ export interface ChainShapeBase<
     ParentInput: ParentInputShape
 }
 
-export type ChainShape<C> = C extends Chain<infer U> ? U : never
+export type ChainShape<C> = C extends Chain<unknown, infer U> ? U : never
 
 export type UpdateShape<
     Origin extends ChainShapeBase,
