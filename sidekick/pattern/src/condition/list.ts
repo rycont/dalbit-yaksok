@@ -4,6 +4,7 @@ import {
     ChainShape,
     ChainShapeBase,
     Fallback,
+    MergeValues,
     Prettify,
     UnionToIntersection,
 } from '../common.ts'
@@ -20,11 +21,12 @@ export class ListCondition extends MatchCondition {
     ) {
         return <
             const ParentType,
-            const InputType extends
-                (ChainShape<PrevChain>['Input'] extends unknown[]
+            const SubchainsType extends Chain<
+                ChainShape<PrevChain>['Input'] extends unknown[]
                     ? ChainShape<PrevChain>['Input'][number]
-                    : never),
-            const SubchainsType extends Chain<InputType, ChainShapeBase>[],
+                    : never,
+                ChainShapeBase
+            >[],
         >(
             subchains: SubchainsType,
         ) => {
@@ -37,12 +39,14 @@ export class ListCondition extends MatchCondition {
                         >['Input']
                     }
                     Meta: unknown
-                    Select: {
-                        [K in keyof SubchainsType]: Fallback<
-                            ChainShape<SubchainsType[K]>['Select'],
-                            never
-                        >
-                    }
+                    Select: UnionToIntersection<
+                        {
+                            [K in keyof SubchainsType]: Fallback<
+                                ChainShape<SubchainsType[K]>['Select'],
+                                never
+                            >
+                        }[number]
+                    >
                 }
             >(new ListCondition(subchains))
         }

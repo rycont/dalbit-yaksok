@@ -63,7 +63,11 @@ export class FieldCondition extends MatchCondition {
                                 EntryType[K]
                             >['Select']
                                 ? never
-                                : K
+                                : KeyPlaceholder extends keyof ChainShape<
+                                        EntryType[K]
+                                    >['Select']
+                                  ? K
+                                  : keyof ChainShape<EntryType[K]>['Select']
                         ]: ChainShape<EntryType[K]>['Select'][keyof ChainShape<
                             EntryType[K]
                         >['Select']]

@@ -51,6 +51,7 @@ export const prettifyBrokenIf: Processor = (errors, tokens) => {
         statementFormPattern.id,
         errors,
     )
+
     if (만약이면PatternTest) {
         const firstTokenIndex = tokens.indexOf(
             만약이면PatternTest.openTokens[0],
@@ -96,31 +97,38 @@ export const prettifyBrokenIf: Processor = (errors, tokens) => {
         ]
     }
 
-    const conditionErrors = match(errors)
-        .with([,], ({ openTokens, closeTokens, condition }) => {
-            const boundaryCondition = condition.find(
-                (e) => e instanceof AmbiguousFormulaBoundary,
-            )
-            if (boundaryCondition) {
-                return [boundaryCondition]
-            }
+    const conditionPatternTest = conditionPattern.func(
+        conditionPattern.id,
+        errors,
+    )
 
-            const firstTokenIndex =
-                tokens.indexOf(openTokens[openTokens.length - 1]) + 1
-            const lastTokenIndex = tokens.indexOf(closeTokens[0]) - 1
+    if (conditionPatternTest) {
+        const boundaryCondition = conditionPatternTest.condition.find(
+            (e) => e instanceof AmbiguousFormulaBoundary,
+        )
+        if (boundaryCondition) {
+            return [boundaryCondition]
+        }
 
-            const errorRangeTokens = tokens.slice(
-                firstTokenIndex,
-                lastTokenIndex + 1,
-            )
+        const firstTokenIndex =
+            tokens.indexOf(
+                conditionPatternTest.openTokens[
+                    conditionPatternTest.openTokens.length - 1
+                ],
+            ) + 1
+        const lastTokenIndex = tokens.indexOf(closeTokens[0]) - 1
 
-            return [
-                new CannotUnderstandError({
-                    tokens: errorRangeTokens,
-                }),
-            ]
-        })
-        .otherwise(() => errors)
+        const errorRangeTokens = tokens.slice(
+            firstTokenIndex,
+            lastTokenIndex + 1,
+        )
+
+        return [
+            new CannotUnderstandError({
+                tokens: errorRangeTokens,
+            }),
+        ]
+    }
 
     return conditionErrors
 }

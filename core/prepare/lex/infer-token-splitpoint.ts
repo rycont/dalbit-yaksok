@@ -170,7 +170,7 @@ function inferSplitpointByLine(
 }
 
 function inferNameGroup(patternUnit: PatternUnit<Node>): [string[]] | [] {
-    if (!patternUnit.meta.isSuffix) {
+    if (!patternUnit.meta.isSuffix || !patternUnit.meta.nameOptions) {
         return []
     }
 

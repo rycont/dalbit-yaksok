@@ -1,5 +1,5 @@
 import { ChainShapeBase } from '@dalbit-yaksok/pattern'
-import { ChainShape, UpdateShape } from '../common.ts'
+import { ChainShape, Fallback, UpdateShape } from '../common.ts'
 import { MatchCondition } from './base.ts'
 import { Chain } from './index.ts'
 
@@ -10,14 +10,16 @@ export class ExistCondition extends MatchCondition {
         super()
     }
 
-    public static creater<C extends Chain<unknown, ChainShapeBase>>(chain: C) {
+    public static creater<const C extends Chain<unknown, ChainShapeBase>>(
+        chain: C,
+    ) {
         return <const ParentType>() => {
             return chain.pipe<
                 ParentType,
                 UpdateShape<
                     ChainShape<C>,
                     {
-                        Input: NonNullable<ChainShape<C>['Input']>
+                        Input: NonNullable<ParentType>
                     }
                 >
             >(new ExistCondition())

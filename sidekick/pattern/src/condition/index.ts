@@ -5,7 +5,7 @@ import { LiteralCondition } from './literal.ts'
 import { SelectCondition } from './select.ts'
 import { ListCondition } from './list.ts'
 import { ExistCondition } from './exist.ts'
-import { ChainShapeBase } from '../common.ts'
+import { ChainShapeBase, UpdateShape } from '../common.ts'
 import { SpaceCondition } from './space.ts'
 import { EnumCondition } from './enum.ts'
 
@@ -29,6 +29,18 @@ export class Chain<const R, const Shape extends ChainShapeBase> {
 
     public static type<const T>() {
         return new Chain<T, ChainShapeBase<T, unknown, unknown>>()
+    }
+
+    public meta<M>(content: M) {
+        return new Chain<
+            R,
+            UpdateShape<
+                Shape,
+                {
+                    Meta: Shape['Meta'] & M
+                }
+            >
+        >(this.paths, Object.assign({}, this.metaContent, content))
     }
 
     public static get [ExistCondition.methodName]() {

@@ -11,14 +11,11 @@ export type PatternUnit<Shape extends Node> = Matcher<
         unknown,
         unknown,
         {
-            classShape: new () => Shape
-        } & (
-            | undefined
-            | {
-                  isSuffix: boolean
-                  nameOptions: string[]
-              }
-        )
+            classShape: new (...args: any[]) => Shape
+        } & Partial<{
+            isSuffix: boolean
+            nameOptions: string[]
+        }>
     >
 >
 
@@ -28,9 +25,11 @@ export type PatternUnitChain<Shape extends Node> = Chain<
         unknown,
         unknown,
         {
-            classShape: Shape
-            isSuffix?: boolean
-        }
+            classShape: new (...args: any[]) => Shape
+        } & Partial<{
+            isSuffix: boolean
+            nameOptions: string[]
+        }>
     >
 >
 

@@ -5,6 +5,8 @@ import {
     ListLiteral,
     Node,
     ParameterElement,
+    PatternUnit,
+    PatternUnitChain,
     TooManyArgumentsError,
     TupleLiteral,
     YaksokError,
@@ -17,7 +19,7 @@ export function createCallingPattern(
     functionHeader: FunctionHeaderPart[],
     parameterScheme: ParameterElement[],
 ) {
-    const pattern = functionHeader.map((g) => {
+    const pattern = functionHeader.map((g): PatternUnitChain<Node> => {
         if (g.type === FunctionPartType.parameter) {
             return j.instance(Evaluable)
         }

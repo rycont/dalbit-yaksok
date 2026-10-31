@@ -79,4 +79,8 @@ export type ChainShape<C> = C extends Chain<unknown, infer U> ? U : never
 export type UpdateShape<
     Origin extends ChainShapeBase,
     New extends Partial<ChainShapeBase>,
-> = Omit<Origin, keyof New> & New
+> = {
+    Input: Fallback<New['Input'], Origin['Input']>
+    Select: Fallback<New['Select'], Origin['Select']>
+    Meta: Fallback<New['Meta'], Origin['Meta']>
+}
