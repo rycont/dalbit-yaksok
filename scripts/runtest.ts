@@ -2,28 +2,31 @@ import { Token, TOKEN_TYPE } from '@dalbit-yaksok/core'
 import { j } from '@dalbit-yaksok/pattern'
 
 const r = j.type<Token>().field({
-    type: j.select('예?'),
+    type: j.literal(TOKEN_TYPE.IDENTIFIER).select(),
+    value: j.select('id'),
 })
 
-const 번역Pattern = j.type<Token[]>().list([
-    j.field({
-        type: j.literal(TOKEN_TYPE.IDENTIFIER),
-        value: j.literal('번역'),
-    }),
-    j.field({
-        type: j.literal(TOKEN_TYPE.OPENING_PARENTHESIS),
-    }),
-    j.field({
-        value: j.select('runtime'),
-    }),
-    j.field({
-        type: j.literal(TOKEN_TYPE.CLOSING_PARENTHESIS),
-    }),
-    j
-        .field({
+const eventPattern = j
+    .type<Token[]>()
+    .list([
+        j.field({
+            type: j.literal(TOKEN_TYPE.IDENTIFIER),
+            value: j.literal('이벤트'),
+        }),
+        j.field({
+            type: j.literal(TOKEN_TYPE.OPENING_PARENTHESIS),
+        }),
+        j.field({
+            type: j.literal(TOKEN_TYPE.IDENTIFIER),
+            value: j.select('id'),
+        }),
+        j.field({
+            type: j.literal(TOKEN_TYPE.CLOSING_PARENTHESIS),
+        }),
+        j.field({
             type: j.literal(TOKEN_TYPE.COMMA),
-        })
-        .select('R'),
-    j.select('firstSignature'),
-    j.space().select('뭐시기'),
-])
+        }),
+        j.select('firstSignature'),
+        j.space(),
+    ])
+    .compile()

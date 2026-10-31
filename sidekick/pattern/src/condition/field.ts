@@ -1,4 +1,10 @@
-import { ChainShape, ChainShapeBase, MergeValues, signals } from '../common.ts'
+import {
+    ChainShape,
+    ChainShapeBase,
+    KeyPlaceholder,
+    MergeValues,
+    signals,
+} from '../common.ts'
 import { GlobalRequester, MatchCondition } from './base.ts'
 import type { Chain } from './index.ts'
 
@@ -50,13 +56,18 @@ export class FieldCondition extends MatchCondition {
                             EntryType[K]
                         >['Input']
                     }
-                    Meta: unknown
-                    Select: ChainShape<PrevChain>['Select'] &
-                        MergeValues<{
-                            [K in keyof EntryType]: ChainShape<
+                    Meta: ChainShape<PrevChain>['Meta']
+                    Select: {
+                        [
+                            K in keyof EntryType as unknown extends ChainShape<
                                 EntryType[K]
                             >['Select']
-                        }>
+                                ? never
+                                : K
+                        ]: ChainShape<EntryType[K]>['Select'][keyof ChainShape<
+                            EntryType[K]
+                        >['Select']]
+                    }
                 }
             >(new FieldCondition(entries))
         }

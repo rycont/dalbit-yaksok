@@ -15,21 +15,21 @@ export class ListCondition extends MatchCondition {
         super()
     }
 
-    static creater<
-        const C extends Chain<unknown[], ChainShapeBase<unknown>>,
-        ElementType = C extends Chain<infer U, ChainShapeBase>
-            ? U extends unknown[]
-                ? U[number]
-                : never
-            : never,
-    >(chain: C) {
+    static creater<const PrevChain extends Chain<unknown, ChainShapeBase>>(
+        chain: PrevChain,
+    ) {
         return <
-            const SubchainsType extends Chain<ElementType, ChainShapeBase>[],
+            const ParentType,
+            const InputType extends
+                (ChainShape<PrevChain>['Input'] extends unknown[]
+                    ? ChainShape<PrevChain>['Input'][number]
+                    : never),
+            const SubchainsType extends Chain<InputType, ChainShapeBase>[],
         >(
             subchains: SubchainsType,
         ) => {
             return chain.pipe<
-                ElementType[],
+                ParentType,
                 {
                     Input: {
                         [K in keyof SubchainsType]: ChainShape<
@@ -37,16 +37,12 @@ export class ListCondition extends MatchCondition {
                         >['Input']
                     }
                     Meta: unknown
-                    Select: Prettify<
-                        UnionToIntersection<
-                            {
-                                [K in keyof SubchainsType]: Fallback<
-                                    ChainShape<SubchainsType[K]>['Select'],
-                                    never
-                                >
-                            }[number]
+                    Select: {
+                        [K in keyof SubchainsType]: Fallback<
+                            ChainShape<SubchainsType[K]>['Select'],
+                            never
                         >
-                    >
+                    }
                 }
             >(new ListCondition(subchains))
         }

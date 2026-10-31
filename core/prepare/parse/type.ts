@@ -9,6 +9,7 @@ import {
 export type PatternUnit<Shape extends Node> = Matcher<
     ChainShapeBase<
         unknown,
+        unknown,
         {
             classShape: new () => Shape
         } & (
@@ -22,6 +23,7 @@ export type PatternUnit<Shape extends Node> = Matcher<
 >
 
 export type PatternUnitChain<Shape extends Node> = Chain<
+    unknown,
     ChainShapeBase<
         unknown,
         unknown,

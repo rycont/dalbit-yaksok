@@ -35,9 +35,7 @@ export class SelectCondition extends MatchCondition {
                 ParentType,
                 {
                     Select: {
-                        [
-                            K in T extends undefined ? KeyPlaceholder : T
-                        ]: InputShape
+                        [K in string extends T ? KeyPlaceholder : T]: InputShape
                     }
                     Input: InputShape
                     Meta: ChainShape<PrevChain>['Meta']
