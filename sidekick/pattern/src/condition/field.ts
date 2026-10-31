@@ -1,87 +1,50 @@
-import {
-    ChainShape,
-    ChainShapeBase,
-    KeyPlaceholder,
-    PlaceholderTraits,
-    Prettify,
-    signals,
-    TypePlaceholder,
-    UnionToIntersection,
-    UnpackTypePlaceholder,
-} from '../common.ts'
+import { ChainShape, ChainShapeBase, MergeValues, signals } from '../common.ts'
 import { GlobalRequester, MatchCondition } from './base.ts'
 import type { Chain } from './index.ts'
-
-type MergeValues<T> = UnionToIntersection<T[keyof T]>
-
-type SelectFromEntries<EntryType, OriginInput> = Prettify<
-    MergeValues<{
-        [
-            K in keyof EntryType as [unknown] extends ChainShape<
-                EntryType[K]
-            >['Select']
-                ? never
-                : K
-        ]: {
-            [
-                K2 in keyof ChainShape<
-                    EntryType[K]
-                >['Select'] as K2 extends KeyPlaceholder ? K : K2
-            ]: ChainShape<EntryType[K]>['Select'][K2] extends TypePlaceholder
-                ? UnpackTypePlaceholder<
-                      OriginInput extends { [key in K]: unknown }
-                          ? OriginInput[K]
-                          : never,
-                      PlaceholderTraits<ChainShape<EntryType[K]>['Select'][K2]>
-                  >
-                : ChainShape<EntryType[K]>['Select'][K2]
-        }
-    }>
->
-
-type EntriesFromChain<C> = {
-    [K in keyof Partial<ChainShape<C>['Input']>]: Chain<
-        unknown,
-        ChainShapeBase<{
-                  [
-                      K2 in keyof Partial<ChainShape<C>['Input'][K]>
-                  ]: ChainShape<C>['Input'][K][K2]
-              }
-        >
-    >
-}
-
-// type NewShapeFromEntries<R, Input, EntryType> = ChainShapeBase<
-//     {
-//         [
-//             K in keyof EntryType as unknown extends EntryType[K] ? never : K
-//         ]: ChainShape<EntryType[K]>['Input']
-//     },
-//     UnionToIntersection<SelectFromEntries<EntryType, Input>>,
-//     unknown,
-//     R
-// >
 
 export class FieldCondition extends MatchCondition {
     public static methodName = 'field' as const
 
     constructor(
-        private entries: Record<string, Chain<unknown, ChainShapeBase<unknown>>>,
+        private entries: Record<
+            string,
+            Chain<unknown, ChainShapeBase<unknown>>
+        >,
     ) {
         super()
     }
 
-    static creater<
-        const C extends Chain<unknown, ChainShapeBase<unknown, unknown, unknown, unknown>>,
-    >(chain: C) {
-        return <const RT, EntryType extends EntriesFromChain<C>>(entries: EntryType) => {
-            return chain.pipe<RT, {
-                Input: unknown,
-                Meta: unknown,
-                Select: unknown,
-                ParentInput: RT
-            }
-                // NewShapeFromEntries<R, ChainShape<C>['Input'], EntryType>
+    static creater<const C extends Chain<unknown, ChainShapeBase>>(chain: C) {
+        return <
+            const ParentType,
+            const EntryType extends {
+                [K in keyof Partial<ChainShape<C>['Input']>]: Chain<
+                    ChainShape<C>['Input'][K],
+                    ChainShapeBase
+                >
+            },
+            const _R extends (unknown extends ChainShape<C>['Input']
+                ? Chain<ParentType, ChainShapeBase<ParentType>>
+                : C),
+        >(
+            entries: EntryType,
+        ) => {
+            return chain.pipe<
+                ParentType,
+                {
+                    Input: ParentType & {
+                        [K in keyof EntryType]: ChainShape<
+                            EntryType[K]
+                        >['Input']
+                    }
+                    Meta: unknown
+                    Select: ChainShape<C>['Select'] &
+                        MergeValues<{
+                            [K in keyof EntryType]: ChainShape<
+                                EntryType[K]
+                            >['Select']
+                        }>
+                }
             >(new FieldCondition(entries))
         }
     }

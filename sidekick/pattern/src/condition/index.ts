@@ -19,10 +19,7 @@ export type Matcher<Shape extends ChainShapeBase> = {
     ) => Shape['Select'] | false
 }
 
-export class Chain<
-    const R,
-    const Shape extends ChainShapeBase<unknown, unknown, unknown, R>
-> {
+export class Chain<const R, const Shape extends ChainShapeBase> {
     declare private readonly _: Shape['Input']
 
     constructor(
@@ -30,8 +27,8 @@ export class Chain<
         private metaContent: unknown = {},
     ) {}
 
-    public static type<T>() {
-        return new Chain<T, ChainShapeBase<T, unknown, unknown, T>>()
+    public static type<const T>() {
+        return new Chain<T, ChainShapeBase<T, unknown, unknown>>()
     }
 
     public static get [ExistCondition.methodName]() {
@@ -55,7 +52,7 @@ export class Chain<
     }
 
     public get [FieldCondition.methodName]() {
-        return FieldCondition.creater(this)
+        return FieldCondition.creater(this as )
     }
 
     public static get [InstanceCondition.methodName]() {
@@ -98,7 +95,7 @@ export class Chain<
         return EnumCondition.creater(this)
     }
 
-    public pipe<const R, const NewShape extends ChainShapeBase<unknown, unknown, unknown, R>>(
+    public pipe<const R, const NewShape extends ChainShapeBase>(
         c: MatchCondition,
         m?: unknown,
     ) {

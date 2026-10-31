@@ -3,70 +3,51 @@ import { GlobalRequester, MatchCondition } from './base.ts'
 import {
     ChainShape,
     ChainShapeBase,
-    UpdateShape,
+    Fallback,
+    Prettify,
+    UnionToIntersection,
 } from '../common.ts'
 
 export class ListCondition extends MatchCondition {
     public static methodName = 'list' as const
 
-    constructor(public subchains: Chain<unknown, ChainShapeBase<unknown>>[]) {
+    constructor(public subchains: Chain<unknown, ChainShapeBase>[]) {
         super()
     }
 
-    static creater<const R, const C extends Chain<R[], ChainShapeBase<R[], unknown, unknown, R[]>>>(
-        chain: C,
-    ) {
+    static creater<
+        const C extends Chain<unknown[], ChainShapeBase<unknown>>,
+        ElementType = C extends Chain<infer U, ChainShapeBase>
+            ? U extends unknown[]
+                ? U[number]
+                : never
+            : never,
+    >(chain: C) {
         return <
-            const Subchains extends Chain<
-                RS,
-                ChainShapeBase<
-                    unknown,
-                    unknown,
-                    unknown,
-                    RS
-                >
-            >[],
-            const RS = ChainShape<C>['Input'][number],
+            const SubchainsType extends Chain<ElementType, ChainShapeBase>[],
         >(
-            subchains: Subchains,
+            subchains: SubchainsType,
         ) => {
             return chain.pipe<
-                UpdateShape<
-                    ChainShape<C>,
-                    {
-                        Input: {
-                            [K in keyof Subchains]:  ChainShape<Subchains[K]>['Input']
-                        }
-                        // Select: Prettify<
-                        //     UnionToIntersection<
-                        //         {
-                        //             [K in keyof Subchains]: {
-                        //                 [
-                        //                     K2 in keyof ChainShape<
-                        //                         Subchains[K]
-                        //                     >['Select'] as K2 extends KeyPlaceholder
-                        //                         ? K
-                        //                         : K2
-                        //                 ]: ChainShape<
-                        //                     Subchains[K]
-                        //                 >['Select'][K2] extends TypePlaceholder
-                        //                     ? UnpackTypePlaceholder<
-                        //                           ChainShape<C>['Input'][number],
-                        //                           PlaceholderTraits<
-                        //                               ChainShape<
-                        //                                   Subchains[K]
-                        //                               >['Select'][K2]
-                        //                           >
-                        //                       >
-                        //                     : ChainShape<
-                        //                           Subchains[K]
-                        //                       >['Select'][K2]
-                        //             }
-                        //         }[number]
-                        //     >
-                        // >
+                ElementType[],
+                {
+                    Input: {
+                        [K in keyof SubchainsType]: ChainShape<
+                            SubchainsType[K]
+                        >['Input']
                     }
-                >
+                    Meta: unknown
+                    Select: Prettify<
+                        UnionToIntersection<
+                            {
+                                [K in keyof SubchainsType]: Fallback<
+                                    ChainShape<SubchainsType[K]>['Select'],
+                                    never
+                                >
+                            }[number]
+                        >
+                    >
+                }
             >(new ListCondition(subchains))
         }
     }

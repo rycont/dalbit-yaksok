@@ -1,4 +1,4 @@
-import { UpdateShape, ChainShape, ChainShapeBase } from '../common.ts'
+import { ChainShapeBase } from '../common.ts'
 import { GlobalRequester, MatchCondition } from './base.ts'
 import { Chain } from './index.ts'
 
@@ -9,17 +9,17 @@ export class LiteralCondition extends MatchCondition {
         super()
     }
 
-    static creater<C extends Chain<ChainShapeBase<unknown>>>(chain: C) {
+    static creater<C extends Chain<unknown, ChainShapeBase>>(chain: C) {
         return <InputLiteral extends string | number | boolean>(
             literal: InputLiteral,
         ) => {
             return chain.pipe<
-                UpdateShape<
-                    ChainShape<C>,
-                    {
-                        Input: ChainShape<C>['Input'] & InputLiteral
-                    }
-                >
+                unknown,
+                {
+                    Input: InputLiteral
+                    Meta: unknown
+                    Select: unknown
+                }
             >(new LiteralCondition(literal))
         }
     }

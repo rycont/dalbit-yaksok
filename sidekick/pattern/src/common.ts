@@ -1,5 +1,7 @@
 import type { Chain } from '@dalbit-yaksok/pattern'
 
+export type MergeValues<T> = UnionToIntersection<T[keyof T]>
+
 export type UnionToIntersection<T> = (
     T extends any ? (x: T) => any : never
 ) extends (x: infer R) => any
@@ -66,12 +68,10 @@ export interface ChainShapeBase<
     InputShape = unknown,
     SelectShape = unknown,
     MetaShape = unknown,
-    ParentInputShape = unknown
 > {
     Input: InputShape
     Select: SelectShape
     Meta: MetaShape
-    ParentInput: ParentInputShape
 }
 
 export type ChainShape<C> = C extends Chain<unknown, infer U> ? U : never
@@ -79,4 +79,4 @@ export type ChainShape<C> = C extends Chain<unknown, infer U> ? U : never
 export type UpdateShape<
     Origin extends ChainShapeBase,
     New extends Partial<ChainShapeBase>,
-> = Prettify<Omit<Origin, keyof New> & New>
+> = Omit<Origin, keyof New> & New
