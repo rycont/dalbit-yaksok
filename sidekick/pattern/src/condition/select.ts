@@ -18,23 +18,30 @@ export class SelectCondition extends MatchCondition {
         super()
     }
 
-    static creater<const C extends Chain<unknown, ChainShapeBase>>(chain: C) {
-        return <const ParentType, T extends string>(
+    static creater<const PrevChain extends Chain<unknown, ChainShapeBase>>(
+        chain: PrevChain,
+    ) {
+        return <
+            const ParentType,
+            const C extends (unknown extends ChainShape<PrevChain>['Input']
+                ? Chain<ParentType, ChainShapeBase<ParentType>>
+                : PrevChain),
+            T extends string,
+        >(
             name?: T,
             refine?: () => unknown,
         ) => {
             return chain.pipe<
                 ParentType,
-                UpdateShape<
-                    ChainShape<C>,
-                    {
-                        Select: {
-                            [
-                                K in T extends undefined ? KeyPlaceholder : T
-                            ]: ChainShape<C>['Input']
-                        }
+                {
+                    Select: {
+                        [
+                            K in T extends undefined ? KeyPlaceholder : T
+                        ]: ChainShape<C>['Input']
                     }
-                >
+                    Input: ChainShape<C>['Input']
+                    Meta: ChainShape<C>['Meta']
+                }
             >(new SelectCondition(name, refine))
         }
     }

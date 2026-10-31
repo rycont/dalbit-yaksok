@@ -52,7 +52,7 @@ export class Chain<const R, const Shape extends ChainShapeBase> {
     }
 
     public get [FieldCondition.methodName]() {
-        return FieldCondition.creater(this as )
+        return FieldCondition.creater(this)
     }
 
     public static get [InstanceCondition.methodName]() {

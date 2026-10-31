@@ -14,25 +14,27 @@ export class FieldCondition extends MatchCondition {
         super()
     }
 
-    static creater<const C extends Chain<unknown, ChainShapeBase>>(chain: C) {
+    static creater<const PrevChain extends Chain<unknown, ChainShapeBase>>(
+        chain: PrevChain,
+    ) {
         return <
             const ParentType,
+            const C extends (unknown extends ChainShape<PrevChain>['Input']
+                ? Chain<ParentType, ChainShapeBase<ParentType>>
+                : PrevChain),
             const EntryType extends {
                 [K in keyof Partial<ChainShape<C>['Input']>]: Chain<
                     ChainShape<C>['Input'][K],
                     ChainShapeBase
                 >
             },
-            const _R extends (unknown extends ChainShape<C>['Input']
-                ? Chain<ParentType, ChainShapeBase<ParentType>>
-                : C),
         >(
             entries: EntryType,
         ) => {
             return chain.pipe<
                 ParentType,
                 {
-                    Input: ParentType & {
+                    Input: ChainShape<C>['Input'] & {
                         [K in keyof EntryType]: ChainShape<
                             EntryType[K]
                         >['Input']

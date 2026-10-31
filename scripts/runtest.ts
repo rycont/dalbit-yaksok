@@ -15,7 +15,7 @@ const 번역Pattern = j.type<Token[]>().list([
     }),
     j.field({
         value: j.select('runtime'),
-        inm: j.select('ir'),
+        // inm: j.select('ir'),
     }),
     j.field({
         type: j.literal(TOKEN_TYPE.CLOSING_PARENTHESIS),

@@ -10,11 +10,14 @@ export class LiteralCondition extends MatchCondition {
     }
 
     static creater<C extends Chain<unknown, ChainShapeBase>>(chain: C) {
-        return <InputLiteral extends string | number | boolean>(
+        return <
+            const ParentType,
+            InputLiteral extends string | number | boolean,
+        >(
             literal: InputLiteral,
         ) => {
             return chain.pipe<
-                unknown,
+                ParentType,
                 {
                     Input: InputLiteral
                     Meta: unknown
