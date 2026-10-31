@@ -4,7 +4,6 @@ import {
     ChainShapeBase,
     KeyPlaceholder,
     signals,
-    UpdateShape,
 } from '../common.ts'
 import { GlobalRequester, MatchCondition } from './base.ts'
 
@@ -23,9 +22,10 @@ export class SelectCondition extends MatchCondition {
     ) {
         return <
             const ParentType,
-            const C extends (unknown extends ChainShape<PrevChain>['Input']
-                ? Chain<ParentType, ChainShapeBase<ParentType>>
-                : PrevChain),
+            const InputShape extends
+                (unknown extends ChainShape<PrevChain>['Input']
+                    ? ParentType
+                    : ChainShape<PrevChain>['Input']),
             T extends string,
         >(
             name?: T,
@@ -37,10 +37,10 @@ export class SelectCondition extends MatchCondition {
                     Select: {
                         [
                             K in T extends undefined ? KeyPlaceholder : T
-                        ]: ChainShape<C>['Input']
+                        ]: InputShape
                     }
-                    Input: ChainShape<C>['Input']
-                    Meta: ChainShape<C>['Meta']
+                    Input: InputShape
+                    Meta: ChainShape<PrevChain>['Meta']
                 }
             >(new SelectCondition(name, refine))
         }

@@ -1,3 +1,4 @@
+import { ChainShapeBase } from '@dalbit-yaksok/pattern'
 import { ChainShape, ClassType, UpdateShape } from '../common.ts'
 import { GlobalRequester, MatchCondition } from './base.ts'
 import { Chain } from './index.ts'
@@ -9,11 +10,12 @@ export class InstanceCondition extends MatchCondition {
         super()
     }
 
-    static creater<C extends Chain>(chain: C) {
-        return <InputClassType extends ClassType>(
+    static creater<C extends Chain<unknown, ChainShapeBase>>(chain: C) {
+        return <const ParentType, InputClassType extends ClassType>(
             classType: InputClassType,
         ) => {
             return chain.pipe<
+                ParentType,
                 UpdateShape<
                     ChainShape<C>,
                     {

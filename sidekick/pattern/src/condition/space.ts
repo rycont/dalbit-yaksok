@@ -1,5 +1,6 @@
 import { Chain, ChainShapeBase } from '@dalbit-yaksok/pattern'
 import { MatchCondition } from './base.ts'
+import { ChainShape } from '../common.ts'
 export class SpaceCondition extends MatchCondition {
     public static methodName = 'space' as const
 
@@ -7,11 +8,20 @@ export class SpaceCondition extends MatchCondition {
         return ''
     }
 
-    static creater<C extends Chain<unknown, ChainShapeBase<unknown>>>(chain: C) {
-        return <const R>() => {
-            return chain.pipe<ChainShapeBase<unknown, unknown, unknown, R>>(
-                new SpaceCondition(),
-            )
+    static creater<
+        const PrevChain extends Chain<unknown, ChainShapeBase<unknown>>,
+    >(chain: PrevChain) {
+        return <
+            const ParentType,
+            const InputShape extends
+                (ChainShapeBase extends ChainShape<PrevChain>
+                    ? ParentType
+                    : ChainShape<PrevChain>['Input']),
+        >() => {
+            return chain.pipe<
+                ParentType,
+                ChainShapeBase<InputShape[], unknown, unknown>
+            >(new SpaceCondition())
         }
     }
 }

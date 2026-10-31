@@ -1,5 +1,6 @@
+import { ChainShapeBase } from '@dalbit-yaksok/pattern'
 import { ChainShape, UpdateShape } from '../common.ts'
-import { GlobalRequester, MatchCondition } from './base.ts'
+import { MatchCondition } from './base.ts'
 import { Chain } from './index.ts'
 
 export class ExistCondition extends MatchCondition {
@@ -9,9 +10,10 @@ export class ExistCondition extends MatchCondition {
         super()
     }
 
-    public static creater<C extends Chain>(chain: C) {
-        return () => {
+    public static creater<C extends Chain<unknown, ChainShapeBase>>(chain: C) {
+        return <const ParentType>() => {
             return chain.pipe<
+                ParentType,
                 UpdateShape<
                     ChainShape<C>,
                     {
@@ -22,10 +24,7 @@ export class ExistCondition extends MatchCondition {
         }
     }
 
-    public override createStatement(
-        accessor: string,
-        requester: GlobalRequester,
-    ): string {
+    public override createStatement(accessor: string): string {
         const statement = `if(!${accessor}) {
     return false
 }`

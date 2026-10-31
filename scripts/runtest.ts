@@ -1,8 +1,8 @@
 import { Token, TOKEN_TYPE } from '@dalbit-yaksok/core'
-import { ChainShapeBase, j } from '@dalbit-yaksok/pattern'
+import { j } from '@dalbit-yaksok/pattern'
 
-const r = new j<Token, ChainShapeBase>().field({
-    type: j.literal(TOKEN_TYPE.CLOSING_PARENTHESIS).select(),
+const r = j.type<Token>().field({
+    type: j.select('예?'),
 })
 
 const 번역Pattern = j.type<Token[]>().list([
@@ -15,7 +15,6 @@ const 번역Pattern = j.type<Token[]>().list([
     }),
     j.field({
         value: j.select('runtime'),
-        // inm: j.select('ir'),
     }),
     j.field({
         type: j.literal(TOKEN_TYPE.CLOSING_PARENTHESIS),
@@ -25,6 +24,6 @@ const 번역Pattern = j.type<Token[]>().list([
             type: j.literal(TOKEN_TYPE.COMMA),
         })
         .select('R'),
-    // j.select('firstSignature'),
-    // j.space().select('뭐시기'),
+    j.select('firstSignature'),
+    j.space().select('뭐시기'),
 ])

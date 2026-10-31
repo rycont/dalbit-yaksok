@@ -19,28 +19,39 @@ export class FieldCondition extends MatchCondition {
     ) {
         return <
             const ParentType,
-            const C extends (unknown extends ChainShape<PrevChain>['Input']
-                ? Chain<ParentType, ChainShapeBase<ParentType>>
-                : PrevChain),
-            const EntryType extends {
-                [K in keyof Partial<ChainShape<C>['Input']>]: Chain<
-                    ChainShape<C>['Input'][K],
-                    ChainShapeBase
-                >
-            },
+            const EntryType extends
+                (ChainShapeBase extends ChainShape<PrevChain>
+                    ? {
+                          [K in keyof Partial<ParentType>]: Chain<
+                              ParentType[K],
+                              ChainShapeBase
+                          >
+                      }
+                    : {
+                          [
+                              K in keyof Partial<ChainShape<PrevChain>['Input']>
+                          ]: Chain<
+                              ChainShape<PrevChain>['Input'][K],
+                              ChainShapeBase
+                          >
+                      }),
+            const InputShape extends
+                (ChainShapeBase extends ChainShape<PrevChain>
+                    ? ParentType
+                    : ChainShape<PrevChain>['Input']),
         >(
             entries: EntryType,
         ) => {
             return chain.pipe<
                 ParentType,
                 {
-                    Input: ChainShape<C>['Input'] & {
+                    Input: InputShape & {
                         [K in keyof EntryType]: ChainShape<
                             EntryType[K]
                         >['Input']
                     }
                     Meta: unknown
-                    Select: ChainShape<C>['Select'] &
+                    Select: ChainShape<PrevChain>['Select'] &
                         MergeValues<{
                             [K in keyof EntryType]: ChainShape<
                                 EntryType[K]
