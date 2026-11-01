@@ -54,7 +54,15 @@ export type UnpackTypePlaceholder<
       ? UnpackTypePlaceholder<ApplyTrait<FirstTrait, V>, Left>
       : never
 
-export type Fallback<T, Fallbacked> = [unknown] extends T ? Fallbacked : T
+export type ResolvePlaceholder<MaybeTypePlaceholder, InputType> =
+    MaybeTypePlaceholder extends TypePlaceholder
+        ? UnpackTypePlaceholder<
+              InputType,
+              PlaceholderTraits<MaybeTypePlaceholder>
+          >
+        : InputType
+
+export type Fallback<T, Fallbacked> = [unknown] extends [T] ? Fallbacked : T
 
 export type KeyPlaceholder = symbol & {
     _type: 'key_placeholder'

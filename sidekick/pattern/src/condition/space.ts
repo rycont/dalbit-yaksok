@@ -21,7 +21,9 @@ export class SpaceCondition extends MatchCondition {
             return chain.pipe<
                 ParentType,
                 ChainShapeBase<InputShape[], unknown, unknown>
-            >(new SpaceCondition())
+            >(new SpaceCondition(), {
+                spread: true,
+            })
         }
     }
 }

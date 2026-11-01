@@ -1,5 +1,10 @@
 import { ChainShapeBase } from '@dalbit-yaksok/pattern'
-import { ChainShape, Fallback, UpdateShape } from '../common.ts'
+import {
+    ChainShape,
+    TypePlaceholder,
+    UpdateShape,
+    ValueTraits,
+} from '../common.ts'
 import { MatchCondition } from './base.ts'
 import { Chain } from './index.ts'
 
@@ -19,7 +24,7 @@ export class ExistCondition extends MatchCondition {
                 UpdateShape<
                     ChainShape<C>,
                     {
-                        Input: NonNullable<ParentType>
+                        Input: TypePlaceholder<[ValueTraits['exists']]>
                     }
                 >
             >(new ExistCondition())

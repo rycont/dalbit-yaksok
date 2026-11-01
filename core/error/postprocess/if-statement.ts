@@ -1,14 +1,11 @@
-import {
-    AmbiguousFormulaBoundary,
-    CannotUnderstandError,
-    NotDefinedIdentifierError,
-    TOKEN_TYPE,
-} from '@dalbit-yaksok/core'
+import { TOKEN_TYPE } from '@dalbit-yaksok/core'
 
-import { Processor } from './type.ts'
+import type { Processor } from './type.ts'
 import { blue, bold } from '../../util/terminal.ts'
 import { j } from '@dalbit-yaksok/pattern'
 import { YaksokError } from '../index.ts'
+import { NotDefinedIdentifierError } from '../variable.ts'
+import { AmbiguousFormulaBoundary, CannotUnderstandError } from '../prepare.ts'
 
 const statementFormPattern = j
     .list([
@@ -116,7 +113,8 @@ export const prettifyBrokenIf: Processor = (errors, tokens) => {
                     conditionPatternTest.openTokens.length - 1
                 ],
             ) + 1
-        const lastTokenIndex = tokens.indexOf(closeTokens[0]) - 1
+        const lastTokenIndex =
+            tokens.indexOf(conditionPatternTest.closeTokens[0]) - 1
 
         const errorRangeTokens = tokens.slice(
             firstTokenIndex,
@@ -130,5 +128,5 @@ export const prettifyBrokenIf: Processor = (errors, tokens) => {
         ]
     }
 
-    return conditionErrors
+    return errors
 }

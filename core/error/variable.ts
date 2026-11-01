@@ -1,6 +1,6 @@
 import { YaksokError } from './common.ts'
 
-import { Node, Scope, Token } from '@dalbit-yaksok/core'
+import type { Node, Scope, Token } from '@dalbit-yaksok/core'
 import { bold, blue } from '../util/terminal.ts'
 
 export class NotProperIdentifierNameToDefineError extends YaksokError {

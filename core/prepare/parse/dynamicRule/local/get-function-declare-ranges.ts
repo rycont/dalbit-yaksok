@@ -83,6 +83,7 @@ const eventPattern = j
 
 function jMatch(line: Token[]) {
     const yaksokPatternTest = yaksokPattern.func(yaksokPattern.id, line)
+    console.log({ line })
 
     if (yaksokPatternTest) {
         return {
@@ -178,6 +179,8 @@ export function getDeclareSignature(tokens: Token[]): FunctionDeclareRange[] {
             return range
         },
     )
+
+    console.log(signatures)
 
     return signatures
 }

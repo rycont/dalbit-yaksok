@@ -4,8 +4,6 @@ import {
     ChainShape,
     ChainShapeBase,
     Fallback,
-    MergeValues,
-    Prettify,
     UnionToIntersection,
 } from '../common.ts'
 

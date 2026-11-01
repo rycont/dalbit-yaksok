@@ -3,6 +3,8 @@ import {
     ChainShapeBase,
     KeyPlaceholder,
     MergeValues,
+    Prettify,
+    ResolvePlaceholder,
     signals,
 } from '../common.ts'
 import { GlobalRequester, MatchCondition } from './base.ts'
@@ -51,15 +53,21 @@ export class FieldCondition extends MatchCondition {
             return chain.pipe<
                 ParentType,
                 {
-                    Input: InputShape & {
-                        [K in keyof EntryType]: ChainShape<
-                            EntryType[K]
-                        >['Input']
-                    }
+                    Input: Prettify<
+                        Omit<InputShape, keyof EntryType> & {
+                            [
+                                K in keyof EntryType & keyof InputShape
+                            ]: ResolvePlaceholder<
+                                ChainShape<EntryType[K]>['Input'],
+                                InputShape[K]
+                            >
+                        }
+                    >
                     Meta: ChainShape<PrevChain>['Meta']
                     Select: {
                         [
-                            K in keyof EntryType as unknown extends ChainShape<
+                            K in keyof EntryType &
+                                keyof InputShape as unknown extends ChainShape<
                                 EntryType[K]
                             >['Select']
                                 ? never
@@ -68,9 +76,12 @@ export class FieldCondition extends MatchCondition {
                                     >['Select']
                                   ? K
                                   : keyof ChainShape<EntryType[K]>['Select']
-                        ]: ChainShape<EntryType[K]>['Select'][keyof ChainShape<
-                            EntryType[K]
-                        >['Select']]
+                        ]: ResolvePlaceholder<
+                            ChainShape<EntryType[K]>['Select'][keyof ChainShape<
+                                EntryType[K]
+                            >['Select']],
+                            InputShape[K]
+                        >
                     }
                 }
             >(new FieldCondition(entries))

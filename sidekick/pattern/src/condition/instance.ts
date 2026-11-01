@@ -26,7 +26,9 @@ export class InstanceCondition extends MatchCondition {
                         }
                     }
                 >
-            >(new InstanceCondition(classType))
+            >(new InstanceCondition(classType), {
+                classShape: classType,
+            })
         }
     }
 
