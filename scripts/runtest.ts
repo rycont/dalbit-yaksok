@@ -1,4 +1,4 @@
-import { Token, TOKEN_TYPE, YaksokSession } from '@dalbit-yaksok/core'
+import { Token, TOKEN_TYPE } from '@dalbit-yaksok/core'
 import { j } from '@dalbit-yaksok/pattern'
 //
 // await new YaksokSession().addModule(

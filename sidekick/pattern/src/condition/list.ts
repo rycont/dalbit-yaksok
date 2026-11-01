@@ -16,7 +16,35 @@ export class ListCondition extends MatchCondition {
 
     static creater<const PrevChain extends Chain<unknown, ChainShapeBase>>(
         chain: PrevChain,
-    ) {
+    ): <
+        const ParentType,
+        const SubchainsType extends Chain<
+            ChainShape<PrevChain>['Input'] extends unknown[]
+                ? ChainShape<PrevChain>['Input'][number]
+                : never,
+            ChainShapeBase
+        >[],
+    >(
+        subchains: SubchainsType,
+    ) => Chain<
+        ParentType,
+        {
+            Input: {
+                [K in keyof SubchainsType]: ChainShape<
+                    SubchainsType[K]
+                >['Input']
+            }
+            Meta: unknown
+            Select: UnionToIntersection<
+                {
+                    [K in keyof SubchainsType]: Fallback<
+                        ChainShape<SubchainsType[K]>['Select'],
+                        never
+                    >
+                }[number]
+            >
+        }
+    > {
         return <
             const ParentType,
             const SubchainsType extends Chain<

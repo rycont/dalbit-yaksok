@@ -9,7 +9,18 @@ export class LiteralCondition extends MatchCondition {
         super()
     }
 
-    static creater<const C extends Chain<unknown, ChainShapeBase>>(chain: C) {
+    static creater<const C extends Chain<unknown, ChainShapeBase>>(
+        chain: C,
+    ): <const ParentType, InputLiteral extends string | number | boolean>(
+        literal: InputLiteral,
+    ) => Chain<
+        ParentType,
+        {
+            Input: InputLiteral
+            Meta: unknown
+            Select: unknown
+        }
+    > {
         return <
             const ParentType,
             InputLiteral extends string | number | boolean,

@@ -5,7 +5,7 @@ import { LiteralCondition } from './literal.ts'
 import { SelectCondition } from './select.ts'
 import { ListCondition } from './list.ts'
 import { ExistCondition } from './exist.ts'
-import { ChainShapeBase, UpdateShape } from '../common.ts'
+import { ChainShape, ChainShapeBase, UpdateShape } from '../common.ts'
 import { SpaceCondition } from './space.ts'
 import { EnumCondition } from './enum.ts'
 
@@ -91,7 +91,10 @@ export class Chain<const R, const Shape extends ChainShapeBase> {
         return ListCondition.creater(this)
     }
 
-    public static get [SpaceCondition.methodName]() {
+    public static get [SpaceCondition.methodName](): <
+        const ParentType,
+        const InputShape extends ParentType,
+    >() => Chain<ParentType, ChainShapeBase<InputShape[], unknown, unknown>> {
         return new Chain().space
     }
 
@@ -99,18 +102,44 @@ export class Chain<const R, const Shape extends ChainShapeBase> {
         return SpaceCondition.creater(this)
     }
 
-    public static get [EnumCondition.methodName]() {
+    public static get [EnumCondition.methodName](): <
+        const ParentType,
+        const Options extends string[],
+    >(
+        options: Options,
+    ) => Chain<
+        ParentType,
+        UpdateShape<
+            ChainShapeBase<unknown, unknown, unknown>,
+            {
+                Input: Options[number]
+            }
+        >
+    > {
         return new Chain().enum
     }
 
-    public get [EnumCondition.methodName]() {
+    public get [EnumCondition.methodName](): <
+        const ParentType,
+        const Options extends string[],
+    >(
+        options: Options,
+    ) => Chain<
+        ParentType,
+        UpdateShape<
+            ChainShape<this>,
+            {
+                Input: Options[number]
+            }
+        >
+    > {
         return EnumCondition.creater(this)
     }
 
     public pipe<const R, const NewShape extends ChainShapeBase>(
         c: MatchCondition,
         m?: unknown,
-    ) {
+    ): Chain<R, NewShape> {
         return new Chain<R, NewShape>(
             this.paths.concat(c),
             Object.assign({}, this.metaContent, m),

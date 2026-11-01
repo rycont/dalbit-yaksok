@@ -10,7 +10,22 @@ export class InstanceCondition extends MatchCondition {
         super()
     }
 
-    static creater<C extends Chain<unknown, ChainShapeBase>>(chain: C) {
+    static creater<C extends Chain<unknown, ChainShapeBase>>(
+        chain: C,
+    ): <const ParentType, InputClassType extends ClassType>(
+        classType: InputClassType,
+    ) => Chain<
+        ParentType,
+        UpdateShape<
+            ChainShape<C>,
+            {
+                Input: ChainShape<C>['Input'] & InstanceType<InputClassType>
+                Meta: ChainShape<C>['Meta'] & {
+                    classShape: InputClassType
+                }
+            }
+        >
+    > {
         return <const ParentType, InputClassType extends ClassType>(
             classType: InputClassType,
         ) => {

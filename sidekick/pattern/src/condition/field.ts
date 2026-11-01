@@ -2,7 +2,6 @@ import {
     ChainShape,
     ChainShapeBase,
     KeyPlaceholder,
-    MergeValues,
     Prettify,
     ResolvePlaceholder,
     signals,

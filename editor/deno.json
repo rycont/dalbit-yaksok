@@ -1,6 +1,6 @@
 {
     "name": "@dalbit-yaksok/editor",
-    "version": "7.0.0",
+    "version": "7.1.0",
     "exports": "./src/index.ts",
     "compilerOptions": {
         "strict": true,

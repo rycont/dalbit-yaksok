@@ -5,7 +5,6 @@ import {
     ListLiteral,
     Node,
     ParameterElement,
-    PatternUnit,
     PatternUnitChain,
     TooManyArgumentsError,
     TupleLiteral,
