@@ -1,8 +1,8 @@
 {
-  "name": "docs",
-  "version": "7.1.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vp dev"
-  }
+    "name": "docs",
+    "version": "7.1.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vp dev"
+    }
 }

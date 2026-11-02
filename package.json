@@ -1,21 +1,21 @@
 {
-  "name": "dalbit-yaksok",
-  "version": "7.1.0",
-  "license": "MIT",
-  "devEngines": {
-    "packageManager": {
-      "name": "pnpm",
-      "version": "12.16.1",
-      "onFail": "download"
+    "name": "dalbit-yaksok",
+    "version": "7.1.0",
+    "license": "MIT",
+    "devEngines": {
+        "packageManager": {
+            "name": "pnpm",
+            "version": "12.16.1",
+            "onFail": "download"
+        }
+    },
+    "packageManager": "pnpm@12.16.1",
+    "type": "module",
+    "scripts": {
+        "editor": "vp run @dalbit-yaksok/editor#dev",
+        "doc": "vp run @dalbit-yaksok/docs#dev"
+    },
+    "devDependencies": {
+        "vite-plus": "catalog:"
     }
-  },
-  "packageManager": "pnpm@12.16.1",
-  "type": "module",
-  "scripts": {
-    "editor": "vp run @dalbit-yaksok/editor#dev",
-    "doc": "vp run @dalbit-yaksok/docs#dev"
-  },
-  "devDependencies": {
-    "vite-plus": "catalog:"
-  }
 }
