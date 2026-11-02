@@ -1,0 +1,21 @@
+{
+  "name": "dalbit-yaksok",
+  "version": "7.1.0",
+  "license": "MIT",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.16.1",
+      "onFail": "download"
+    }
+  },
+  "packageManager": "pnpm@12.16.1",
+  "type": "module",
+  "dependencies": {
+    "@dalbit-yaksok/core": "workspace:*",
+    "@dalbit-yaksok/pattern": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}

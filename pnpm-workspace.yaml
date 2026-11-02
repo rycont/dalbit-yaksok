@@ -1,0 +1,12 @@
+packages:
+  - editor
+  - docs
+  - core/
+  - test
+  - exts/quickjs
+  - exts/math
+  - exts/statistics
+  - sidekick/pattern/
+  - packages/*
+catalog:
+  vite-plus: 1.4.0

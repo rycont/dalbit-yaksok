@@ -1,6 +1,0 @@
-{
-    "version": "7.1.0",
-    "name": "@dalbit-yaksok/statistics",
-    "exports": "./mod.ts",
-    "imports": {}
-}

@@ -1,0 +1,6 @@
+{
+  "name": "@dalbit-yaksok/core",
+  "version": "7.1.0",
+  "type": "module",
+  "exports": "./mod.ts"
+}
