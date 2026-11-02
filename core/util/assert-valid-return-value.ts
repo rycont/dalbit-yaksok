@@ -1,7 +1,8 @@
-import { FFIResultTypeIsNotForYaksokError } from '../error/ffi.ts'
-
-import { Token } from '../prepare/tokenize/token.ts'
-import { ValueType } from '../value/base.ts'
+import {
+    FFIResultTypeIsNotForYaksokError,
+    Token,
+    ValueType,
+} from '@dalbit-yaksok/core'
 
 export function assertValidReturnValue(
     value: ValueType,

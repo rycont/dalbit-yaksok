@@ -1,5 +1,4 @@
-import type { Token } from '../prepare/tokenize/token.ts'
-import { ValueType } from '../value/base.ts'
+import { Token, ValueType } from '@dalbit-yaksok/core'
 
 export class Signal {
     constructor(public tokens: Token[]) {}

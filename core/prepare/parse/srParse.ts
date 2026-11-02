@@ -5,11 +5,11 @@ import {
     Formula,
     Identifier,
     Node,
-    Rule,
+    type Rule,
+    RESERVED_WORDS,
+    getTokensFromNodes,
 } from '@dalbit-yaksok/core'
 
-import { RESERVED_WORDS } from '../../constant/reserved-words.ts'
-import { getTokensFromNodes } from '../../util/merge-tokens.ts'
 import { BASIC_RULES, ADVANCED_RULES } from './rule/index.ts'
 import { Ruleset } from './ruleset.ts'
 import { NotAcceptableSignal } from './signal.ts'

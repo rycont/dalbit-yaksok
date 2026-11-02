@@ -1,10 +1,12 @@
-import { YaksokError } from '../error/common.ts'
-import { CannotParseError } from '../error/index.ts'
-import { Executable, type Node } from './base.ts'
-import { EOL } from './misc.ts'
-
-import type { Scope } from '../executer/scope.ts'
-import type { Token } from '../prepare/tokenize/token.ts'
+import {
+    CannotParseError,
+    YaksokError,
+    Scope,
+    type Token,
+    Executable,
+    type Node,
+    EOL,
+} from '@dalbit-yaksok/core'
 
 export class Block extends Executable<Node[]> {
     static override friendlyName = '코드 덩어리'

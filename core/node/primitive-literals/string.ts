@@ -1,14 +1,15 @@
 import {
     Evaluable,
     Expression,
+    NotAcceptableSignal,
     PlusOperator,
     Scope,
     StringValue,
     Token,
+    UnexpectedCharError,
     ValueType,
+    YaksokError,
 } from '@dalbit-yaksok/core'
-import { NotAcceptableSignal } from '../../prepare/parse/signal.ts'
-import { UnexpectedCharError, YaksokError } from '../../error/index.ts'
 
 export class StringStaticPart extends Expression {
     static override friendlyName = '문자'
@@ -55,7 +56,7 @@ export class StringPartSequence extends Evaluable<
         const parts = await Promise.all(
             this.subnode.slice(1, -1).map((n) => {
                 if (n instanceof StringStaticPart) {
-                    return new StringValue(n.value)
+                    return Promise.resolve(new StringValue(n.value))
                 }
 
                 return n.execute(scope)
@@ -63,8 +64,8 @@ export class StringPartSequence extends Evaluable<
         )
 
         const result = parts.reduce<Promise<ValueType>>(
-            (acc, current) => {
-                return new PlusOperator([]).call(
+            async (acc, current) => {
+                return await new PlusOperator([]).call(
                     () => Promise.resolve(acc),
                     () => Promise.resolve(current.toStringValue()),
                 )

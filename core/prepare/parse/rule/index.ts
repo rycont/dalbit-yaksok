@@ -1,5 +1,6 @@
 import {
     AndOperator,
+    ASSIGNERS,
     Block,
     BooleanLiteral,
     Break,
@@ -56,10 +57,9 @@ import { DICT_RULES } from './dict.ts'
 import { LIST_LOOP_RULES } from './list-loop.ts'
 import { STRING_RULES } from './template-string.ts'
 import { FUNCTION_RULES } from './function.ts'
-import { ASSIGNERS } from '../../tokenize/rules.ts'
-import { j } from '@dalbit-yaksok/pattern'
 import { COUNT_LOOP_RULES } from './count-loop.ts'
 
+import { j } from '@dalbit-yaksok/pattern'
 export const BASIC_RULES: Rule[][] = [
     [
         r({

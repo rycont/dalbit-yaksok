@@ -2,18 +2,17 @@ import {
     AlreadyRegisteredModuleError,
     CodeFile,
     ErrorInFFIExecution,
-    Extension,
+    type Extension,
     FFIRuntimeNotFound,
     MultipleFFIRuntimeError,
     Node,
-    Rule,
+    type Rule,
     Scope,
     ValueType,
     YaksokError,
+    PubSub,
+    type RuntimeContext,
 } from '@dalbit-yaksok/core'
-
-import { PubSub } from '../util/pubsub.ts'
-import { RuntimeContext } from '../executer/context.ts'
 
 const THREAD_YIELD_INTERVAL = 300
 

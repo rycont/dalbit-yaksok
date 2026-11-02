@@ -1,8 +1,12 @@
 import { RULES } from './rules.ts'
 
-import { YaksokError } from '../../error/common.ts'
-import { type Token, TOKEN_TYPE } from './token.ts'
-import { Splitpoint } from '../lex/infer-token-splitpoint.ts'
+import {
+    YaksokError,
+    Splitpoint,
+    type Token,
+    TOKEN_TYPE,
+} from '@dalbit-yaksok/core'
+
 import { tokenizeTemplateString } from './template-string.ts'
 
 class Tokenizer {

@@ -1,28 +1,26 @@
 import {
     Block,
+    createMentioningRule,
+    executer,
     Identifier,
+    inferTokenSplitpointsFromErrors,
     Node,
     NotDefinedIdentifierError,
     parse,
+    postprocessErrors,
     r,
     renderErrorString,
-    Rule,
+    RuntimeContext,
     Scope,
-    Token,
+    Splitpoint,
     tokenize,
     YaksokError,
     YaksokSession,
+    type Rule,
+    type Token,
 } from '@dalbit-yaksok/core'
 
-import { executer } from '../executer/index.ts'
-import {
-    Splitpoint,
-    inferTokenSplitpointsFromErrors,
-} from '../prepare/lex/infer-token-splitpoint.ts'
-import { createMentioningRule } from '../prepare/parse/dynamicRule/mention/create-mentioning-rules.ts'
-import { postprocessErrors } from '../error/postprocess/index.ts'
 import { j } from '@dalbit-yaksok/pattern'
-import { RuntimeContext } from '../executer/context.ts'
 
 export class CodeFile {
     readonly ast: Block

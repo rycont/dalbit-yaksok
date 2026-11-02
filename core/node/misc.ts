@@ -1,11 +1,14 @@
-import { YaksokError } from '../error/common.ts'
-import { Evaluable, Executable, Node } from './base.ts'
-
-import type { Scope } from '../executer/scope.ts'
-import type { Token } from '../prepare/tokenize/token.ts'
-import { StringValue } from '../value/primitive.ts'
-import { ValueType } from '../value/base.ts'
-import { IndentIsNotMultipleOf4Error } from '@dalbit-yaksok/core'
+import {
+    Evaluable,
+    Executable,
+    IndentIsNotMultipleOf4Error,
+    Scope,
+    StringValue,
+    Token,
+    ValueType,
+    YaksokError,
+    Node,
+} from '@dalbit-yaksok/core'
 
 export class EOL extends Node {
     static override friendlyName = '줄바꿈'

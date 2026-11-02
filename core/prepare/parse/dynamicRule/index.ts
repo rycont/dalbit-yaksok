@@ -1,4 +1,4 @@
-import { DynamicRules, Token, YaksokSession } from '@dalbit-yaksok/core'
+import type { YaksokSession, DynamicRules, Token } from '@dalbit-yaksok/core'
 
 import { buildLocalRules } from './local/index.ts'
 import { getRulesFromMentioningFile } from './mention/index.ts'

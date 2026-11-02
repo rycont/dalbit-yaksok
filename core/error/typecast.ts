@@ -1,7 +1,10 @@
-import { Token } from '../prepare/tokenize/token.ts'
-import { Position } from '../type/position.ts'
-import { ValueType } from '../value/base.ts'
-import { valueTypeToText, YaksokError } from './common.ts'
+import {
+    Position,
+    Token,
+    ValueType,
+    valueTypeToText,
+    YaksokError,
+} from '@dalbit-yaksok/core'
 
 export class InvalidTypeCastError extends YaksokError {
     constructor(props: {

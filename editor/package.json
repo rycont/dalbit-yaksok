@@ -1,17 +1,22 @@
 {
-  "name": "@dalbit-yaksok/editor",
-  "version": "7.1.0",
-  "type": "module",
-  "dependencies": {
-    "@codemirror/autocomplete": "^6.20.3",
-    "@codemirror/commands": "^6.11.0",
-    "@codemirror/state": "^6.7.1",
-    "@codemirror/view": "^6.43.9"
-  },
-  "devDependencies": {
-    "@deno/vite-plugin": "^2.0.3",
-    "@vanilla-extract/css": "^1.21.2",
-    "@vanilla-extract/vite-plugin": "^5.2.6",
-    "vite": "^8.2.2"
-  }
+    "name": "@dalbit-yaksok/editor",
+    "version": "7.1.0",
+    "type": "module",
+    "exports": "./src/index.ts",
+    "dependencies": {
+        "@codemirror/autocomplete": "^6.20.3",
+        "@codemirror/commands": "^6.11.0",
+        "@codemirror/state": "^6.7.1",
+        "@codemirror/view": "^6.43.9",
+        "@dalbit-yaksok/core": "workspace:*"
+    },
+    "devDependencies": {
+        "@deno/vite-plugin": "^2.0.3",
+        "@vanilla-extract/css": "^1.21.2",
+        "@vanilla-extract/vite-plugin": "^5.2.6",
+        "vite": "^8.2.2"
+    },
+    "scripts": {
+        "dev": "vp dev"
+    }
 }

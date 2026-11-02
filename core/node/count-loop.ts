@@ -1,11 +1,16 @@
-import { YaksokError } from '../error/common.ts'
-import { LoopCountIsNotNumberError } from '../error/loop.ts'
-import { Scope } from '../executer/scope.ts'
-import { BreakSignal, ContinueSignal } from '../executer/signals.ts'
-import { Token } from '../prepare/tokenize/token.ts'
-import { NumberValue } from '../value/primitive.ts'
-import { Evaluable, Executable, NodeCapability } from './base.ts'
-import { Block } from './block.ts'
+import {
+    Block,
+    BreakSignal,
+    ContinueSignal,
+    Evaluable,
+    Executable,
+    LoopCountIsNotNumberError,
+    NodeCapability,
+    NumberValue,
+    Scope,
+    Token,
+    YaksokError,
+} from '@dalbit-yaksok/core'
 
 export class CountLoop extends Executable<{
     count: Evaluable

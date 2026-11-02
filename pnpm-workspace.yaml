@@ -1,12 +1,28 @@
 packages:
-  - editor
+  - editor/
   - docs
   - core/
   - test
+  - scripts
   - exts/quickjs
   - exts/math
   - exts/statistics
   - sidekick/pattern/
-  - packages/*
+
+allowBuilds:
+  esbuild: true
+
 catalog:
+  "@types/node": ^24
+  typescript: ^7.0.2
+  vite: npm:@voidzero-dev/vite-plus-core@1.4.0
   vite-plus: 1.4.0
+
+overrides:
+  vite@*: "catalog:"
+
+peerDependencyRules:
+  allowAny:
+    - vite
+  allowedVersions:
+    vite: "*"

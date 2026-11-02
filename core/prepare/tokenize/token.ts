@@ -1,4 +1,4 @@
-import type { Position } from '../../type/position.ts'
+import type { Position } from '@dalbit-yaksok/core'
 
 export enum TOKEN_TYPE {
     NUMBER = 'NUMBER',

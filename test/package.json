@@ -1,5 +1,11 @@
 {
-  "name": "test",
-  "version": "7.1.0",
-  "type": "module"
+    "name": "test",
+    "version": "7.1.0",
+    "type": "module",
+    "dependencies": {
+        "@dalbit-yaksok/core": "workspace:*"
+    },
+    "scripts": {
+        "test": "vp test"
+    }
 }

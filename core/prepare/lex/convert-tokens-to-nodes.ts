@@ -1,10 +1,18 @@
-import { DirectReplacer, NumberLiteral } from '@dalbit-yaksok/core'
-import { Expression, Identifier, Node, Operator } from '../../node/base.ts'
-import { FFIBody } from '../../node/ffi.ts'
-import { Mention } from '../../node/mention.ts'
-import { EOL, Indent } from '../../node/misc.ts'
-import { Token, TOKEN_TYPE } from '../tokenize/token.ts'
-import { StringStaticPart } from '../../node/primitive-literals/string.ts'
+import {
+    NumberLiteral,
+    Expression,
+    Identifier,
+    Node,
+    Operator,
+    FFIBody,
+    Mention,
+    EOL,
+    Indent,
+    TOKEN_TYPE,
+    StringStaticPart,
+    type Token,
+    type DirectReplacer,
+} from '@dalbit-yaksok/core'
 
 const escapeMap: Record<string, string> = {
     n: '\n',

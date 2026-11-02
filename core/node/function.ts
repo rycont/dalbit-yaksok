@@ -21,15 +21,13 @@ import {
     UnexpectedArgumentError,
     ValueType,
     YaksokError,
-} from '@dalbit-yaksok/core'
-import { assertValidReturnValue } from '../util/assert-valid-return-value.ts'
-import {
+    assertValidReturnValue,
     FunctionDeclareRange,
     FunctionHeaderPart,
     FunctionPartType,
     FunctionType,
-} from '../prepare/parse/dynamicRule/local/type.ts'
-import { RESERVED_WORDS } from '../constant/reserved-words.ts'
+    RESERVED_WORDS,
+} from '@dalbit-yaksok/core'
 
 export class FunctionDeclareHeader<
     T extends FunctionDeclareRange['type'],

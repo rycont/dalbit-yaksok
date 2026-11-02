@@ -1,16 +1,16 @@
 import {
-    DirectReplacer,
-    DynamicRules,
+    type DirectReplacer,
+    type DynamicRules,
     FunctionDeclareHeader,
     ParameterElement,
-    Token,
+    type Token,
     TOKEN_TYPE,
     UnexpectedTokenError,
 } from '@dalbit-yaksok/core'
 
 import {
-    FunctionDeclareRange,
-    FunctionHeaderPart,
+    type FunctionDeclareRange,
+    type FunctionHeaderPart,
     FunctionPartType,
 } from './type.ts'
 

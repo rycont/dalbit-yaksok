@@ -1,11 +1,14 @@
-import { TOKEN_TYPE } from '@dalbit-yaksok/core'
-
+import {
+    YaksokError,
+    TOKEN_TYPE,
+    blue,
+    bold,
+    AmbiguousFormulaBoundary,
+    NotDefinedIdentifierError,
+    CannotUnderstandError,
+} from '@dalbit-yaksok/core'
 import type { Processor } from './type.ts'
-import { blue, bold } from '../../util/terminal.ts'
 import { j } from '@dalbit-yaksok/pattern'
-import { YaksokError } from '../index.ts'
-import { NotDefinedIdentifierError } from '../variable.ts'
-import { AmbiguousFormulaBoundary, CannotUnderstandError } from '../prepare.ts'
 
 const statementFormPattern = j
     .list([

@@ -1,11 +1,10 @@
 import {
-    BreakNotInLoopError,
     CannotReturnOutsideFunctionError,
-} from '../error/index.ts'
+    type Executable,
+} from '@dalbit-yaksok/core'
+
 import { Scope } from './scope.ts'
 import { BreakSignal, ReturnSignal } from './signals.ts'
-
-import type { Executable } from '../node/base.ts'
 
 export async function executer<NodeType extends Executable>(
     node: NodeType,

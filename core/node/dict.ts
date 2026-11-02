@@ -1,9 +1,12 @@
-import type { YaksokError } from '../error/common.ts'
-import type { Scope } from '../executer/scope.ts'
-import type { Token } from '../prepare/tokenize/token.ts'
-import type { ValueType } from '../value/base.ts'
-import { IndexedValue } from '../value/indexed.ts'
-import { Evaluable, Expression } from './base.ts'
+import {
+    Evaluable,
+    Expression,
+    IndexedValue,
+    Scope,
+    Token,
+    ValueType,
+    YaksokError,
+} from '@dalbit-yaksok/core'
 
 export class KeyValuePair extends Expression<Evaluable> {
     static override friendlyName = '키-값 쌍'

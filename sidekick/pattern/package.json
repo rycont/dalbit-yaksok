@@ -1,6 +1,6 @@
 {
-  "name": "@dalbit-yaksok/pattern",
-  "version": "7.1.0",
-  "type": "module",
-  "exports": "./mod.ts"
+    "name": "@dalbit-yaksok/pattern",
+    "version": "7.1.0",
+    "type": "module",
+    "exports": "./mod.ts"
 }

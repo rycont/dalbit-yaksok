@@ -1,7 +1,9 @@
-import { Token, TOKEN_TYPE } from '@dalbit-yaksok/core'
+import { type Token, TOKEN_TYPE } from '@dalbit-yaksok/core'
 import { j } from '@dalbit-yaksok/pattern'
 
-import { FunctionDeclareRange, FunctionType } from './type.ts'
+console.log({ TOKEN_TYPE })
+
+import { type FunctionDeclareRange, FunctionType } from './type.ts'
 
 const yaksokPattern = j
     .type<Token[]>()

@@ -5,11 +5,11 @@ import {
     MentionScope,
     Node,
     r,
-    Rule,
     Scope,
-    Token,
+    getTokensFromNodes,
+    type Rule,
+    type Token,
 } from '@dalbit-yaksok/core'
-import { getTokensFromNodes } from '../../../../util/merge-tokens.ts'
 import { j } from '@dalbit-yaksok/pattern'
 
 export function createMentioningRule(

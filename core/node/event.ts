@@ -9,8 +9,8 @@ import {
     Token,
     ValueType,
     YaksokError,
+    FunctionType,
 } from '@dalbit-yaksok/core'
-import { FunctionType } from '../prepare/parse/dynamicRule/local/type.ts'
 
 export class DeclareEvent extends Executable {
     static override friendlyName = '새 이벤트 만들기'

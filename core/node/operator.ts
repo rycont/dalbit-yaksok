@@ -1,25 +1,23 @@
-import { InvalidTypeForCompareError } from '../error/calculation.ts'
 import {
+    BooleanValue,
+    EmptyValue,
+    InvalidTypeForCompareError,
     InvalidTypeForOperatorError,
+    ListValue,
+    NumberValue,
+    Operator,
+    PrimitiveValue,
     RangeEndMustBeIntegerError,
     RangeEndMustBeNumberError,
     RangeStartMustBeIntegerError,
     RangeStartMustBeLessThanEndError,
     RangeStartMustBeNumberError,
-    YaksokError,
-} from '../error/index.ts'
-import { Token } from '../prepare/tokenize/token.ts'
-
-import { PrimitiveValue, ValueType } from '../value/base.ts'
-import { ListValue } from '../value/list.ts'
-import {
-    BooleanValue,
-    EmptyValue,
-    NumberValue,
     StringValue,
-} from '../value/primitive.ts'
-import { Operator } from './base.ts'
-import { cleanFloatingPointError } from '../util/float-precision.ts'
+    Token,
+    ValueType,
+    YaksokError,
+    cleanFloatingPointError,
+} from '@dalbit-yaksok/core'
 
 export class PlusOperator extends Operator {
     static override friendlyName = '더하기(+)'

@@ -1,6 +1,14 @@
 {
-  "name": "@dalbit-yaksok/core",
-  "version": "7.1.0",
-  "type": "module",
-  "exports": "./mod.ts"
+    "name": "@dalbit-yaksok/core",
+    "version": "7.1.0",
+    "type": "module",
+    "exports": "./mod.ts",
+    "devDependencies": {
+        "@types/node": "catalog:",
+        "typescript": "catalog:",
+        "vite-plus": "catalog:"
+    },
+    "dependencies": {
+        "@dalbit-yaksok/pattern": "workspace:*"
+    }
 }

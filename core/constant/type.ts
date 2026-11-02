@@ -1,4 +1,4 @@
-import { Token } from '@dalbit-yaksok/core'
+import type { Token } from '@dalbit-yaksok/core'
 
 export type Brand<K, T> = K & { __brand: T }
 

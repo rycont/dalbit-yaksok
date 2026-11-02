@@ -7,8 +7,8 @@ import {
     FFIObject,
     FunctionDeclareHeader,
     MissingFunctionBody,
+    FunctionType,
 } from '@dalbit-yaksok/core'
-import { FunctionType } from '../prepare/parse/dynamicRule/local/type.ts'
 
 export class FFIBody extends Node {
     static override friendlyName = '번역할 내용'

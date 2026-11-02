@@ -1,7 +1,12 @@
-import { BrokenBracketError, Node, Rule } from '@dalbit-yaksok/core'
-import { Expression } from '../../node/index.ts'
+import {
+    blue,
+    bold,
+    Expression,
+    BrokenBracketError,
+    Node,
+    Rule,
+} from '@dalbit-yaksok/core'
 import { callParseRecursively } from './srParse.ts'
-import { blue, bold } from '../../util/terminal.ts'
 
 const BRACKETS: Record<
     string,

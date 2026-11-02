@@ -1,5 +1,4 @@
-import { ParameterElement } from '../../../../constant/type.ts'
-import { Token } from '@dalbit-yaksok/core'
+import type { Token, ParameterElement } from '@dalbit-yaksok/core'
 
 export enum FunctionType {
     약속 = '약속',

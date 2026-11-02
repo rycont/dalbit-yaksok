@@ -1,15 +1,19 @@
-import { YaksokError } from '../error/common.ts'
-import { NotEnumerableValueForListLoopError } from '../error/index.ts'
-import { BreakSignal, ContinueSignal } from '../executer/signals.ts'
-import { type Evaluable, Executable, NodeCapability } from './base.ts'
-
-import { Scope } from '../executer/scope.ts'
-
-import type { Token } from '../prepare/tokenize/token.ts'
-import type { ValueType } from '../value/base.ts'
-import { IndexedValue } from '../value/indexed.ts'
-import { NumberValue, StringValue } from '../value/primitive.ts'
-import type { Block } from './block.ts'
+import {
+    Block,
+    BreakSignal,
+    ContinueSignal,
+    Evaluable,
+    Executable,
+    IndexedValue,
+    NodeCapability,
+    NotEnumerableValueForListLoopError,
+    NumberValue,
+    Scope,
+    StringValue,
+    Token,
+    ValueType,
+    YaksokError,
+} from '@dalbit-yaksok/core'
 
 export class ListLoop extends Executable {
     static override friendlyName = '목록 반복'

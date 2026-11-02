@@ -1,4 +1,4 @@
-import { UnexpectedEndOfCodeError } from '../../error/prepare.ts'
+import { UnexpectedEndOfCodeError } from '@dalbit-yaksok/core'
 import { Token, TOKEN_TYPE } from './token.ts'
 
 const OPERATORS = [

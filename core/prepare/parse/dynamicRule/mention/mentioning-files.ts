@@ -1,4 +1,4 @@
-import { Token, TOKEN_TYPE } from '../../../tokenize/token.ts'
+import { Token, TOKEN_TYPE } from '@dalbit-yaksok/core'
 
 export function getMentioningFiles(tokens: Token[]) {
     const mentioningNames = tokens

@@ -5,9 +5,7 @@
     // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
     "image": "mcr.microsoft.com/devcontainers/base:trixie",
     "features": {
-        "ghcr.io/devcontainers-extra/features/node-asdf:0": {},
-        "ghcr.io/devcontainers-extra/features/deno-asdf:2": {},
-        "ghcr.io/devcontainers/features/java:1": {}
+        "ghcr.io/devcontainers-extra/features/node-asdf:0": {}
     }
 
     // Features to add to the dev container. More info: https://containers.dev/features.

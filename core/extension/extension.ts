@@ -1,6 +1,4 @@
-import { ValueType } from '../value/base.ts'
-
-import type { Scope } from '../executer/scope.ts'
+import { Scope, ValueType } from '@dalbit-yaksok/core'
 
 export interface ExtensionManifest {
     ffiRunner?: {

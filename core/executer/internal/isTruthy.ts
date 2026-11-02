@@ -1,9 +1,9 @@
-import { ValueType } from '../../value/base.ts'
 import {
     BooleanValue,
     NumberValue,
     StringValue,
-} from '../../value/primitive.ts'
+    ValueType,
+} from '@dalbit-yaksok/core'
 
 export function isTruthy(value: ValueType) {
     if (value instanceof BooleanValue) {

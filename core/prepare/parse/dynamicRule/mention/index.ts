@@ -1,10 +1,10 @@
 import {
     ErrorInModuleError,
     FileForRunNotExistError,
-    Rule,
-    Token,
     TOKEN_TYPE,
     YaksokSession,
+    type Rule,
+    type Token,
 } from '@dalbit-yaksok/core'
 
 import { getMentioningFiles } from './mentioning-files.ts'

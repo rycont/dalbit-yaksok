@@ -1,14 +1,15 @@
 import {
     CodeFile,
     Node,
-    Position,
     Scope,
-    Token,
-    YaksokError,
+    blue,
+    bold,
+    dim,
+    type Position,
+    type Token,
 } from '@dalbit-yaksok/core'
 
-import { blue, bold, dim } from '../util/terminal.ts'
-import { tokenToText } from './common.ts'
+import { tokenToText, YaksokError } from './common.ts'
 
 export class CannotUnderstandError extends YaksokError<{
     additionalMessage?: string
@@ -47,9 +48,7 @@ export class CannotParseError extends YaksokError {
         const nodeConstructor = props.resource.part.constructor as typeof Node
 
         try {
-            this.message = `${bold(
-                '"' + props.resource.part.toPrint() + '"',
-            )}${dim(
+            this.message = `${bold('"' + props.resource.part.toPrint() + '"')}${dim(
                 `(${nodeConstructor.friendlyName})`,
             )}는 실행할 수 있는 코드가 아니에요.`
         } catch {
@@ -188,9 +187,7 @@ export class FileForRunNotExistError extends YaksokError<{
                 `"${props.resource.fileName}"`,
             )}을(를) 찾을 수 없어요. ${
                 props.resource.files.length > 0
-                    ? `현재 사용 가능한 파일: ${dim(
-                          props.resource.files.join(', '),
-                      )}`
+                    ? `현재 사용 가능한 파일: ${dim(props.resource.files.join(', '))}`
                     : ''
             }`.trim()
         }

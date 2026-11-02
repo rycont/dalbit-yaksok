@@ -1,11 +1,14 @@
-import { YaksokError } from '../error/common.ts'
-import { InvalidTypeCastError } from '../error/typecast.ts'
-import { Evaluable } from './base.ts'
-
-import type { Scope } from '../executer/scope.ts'
-import type { Token } from '../prepare/tokenize/token.ts'
-import type { ValueType } from '../value/base.ts'
-import { BooleanValue, NumberValue, StringValue } from '../value/primitive.ts'
+import {
+    BooleanValue,
+    Evaluable,
+    InvalidTypeCastError,
+    NumberValue,
+    Scope,
+    StringValue,
+    Token,
+    ValueType,
+    YaksokError,
+} from '@dalbit-yaksok/core'
 
 export type TypeCastTarget = '숫자' | '문자열' | '참거짓'
 

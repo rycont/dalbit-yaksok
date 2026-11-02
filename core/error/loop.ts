@@ -1,7 +1,9 @@
-import { valueTypeToText, YaksokError } from './common.ts'
-
-import type { Token } from '../prepare/tokenize/token.ts'
-import type { ValueType } from '../value/base.ts'
+import {
+    Token,
+    ValueType,
+    valueTypeToText,
+    YaksokError,
+} from '@dalbit-yaksok/core'
 
 export class BreakNotInLoopError extends YaksokError {
     constructor(props: { tokens: Token[]; resource?: unknown }) {

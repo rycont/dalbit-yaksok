@@ -1,0 +1,9 @@
+{
+  "name": "@dalbit-yaksok/scripts",
+  "version": "7.1.0",
+  "type": "module",
+  "dependencies": {
+    "@dalbit-yaksok/core": "workspace:*",
+    "@dalbit-yaksok/pattern": "workspace:*"
+  }
+}

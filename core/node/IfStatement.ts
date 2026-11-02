@@ -1,11 +1,12 @@
-import { type Evaluable, Executable } from './base.ts'
-import type { Block } from './block.ts'
-import { YaksokError } from '../error/common.ts'
-
-import { isTruthy } from '../executer/internal/isTruthy.ts'
-
-import type { Scope } from '../executer/scope.ts'
-import type { Token } from '../prepare/tokenize/token.ts'
+import {
+    Block,
+    Evaluable,
+    Executable,
+    isTruthy,
+    Scope,
+    Token,
+    YaksokError,
+} from '@dalbit-yaksok/core'
 
 class StandaloneElseError extends YaksokError {
     constructor(props: { tokens: Token[]; scope: Scope }) {

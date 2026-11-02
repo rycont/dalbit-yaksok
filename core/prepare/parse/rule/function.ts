@@ -8,9 +8,9 @@ import {
     FFIBody,
     DeclareFFI,
     DeclareEvent,
+    FunctionType,
 } from '@dalbit-yaksok/core'
 import { j } from '@dalbit-yaksok/pattern'
-import { FunctionType } from '../dynamicRule/local/type.ts'
 
 export const FUNCTION_RULES: Rule[] = [
     r({

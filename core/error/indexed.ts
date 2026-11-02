@@ -1,10 +1,15 @@
-import type { Evaluable } from '../node/base.ts'
-import type { Token } from '../prepare/tokenize/token.ts'
-import type { Position } from '../type/position.ts'
-import { bold, dim } from '../util/terminal.ts'
-import type { ValueType } from '../value/base.ts'
-import { StringValue } from '../value/primitive.ts'
-import { evaluableToText, valueTypeToText, YaksokError } from './common.ts'
+import {
+    bold,
+    dim,
+    Evaluable,
+    evaluableToText,
+    Position,
+    StringValue,
+    Token,
+    ValueType,
+    valueTypeToText,
+    YaksokError,
+} from '@dalbit-yaksok/core'
 
 export class IndexKeyNotFoundError extends YaksokError {
     constructor(props: {
