@@ -1,20 +1,16 @@
 import {
-    assert,
-    assertEquals,
-    assertInstanceOf,
-    assertIsError,
-} from '@std/assert'
-import {
     BooleanValue,
     ErrorOccurredWhileRunningFFIExecution,
     ListValue,
     NumberValue,
     StringValue,
     YaksokSession,
-} from '../../core/mod.ts'
-import { QuickJS, QuickJSInternalError } from './mod.ts'
+} from '@dalbit-yaksok/core'
+import { QuickJS, QuickJSInternalError } from '@dalbit-yaksok/quickjs'
 
-Deno.test('Error in QuickJS', async () => {
+import { test, expect, assert } from 'vite-plus/test'
+
+test('Error in QuickJS', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -34,11 +30,11 @@ Deno.test('Error in QuickJS', async () => {
 `,
     )
     await codeFile.run()
-    assertIsError(errors[0], ErrorOccurredWhileRunningFFIExecution)
-    assertIsError(errors[0].child, QuickJSInternalError)
+    expect.assert.instanceOf(errors[0], ErrorOccurredWhileRunningFFIExecution)
+    expect(errors[0].child).toBeInstanceOf(QuickJSInternalError)
 })
 
-Deno.test('QuickJS passed number', async () => {
+test('QuickJS passed number', async () => {
     const session = new YaksokSession()
     await session.extend(new QuickJS())
 
@@ -56,12 +52,12 @@ Deno.test('QuickJS passed number', async () => {
         .run()
 
     const 숫자 = scope.getVariable('숫자')
-    assertInstanceOf(숫자, NumberValue)
-    assertEquals(숫자.value, 20)
-    assertEquals(숫자.toPrint(), '20')
+    expect.assert.instanceOf(숫자, NumberValue)
+    expect(숫자.value).toBe(20)
+    expect(숫자.toPrint()).toBe('20')
 })
 
-Deno.test('QuickJS passed Array<number>', async () => {
+test('QuickJS passed Array<number>', async () => {
     const session = new YaksokSession()
     await session.extend(new QuickJS())
 
@@ -80,11 +76,11 @@ Deno.test('QuickJS passed Array<number>', async () => {
         .run()
 
     const 숫자 = scope.getVariable('숫자')
-    assertInstanceOf(숫자, ListValue)
-    assertEquals(숫자.toPrint(), '[20, 30]')
+    expect.assert.instanceOf(숫자, ListValue)
+    expect(숫자.toPrint()).toBe('[20, 30]')
 })
 
-Deno.test('JavaScript bridge function passed object', async () => {
+test('JavaScript bridge function passed object', async () => {
     const quickJS = new QuickJS({
         student: () => ({
             name: '홍길동',
@@ -146,21 +142,21 @@ Deno.test('JavaScript bridge function passed object', async () => {
     const 더한_결과 = ranScope.getVariable('더한_결과') as NumberValue
     const 모든_이름 = ranScope.getVariable('모든_이름') as ListValue
 
-    assertInstanceOf(학생, StringValue)
-    assertInstanceOf(이름, StringValue)
-    assertInstanceOf(나이, NumberValue)
-    assertInstanceOf(더한_결과, NumberValue)
-    assertInstanceOf(모든_이름, ListValue)
+    expect.assert.instanceOf(학생, StringValue)
+    expect.assert.instanceOf(이름, StringValue)
+    expect.assert.instanceOf(나이, NumberValue)
+    expect.assert.instanceOf(더한_결과, NumberValue)
+    expect.assert.instanceOf(모든_이름, ListValue)
 
-    assertEquals(학생.value, '홍길동')
-    assertEquals(이름.value, '홍길동')
-    assertEquals(나이.value, 20)
-    assertEquals(더한_결과.value, 30)
+    expect(학생.value).toBe('홍길동')
+    expect(이름.value).toBe('홍길동')
+    expect(나이.value).toBe(20)
+    expect(더한_결과.value).toBe(30)
 
-    assertEquals(모든_이름.toPrint(), '[홍길동, 임꺽정, 김철수]')
+    expect(모든_이름.toPrint()).toBe('[홍길동, 임꺽정, 김철수]')
 })
 
-Deno.test('Yaksok Passed List<string>', async () => {
+test('Yaksok Passed List<string>', async () => {
     let buffer = ''
     const session = new YaksokSession({
         stdout(message: string) {
@@ -195,13 +191,13 @@ Deno.test('Yaksok Passed List<string>', async () => {
         .run()
 
     const 내_점수 = scope.getVariable('내_점수')
-    assertInstanceOf(내_점수, ListValue)
-    assertEquals(내_점수.toPrint(), '[80, 90]')
+    expect.assert.instanceOf(내_점수, ListValue)
+    expect(내_점수.toPrint()).toBe('[80, 90]')
 
-    assertEquals(buffer, '100\n[80, 90]\n90\n')
+    expect(buffer).toBe('100\n[80, 90]\n90\n')
 })
 
-Deno.test('QuickJS Passed List<string> - 빈 리스트', async () => {
+test('QuickJS Passed List<string> - 빈 리스트', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout: (str: string) => {
@@ -220,10 +216,10 @@ Deno.test('QuickJS Passed List<string> - 빈 리스트', async () => {
 리스트 길이 보여주기`,
     )
     await session.runModules(['main'])
-    assertEquals(output, '0')
+    expect(output).toBe('0')
 })
 
-Deno.test('QuickJS Passed List<string> - 중복 값', async () => {
+test('QuickJS Passed List<string> - 중복 값', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout: (str: string) => {
@@ -242,10 +238,10 @@ Deno.test('QuickJS Passed List<string> - 중복 값', async () => {
 리스트 합치기 보여주기`,
     )
     await session.runModules(['main'])
-    assertEquals(output, 'a,a,b')
+    expect(output).toBe('a,a,b')
 })
 
-Deno.test('QuickJS Passed List<string> - 특수문자/이모지/빈문자', async () => {
+test('QuickJS Passed List<string> - 특수문자/이모지/빈문자', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout: (str: string) => {
@@ -264,10 +260,10 @@ Deno.test('QuickJS Passed List<string> - 특수문자/이모지/빈문자', asyn
 리스트 합치기 보여주기`,
     )
     await session.runModules(['main'])
-    assertEquals(output, '😀|a!@#|한글|')
+    expect(output).toBe('😀|a!@#|한글|')
 })
 
-Deno.test('QuickJS Passed List<string> - 영문 대문자 변환', async () => {
+test('QuickJS Passed List<string> - 영문 대문자 변환', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout: (str: string) => {
@@ -286,10 +282,10 @@ Deno.test('QuickJS Passed List<string> - 영문 대문자 변환', async () => {
 리스트 대문자 보여주기`,
     )
     await session.runModules(['main'])
-    assertEquals(output, 'ABC')
+    expect(output).toBe('ABC')
 })
 
-Deno.test('QuickJS Passed List<string> - 공백/탭/개행', async () => {
+test('QuickJS Passed List<string> - 공백/탭/개행', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout: (str: string) => {
@@ -308,10 +304,10 @@ Deno.test('QuickJS Passed List<string> - 공백/탭/개행', async () => {
 리스트 길이합치기 보여주기`,
     )
     await session.runModules(['main'])
-    assertEquals(output, '1,3,1,1')
+    expect(output).toBe('1,3,1,1')
 })
 
-Deno.test('QuickJS Passed List<string> - 한글 포함 여부', async () => {
+test('QuickJS Passed List<string> - 한글 포함 여부', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout: (str: string) => {
@@ -330,10 +326,10 @@ Deno.test('QuickJS Passed List<string> - 한글 포함 여부', async () => {
 리스트 포함 보여주기`,
     )
     await session.runModules(['main'])
-    assertEquals(output, 'Y')
+    expect(output).toBe('Y')
 })
 
-Deno.test('QuickJS Passed List<string> - 숫자 문자열 합치기', async () => {
+test('QuickJS Passed List<string> - 숫자 문자열 합치기', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout: (str: string) => {
@@ -352,10 +348,10 @@ Deno.test('QuickJS Passed List<string> - 숫자 문자열 합치기', async () =
 리스트 합치기 보여주기`,
     )
     await session.runModules(['main'])
-    assertEquals(output, '123')
+    expect(output).toBe('123')
 })
 
-Deno.test('QuickJS Passed List<string> - 2차원 리스트 flat', async () => {
+test('QuickJS Passed List<string> - 2차원 리스트 flat', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout: (str: string) => {
@@ -375,10 +371,10 @@ B = [A, ["z", "r"]]
 B flat 보여주기`,
     )
     await session.runModules(['main'])
-    assertEquals(output, 'xyzr')
+    expect(output).toBe('xyzr')
 })
 
-Deno.test('QuickJS passed boolean', async () => {
+test('QuickJS passed boolean', async () => {
     const session = new YaksokSession()
     await session.extend(new QuickJS())
 
@@ -398,7 +394,7 @@ Deno.test('QuickJS passed boolean', async () => {
         .run()
 
     const 결과 = scope.getVariable('결과')
-    assertInstanceOf(결과, BooleanValue)
-    assertEquals(결과.value, true)
-    assertEquals(결과.toPrint(), '참')
+    expect.assert.instanceOf(결과, BooleanValue)
+    expect(결과.value).toBe(true)
+    expect(결과.toPrint()).toBe('참')
 })

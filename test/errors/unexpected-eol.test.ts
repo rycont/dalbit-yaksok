@@ -1,8 +1,7 @@
-import { assert } from '@std/assert'
-
 import { UnexpectedCharError, YaksokSession } from '@dalbit-yaksok/core'
+import { assert, test } from 'vite-plus/test'
 
-Deno.test('문자열 내 줄바꿈', async () => {
+test('문자열 내 줄바꿈', async () => {
     const session = new YaksokSession()
     const codeFile = session.addModule(
         'main',

@@ -1,9 +1,9 @@
-import { assertIsError } from '@std/assert'
 import { BrokenBracketError, YaksokSession } from '@dalbit-yaksok/core'
+import { expect, test } from 'vite-plus/test'
 
-Deno.test('끝나지 못한 괄호', async () => {
+test('끝나지 못한 괄호', async () => {
     const session = new YaksokSession()
     const codeFile = session.addModule('main', `나이 = 10 + (20`)
 
-    assertIsError(codeFile.prepareErrors[0], BrokenBracketError)
+    expect(codeFile.prepareErrors[0]).toBeInstanceOf(BrokenBracketError)
 })

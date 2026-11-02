@@ -18,16 +18,9 @@ jobs:
             - name: Setup repo
               uses: actions/checkout@v4
 
-            - name: Setup Deno
-              uses: denoland/setup-deno@v2
+            - uses: voidzero-dev/setup-vp@<setup-vp-version>
               with:
-                  deno-version: v2.x
-
-            - name: Apply Workspace Version
-              run: deno task apply-version
-
-            - name: Install Dependencies
-              run: deno install --allow-scripts
-
-            - name: Run tests
-              run: deno task nested-test
+                  node-version: '24'
+                  cache: true
+            - run: vp check
+            - run: vp test

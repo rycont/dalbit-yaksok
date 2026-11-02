@@ -1,167 +1,168 @@
-import { YaksokSession } from '../core/mod.ts'
-import { assertEquals, assertInstanceOf } from '@std/assert'
 import {
-    BooleanValue,
+    YaksokSession,
     NumberValue,
     StringValue,
-} from '../core/value/primitive.ts'
-import { InvalidTypeCastError } from '../core/error/typecast.ts'
+    BooleanValue,
+    InvalidTypeCastError,
+} from '@dalbit-yaksok/core'
 
-Deno.test('문자열을 숫자로 바꾸기', async () => {
+import { test, expect } from 'vite-plus/test'
+
+test('문자열을 숫자로 바꾸기', async () => {
     const session = new YaksokSession()
     const scope = await session
         .addModule('main', `결과 = "123" 을 숫자로 바꾸기`)
         .run()
     const variable = scope.getVariable('결과')
 
-    assertInstanceOf(variable, NumberValue)
-    assertEquals(variable.value, 123)
+    expect.assert.instanceOf(variable, NumberValue)
+    expect(variable.value).toBe(123)
 })
 
-Deno.test('문자열(소수)을 숫자로 바꾸기', async () => {
+test('문자열(소수)을 숫자로 바꾸기', async () => {
     const session = new YaksokSession()
     const scope = await session
         .addModule('main', `결과 = "3.14" 를 숫자로 바꾸기`)
         .run()
     const variable = scope.getVariable('결과')
 
-    assertInstanceOf(variable, NumberValue)
-    assertEquals(variable.value, 3.14)
+    expect.assert.instanceOf(variable, NumberValue)
+    expect(variable.value).toBe(3.14)
 })
 
-Deno.test('숫자를 문자열로 바꾸기', async () => {
+test('숫자를 문자열로 바꾸기', async () => {
     const session = new YaksokSession()
     const scope = await session
         .addModule('main', `결과 = 123 을 문자열로 바꾸기`)
         .run()
     const variable = scope.getVariable('결과')
 
-    assertInstanceOf(variable, StringValue)
-    assertEquals(variable.value, '123')
+    expect.assert.instanceOf(variable, StringValue)
+    expect(variable.value).toBe('123')
 })
 
-Deno.test('숫자를 문자로 바꾸기 (별칭)', async () => {
+test('숫자를 문자로 바꾸기 (별칭)', async () => {
     const session = new YaksokSession()
     const scope = await session
         .addModule('main', `결과 = 456 를 문자로 바꾸기`)
         .run()
     const variable = scope.getVariable('결과')
 
-    assertInstanceOf(variable, StringValue)
-    assertEquals(variable.value, '456')
+    expect.assert.instanceOf(variable, StringValue)
+    expect(variable.value).toBe('456')
 })
 
-Deno.test('참을 숫자로 바꾸기', async () => {
+test('참을 숫자로 바꾸기', async () => {
     const session = new YaksokSession()
     const scope = await session
         .addModule('main', `결과 = 참 을 숫자로 바꾸기`)
         .run()
     const variable = scope.getVariable('결과')
 
-    assertInstanceOf(variable, NumberValue)
-    assertEquals(variable.value, 1)
+    expect.assert.instanceOf(variable, NumberValue)
+    expect(variable.value).toBe(1)
 })
 
-Deno.test('거짓을 숫자로 바꾸기', async () => {
+test('거짓을 숫자로 바꾸기', async () => {
     const session = new YaksokSession()
     const scope = await session
         .addModule('main', `결과 = 거짓 을 숫자로 바꾸기`)
         .run()
     const variable = scope.getVariable('결과')
 
-    assertInstanceOf(variable, NumberValue)
-    assertEquals(variable.value, 0)
+    expect.assert.instanceOf(variable, NumberValue)
+    expect(variable.value).toBe(0)
 })
 
-Deno.test('문자열 "참"을 참거짓으로 바꾸기', async () => {
+test('문자열 "참"을 참거짓으로 바꾸기', async () => {
     const session = new YaksokSession()
     const scope = await session
         .addModule('main', `결과 = "참" 을 참거짓으로 바꾸기`)
         .run()
     const variable = scope.getVariable('결과')
 
-    assertInstanceOf(variable, BooleanValue)
-    assertEquals(variable.value, true)
+    expect.assert.instanceOf(variable, BooleanValue)
+    expect(variable.value).toBe(true)
 })
 
-Deno.test('문자열 "거짓"을 참거짓으로 바꾸기', async () => {
+test('문자열 "거짓"을 참거짓으로 바꾸기', async () => {
     const session = new YaksokSession()
     const scope = await session
         .addModule('main', `결과 = "거짓" 을 참거짓으로 바꾸기`)
         .run()
     const variable = scope.getVariable('결과')
 
-    assertInstanceOf(variable, BooleanValue)
-    assertEquals(variable.value, false)
+    expect.assert.instanceOf(variable, BooleanValue)
+    expect(variable.value).toBe(false)
 })
 
-Deno.test('문자열 "true"를 참거짓으로 바꾸기', async () => {
+test('문자열 "true"를 참거짓으로 바꾸기', async () => {
     const session = new YaksokSession()
     const scope = await session
         .addModule('main', `결과 = "true" 를 참거짓으로 바꾸기`)
         .run()
     const variable = scope.getVariable('결과')
 
-    assertInstanceOf(variable, BooleanValue)
-    assertEquals(variable.value, true)
+    expect.assert.instanceOf(variable, BooleanValue)
+    expect(variable.value).toBe(true)
 })
 
-Deno.test('빈 문자열을 참거짓으로 바꾸기', async () => {
+test('빈 문자열을 참거짓으로 바꾸기', async () => {
     const session = new YaksokSession()
     const scope = await session
         .addModule('main', `결과 = "" 을 참거짓으로 바꾸기`)
         .run()
     const variable = scope.getVariable('결과')
 
-    assertInstanceOf(variable, BooleanValue)
-    assertEquals(variable.value, false)
+    expect.assert.instanceOf(variable, BooleanValue)
+    expect(variable.value).toBe(false)
 })
 
-Deno.test('비어있지 않은 문자열을 참거짓으로 바꾸기', async () => {
+test('비어있지 않은 문자열을 참거짓으로 바꾸기', async () => {
     const session = new YaksokSession()
     const scope = await session
         .addModule('main', `결과 = "hello" 를 참거짓으로 바꾸기`)
         .run()
     const variable = scope.getVariable('결과')
 
-    assertInstanceOf(variable, BooleanValue)
-    assertEquals(variable.value, true)
+    expect.assert.instanceOf(variable, BooleanValue)
+    expect(variable.value).toBe(true)
 })
 
-Deno.test('숫자 0을 참거짓으로 바꾸기', async () => {
+test('숫자 0을 참거짓으로 바꾸기', async () => {
     const session = new YaksokSession()
     const scope = await session
         .addModule('main', `결과 = 0 을 참거짓으로 바꾸기`)
         .run()
     const variable = scope.getVariable('결과')
 
-    assertInstanceOf(variable, BooleanValue)
-    assertEquals(variable.value, false)
+    expect.assert.instanceOf(variable, BooleanValue)
+    expect(variable.value).toBe(false)
 })
 
-Deno.test('숫자 1을 참거짓으로 바꾸기', async () => {
+test('숫자 1을 참거짓으로 바꾸기', async () => {
     const session = new YaksokSession()
     const scope = await session
         .addModule('main', `결과 = 1 을 참거짓으로 바꾸기`)
         .run()
     const variable = scope.getVariable('결과')
 
-    assertInstanceOf(variable, BooleanValue)
-    assertEquals(variable.value, true)
+    expect.assert.instanceOf(variable, BooleanValue)
+    expect(variable.value).toBe(true)
 })
 
-Deno.test('참거짓을 문자열로 바꾸기', async () => {
+test('참거짓을 문자열로 바꾸기', async () => {
     const session = new YaksokSession()
     const scope = await session
         .addModule('main', `결과 = 참 을 문자열로 바꾸기`)
         .run()
     const variable = scope.getVariable('결과')
 
-    assertInstanceOf(variable, StringValue)
-    assertEquals(variable.value, '참')
+    expect.assert.instanceOf(variable, StringValue)
+    expect(variable.value).toBe('참')
 })
 
-Deno.test('변수와 함께 사용', async () => {
+test('변수와 함께 사용', async () => {
     const session = new YaksokSession()
     const scope = await session
         .addModule(
@@ -175,11 +176,11 @@ Deno.test('변수와 함께 사용', async () => {
         .run()
     const variable = scope.getVariable('결과')
 
-    assertInstanceOf(variable, NumberValue)
-    assertEquals(variable.value, 30)
+    expect.assert.instanceOf(variable, NumberValue)
+    expect(variable.value).toBe(30)
 })
 
-Deno.test('잘못된 문자열을 숫자로 바꾸기 시도', async () => {
+test('잘못된 문자열을 숫자로 바꾸기 시도', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -188,16 +189,16 @@ Deno.test('잘못된 문자열을 숫자로 바꾸기 시도', async () => {
     })
     const codeFile = session.addModule('main', `결과 = "abc" 를 숫자로 바꾸기`)
     await codeFile.run()
-    assertInstanceOf(errors[0], InvalidTypeCastError)
+    expect.assert.instanceOf(errors[0], InvalidTypeCastError)
 })
 
-Deno.test('불리언으로 바꾸기 (별칭)', async () => {
+test('불리언으로 바꾸기 (별칭)', async () => {
     const session = new YaksokSession()
     const scope = await session
         .addModule('main', `결과 = 1 을 불리언으로 바꾸기`)
         .run()
     const variable = scope.getVariable('결과')
 
-    assertInstanceOf(variable, BooleanValue)
-    assertEquals(variable.value, true)
+    expect.assert.instanceOf(variable, BooleanValue)
+    expect(variable.value).toBe(true)
 })

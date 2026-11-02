@@ -1,13 +1,11 @@
-import { YaksokSession } from '../core/mod.ts'
-import { assertEquals } from 'assert/equals'
-import { assert } from '@std/assert'
-import { BooleanValue } from '../core/value/primitive.ts'
+import { BooleanValue, YaksokSession } from '@dalbit-yaksok/core'
+import { test, expect, assert } from 'vite-plus/test'
 
 const TRUE_LITERALS = ['참', '맞음']
 const FALSE_LITERALS = ['거짓', '아님']
 
 for (const literal of TRUE_LITERALS) {
-    Deno.test(literal, async () => {
+    test(literal, async () => {
         const session = new YaksokSession()
         const scope = await session
             .addModule(
@@ -18,12 +16,12 @@ for (const literal of TRUE_LITERALS) {
             )
             .run()
         const result = scope.getVariable('결과') as BooleanValue
-        assertEquals(result.value, true)
+        expect(result.value).toBe(true)
     })
 }
 
 for (const literal of FALSE_LITERALS) {
-    Deno.test(literal, async () => {
+    test(literal, async () => {
         const session = new YaksokSession()
         const scope = await session
             .addModule(
@@ -34,11 +32,11 @@ for (const literal of FALSE_LITERALS) {
             )
             .run()
         const result = scope.getVariable('결과') as BooleanValue
-        assertEquals(result.value, false)
+        expect(result.value).toBe(false)
     })
 }
 
-Deno.test('Store boolean in variable', async () => {
+test('Store boolean in variable', async () => {
     const session = new YaksokSession()
     const scope = await session
         .addModule(
@@ -50,10 +48,10 @@ Deno.test('Store boolean in variable', async () => {
         )
         .run()
     const result = scope.getVariable('결과') as BooleanValue
-    assertEquals(result.value, true)
+    expect(result.value).toBe(true)
 })
 
-Deno.test('Compare booleans', async () => {
+test('Compare booleans', async () => {
     const session = new YaksokSession()
     const scope = await session
         .addModule(
@@ -69,13 +67,13 @@ Deno.test('Compare booleans', async () => {
 
     assert(scope)
 
-    assertEquals((scope.getVariable('결과1') as BooleanValue).value, true)
-    assertEquals((scope.getVariable('결과2') as BooleanValue).value, true)
-    assertEquals((scope.getVariable('결과3') as BooleanValue).value, false)
-    assertEquals((scope.getVariable('결과4') as BooleanValue).value, true)
+    expect((scope.getVariable('결과1') as BooleanValue).value).toBe(true)
+    expect((scope.getVariable('결과2') as BooleanValue).value).toBe(true)
+    expect((scope.getVariable('결과3') as BooleanValue).value).toBe(false)
+    expect((scope.getVariable('결과4') as BooleanValue).value).toBe(true)
 })
 
-Deno.test('Negation operator', async () => {
+test('Negation operator', async () => {
     const session = new YaksokSession()
     const scope = await session
         .addModule(
@@ -92,8 +90,8 @@ Deno.test('Negation operator', async () => {
 
     assert(scope)
 
-    assertEquals((scope.getVariable('결과1') as BooleanValue).value, false)
-    assertEquals((scope.getVariable('결과2') as BooleanValue).value, true)
-    assertEquals((scope.getVariable('결과3') as BooleanValue).value, false)
-    assertEquals((scope.getVariable('결과4') as BooleanValue).value, false)
+    expect((scope.getVariable('결과1') as BooleanValue).value).toBe(false)
+    expect((scope.getVariable('결과2') as BooleanValue).value).toBe(true)
+    expect((scope.getVariable('결과3') as BooleanValue).value).toBe(false)
+    expect((scope.getVariable('결과4') as BooleanValue).value).toBe(false)
 })

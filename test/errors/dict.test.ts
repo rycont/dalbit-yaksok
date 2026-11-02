@@ -1,8 +1,11 @@
-import { assertInstanceOf } from '@std/assert'
-import { InvalidTypeForOperatorError } from '../../core/error/calculation.ts'
-import { IndexKeyNotFoundError, YaksokSession } from '../../core/mod.ts'
+import {
+    YaksokSession,
+    IndexKeyNotFoundError,
+    InvalidTypeForOperatorError,
+} from '@dalbit-yaksok/core'
+import { expect, test } from 'vite-plus/test'
 
-Deno.test('Key is not found in dictionary', async () => {
+test('Key is not found in dictionary', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -31,10 +34,10 @@ Deno.test('Key is not found in dictionary', async () => {
 객체['자격증']['자식새끼'][1] 보여주기`,
     )
     await codeFile.run()
-    assertInstanceOf(errors[0], IndexKeyNotFoundError)
+    expect.assert.instanceOf(errors[0], IndexKeyNotFoundError)
 })
 
-Deno.test('Dict Compound Assignment Operation Error', async () => {
+test('Dict Compound Assignment Operation Error', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -55,5 +58,5 @@ Deno.test('Dict Compound Assignment Operation Error', async () => {
 객체['주소'] -= 2`,
     )
     await codeFile.run()
-    assertInstanceOf(errors[0], InvalidTypeForOperatorError)
+    expect.assert.instanceOf(errors[0], InvalidTypeForOperatorError)
 })

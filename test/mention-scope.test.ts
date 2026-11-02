@@ -1,8 +1,8 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
-import { assertIsError, unreachable } from '@std/assert'
+import { test, expect } from 'vite-plus/test'
 import { FileForRunNotExistError } from '../core/error/prepare.ts'
 
-Deno.test('MentionScope validate with invalid module', async () => {
+test('MentionScope validate with invalid module', async () => {
     const session = new YaksokSession()
 
     // Should have error about module not found
@@ -10,11 +10,11 @@ Deno.test('MentionScope validate with invalid module', async () => {
         session.addModule('main', `@없는모듈 변수`)
         unreachable()
     } catch (error) {
-        assertIsError(error, FileForRunNotExistError)
+        expect(error).toBeInstanceOf(FileForRunNotExistError)
     }
 })
 
-Deno.test('MentionScope validate with module that has validation errors', async () => {
+test('MentionScope validate with module that has validation errors', async () => {
     const session = new YaksokSession()
 
     await session.addModule('module', `변수 = 1`).run()
@@ -24,7 +24,7 @@ Deno.test('MentionScope validate with module that has validation errors', async 
     await codeFile.run()
 })
 
-Deno.test('MentionScope execute with non-YaksokError', async () => {
+test('MentionScope execute with non-YaksokError', async () => {
     const session = new YaksokSession()
 
     await session.addModule('module', `변수 = 1`).run()

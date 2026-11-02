@@ -1,9 +1,7 @@
-import { assert, assertEquals } from '@std/assert'
-import { YaksokSession } from '../core/mod.ts'
-import { IndexedValue } from '../core/value/indexed.ts'
-import { NumberValue } from '../core/value/primitive.ts'
+import { YaksokSession, IndexedValue, NumberValue } from '@dalbit-yaksok/core'
+import { test, expect, assert } from 'vite-plus/test'
 
-Deno.test('Dictionary literal accepts numeric keys', async () => {
+test('Dictionary literal accepts numeric keys', async () => {
     const session = new YaksokSession()
     const scope = await session
         .addModule(
@@ -23,6 +21,6 @@ Deno.test('Dictionary literal accepts numeric keys', async () => {
 
     for (const key of [2, 3, 5, 7]) {
         const storedValue = value.getItem(key) as NumberValue
-        assertEquals(storedValue.value, 0)
+        expect(storedValue.value).toBe(0)
     }
 })

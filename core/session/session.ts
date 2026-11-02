@@ -2,15 +2,15 @@ import {
     AlreadyRegisteredModuleError,
     CodeFile,
     ErrorInFFIExecution,
-    type Extension,
     FFIRuntimeNotFound,
     MultipleFFIRuntimeError,
     Node,
-    type Rule,
     Scope,
     ValueType,
     YaksokError,
     PubSub,
+    type Rule,
+    type Extension,
     type RuntimeContext,
 } from '@dalbit-yaksok/core'
 

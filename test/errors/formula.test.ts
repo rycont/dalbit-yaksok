@@ -1,4 +1,4 @@
-import { assertAlmostEquals, assertInstanceOf } from '@std/assert'
+import { expect, test } from 'vite-plus/test'
 import { NumberValue, YaksokSession } from '../../core/mod.ts'
 
 function createRandomValue(depth = 0): number | (string | number)[] {
@@ -32,7 +32,7 @@ function createRandomFormula(depth = 0): (string | number)[] {
 
 for (let i = 0; i < 10; i++) {
     const formula = createRandomFormula().join(' ')
-    Deno.test(`Compute complex formula: ${i}`, async () => {
+    test(`Compute complex formula: ${i}`, async () => {
         const code = `
 나이 = ${formula}
     `
@@ -41,8 +41,8 @@ for (let i = 0; i < 10; i++) {
         const scope = await session.addModule('main', code).run()
         const 나이 = scope.getVariable('나이') as NumberValue
 
-        assertInstanceOf(나이, NumberValue)
+        expect.assert.instanceOf(나이, NumberValue)
         /* oxlint-disable-next-line no-eval */
-        assertAlmostEquals(나이.value, eval(formula), 1e-4)
+        expect(나이.value).toBeCloseTo(eval(formula), 4)
     })
 }

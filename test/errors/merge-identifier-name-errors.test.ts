@@ -3,9 +3,9 @@ import {
     YaksokError,
     YaksokSession,
 } from '@dalbit-yaksok/core'
-import { assert } from '@std/assert'
+import { assert, test } from 'vite-plus/test'
 
-Deno.test('Merge identifier name errors', async () => {
+test('Merge identifier name errors', async () => {
     const errors: YaksokError[] = []
 
     const session = new YaksokSession({

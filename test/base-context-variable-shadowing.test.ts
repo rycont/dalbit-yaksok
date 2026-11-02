@@ -1,7 +1,7 @@
-import { assertEquals } from 'https://deno.land/std@0.211.0/assert/mod.ts'
-import { YaksokSession, NumberValue } from '../core/mod.ts'
+import { YaksokSession, NumberValue } from '@dalbit-yaksok/core'
+import { expect, test } from 'vite-plus/test'
 
-Deno.test('setBaseContext: 다른 변수명으로 읽기 (정상 케이스)', async () => {
+test('setBaseContext: 다른 변수명으로 읽기 (정상 케이스)', async () => {
     let output = ''
 
     const session = new YaksokSession({
@@ -15,10 +15,10 @@ Deno.test('setBaseContext: 다른 변수명으로 읽기 (정상 케이스)', as
     const codeFile = session.addModule('main', '결과 = 값 + 10\n결과 보여주기')
     await codeFile.run()
 
-    assertEquals(output.trim(), '15')
+    expect(output.trim()).toBe('15')
 })
 
-Deno.test('setBaseContext: 단순 읽기', async () => {
+test('setBaseContext: 단순 읽기', async () => {
     let output = ''
 
     const session = new YaksokSession({
@@ -32,10 +32,10 @@ Deno.test('setBaseContext: 단순 읽기', async () => {
     const codeFile = session.addModule('main', '값 보여주기')
     await codeFile.run()
 
-    assertEquals(output.trim(), '5')
+    expect(output.trim()).toBe('5')
 })
 
-Deno.test('setBaseContext: 새 변수 선언은 로컬 스코프에 생성됨', async () => {
+test('setBaseContext: 새 변수 선언은 로컬 스코프에 생성됨', async () => {
     let output = ''
 
     const session = new YaksokSession({
@@ -50,14 +50,14 @@ Deno.test('setBaseContext: 새 변수 선언은 로컬 스코프에 생성됨', 
     const codeFile = session.addModule('main', '새값 = 100\n새값 보여주기')
     await codeFile.run()
 
-    assertEquals(output.trim(), '100')
+    expect(output.trim()).toBe('100')
 
-    assertEquals(baseContextScope?.variables['새값'], undefined)
+    expect(baseContextScope?.variables['새값']).toBe(undefined)
 })
 
 // ===== 재대입 동작 검증 =====
 
-Deno.test('setBaseContext: 같은 변수명으로 재대입하면 값 + 10 = 15가 됨', async () => {
+test('setBaseContext: 같은 변수명으로 재대입하면 값 + 10 = 15가 됨', async () => {
     let output = ''
 
     const session = new YaksokSession({
@@ -72,14 +72,10 @@ Deno.test('setBaseContext: 같은 변수명으로 재대입하면 값 + 10 = 15�
     await codeFile.run()
 
     // 값 = 5 + 10 = 15
-    assertEquals(
-        output.trim(),
-        '15',
-        'baseContext의 값(5)에 10을 더해 15가 되어야 함',
-    )
+    expect(output.trim()).toBe('15')
 })
 
-Deno.test('validation 단계가 baseContext.ranScope의 변수를 변경하지 않음', async () => {
+test('validation 단계가 baseContext.ranScope의 변수를 변경하지 않음', async () => {
     const session = new YaksokSession({
         stdout() {},
     })
@@ -87,24 +83,16 @@ Deno.test('validation 단계가 baseContext.ranScope의 변수를 변경하지 �
     session.useBaseScope(await session.addModule('base', '값 = 5').run())
 
     const baseScopeBefore = session.baseScope
-    assertEquals(
-        (baseScopeBefore?.variables['값'] as NumberValue)?.value,
-        5,
-        'validation 전에는 5',
-    )
+    expect((baseScopeBefore?.variables['값'] as NumberValue)?.value).toBe(5)
 
     // validate만 호출 (실행은 하지 않음)
     session.addModule('main', '값 = 값 + 10')
 
     const baseScopeAfter = session.baseScope
-    assertEquals(
-        (baseScopeAfter?.variables['값'] as NumberValue)?.value,
-        5,
-        'validate() 후에도 baseContext.ranScope의 값이 5로 유지됨',
-    )
+    expect((baseScopeAfter?.variables['값'] as NumberValue)?.value).toBe(5)
 })
 
-Deno.test('재대입 후 parent scope에 반영됨', async () => {
+test('재대입 후 parent scope에 반영됨', async () => {
     const session = new YaksokSession({
         stdout() {},
     })
@@ -115,11 +103,11 @@ Deno.test('재대입 후 parent scope에 반영됨', async () => {
     const codeFile = session.addModule('main', '값 = 값 + 10')
     const childScope = await codeFile.run()
 
-    assertEquals((baseScope.variables['값'] as NumberValue).value, 5)
-    assertEquals((childScope.variables['값'] as NumberValue).value, 15)
+    expect((baseScope.variables['값'] as NumberValue).value).toBe(5)
+    expect((childScope.variables['값'] as NumberValue).value).toBe(15)
 })
 
-Deno.test('복합 대입 연산자로 재대입', async () => {
+test('복합 대입 연산자로 재대입', async () => {
     let output = ''
 
     const session = new YaksokSession({
@@ -134,9 +122,5 @@ Deno.test('복합 대입 연산자로 재대입', async () => {
     await codeFile.run()
 
     // 5 + 10 = 15
-    assertEquals(
-        output.trim(),
-        '15',
-        '복합 대입 연산자도 baseContext 값을 올바르게 읽음',
-    )
+    expect(output.trim()).toBe('15')
 })

@@ -1,7 +1,7 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
-import { assertEquals } from '@std/assert'
+import { test, expect } from 'vite-plus/test'
 
-Deno.test('splits variable suffix for functions provided via base context', async () => {
+test('splits variable suffix for functions provided via base context', async () => {
     let output = ''
 
     const session = new YaksokSession({
@@ -28,10 +28,10 @@ Deno.test('splits variable suffix for functions provided via base context', asyn
 
     await codeFile.run()
 
-    assertEquals(output, '철수 최고야\n')
+    expect(output).toBe('철수 최고야\n')
 })
 
-Deno.test('splits variable suffix for functions imported via mentioning', async () => {
+test('splits variable suffix for functions imported via mentioning', async () => {
     let output = ''
 
     const session = new YaksokSession({
@@ -55,10 +55,10 @@ Deno.test('splits variable suffix for functions imported via mentioning', async 
 
     await codeFile.run()
 
-    assertEquals(output, '영희 최고야\n')
+    expect(output).toBe('영희 최고야\n')
 })
 
-Deno.test('prevents splitting when lookahead markers do not match', async () => {
+test('prevents splitting when lookahead markers do not match', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout(message) {
@@ -84,10 +84,10 @@ Deno.test('prevents splitting when lookahead markers do not match', async () => 
     )
 
     await codeFile.run()
-    assertEquals(output, '영희\n')
+    expect(output).toBe('영희\n')
 })
 
-Deno.test('correctly splits even with lookahead when markers match', async () => {
+test('correctly splits even with lookahead when markers match', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout(message) {
@@ -112,10 +112,10 @@ Deno.test('correctly splits even with lookahead when markers match', async () =>
     )
 
     await codeFile.run()
-    assertEquals(output, '철수 최고야\n')
+    expect(output).toBe('철수 최고야\n')
 })
 
-Deno.test('splits variable name when followed by parameter in parentheses with spaces', async () => {
+test('splits variable name when followed by parameter in parentheses with spaces', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout(message) {
@@ -140,10 +140,10 @@ Deno.test('splits variable name when followed by parameter in parentheses with s
     )
 
     await codeFile.run()
-    assertEquals(output, '영희에게 최고야라고 말하기\n')
+    expect(output).toBe('영희에게 최고야라고 말하기\n')
 })
 
-Deno.test('splits variable name when followed by a list literal (Sequence)', async () => {
+test('splits variable name when followed by a list literal (Sequence)', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout(message) {
@@ -169,10 +169,10 @@ Deno.test('splits variable name when followed by a list literal (Sequence)', asy
     )
 
     await codeFile.run()
-    assertEquals(output, '철수\n[4, 5]\n')
+    expect(output).toBe('철수\n[4, 5]\n')
 })
 
-Deno.test('splits variable name for complex evaluable nodes (indexed access)', async () => {
+test('splits variable name for complex evaluable nodes (indexed access)', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout(message) {
@@ -197,10 +197,10 @@ Deno.test('splits variable name for complex evaluable nodes (indexed access)', a
     )
 
     await codeFile.run()
-    assertEquals(output, 'A 호출됨\n')
+    expect(output).toBe('A 호출됨\n')
 })
 
-Deno.test('prevents splitting when followed by an assignment operator', async () => {
+test('prevents splitting when followed by an assignment operator', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout(message) {
@@ -225,5 +225,5 @@ Deno.test('prevents splitting when followed by an assignment operator', async ()
     )
 
     await codeFile.run()
-    assertEquals(output, '철수\n')
+    expect(output).toBe('철수\n')
 })

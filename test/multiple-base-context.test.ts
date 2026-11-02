@@ -1,7 +1,7 @@
-import { YaksokSession } from '../core/mod.ts'
-import { assertEquals } from 'https://deno.land/std@0.211.0/assert/mod.ts'
+import { YaksokSession } from '@dalbit-yaksok/core'
+import { expect, test } from 'vite-plus/test'
 
-Deno.test('Multiple base contexts should be chained', async () => {
+test('Multiple base contexts should be chained', async () => {
     let output = ''
 
     const session = new YaksokSession({
@@ -45,10 +45,10 @@ Deno.test('Multiple base contexts should be chained', async () => {
 
     await codeFile.run()
 
-    assertEquals(output, '10\n')
+    expect(output).toBe('10\n')
 })
 
-Deno.test('Multiple base contexts should share variables', async () => {
+test('Multiple base contexts should share variables', async () => {
     let output = ''
 
     const session = new YaksokSession({
@@ -64,5 +64,5 @@ Deno.test('Multiple base contexts should share variables', async () => {
 
     await codeFile.run()
 
-    assertEquals(output, '30\n')
+    expect(output).toBe('30\n')
 })

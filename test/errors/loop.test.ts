@@ -1,21 +1,21 @@
-import { assertIsError } from '@std/assert'
 import {
-    IndexKeyNotFoundError,
+    YaksokSession,
     InvalidTypeForOperatorError,
-    ListIndexMustBeGreaterOrEqualThan0Error,
-    ListIndexTypeError,
     NotEnumerableValueForListLoopError,
-    RangeEndMustBeIntegerError,
-    RangeEndMustBeNumberError,
-    RangeStartMustBeIntegerError,
     RangeStartMustBeLessThanEndError,
     RangeStartMustBeNumberError,
+    RangeEndMustBeNumberError,
+    RangeStartMustBeIntegerError,
+    RangeEndMustBeIntegerError,
     TargetIsNotIndexedValueError,
-} from '../../core/error/index.ts'
-import { LoopCountIsNotNumberError } from '../../core/error/loop.ts'
-import { YaksokSession } from '../../core/mod.ts'
+    IndexKeyNotFoundError,
+    ListIndexTypeError,
+    ListIndexMustBeGreaterOrEqualThan0Error,
+    LoopCountIsNotNumberError,
+} from '@dalbit-yaksok/core'
+import { expect, test } from 'vite-plus/test'
 
-Deno.test('Error raised in loop', async () => {
+test('Error raised in loop', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -31,10 +31,10 @@ Deno.test('Error raised in loop', async () => {
 `,
     )
     await codeFile.run()
-    assertIsError(errors[0], InvalidTypeForOperatorError)
+    expect.assert.instanceOf(errors[0], InvalidTypeForOperatorError)
 })
 
-Deno.test('Error raised in list loop', async () => {
+test('Error raised in list loop', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -49,10 +49,10 @@ Deno.test('Error raised in list loop', async () => {
 `,
     )
     await codeFile.run()
-    assertIsError(errors[0], InvalidTypeForOperatorError)
+    expect.assert.instanceOf(errors[0], InvalidTypeForOperatorError)
 })
 
-Deno.test('Loop target is not enumerable', async () => {
+test('Loop target is not enumerable', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -67,10 +67,10 @@ Deno.test('Loop target is not enumerable', async () => {
 `,
     )
     await codeFile.run()
-    assertIsError(errors[0], NotEnumerableValueForListLoopError)
+    expect.assert.instanceOf(errors[0], NotEnumerableValueForListLoopError)
 })
 
-Deno.test('Range start is less than end', async () => {
+test('Range start is less than end', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -79,10 +79,10 @@ Deno.test('Range start is less than end', async () => {
     })
     const codeFile = session.addModule('main', `10 ~ 5`)
     await codeFile.run()
-    assertIsError(errors[0], RangeStartMustBeLessThanEndError)
+    expect.assert.instanceOf(errors[0], RangeStartMustBeLessThanEndError)
 })
 
-Deno.test('Range start must be number', async () => {
+test('Range start must be number', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -91,10 +91,10 @@ Deno.test('Range start must be number', async () => {
     })
     const codeFile = session.addModule('main', `"Hello" ~ 5`)
     await codeFile.run()
-    assertIsError(errors[0], RangeStartMustBeNumberError)
+    expect.assert.instanceOf(errors[0], RangeStartMustBeNumberError)
 })
 
-Deno.test('Range end must be number', async () => {
+test('Range end must be number', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -103,10 +103,10 @@ Deno.test('Range end must be number', async () => {
     })
     const codeFile = session.addModule('main', `5 ~ "Hello"`)
     await codeFile.run()
-    assertIsError(errors[0], RangeEndMustBeNumberError)
+    expect.assert.instanceOf(errors[0], RangeEndMustBeNumberError)
 })
 
-Deno.test('Range start must be an integer', async () => {
+test('Range start must be an integer', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -115,7 +115,7 @@ Deno.test('Range start must be an integer', async () => {
     })
     const codeFile = session.addModule('main', `1.5 ~ 5`)
     await codeFile.run()
-    assertIsError(errors[0], RangeStartMustBeIntegerError)
+    expect.assert.instanceOf(errors[0], RangeStartMustBeIntegerError)
 
     const errors2: unknown[] = []
     const session2 = new YaksokSession({
@@ -125,10 +125,10 @@ Deno.test('Range start must be an integer', async () => {
     })
     const codeFile2 = session2.addModule('main', `1.5 ~ 3.2`)
     await codeFile2.run()
-    assertIsError(errors2[0], RangeStartMustBeIntegerError)
+    expect.assert.instanceOf(errors2[0], RangeStartMustBeIntegerError)
 })
 
-Deno.test('Range end must be an integer', async () => {
+test('Range end must be an integer', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -137,10 +137,10 @@ Deno.test('Range end must be an integer', async () => {
     })
     const codeFile = session.addModule('main', `1 ~ 5.5`)
     await codeFile.run()
-    assertIsError(errors[0], RangeEndMustBeIntegerError)
+    expect.assert.instanceOf(errors[0], RangeEndMustBeIntegerError)
 })
 
-Deno.test('Index set target is must be indexable', async () => {
+test('Index set target is must be indexable', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -156,10 +156,10 @@ Deno.test('Index set target is must be indexable', async () => {
 `,
     )
     await codeFile.run()
-    assertIsError(errors[0], TargetIsNotIndexedValueError)
+    expect.assert.instanceOf(errors[0], TargetIsNotIndexedValueError)
 })
 
-Deno.test('Index get target is must be indexable', async () => {
+test('Index get target is must be indexable', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -173,10 +173,10 @@ Deno.test('Index get target is must be indexable', async () => {
 `,
     )
     await codeFile.run()
-    assertIsError(errors[0], TargetIsNotIndexedValueError)
+    expect.assert.instanceOf(errors[0], TargetIsNotIndexedValueError)
 })
 
-Deno.test('List out of range', async () => {
+test('List out of range', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -190,10 +190,10 @@ Deno.test('List out of range', async () => {
 `,
     )
     await codeFile.run()
-    assertIsError(errors[0], IndexKeyNotFoundError)
+    expect.assert.instanceOf(errors[0], IndexKeyNotFoundError)
 })
 
-Deno.test('List index must be number', async () => {
+test('List index must be number', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -207,10 +207,10 @@ Deno.test('List index must be number', async () => {
 `,
     )
     await codeFile.run()
-    assertIsError(errors[0], ListIndexTypeError)
+    expect.assert.instanceOf(errors[0], ListIndexTypeError)
 })
 
-Deno.test('List index must be integer', async () => {
+test('List index must be integer', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -224,10 +224,10 @@ Deno.test('List index must be integer', async () => {
 `,
     )
     await codeFile.run()
-    assertIsError(errors[0], ListIndexTypeError)
+    expect.assert.instanceOf(errors[0], ListIndexTypeError)
 })
 
-Deno.test('List index must bigger than 0', async () => {
+test('List index must bigger than 0', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -241,10 +241,10 @@ Deno.test('List index must bigger than 0', async () => {
 `,
     )
     await codeFile.run()
-    assertIsError(errors[0], ListIndexMustBeGreaterOrEqualThan0Error)
+    expect.assert.instanceOf(errors[0], ListIndexMustBeGreaterOrEqualThan0Error)
 })
 
-Deno.test('Loop Count is not a number', async () => {
+test('Loop Count is not a number', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -257,5 +257,5 @@ Deno.test('Loop Count is not a number', async () => {
     1 + 1 보여주기`,
     )
     await codeFile.run()
-    assertIsError(errors[0], LoopCountIsNotNumberError)
+    expect.assert.instanceOf(errors[0], LoopCountIsNotNumberError)
 })

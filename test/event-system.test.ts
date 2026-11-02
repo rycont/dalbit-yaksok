@@ -1,7 +1,7 @@
-import { dalbitToJS, Scope, YaksokSession } from '../core/mod.ts'
-import { assertEquals, assertInstanceOf } from '@std/assert'
+import { dalbitToJS, Scope, YaksokSession } from '@dalbit-yaksok/core'
+import { test, expect } from 'vite-plus/test'
 
-Deno.test('이벤트 구독 및 실행', async () => {
+test('이벤트 구독 및 실행', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout(value) {
@@ -31,10 +31,10 @@ Deno.test('이벤트 구독 및 실행', async () => {
 
     await codeFile.run()
 
-    assertEquals(output, '이벤트 실행됨\n이벤트 실행됨\n이벤트 실행됨\n')
+    expect(output).toBe('이벤트 실행됨\n이벤트 실행됨\n이벤트 실행됨\n')
 })
 
-Deno.test('여러 이벤트 구독 및 실행', async () => {
+test('여러 이벤트 구독 및 실행', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout(value) {
@@ -76,10 +76,10 @@ Deno.test('여러 이벤트 구독 및 실행', async () => {
 
     await codeFile.run()
 
-    assertEquals(output, '이벤트 1 실행됨\n이벤트 2 실행됨\n')
+    expect(output).toBe('이벤트 1 실행됨\n이벤트 2 실행됨\n')
 })
 
-Deno.test('이벤트 구독 시 subscriber target 정보 전달', async () => {
+test('이벤트 구독 시 subscriber target 정보 전달', async () => {
     const session = new YaksokSession()
 
     const codeFile = session.addModule(
@@ -98,7 +98,7 @@ Deno.test('이벤트 구독 시 subscriber target 정보 전달', async () => {
         'TEST_EVENT',
         (_args, callback, terminate, scope) => {
             receivedScope = scope
-            callback()
+            void callback()
             terminate()
         },
     )
@@ -106,12 +106,12 @@ Deno.test('이벤트 구독 시 subscriber target 정보 전달', async () => {
     await codeFile.run()
 
     const scope = receivedScope!
-    assertInstanceOf(scope, Scope)
-    // assertEquals(scope.codeFile?.fileName, 'main')
-    // assertEquals(scope.codeFile, session.getCodeFile('main'))
+    expect.assert.instanceOf(scope, Scope)
+    // expect(scope.codeFile?.fileName).toBe( 'main')
+    // expect(scope.codeFile).toBe( session.getCodeFile('main'))
 })
 
-Deno.test('이벤트 밖에서 선언된 변수를 이벤트 안에서 읽기', async () => {
+test('이벤트 밖에서 선언된 변수를 이벤트 안에서 읽기', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout(value) {
@@ -138,10 +138,10 @@ Deno.test('이벤트 밖에서 선언된 변수를 이벤트 안에서 읽기', 
 
     await codeFile.run()
 
-    assertEquals(output, '안녕하세요\n')
+    expect(output).toBe('안녕하세요\n')
 })
 
-Deno.test('이벤트 안에서 외부 변수를 조건문에 사용하기', async () => {
+test('이벤트 안에서 외부 변수를 조건문에 사용하기', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout(value) {
@@ -174,10 +174,10 @@ Deno.test('이벤트 안에서 외부 변수를 조건문에 사용하기', asyn
 
     await codeFile.run()
 
-    assertEquals(output, '출발\n정지\n')
+    expect(output).toBe('출발\n정지\n')
 })
 
-Deno.test('이벤트 안에서 외부 변수를 조건문에 사용하기 (단일 콜백)', async () => {
+test('이벤트 안에서 외부 변수를 조건문에 사용하기 (단일 콜백)', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout(value) {
@@ -205,10 +205,10 @@ Deno.test('이벤트 안에서 외부 변수를 조건문에 사용하기 (단�
 
     await codeFile.run()
 
-    assertEquals(output, '출발\n')
+    expect(output).toBe('출발\n')
 })
 
-Deno.test('@mention 이벤트에서 외부 변수를 조건문에 사용하기', async () => {
+test('@mention 이벤트에서 외부 변수를 조건문에 사용하기', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout(value) {
@@ -250,10 +250,10 @@ Deno.test('@mention 이벤트에서 외부 변수를 조건문에 사용하기',
 
     await codeFile.run()
 
-    assertEquals(output, '출발\n정지\n')
+    expect(output).toBe('출발\n정지\n')
 })
 
-Deno.test('이벤트 안에서 외부 변수 수정하기', async () => {
+test('이벤트 안에서 외부 변수 수정하기', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout(value) {
@@ -282,5 +282,5 @@ Deno.test('이벤트 안에서 외부 변수 수정하기', async () => {
 
     await codeFile.run()
 
-    assertEquals(output, '정지 중\n가는 중\n')
+    expect(output).toBe('정지 중\n가는 중\n')
 })

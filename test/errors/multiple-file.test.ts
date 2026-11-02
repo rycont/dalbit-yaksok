@@ -1,8 +1,7 @@
-import { assertIsError } from '@std/assert'
-import { ErrorInModuleError } from '../../core/error/index.ts'
-import { YaksokSession } from '../../core/mod.ts'
+import { ErrorInModuleError, YaksokSession } from '@dalbit-yaksok/core'
+import { expect, test } from 'vite-plus/test'
 
-Deno.test('Error in using module function', async () => {
+test('Error in using module function', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -21,5 +20,5 @@ Deno.test('Error in using module function', async () => {
     const codeFile = session.addModule('main', '(@아두이노 이름) 보여주기')
     await codeFile.run()
 
-    assertIsError(errors[0], ErrorInModuleError)
+    expect(errors[0]).toBeInstanceOf(ErrorInModuleError)
 })

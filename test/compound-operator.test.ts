@@ -1,12 +1,10 @@
-import { assertEquals } from 'assert/equals'
-import { assertInstanceOf } from 'assert/instance-of'
-import { assertIsError } from 'assert/is-error'
 import {
-    InvalidTypeForOperatorError,
-    NumberValue,
-    StringValue,
     YaksokSession,
-} from '../core/mod.ts'
+    StringValue,
+    NumberValue,
+    InvalidTypeForOperatorError,
+} from '@dalbit-yaksok/core'
+import { test, expect } from 'vite-plus/test'
 
 const VALID_CASES_FOR_COMPOUND_OPERATORS = [
     {
@@ -73,7 +71,7 @@ const INVALID_CASES_FOR_COMPOUND_OPERATORS = [
 ]
 
 for (const { a, b, operator, expected } of VALID_CASES_FOR_COMPOUND_OPERATORS) {
-    Deno.test(`Valid compound operator ${operator}`, async () => {
+    test(`Valid compound operator ${operator}`, async () => {
         const code = `result = ${a}
 result ${operator} ${b}`.trim()
         const session = new YaksokSession()
@@ -85,18 +83,14 @@ result ${operator} ${b}`.trim()
             typeof a === 'string' || typeof b === 'string'
                 ? StringValue
                 : NumberValue
-        assertInstanceOf(resultValue, expectedType)
 
-        assertEquals(
-            resultValue.value,
-            expected,
-            `Expected ${expected}, got ${resultValue.value}`,
-        )
+        expect(resultValue).toBeInstanceOf(expectedType)
+        expect((resultValue as StringValue | NumberValue).value).toBe(expected)
     })
 }
 
 for (const { a, b, operator } of INVALID_CASES_FOR_COMPOUND_OPERATORS) {
-    Deno.test(`Invalid compound operator ${operator}`, async () => {
+    test(`Invalid compound operator ${operator}`, async () => {
         const code = `result = ${a}
 result ${operator} ${b}`.trim()
         const errors: unknown[] = []
@@ -107,11 +101,11 @@ result ${operator} ${b}`.trim()
         })
         const codeFile = session.addModule('main', code)
         await codeFile.run()
-        assertIsError(errors[0], InvalidTypeForOperatorError)
+        expect(errors[0]).toBeInstanceOf(InvalidTypeForOperatorError)
     })
 }
 
-Deno.test('Invalid compound operator in set to index', async () => {
+test('Invalid compound operator in set to index', async () => {
     const code = `목록 = [1, 2, 3]
 목록[0] -= "홍길동"
 `
@@ -123,5 +117,5 @@ Deno.test('Invalid compound operator in set to index', async () => {
     })
     const codeFile = session.addModule('main', code)
     await codeFile.run()
-    assertIsError(errors[0], InvalidTypeForOperatorError)
+    expect(errors[0]).toBeInstanceOf(InvalidTypeForOperatorError)
 })

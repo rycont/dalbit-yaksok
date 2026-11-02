@@ -1,5 +1,9 @@
 {
-    "name": "quickjs",
+    "name": "@dalbit-yaksok/quickjs",
     "version": "7.1.0",
-    "type": "module"
+    "type": "module",
+    "exports": "./mod.ts",
+    "dependencies": {
+        "@dalbit-yaksok/core": "workspace:*"
+    }
 }

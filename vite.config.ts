@@ -27,4 +27,8 @@ export default defineConfig({
     run: {
         cache: true,
     },
+    test: {
+        environment: 'node',
+        execArgv: ['--localstorage-file=/tmp/.dbys-lstore.json'],
+    },
 })

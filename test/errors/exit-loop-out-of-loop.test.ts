@@ -1,9 +1,7 @@
-import { assertIsError } from '@std/assert'
+import { YaksokSession, BreakNotInLoopError } from '@dalbit-yaksok/core'
+import { expect, test } from 'vite-plus/test'
 
-import { YaksokSession } from '../../core/mod.ts'
-import { BreakNotInLoopError } from '../../core/error/index.ts'
-
-Deno.test('반복의 밖에서는 `반복 그만`을 쓸 수 없음', async () => {
+test('반복의 밖에서는 `반복 그만`을 쓸 수 없음', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -16,5 +14,5 @@ Deno.test('반복의 밖에서는 `반복 그만`을 쓸 수 없음', async () =
 반복 그만`,
     )
     await codeFile.run()
-    assertIsError(errors[0], BreakNotInLoopError)
+    expect.assert.instanceOf(errors[0], BreakNotInLoopError)
 })

@@ -1,33 +1,28 @@
-import { assertIsError } from '@std/assert'
 import {
     BrokenBracketError,
     NotExecutableNodeError,
     YaksokSession,
 } from '@dalbit-yaksok/core'
 
-Deno.test('Unparsable codes', async () => {
+import { expect, test } from 'vite-plus/test'
+
+test('Unparsable codes', async () => {
     const session = new YaksokSession()
     const codeFile = session.addModule('main', `]]`)
 
-    assertIsError(codeFile.prepareErrors[0], NotExecutableNodeError)
-    assertIsError(codeFile.prepareErrors[1], NotExecutableNodeError)
+    expect(codeFile.prepareErrors[0]).toBeInstanceOf(NotExecutableNodeError)
+    expect(codeFile.prepareErrors[1]).toBeInstanceOf(NotExecutableNodeError)
 })
 
-Deno.test('Unparsable numbers', async () => {
+test('Unparsable numbers', async () => {
     const session = new YaksokSession()
     const codeFile = session.addModule('main', `1.2.3`)
 
-    assertIsError(codeFile.prepareErrors[0], NotExecutableNodeError)
+    expect(codeFile.prepareErrors[0]).toBeInstanceOf(NotExecutableNodeError)
 })
 
-Deno.test('Unparsable list', async () => {
+test('Unparsable list', async () => {
     const session = new YaksokSession()
     const codeFile = session.addModule('main', `자리표 = [1, 2, [3, 4]`)
-    assertIsError(codeFile.prepareErrors[0], BrokenBracketError)
+    expect(codeFile.prepareErrors[0]).toBeInstanceOf(BrokenBracketError)
 })
-
-// Deno.test('Unparsable function call', async () => {
-//     const session = new YaksokSession()
-//     const codeFile = session.addModule('main', `비만도 = 키가 (`)
-//     assertIsError(codeFile.prepareErrors[0], UnexpectedEndOfCodeError)
-// })

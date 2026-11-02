@@ -1,11 +1,11 @@
-import { YaksokSession } from '@dalbit-yaksok/core'
-import { assertEquals } from 'assert/equals'
 import {
     NotDefinedIdentifierError,
     NotProperIdentifierNameToDefineError,
-} from '../../core/error/variable.ts'
+    YaksokSession,
+} from '@dalbit-yaksok/core'
+import { expect, test } from 'vite-plus/test'
 
-Deno.test('Variable name is not a valid identifier', async () => {
+test('Variable name is not a valid identifier', async () => {
     const session = new YaksokSession()
     const codeFile = session.addModule(
         'main',
@@ -15,7 +15,7 @@ Deno.test('Variable name is not a valid identifier', async () => {
 
     const errorTypes = codeFile.prepareErrors.map((e) => e.constructor)
 
-    assertEquals(errorTypes, [
+    expect(errorTypes).toStrictEqual([
         NotProperIdentifierNameToDefineError,
         NotDefinedIdentifierError,
     ])

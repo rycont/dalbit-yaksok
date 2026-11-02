@@ -1,9 +1,10 @@
-import { assertIsError } from '@std/assert'
+import { test, expect } from 'vite-plus/test'
+
 import {
+    YaksokSession,
     InvalidTypeForCompareError,
     InvalidTypeForOperatorError,
-} from '../core/error/index.ts'
-import { YaksokSession } from '@dalbit-yaksok/core'
+} from '@dalbit-yaksok/core'
 
 const WRONG_CASES_FOR_CALCULATION = [
     {
@@ -107,7 +108,7 @@ const WRONG_CASES_FOR_COMPARISON = [
 ]
 
 for (const { a, b, operator } of WRONG_CASES_FOR_CALCULATION) {
-    Deno.test(`Invalid type for calculation operator ${operator}`, async () => {
+    test(`Invalid type for calculation operator ${operator}`, async () => {
         const code = `
             ${a} ${operator} ${b}
         `.trim()
@@ -120,12 +121,12 @@ for (const { a, b, operator } of WRONG_CASES_FOR_CALCULATION) {
         })
         const codeFile = session.addModule('main', code)
         await codeFile.run()
-        assertIsError(errors[0], InvalidTypeForOperatorError)
+        expect(errors[0]).toBeInstanceOf(InvalidTypeForOperatorError)
     })
 }
 
 for (const { a, b, operator } of WRONG_CASES_FOR_COMPARISON) {
-    Deno.test(`Invalid type for comparison operator ${operator}`, async () => {
+    test(`Invalid type for comparison operator ${operator}`, async () => {
         const code = `
             ${a} ${operator} ${b}
         `.trim()
@@ -138,6 +139,6 @@ for (const { a, b, operator } of WRONG_CASES_FOR_COMPARISON) {
         })
         const codeFile = session.addModule('main', code)
         await codeFile.run()
-        assertIsError(errors[0], InvalidTypeForCompareError)
+        expect(errors[0]).toBeInstanceOf(InvalidTypeForCompareError)
     })
 }

@@ -1,17 +1,17 @@
-import { assertEquals } from '@std/assert'
+import { test, expect } from 'vite-plus/test'
 import { ReferenceStore } from '@dalbit-yaksok/core'
 
-Deno.test('ReferenceStore toPrint with object that has toString', () => {
+test('ReferenceStore toPrint with object that has toString', () => {
     const obj = {
         toString() {
             return 'custom string'
         },
     }
     const ref = new ReferenceStore(obj)
-    assertEquals(ref.toPrint(), 'custom string')
+    expect(ref.toPrint()).toBe('custom string')
 })
 
-Deno.test('ReferenceStore toPrint with object that throws in toString', () => {
+test('ReferenceStore toPrint with object that throws in toString', () => {
     const obj = {
         toString() {
             throw new Error('toString error')
@@ -21,10 +21,10 @@ Deno.test('ReferenceStore toPrint with object that throws in toString', () => {
     // Should fallback to String(obj) which works for plain objects
     const result = ref.toPrint()
     // Can be either '[object Object]' or '[참조값]' depending on String() behavior
-    assertEquals(typeof result === 'string', true)
+    expect(typeof result === 'string').toBe(true)
 })
 
-Deno.test('ReferenceStore toPrint with object that cannot be converted to string', () => {
+test('ReferenceStore toPrint with object that cannot be converted to string', () => {
     // Create an object that throws when converted to string
     // We need to override valueOf and toString to make String() throw
     const obj: any = {}
@@ -48,25 +48,25 @@ Deno.test('ReferenceStore toPrint with object that cannot be converted to string
     const ref = new ReferenceStore(obj)
     // First toString() call throws, then String() also throws, should return fallback
     const result = ref.toPrint()
-    assertEquals(result, '[참조값]')
+    expect(result).toBe('[참조값]')
 })
 
-Deno.test('ReferenceStore toPrint with null', () => {
+test('ReferenceStore toPrint with null', () => {
     const ref = new ReferenceStore(null)
-    assertEquals(ref.toPrint(), 'null')
+    expect(ref.toPrint()).toBe('null')
 })
 
-Deno.test('ReferenceStore toPrint with undefined', () => {
+test('ReferenceStore toPrint with undefined', () => {
     const ref = new ReferenceStore(undefined)
-    assertEquals(ref.toPrint(), 'undefined')
+    expect(ref.toPrint()).toBe('undefined')
 })
 
-Deno.test('ReferenceStore toPrint with number', () => {
+test('ReferenceStore toPrint with number', () => {
     const ref = new ReferenceStore(42)
-    assertEquals(ref.toPrint(), '42')
+    expect(ref.toPrint()).toBe('42')
 })
 
-Deno.test('ReferenceStore toPrint with boolean', () => {
+test('ReferenceStore toPrint with boolean', () => {
     const ref = new ReferenceStore(true)
-    assertEquals(ref.toPrint(), 'true')
+    expect(ref.toPrint()).toBe('true')
 })

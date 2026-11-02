@@ -1,13 +1,11 @@
-import { assertIsError } from '@std/assert'
+import { YaksokSession, NotExecutableNodeError } from '@dalbit-yaksok/core'
+import { expect, test } from 'vite-plus/test'
 
-import { NotExecutableNodeError } from '../../core/error/unknown-node.ts'
-import { YaksokSession } from '../../core/mod.ts'
-
-Deno.test('올바르지 않은 괄호 묶음', async () => {
+test('올바르지 않은 괄호 묶음', async () => {
     const session = new YaksokSession()
     const codeFile = session.addModule('main', `(이고)`)
 
     for (const childError of codeFile.prepareErrors) {
-        assertIsError(childError, NotExecutableNodeError)
+        expect.assert.instanceOf(childError, NotExecutableNodeError)
     }
 })

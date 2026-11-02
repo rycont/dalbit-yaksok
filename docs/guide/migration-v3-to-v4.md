@@ -219,23 +219,23 @@ const value = session.getCodeFile('main').ranScope?.getVariable('결과')
 
 ```typescript
 // Before (v3)
-Deno.test('Boolean test', async () => {
+test('Boolean test', async () => {
     const session = new YaksokSession()
     session.addModule('main', '결과 = 참')
     await session.runModule('main')
 
     const result = session.entrypoint?.ranScope?.getVariable('결과')
-    assertEquals(result.value, true)
+    expect(result.value).toBe(true)
 })
 
 // After (v4)
-Deno.test('Boolean test', async () => {
+test('Boolean test', async () => {
     const session = new YaksokSession()
     session.addModule('main', '결과 = 참')
     await session.runModule('main')
 
     const result = session.getCodeFile('main').ranScope?.getVariable('결과')
-    assertEquals(result.value, true)
+    expect(result.value).toBe(true)
 })
 ```
 

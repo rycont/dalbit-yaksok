@@ -1,7 +1,7 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
-import { assertEquals } from '@std/assert'
+import { test, expect } from 'vite-plus/test'
 
-Deno.test('Mentioning', async () => {
+test('Mentioning', async () => {
     let output = ''
 
     const session = new YaksokSession({
@@ -68,8 +68,7 @@ KTX이음 = "KTX-이음"
 
     await codeFile.run()
 
-    assertEquals(
-        output,
+    expect(output).toBe(
         `청량리부터 안동까지 KTX 이음을 타면
 32977.06원
 판교부터 충주까지 무궁화호를 타면
@@ -79,7 +78,7 @@ KTX이음 = "KTX-이음"
     )
 })
 
-Deno.test('Mentioning with variable in parameter', async () => {
+test('Mentioning with variable in parameter', async () => {
     let output = ''
 
     const session = new YaksokSession({
@@ -107,15 +106,12 @@ Deno.test('Mentioning with variable in parameter', async () => {
 
     await codeFile.run()
 
-    assertEquals(
-        output,
-        `뭐라고? 어쩌라고.
+    expect(output).toBe(`뭐라고? 어쩌라고.
 비? 어쩌라고.
-`,
-    )
+`)
 })
 
-Deno.test('Mentioning with inline list literal', async () => {
+test('Mentioning with inline list literal', async () => {
     let output = ''
 
     const session = new YaksokSession({
@@ -141,9 +137,6 @@ Deno.test('Mentioning with inline list literal', async () => {
 
     await codeFile.run()
 
-    assertEquals(
-        output,
-        `[사과, 바나나, 체리]
-`,
-    )
+    expect(output).toBe(`[사과, 바나나, 체리]
+`)
 })

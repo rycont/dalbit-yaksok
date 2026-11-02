@@ -1,8 +1,11 @@
-import { assertIsError } from '@std/assert'
-import { NotProperIdentifierNameToDefineError } from '../../core/error/index.ts'
-import { YaksokSession } from '../../core/mod.ts'
+import {
+    NotProperIdentifierNameToDefineError,
+    YaksokSession,
+} from '@dalbit-yaksok/core'
 
-Deno.test('Valid identifier names', async () => {
+import { expect, test } from 'vite-plus/test'
+
+test('Valid identifier names', async () => {
     const session1 = new YaksokSession()
     const codeFile1 = session1.addModule('main', `멍멍이 = 10`)
     await codeFile1.run()
@@ -20,26 +23,24 @@ Deno.test('Valid identifier names', async () => {
     await codeFile5.run()
 })
 
-Deno.test('Invalid identifier name', async () => {
+test('Invalid identifier name', async () => {
     const session = new YaksokSession()
     const codeFile = session.addModule('main', `멍멍*이 = 10`)
 
-    assertIsError(
-        codeFile.prepareErrors[0],
+    expect(codeFile.prepareErrors[0]).toBeInstanceOf(
         NotProperIdentifierNameToDefineError,
     )
 })
 
-Deno.test('Cannot use reserved words as an identifier', async () => {
+test('Cannot use reserved words as an identifier', async () => {
     const session = new YaksokSession()
     const codeFile = session.addModule('main', `만약 = 10`)
-    assertIsError(
-        codeFile.prepareErrors[0],
+    expect(codeFile.prepareErrors[0]).toBeInstanceOf(
         NotProperIdentifierNameToDefineError,
     )
 })
 
-Deno.test('Cannot use reserved words as a part of a yaksok name', async () => {
+test('Cannot use reserved words as a part of a yaksok name', async () => {
     const session = new YaksokSession()
     const codeFile = session.addModule(
         'main',
@@ -48,13 +49,12 @@ Deno.test('Cannot use reserved words as a part of a yaksok name', async () => {
     "이거 진짜에요?" 반환하기
         `,
     )
-    assertIsError(
-        codeFile.prepareErrors[0],
+    expect(codeFile.prepareErrors[0]).toBeInstanceOf(
         NotProperIdentifierNameToDefineError,
     )
 })
 
-Deno.test('Cannot use reserved words as a part of a connect name', async () => {
+test('Cannot use reserved words as a part of a connect name', async () => {
     const session = new YaksokSession()
     const codeFile = session.addModule(
         'main',
@@ -65,8 +65,8 @@ Deno.test('Cannot use reserved words as a part of a connect name', async () => {
 ***
         `,
     )
-    assertIsError(
-        codeFile.prepareErrors[0],
+
+    expect(codeFile.prepareErrors[0]).toBeInstanceOf(
         NotProperIdentifierNameToDefineError,
     )
 })

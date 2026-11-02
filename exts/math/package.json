@@ -1,5 +1,8 @@
 {
     "name": "math",
     "version": "7.1.0",
-    "type": "module"
+    "type": "module",
+    "dependencies": {
+        "@dalbit-yaksok/core": "workspace:*"
+    }
 }

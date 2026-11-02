@@ -1,11 +1,11 @@
-import { assertEquals, assertIsError } from '@std/assert'
 import {
     AlreadyDefinedFunctionError,
     InvalidTypeForOperatorError,
-} from '../../core/error/index.ts'
-import { YaksokSession } from '../../core/mod.ts'
+    YaksokSession,
+} from '@dalbit-yaksok/core'
+import { expect, test } from 'vite-plus/test'
 
-Deno.test('약속 안에서 발생한 오류', async () => {
+test('약속 안에서 발생한 오류', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -20,10 +20,10 @@ Deno.test('약속 안에서 발생한 오류', async () => {
 신나게 놀기`,
     )
     await codeFile.run()
-    assertIsError(errors[0], InvalidTypeForOperatorError)
+    expect.assert.instanceOf(errors[0], InvalidTypeForOperatorError)
 })
 
-Deno.test('동일한 이름으로 약속 재정의 오류', async () => {
+test('동일한 이름으로 약속 재정의 오류', async () => {
     let stderrOutput = ''
     //         await yaksok(
     //             `
@@ -57,10 +57,12 @@ Deno.test('동일한 이름으로 약속 재정의 오류', async () => {
 `,
     )
 
-    assertIsError(codeFile.prepareErrors[0], AlreadyDefinedFunctionError)
+    expect.assert.instanceOf(
+        codeFile.prepareErrors[0],
+        AlreadyDefinedFunctionError,
+    )
 
-    assertEquals(
-        stderrOutput,
+    expect(stderrOutput).toBe(
         `─────
 
 🚨  \x1b[1m문제가 발생했어요\x1b[0m\x1b[2m (main 파일)\x1b[0m 🚨

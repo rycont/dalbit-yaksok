@@ -2,10 +2,10 @@ import {
     ListIndexTypeError,
     TupleNotMutableError,
     YaksokSession,
-} from '../../core/mod.ts'
-import { assertIsError } from '@std/assert'
+} from '@dalbit-yaksok/core'
+import { expect, test } from 'vite-plus/test'
 
-Deno.test('Tuple is immutable - cannot set value by index', async () => {
+test('Tuple is immutable - cannot set value by index', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -19,10 +19,10 @@ Deno.test('Tuple is immutable - cannot set value by index', async () => {
 튜플[0] = 10`,
     )
     await codeFile.run()
-    assertIsError(errors[0], TupleNotMutableError)
+    expect.assert.instanceOf(errors[0], TupleNotMutableError)
 })
 
-Deno.test('Key for list fancy indexing is not a number', async () => {
+test('Key for list fancy indexing is not a number', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -36,5 +36,5 @@ Deno.test('Key for list fancy indexing is not a number', async () => {
 목록[[2, "a"]] 보여주기`,
     )
     await codeFile.run()
-    assertIsError(errors[0], ListIndexTypeError)
+    expect.assert.instanceOf(errors[0], ListIndexTypeError)
 })

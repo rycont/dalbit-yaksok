@@ -1,7 +1,7 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
-import { assertEquals } from '@std/assert'
+import { test, expect } from 'vite-plus/test'
 
-Deno.test('base context variable used in mention with postposition splitting', async () => {
+test('base context variable used in mention with postposition splitting', async () => {
     let output = ''
 
     const session = new YaksokSession({
@@ -34,12 +34,12 @@ Deno.test('base context variable used in mention with postposition splitting', a
 
     await codeFile.run()
 
-    assertEquals(output, '[사과, 바나나, 딸기, 사과, 딸기, 사과]\n')
+    expect(output).toBe('[사과, 바나나, 딸기, 사과, 딸기, 사과]\n')
 })
 
 // Bug 2 검증: base context 변수('값')가 mentioned 모듈('도구')의 exportedRules에 포함되면,
 // SR 파서가 '@도구 값'을 하나의 표현식으로 탐욕 매칭하여 '로 출력하기'가 고아 토큰이 됨 → 파싱 에러
-Deno.test('base context variable does not leak into mentioned module exported rules', async () => {
+test('base context variable does not leak into mentioned module exported rules', async () => {
     let output = ''
 
     const session = new YaksokSession({
@@ -65,5 +65,5 @@ Deno.test('base context variable does not leak into mentioned module exported ru
 
     await codeFile.run()
 
-    assertEquals(output, '42\n')
+    expect(output).toBe('42\n')
 })

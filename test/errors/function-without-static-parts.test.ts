@@ -1,8 +1,10 @@
-import { assertIsError } from '@std/assert'
-import { FunctionMustHaveOneOrMoreStringPartError } from '../../core/error/index.ts'
-import { YaksokSession } from '../../core/mod.ts'
+import {
+    YaksokSession,
+    FunctionMustHaveOneOrMoreStringPartError,
+} from '@dalbit-yaksok/core'
+import { expect, test } from 'vite-plus/test'
 
-Deno.test('고정된 부분이 없는 함수', async () => {
+test('고정된 부분이 없는 함수', async () => {
     const session = new YaksokSession()
     const codeFile = session.addModule(
         'main',
@@ -13,8 +15,8 @@ Deno.test('고정된 부분이 없는 함수', async () => {
 (10) (20) (30) 보여주기
             `,
     )
-    assertIsError(
-        codeFile.prepareErrors[0],
+
+    expect(codeFile.prepareErrors[0]).toBeInstanceOf(
         FunctionMustHaveOneOrMoreStringPartError,
     )
 })

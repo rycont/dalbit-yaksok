@@ -1,8 +1,10 @@
-import { assertIsError } from '@std/assert'
-import { YaksokSession } from '../../core/mod.ts'
-import { CannotReturnOutsideFunctionError } from '../../core/error/index.ts'
+import {
+    YaksokSession,
+    CannotReturnOutsideFunctionError,
+} from '@dalbit-yaksok/core'
+import { expect, test } from 'vite-plus/test'
 
-Deno.test('약속의 밖에서는 `약속 그만`을 쓸 수 없음', async () => {
+test('약속의 밖에서는 `약속 그만`을 쓸 수 없음', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -15,5 +17,5 @@ Deno.test('약속의 밖에서는 `약속 그만`을 쓸 수 없음', async () =
 약속 그만`,
     )
     await codeFile.run()
-    assertIsError(errors[0], CannotReturnOutsideFunctionError)
+    expect.assert.instanceOf(errors[0], CannotReturnOutsideFunctionError)
 })

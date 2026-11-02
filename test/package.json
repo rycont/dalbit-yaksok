@@ -3,7 +3,8 @@
     "version": "7.1.0",
     "type": "module",
     "dependencies": {
-        "@dalbit-yaksok/core": "workspace:*"
+        "@dalbit-yaksok/core": "workspace:*",
+        "@dalbit-yaksok/quickjs": "workspace:*"
     },
     "scripts": {
         "test": "vp test"

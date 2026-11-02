@@ -1,8 +1,7 @@
-import { assertIsError } from '@std/assert'
-import { UnexpectedTokenError } from '../../core/error/index.ts'
-import { YaksokSession } from '../../core/mod.ts'
+import { UnexpectedTokenError, YaksokSession } from '@dalbit-yaksok/core'
+import { expect, test } from 'vite-plus/test'
 
-Deno.test('인자를 닫는 괄호가 제 위치에 없습니다', async () => {
+test('인자를 닫는 괄호가 제 위치에 없습니다', async () => {
     const session = new YaksokSession()
     const codeFile = session.addModule(
         'main',
@@ -11,5 +10,5 @@ Deno.test('인자를 닫는 괄호가 제 위치에 없습니다', async () => {
     음식 + "을/를 맛있게 만들었습니다." 보여주기
 `,
     )
-    assertIsError(codeFile.prepareErrors[0], UnexpectedTokenError)
+    expect.assert.instanceOf(codeFile.prepareErrors[0], UnexpectedTokenError)
 })

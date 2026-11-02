@@ -234,11 +234,23 @@ importers:
         specifier: npm:@voidzero-dev/vite-plus-core@1.4.0
         version: '@voidzero-dev/vite-plus-core@1.4.0(@types/node@26.6.6)(esbuild@0.28.2)(typescript@7.0.2)'
 
-  exts/math: {}
+  exts/math:
+    dependencies:
+      '@dalbit-yaksok/core':
+        specifier: workspace:*
+        version: link:../../core
 
-  exts/quickjs: {}
+  exts/quickjs:
+    dependencies:
+      '@dalbit-yaksok/core':
+        specifier: workspace:*
+        version: link:../../core
 
-  exts/statistics: {}
+  exts/statistics:
+    dependencies:
+      '@dalbit-yaksok/core':
+        specifier: workspace:*
+        version: link:../../core
 
   scripts:
     dependencies:
@@ -256,6 +268,9 @@ importers:
       '@dalbit-yaksok/core':
         specifier: workspace:*
         version: link:../core
+      '@dalbit-yaksok/quickjs':
+        specifier: workspace:*
+        version: link:../exts/quickjs
 
 packages:
 

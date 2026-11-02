@@ -1,14 +1,14 @@
-import { assert, assertIsError, unreachable } from '@std/assert'
+import { assert, expect, test } from 'vite-plus/test'
 import { FileForRunNotExistError } from '../../core/error/prepare.ts'
 import { YaksokSession } from '../../core/mod.ts'
 
-Deno.test('없는 파일 실행 요청', async () => {
+test('없는 파일 실행 요청', async () => {
     const session = new YaksokSession()
     try {
         session.addModule('main', `@코레일 출발하기`)
-        unreachable()
+        expect.unreachable()
     } catch (error) {
-        assertIsError(error, FileForRunNotExistError)
+        expect.assert.instanceOf(error, FileForRunNotExistError)
     }
 
     const session2 = new YaksokSession()

@@ -1,14 +1,15 @@
-import { QuickJS } from '@dalbit-yaksok/quickjs'
-import { assert, assertEquals, assertIsError } from '@std/assert'
-import { FFIResultTypeIsNotForYaksokError } from '../core/error/ffi.ts'
 import {
     ErrorOccurredWhileRunningFFIExecution,
+    FFIResultTypeIsNotForYaksokError,
+    ListValue,
+    NumberValue,
+    StringValue,
     YaksokSession,
-} from '../core/mod.ts'
-import { ListValue } from '../core/value/list.ts'
-import { NumberValue, StringValue } from '../core/value/primitive.ts'
+} from '@dalbit-yaksok/core'
+import { QuickJS } from '@dalbit-yaksok/quickjs'
+import { test, expect, assert } from 'vite-plus/test'
 
-Deno.test('연결 문법을 사용하여 자바스크립트 함수 호출', async () => {
+test('연결 문법을 사용하여 자바스크립트 함수 호출', async () => {
     let output = ''
     const session = new YaksokSession({
         stdout(value) {
@@ -51,13 +52,12 @@ Deno.test('연결 문법을 사용하여 자바스크립트 함수 호출', asyn
 
     await codeFile.run()
 
-    assertEquals(
-        output,
+    expect(output).toBe(
         '10개는 너무 적으니, 7개 더 먹어서 17개 먹어야 겠어요.\n',
     )
 })
 
-Deno.test('다른 파일에 있는 연결 호출', async () => {
+test('다른 파일에 있는 연결 호출', async () => {
     let output = ''
 
     const session = new YaksokSession({
@@ -91,10 +91,10 @@ Deno.test('다른 파일에 있는 연결 호출', async () => {
 
     await codeFile.run()
 
-    assertEquals(output, '황선형\n')
+    expect(output).toBe('황선형\n')
 })
 
-Deno.test('리스트를 반환하는 연결', async () => {
+test('리스트를 반환하는 연결', async () => {
     let output = ''
 
     const session = new YaksokSession({
@@ -131,10 +131,10 @@ RRR
 
     await codeFile.run()
 
-    assertEquals(output, '[황선형, 도지석]\n')
+    expect(output).toBe('[황선형, 도지석]\n')
 })
 
-Deno.test('올바르지 않은 연결 반환값: JS String', async () => {
+test('올바르지 않은 연결 반환값: JS String', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -166,10 +166,10 @@ SOMETHING
     )
 
     await codeFile.run()
-    assertIsError(errors[0], FFIResultTypeIsNotForYaksokError)
+    expect(errors[0]).toBeInstanceOf(FFIResultTypeIsNotForYaksokError)
 })
 
-Deno.test('올바르지 않은 연결 반환값: JS Object', async () => {
+test('올바르지 않은 연결 반환값: JS Object', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -201,10 +201,10 @@ CODES
     )
 
     await codeFile.run()
-    assertIsError(errors[0], FFIResultTypeIsNotForYaksokError)
+    expect(errors[0]).toBeInstanceOf(FFIResultTypeIsNotForYaksokError)
 })
 
-Deno.test('연결 반환값이 없음', async () => {
+test('연결 반환값이 없음', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -236,10 +236,10 @@ CODES
     )
 
     await codeFile.run()
-    assertIsError(errors[0], FFIResultTypeIsNotForYaksokError)
+    expect(errors[0]).toBeInstanceOf(FFIResultTypeIsNotForYaksokError)
 })
 
-Deno.test('구현되지 않은 FFI', async () => {
+test('구현되지 않은 FFI', async () => {
     const errors: unknown[] = []
     const session = new YaksokSession({
         stderr(_message, error) {
@@ -271,10 +271,10 @@ CODES
     )
 
     await codeFile.run()
-    assertIsError(errors[0], ErrorOccurredWhileRunningFFIExecution)
+    expect(errors[0]).toBeInstanceOf(ErrorOccurredWhileRunningFFIExecution)
 })
 
-Deno.test('Promise를 반환하는 FFI', async () => {
+test('Promise를 반환하는 FFI', async () => {
     const output: string[] = []
 
     const startTime = +new Date()
@@ -325,10 +325,10 @@ wait
     assert(timeDelta < 2000)
     assert(999 < timeDelta)
 
-    assertEquals(output, ['안녕!', '반가워!'])
+    expect(output).toStrictEqual(['안녕!', '반가워!'])
 })
 
-Deno.test('한 단어로 된 FFI 이름', async () => {
+test('한 단어로 된 FFI 이름', async () => {
     let output = ''
 
     const session = new YaksokSession({
@@ -362,13 +362,12 @@ Deno.test('한 단어로 된 FFI 이름', async () => {
 
     await codeFile.run()
 
-    assertEquals(
-        output,
+    expect(output).toBe(
         '성공성공성공성공\n이건 아님이건 아님이건 아님이건 아님\n',
     )
 })
 
-Deno.test('이름에 변형이 있는 함수 선언', async () => {
+test('이름에 변형이 있는 함수 선언', async () => {
     let output = ''
 
     const session = new YaksokSession({
@@ -398,8 +397,7 @@ Deno.test('이름에 변형이 있는 함수 선언', async () => {
 
     await codeFile.run()
 
-    assertEquals(
-        output,
+    expect(output).toBe(
         '1743823961\n1743823961\n1743823977546\n1743823977546\n',
     )
 })

@@ -1,4 +1,4 @@
-import { assertEquals } from '@std/assert'
+import { test, expect } from 'vite-plus/test'
 import {
     IndexedValue,
     ListValue,
@@ -8,7 +8,7 @@ import {
 } from '@dalbit-yaksok/core'
 import { ListIndexTypeError } from '@dalbit-yaksok/core'
 
-Deno.test('IndexedValue getItemsFromKeys', () => {
+test('IndexedValue getItemsFromKeys', () => {
     const indexed = new IndexedValue(
         new Map<string | number, ValueType>([
             ['a', new StringValue('apple')],
@@ -23,14 +23,14 @@ Deno.test('IndexedValue getItemsFromKeys', () => {
     const result = indexed.getItemsFromKeys(keys)
     const entries = [...result.getEntries()]
 
-    assertEquals(entries.length, 2)
-    assertEquals(entries[0][0], 'a')
-    assertEquals(entries[0][1].toPrint(), 'apple')
-    assertEquals(entries[1][0], 2)
-    assertEquals(entries[1][1].toPrint(), '200')
+    expect(entries.length).toBe(2)
+    expect(entries[0][0]).toBe('a')
+    expect(entries[0][1].toPrint()).toBe('apple')
+    expect(entries[1][0]).toBe(2)
+    expect(entries[1][1].toPrint()).toBe('200')
 })
 
-Deno.test('IndexedValue getItemsFromKeys with invalid key type', () => {
+test('IndexedValue getItemsFromKeys with invalid key type', () => {
     const indexed = new IndexedValue(
         new Map<string, ValueType>([['a', new StringValue('apple')]]),
     )
@@ -44,11 +44,11 @@ Deno.test('IndexedValue getItemsFromKeys with invalid key type', () => {
         indexed.getItemsFromKeys(keys)
         throw new Error('Should have thrown ListIndexTypeError')
     } catch (e) {
-        assertEquals(e instanceof ListIndexTypeError, true)
+        expect(e instanceof ListIndexTypeError).toBe(true)
     }
 })
 
-Deno.test('IndexedValue enumerate', () => {
+test('IndexedValue enumerate', () => {
     const indexed = new IndexedValue(
         new Map<string | number, ValueType>([
             ['a', new StringValue('apple')],
@@ -58,17 +58,17 @@ Deno.test('IndexedValue enumerate', () => {
     )
 
     const enumerated = [...indexed.enumerate()]
-    assertEquals(enumerated.length, 3)
+    expect(enumerated.length).toBe(3)
 
     // Check that we get StringValue and NumberValue instances
     const stringValues = enumerated.filter((v) => v instanceof StringValue)
     const numberValues = enumerated.filter((v) => v instanceof NumberValue)
-    assertEquals(stringValues.length >= 2, true) // 'a' and 'b'
-    assertEquals(numberValues.length >= 1, true) // 1
+    expect(stringValues.length >= 2).toBe(true) // 'a' and 'b'
+    expect(numberValues.length >= 1).toBe(true) // 1
 })
 
-Deno.test('IndexedValue enumerate with empty dict', () => {
+test('IndexedValue enumerate with empty dict', () => {
     const indexed = new IndexedValue(new Map())
     const enumerated = [...indexed.enumerate()]
-    assertEquals(enumerated.length, 0)
+    expect(enumerated.length).toBe(0)
 })

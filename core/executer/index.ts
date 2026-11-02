@@ -1,4 +1,5 @@
 import {
+    BreakNotInLoopError,
     CannotReturnOutsideFunctionError,
     type Executable,
 } from '@dalbit-yaksok/core'
