@@ -1,26 +1,26 @@
 name: Test
 
 on:
-    pull_request:
-        branches: ['main']
-    push:
-        branches: ['main']
-    workflow_call:
+  pull_request:
+    branches: ["main"]
+  push:
+    branches: ["main"]
+  workflow_call:
 
 permissions:
-    contents: read
+  contents: read
 
 jobs:
-    Test:
-        runs-on: ubuntu-latest
+  Test:
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Setup repo
-              uses: actions/checkout@v4
+    steps:
+      - name: Setup repo
+        uses: actions/checkout@v4
 
-            - uses: voidzero-dev/setup-vp@<setup-vp-version>
-              with:
-                  node-version: '24'
-                  cache: true
-            - run: vp check
-            - run: vp test
+      - uses: voidzero-dev/setup-vp@1.4.0
+        with:
+          node-version: "26"
+          cache: true
+      - run: vp check
+      - run: vp test
