@@ -23,6 +23,10 @@ export default defineConfig({
             builtin: true,
         },
         ignorePatterns: ['docs/.vitepress/dist', 'docs/api', 'node_modules'],
+        options: {
+            typeAware: true,
+            typeCheck: true,
+        },
     },
     run: {
         cache: true,

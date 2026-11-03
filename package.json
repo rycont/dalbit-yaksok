@@ -14,7 +14,8 @@
     "scripts": {
         "editor": "vp run @dalbit-yaksok/editor#dev",
         "doc": "vp run @dalbit-yaksok/docs#dev",
-        "runtest": "vp run @dalbit-yaksok/scripts#dev"
+        "runtest": "vp run @dalbit-yaksok/scripts#dev",
+        "doc:build": "vp run @dalbit-yaksok/docs#build"
     },
     "devDependencies": {
         "vite-plus": "catalog:"

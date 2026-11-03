@@ -1,4 +1,3 @@
-import pluginDeno from '@deno/vite-plugin'
 import { defineConfig } from 'vitepress'
 import { withSidebar } from 'vitepress-sidebar'
 
@@ -13,8 +12,6 @@ const SIDEBAR_CONFIG: VitePressSidebarOptions = {
 }
 
 const workspacePath = new URL('../..', import.meta.url).pathname
-
-console.log({ workspacePath })
 
 export default defineConfig(
     withSidebar(
@@ -54,7 +51,6 @@ export default defineConfig(
                 },
             },
             vite: {
-                plugins: [pluginDeno()],
                 server: {
                     fs: {
                         allow: [workspacePath],
