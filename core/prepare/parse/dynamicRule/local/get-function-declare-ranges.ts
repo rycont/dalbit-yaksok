@@ -1,8 +1,6 @@
 import { type Token, TOKEN_TYPE } from '@dalbit-yaksok/core'
 import { j } from '@dalbit-yaksok/pattern'
 
-console.log({ TOKEN_TYPE })
-
 import { type FunctionDeclareRange, FunctionType } from './type.ts'
 
 const yaksokPattern = j
@@ -85,7 +83,6 @@ const eventPattern = j
 
 function jMatch(line: Token[]) {
     const yaksokPatternTest = yaksokPattern.func(yaksokPattern.id, line)
-    console.log({ line })
 
     if (yaksokPatternTest) {
         return {

@@ -4,6 +4,8 @@
         "module": "nodenext",
         "moduleResolution": "nodenext",
         "allowImportingTsExtensions": true,
-        "esModuleInterop": true
+        "esModuleInterop": true,
+        "target": "esnext",
+        "lib": ["ESNext", "DOM"]
     }
 }
