@@ -13,6 +13,7 @@ import {
     Scope,
     StringIndexOutOfRangeError,
     StringValue,
+    SubnodeScheme,
     TargetIsNotIndexedValueError,
     Token,
     TupleNotMutableError,
@@ -118,8 +119,11 @@ export class IndexFetch extends Evaluable {
     static override friendlyName = '사전에서 값 가져오기'
 
     constructor(
-        public list: Evaluable<unknown, IndexedValue | StringValue>,
-        public index: Evaluable<unknown, StringValue | NumberValue | ListValue>,
+        public list: Evaluable<SubnodeScheme, IndexedValue | StringValue>,
+        public index: Evaluable<
+            SubnodeScheme,
+            StringValue | NumberValue | ListValue
+        >,
         public override tokens: Token[],
     ) {
         super()

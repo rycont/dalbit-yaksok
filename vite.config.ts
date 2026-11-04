@@ -8,7 +8,7 @@ export default defineConfig({
         tabWidth: 4,
         printWidth: 80,
         sortPackageJson: false,
-        ignorePatterns: ['docs/api/**', 'docs/.vitepress/dist/**'],
+        ignorePatterns: ['docs/api/**', 'docs/src/fonts/**'],
     },
     lint: {
         $schema: './node_modules/oxlint/configuration_schema.json',

@@ -20,9 +20,9 @@ export type SubnodeScheme =
     | Map<string, Node>
     | Node[]
     | Node
-    | unknown
+    | null
 
-export class Node<SubnodeShape extends SubnodeScheme = unknown> {
+export class Node<SubnodeShape extends SubnodeScheme = SubnodeScheme> {
     tokens: Token[] = []
 
     public subnode!: SubnodeShape
@@ -50,7 +50,9 @@ export class Node<SubnodeShape extends SubnodeScheme = unknown> {
     }
 }
 
-export class Executable<T extends SubnodeScheme = unknown> extends Node<T> {
+export class Executable<
+    T extends SubnodeScheme = SubnodeScheme,
+> extends Node<T> {
     static override friendlyName = '실행 가능한 노드'
 
     execute(_scope: Scope): Promise<unknown> {
@@ -92,7 +94,7 @@ export class Executable<T extends SubnodeScheme = unknown> extends Node<T> {
 }
 
 export class Evaluable<
-    LeavesType extends SubnodeScheme = unknown,
+    LeavesType extends SubnodeScheme = SubnodeScheme,
     T extends ValueType = ValueType,
 > extends Executable<LeavesType> {
     static override friendlyName = '값이 있는 노드'
@@ -216,7 +218,7 @@ export type OperatorClass = {
 }
 
 export class Expression<
-    LeavesType extends SubnodeScheme = unknown,
+    LeavesType extends SubnodeScheme = SubnodeScheme,
 > extends Node<LeavesType> {
     static override friendlyName = '표현식'
 

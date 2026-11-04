@@ -8,7 +8,7 @@ import {
     EmptyValue,
 } from '@dalbit-yaksok/core'
 
-export class NumberLiteral extends Evaluable<unknown, NumberValue> {
+export class NumberLiteral extends Evaluable<null, NumberValue> {
     static override friendlyName = '숫자'
 
     constructor(

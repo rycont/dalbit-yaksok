@@ -46,6 +46,7 @@ import {
     SetToIndex,
     SetVariable,
     StringValue,
+    SubnodeScheme,
     TupleLiteral,
     TypeCast,
     TypeCastTarget,
@@ -71,11 +72,11 @@ export const BASIC_RULES: Rule[][] = [
             ],
             factory: (nodes, tokens) => {
                 const target = nodes[0] as Evaluable<
-                    unknown,
+                    SubnodeScheme,
                     IndexedValue | StringValue
                 >
                 const index = nodes[2] as Evaluable<
-                    unknown,
+                    SubnodeScheme,
                     StringValue | NumberValue | ListValue
                 >
 

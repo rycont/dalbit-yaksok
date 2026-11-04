@@ -1,1 +1,1 @@
-export * from './YaksokEditor.tsx'
+export * from './YaksokEditor.ts'
