@@ -1,6 +1,6 @@
 import { test, expect } from 'vite-plus/test'
 import { YaksokSession } from '../core/mod.ts'
-import { MathExtension } from '../exts/math/mod.ts'
+import { math } from '../exts/math/mod.ts'
 
 async function runMath(code: string): Promise<string> {
     let output = ''
@@ -9,7 +9,7 @@ async function runMath(code: string): Promise<string> {
             output += value + '\n'
         },
     })
-    await session.extend(new MathExtension())
+    await session.extend(math)
     await session.addModule('main', code).run()
     return output.trim()
 }

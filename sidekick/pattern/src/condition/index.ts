@@ -184,6 +184,7 @@ export class Chain<const R, const Shape extends ChainShapeBase> {
         const body = `${this.buildField(inputName, requester)}\nreturn ${selectJarName}`
 
         const func = Chain.functionObjectCache.getOrInsertComputed(body, () => {
+            // oxlint-disable-next-line typescript/no-implied-eval
             return new Function(
                 argArrayName,
                 inputName,

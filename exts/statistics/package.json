@@ -1,7 +1,8 @@
 {
-    "name": "statistics",
+    "name": "@dalbit-yaksok/statistics",
     "version": "7.1.0",
     "type": "module",
+    "main": "./mod.ts",
     "dependencies": {
         "@dalbit-yaksok/core": "workspace:*"
     }

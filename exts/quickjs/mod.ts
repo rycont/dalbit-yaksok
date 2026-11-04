@@ -1,4 +1,5 @@
 import {
+    DisposableSuccess,
     newQuickJSWASMModuleFromVariant,
     newVariant,
     RELEASE_SYNC,
@@ -12,7 +13,6 @@ import type {
 import {
     ErrorInFFIExecution,
     type Extension,
-    type ExtensionManifest,
     ListValue,
     NumberValue,
     PrimitiveValue,
@@ -22,94 +22,95 @@ import {
 } from '@dalbit-yaksok/core'
 import { dim } from './util.ts'
 
-export class QuickJS implements Extension {
-    private static BLOB_LOAD_PATH =
-        'https://unpkg.com/@jitl/quickjs-wasmfile-release-sync@0.31.0/dist/emscripten-module.wasm'
-    private static BLOB_CACHE_KEY = `quickjs-blob-cache-key:${QuickJS.BLOB_LOAD_PATH}`
+const BLOB_LOAD_PATH =
+    'https://unpkg.com/@jitl/quickjs-wasmfile-release-sync@0.31.0/dist/emscripten-module.wasm'
+const BLOB_CACHE_KEY = `quickjs-blob-cache-key:${BLOB_LOAD_PATH}`
 
-    public manifest: ExtensionManifest = {
-        ffiRunner: {
-            runtimeName: 'QuickJS',
+export async function quickJS(
+    functions?: Record<string, (...args: unknown[]) => unknown>,
+): Promise<Extension> {
+    const wasmModule = await WebAssembly.compile(await loadBytes())
+
+    const variant = newVariant(RELEASE_SYNC, {
+        wasmModule,
+    })
+
+    const instance = await newQuickJSWASMModuleFromVariant(variant)
+
+    return {
+        capabilties: {
+            FFI: [
+                {
+                    runtimeId: 'QuickJS',
+                    async run(
+                        bodyCode: string,
+                        args: Map<string, ValueType>,
+                    ): Promise<ValueType> {
+                        const wrappedCode = createWrapperCodeFromFFICall(
+                            bodyCode,
+                            args,
+                        )
+                        const vm = createContext(instance, functions)
+
+                        const result = vm.evalCode(wrappedCode)
+
+                        if (result instanceof DisposableSuccess) {
+                            const resultValue = vm.dump(result.value)
+                            result.value.dispose()
+
+                            const yaksokValue =
+                                convertJSDataIntoYaksok(resultValue)
+
+                            return yaksokValue
+                        } else {
+                            const error = vm.dump(result.error)
+                            result.error.dispose()
+
+                            throw new QuickJSInternalError(error)
+                        }
+                    },
+                },
+            ],
         },
     }
+}
 
-    private instance: QuickJSWASMModule | null = null
+async function loadBytes(): Promise<Uint8Array<ArrayBuffer>> {
+    const cached = localStorage.getItem(BLOB_CACHE_KEY)
 
-    constructor(
-        private functions: Record<string, (...args: unknown[]) => unknown> = {},
-    ) {}
+    if (cached) {
+        return Uint8Array.fromBase64(cached)
+    }
 
-    async init(): Promise<void> {
-        const wasmModule = await WebAssembly.compile(await this.loadBytes())
+    const wasmResource = await fetch(BLOB_LOAD_PATH)
+    const loaded = await wasmResource.bytes()
 
-        const variant = newVariant(RELEASE_SYNC, {
-            wasmModule,
+    localStorage.setItem(BLOB_CACHE_KEY, loaded.toBase64())
+
+    return loaded
+}
+
+function createContext(
+    instance: QuickJSWASMModule,
+    functions: Record<string, (...args: unknown[]) => unknown> = {},
+) {
+    if (!instance) {
+        throw new QuickJSNotInitializedError()
+    }
+
+    const context = instance.newContext()
+
+    for (const [name, func] of Object.entries(functions)) {
+        const handle = context.newFunction(name, (...args: QuickJSHandle[]) => {
+            const nativeArgs = args.map((v) => context.dump(v))
+            const result = func(nativeArgs)
+
+            return convertJSDataIntoQuickJSData(result, context)
         })
-
-        this.instance = await newQuickJSWASMModuleFromVariant(variant)
+        context.setProp(context.global, name, handle)
     }
 
-    private async loadBytes(): Promise<Uint8Array<ArrayBuffer>> {
-        const cached = localStorage.getItem(QuickJS.BLOB_CACHE_KEY)
-
-        if (cached) {
-            return Uint8Array.fromBase64(cached)
-        }
-
-        const wasmResource = await fetch(QuickJS.BLOB_LOAD_PATH)
-        const loaded = await wasmResource.bytes()
-
-        localStorage.setItem(QuickJS.BLOB_CACHE_KEY, loaded.toBase64())
-
-        return loaded
-    }
-
-    public executeFFI(
-        bodyCode: string,
-        args: Map<string, ValueType>,
-    ): ValueType {
-        const wrappedCode = createWrapperCodeFromFFICall(bodyCode, args)
-        const vm = this.createContext()
-
-        const result = vm.evalCode(wrappedCode)
-
-        if (result.error) {
-            const error = vm.dump(result.error) as QuickJSErrorData
-            result.error.dispose()
-
-            throw new QuickJSInternalError(error)
-        } else {
-            const resultValue = vm.dump(result.value)
-            result.value.dispose()
-
-            const yaksokValue = convertJSDataIntoYaksok(resultValue)
-
-            return yaksokValue
-        }
-    }
-
-    private createContext() {
-        if (!this.instance) {
-            throw new QuickJSNotInitializedError()
-        }
-
-        const context = this.instance.newContext()
-
-        for (const [name, func] of Object.entries(this.functions)) {
-            const handle = context.newFunction(
-                name,
-                (...args: QuickJSHandle[]) => {
-                    const nativeArgs = args.map(context.dump)
-                    const result = func(nativeArgs)
-
-                    return convertJSDataIntoQuickJSData(result, context)
-                },
-            )
-            context.setProp(context.global, name, handle)
-        }
-
-        return context
-    }
+    return context
 }
 
 function createWrapperCodeFromFFICall(

@@ -6,6 +6,7 @@ import {
     Scope,
     Token,
     YaksokError,
+    type Node,
 } from '@dalbit-yaksok/core'
 
 export class UnknownNodeError extends YaksokError {

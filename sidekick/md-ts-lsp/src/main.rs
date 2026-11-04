@@ -3,7 +3,7 @@ mod extract;
 use extract::{build_temp_text, extract_fences, source_line_count};
 use serde_json::{Value, json};
 use std::collections::hash_map::DefaultHasher;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::hash::{Hash, Hasher};
 use std::io::{BufRead, BufReader, Write};
 use std::path::PathBuf;
@@ -45,6 +45,8 @@ struct Proxy {
     up: HashMap<u64, Value>,
     /// client-facing numeric id -> backend request id
     down: HashMap<u64, Value>,
+    /// Backend ids whose responses are dropped (fire-and-forget).
+    fire_and_forget: HashSet<u64>,
     next_up: u64,
     next_down: u64,
     /// backend pull id -> (md uri, temp uri)
@@ -391,6 +393,9 @@ impl Proxy {
             }
         }
         self.merged_diags.insert(md_uri.clone(), merged.clone());
+        if std::env::var_os("MDTS_QUIET").is_none() {
+            eprintln!("md-ts-lsp: publish {} diagnostic(s) for {}", merged.len(), md_uri);
+        }
         send_value(
             &mut self.out,
             &json!({
@@ -423,7 +428,24 @@ fn handle_client_message(proxy: &mut Proxy, backend: &mut BackendTx, message: Va
     match method {
         "initialize" => unreachable!("handled before pump starts"),
         "initialized" => backend.send(&message),
-        "shutdown" => forward_with_new_id(proxy, backend, message),
+        "shutdown" => {
+            // Answer immediately: our shutdown is complete once the backend
+            // is told. The backend's own response is dropped to avoid hanging
+            // Zed's shutdown sequence on a wedged backend.
+            let id = message.get("id").cloned().unwrap_or(Value::Null);
+            let mut backend_message = message;
+            let backend_id = proxy.next_up;
+            proxy.next_up += 1;
+            proxy.fire_and_forget.insert(backend_id);
+            if let Some(map) = backend_message.as_object_mut() {
+                map.insert("id".to_string(), json!(backend_id));
+            }
+            backend.send(&backend_message);
+            send_value(
+                &mut proxy.out,
+                &json!({ "jsonrpc": "2.0", "id": id, "result": null }),
+            );
+        }
         "exit" => {
             backend.send(&message);
             std::process::exit(0);
@@ -625,9 +647,12 @@ fn handle_backend_message(proxy: &mut Proxy, backend: &mut BackendTx, message: V
             }
         }
     }
-    // Response: auto-pull result, forwarded request, or unknown.
+    // Response: auto-pull result, forwarded request, fire-and-forget, or unknown.
     if let Some(id) = message.get("id").cloned() {
         if let Some(n) = id.as_u64() {
+            if proxy.fire_and_forget.remove(&n) {
+                return;
+            }
             if proxy.auto_pulls.contains_key(&n) {
                 let result = message.get("result").cloned().unwrap_or(Value::Null);
                 proxy.handle_pull_response(n, &result);
@@ -765,6 +790,7 @@ fn main() {
         next_up: BACKEND_ID_BASE + 1,
         next_down: CLIENT_ID_BASE,
         auto_pulls: HashMap::new(),
+        fire_and_forget: HashSet::new(),
         temp_diags: HashMap::new(),
         merged_diags: HashMap::new(),
         result_seq: 0,

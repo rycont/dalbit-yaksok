@@ -1,0 +1,8 @@
+:root {
+    --sl-font: "Interlude Variable", serif;
+}
+
+.title-wrapper .site-title {
+    font-size: var(--sl-text-h6);
+    color: var(--sl-color-text);
+}

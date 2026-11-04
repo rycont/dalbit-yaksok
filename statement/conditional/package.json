@@ -1,0 +1,8 @@
+{
+    "name": "@dalbit-yaksok/conditional",
+    "version": "7.1.0",
+    "type": "module",
+    "dependencies": {
+        "@dalbit-yaksok/statement": "workspace:*"
+    }
+}

@@ -1,6 +1,6 @@
 import { test, expect } from 'vite-plus/test'
 import { YaksokSession } from '../core/mod.ts'
-import { StatisticsExtension } from '../exts/statistics/mod.ts'
+import { statistics } from '../exts/statistics/mod.ts'
 
 async function runStats(code: string): Promise<string> {
     let output = ''
@@ -15,7 +15,7 @@ async function runStats(code: string): Promise<string> {
         },
     })
 
-    await session.extend(new StatisticsExtension())
+    await session.extend(statistics)
     await session.addModule('main', code).run()
 
     if (errorOutput.trim()) {

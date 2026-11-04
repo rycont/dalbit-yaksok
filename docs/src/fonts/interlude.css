@@ -1,0 +1,230 @@
+/*
+Interlude
+https://github.com/avanturation/interlude
+
+Font families defined by this CSS:
+  - Interlude Variable   variable font for modern browsers (opsz 14-32, wght 100-900, wdth 75-125)
+  - Interlude            static fonts for text/body (optical size 14)
+  - Interlude Display    static fonts for headings/hero (optical size 32)
+
+Usage:
+  :root { font-family: 'Interlude', sans-serif; }
+  @supports (font-variation-settings: normal) {
+    :root { font-family: 'Interlude Variable', sans-serif; }
+  }
+
+Display (large text):
+  h1 { font-variation-settings: 'opsz' 32; }
+
+Copyright (c) 2025 The Interlude Project Authors
+Licensed under the SIL Open Font License, Version 1.1.
+http://scripts.sil.org/OFL
+*/
+
+@font-face {
+    font-family: "Interlude Variable";
+    font-weight: 100 900;
+    font-stretch: 75% 125%;
+    font-style: normal;
+    font-display: swap;
+    src: url("./InterludeVariable.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Interlude";
+    font-weight: 900;
+    font-display: swap;
+    src:
+        local("Interlude Black"),
+        url("./Interlude-Black.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Interlude";
+    font-weight: 800;
+    font-display: swap;
+    src:
+        local("Interlude ExtraBold"),
+        url("./Interlude-ExtraBold.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Interlude";
+    font-weight: 700;
+    font-display: swap;
+    src:
+        local("Interlude Bold"),
+        url("./Interlude-Bold.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Interlude";
+    font-weight: 600;
+    font-display: swap;
+    src:
+        local("Interlude SemiBold"),
+        url("./Interlude-SemiBold.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Interlude";
+    font-weight: 500;
+    font-display: swap;
+    src:
+        local("Interlude Medium"),
+        url("./Interlude-Medium.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Interlude";
+    font-weight: 400;
+    font-display: swap;
+    src:
+        local("Interlude Regular"),
+        local("Interlude"),
+        url("./Interlude-Regular.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Interlude";
+    font-weight: 300;
+    font-display: swap;
+    src:
+        local("Interlude Light"),
+        url("./Interlude-Light.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Interlude";
+    font-weight: 200;
+    font-display: swap;
+    src:
+        local("Interlude ExtraLight"),
+        url("./Interlude-ExtraLight.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Interlude";
+    font-weight: 100;
+    font-display: swap;
+    src:
+        local("Interlude Thin"),
+        url("./Interlude-Thin.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Interlude Display";
+    font-weight: 900;
+    font-display: swap;
+    src:
+        local("Interlude Display Black"),
+        url("./InterludeDisplay-Black.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Interlude Display";
+    font-weight: 800;
+    font-display: swap;
+    src:
+        local("Interlude Display ExtraBold"),
+        url("./InterludeDisplay-ExtraBold.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Interlude Display";
+    font-weight: 700;
+    font-display: swap;
+    src:
+        local("Interlude Display Bold"),
+        url("./InterludeDisplay-Bold.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Interlude Display";
+    font-weight: 600;
+    font-display: swap;
+    src:
+        local("Interlude Display SemiBold"),
+        url("./InterludeDisplay-SemiBold.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Interlude Display";
+    font-weight: 500;
+    font-display: swap;
+    src:
+        local("Interlude Display Medium"),
+        url("./InterludeDisplay-Medium.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Interlude Display";
+    font-weight: 400;
+    font-display: swap;
+    src:
+        local("Interlude Display Regular"),
+        local("Interlude Display"),
+        url("./InterludeDisplay-Regular.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Interlude Display";
+    font-weight: 300;
+    font-display: swap;
+    src:
+        local("Interlude Display Light"),
+        url("./InterludeDisplay-Light.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Interlude Display";
+    font-weight: 200;
+    font-display: swap;
+    src:
+        local("Interlude Display ExtraLight"),
+        url("./InterludeDisplay-ExtraLight.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Interlude Display";
+    font-weight: 100;
+    font-display: swap;
+    src:
+        local("Interlude Display Thin"),
+        url("./InterludeDisplay-Thin.woff2") format("woff2");
+}
+
+@font-feature-values Interlude Variable, Interlude, Interlude Display {
+    @character-variant {
+        cv01: 1;
+        cv02: 2;
+        cv03: 3;
+        cv04: 4;
+        cv05: 5;
+        cv06: 6;
+        cv07: 7;
+        cv08: 8;
+        cv09: 9;
+        cv10: 10;
+        cv11: 11;
+        cv12: 12;
+        cv13: 13;
+        cv14: 14;
+        alt-1: 1;
+        open-4: 2;
+        open-6: 3;
+        open-9: 4;
+        lc-l-with-tail: 5;
+        simplified-u: 6;
+        alt-sharp-s: 7;
+        uc-i-with-serif: 8;
+        alt-3: 9;
+        uc-g-with-spur: 10;
+        single-story-a: 11;
+        compact-lc-f: 12;
+        compact-lc-t: 13;
+        alt-uc-sharp-s: 14;
+    }
+    @styleset {
+        ss01: 1;
+        ss02: 2;
+        ss03: 3;
+        ss04: 4;
+        ss05: 5;
+        ss06: 6;
+        ss07: 7;
+        ss08: 8;
+        open-digits: 1;
+        disambiguation: 2;
+        centered-colon: 3;
+        disambiguation-except-zero: 4;
+        korean-localization: 5;
+        enhanced-readability: 6;
+        single-story-a: 7;
+        straight-three: 8;
+    }
+}

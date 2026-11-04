@@ -7,3 +7,9 @@ export interface ParameterElement {
     optional: boolean
     tokens: Token[]
 }
+
+export interface TokenRule {
+    name: string
+    description: string
+    factory(token: Token[]): null | Node
+}

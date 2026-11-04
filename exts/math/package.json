@@ -1,7 +1,8 @@
 {
-    "name": "math",
+    "name": "@dalbit-yaksok/math",
     "version": "7.1.0",
     "type": "module",
+    "main": "./mod.ts",
     "dependencies": {
         "@dalbit-yaksok/core": "workspace:*"
     }

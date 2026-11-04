@@ -6,7 +6,7 @@ import {
     StringValue,
     YaksokSession,
 } from '@dalbit-yaksok/core'
-import { QuickJS, QuickJSInternalError } from '@dalbit-yaksok/quickjs'
+import { quickJS, QuickJSInternalError } from '@dalbit-yaksok/quickjs'
 
 import { test, expect, assert } from 'vite-plus/test'
 
@@ -17,7 +17,7 @@ test('Error in QuickJS', async () => {
             errors.push(error)
         },
     })
-    await session.extend(new QuickJS())
+    await session.extend(await quickJS())
 
     const codeFile = session.addModule(
         'main',
@@ -36,7 +36,7 @@ test('Error in QuickJS', async () => {
 
 test('QuickJS passed number', async () => {
     const session = new YaksokSession()
-    await session.extend(new QuickJS())
+    await session.extend(await quickJS())
 
     const scope = await session
         .addModule(
@@ -59,7 +59,7 @@ test('QuickJS passed number', async () => {
 
 test('QuickJS passed Array<number>', async () => {
     const session = new YaksokSession()
-    await session.extend(new QuickJS())
+    await session.extend(await quickJS())
 
     const scope = await session
         .addModule(
@@ -81,18 +81,18 @@ test('QuickJS passed Array<number>', async () => {
 })
 
 test('JavaScript bridge function passed object', async () => {
-    const quickJS = new QuickJS({
-        student: () => ({
-            name: '홍길동',
-            age: 20,
-        }),
-        name: () => '홍길동',
-        age: () => 20,
-        allNames: () => ['홍길동', '임꺽정', '김철수'],
-    })
-
     const session = new YaksokSession()
-    await session.extend(quickJS)
+    await session.extend(
+        await quickJS({
+            student: () => ({
+                name: '홍길동',
+                age: 20,
+            }),
+            name: () => '홍길동',
+            age: () => 20,
+            allNames: () => ['홍길동', '임꺽정', '김철수'],
+        }),
+    )
 
     const ranScope = await session
         .addModule(
@@ -163,7 +163,7 @@ test('Yaksok Passed List<string>', async () => {
             buffer += message + '\n'
         },
     })
-    await session.extend(new QuickJS())
+    await session.extend(await quickJS())
 
     const scope = await session
         .addModule(
@@ -204,7 +204,7 @@ test('QuickJS Passed List<string> - 빈 리스트', async () => {
             output += str
         },
     })
-    await session.extend(new QuickJS())
+    await session.extend(await quickJS())
     session.addModule(
         'main',
         `번역(QuickJS), (리스트) 길이
@@ -226,7 +226,7 @@ test('QuickJS Passed List<string> - 중복 값', async () => {
             output += str
         },
     })
-    await session.extend(new QuickJS())
+    await session.extend(await quickJS())
     session.addModule(
         'main',
         `번역(QuickJS), (리스트) 합치기
@@ -248,7 +248,7 @@ test('QuickJS Passed List<string> - 특수문자/이모지/빈문자', async () 
             output += str
         },
     })
-    await session.extend(new QuickJS())
+    await session.extend(await quickJS())
     session.addModule(
         'main',
         `번역(QuickJS), (리스트) 합치기
@@ -270,7 +270,7 @@ test('QuickJS Passed List<string> - 영문 대문자 변환', async () => {
             output += str
         },
     })
-    await session.extend(new QuickJS())
+    await session.extend(await quickJS())
     session.addModule(
         'main',
         `번역(QuickJS), (리스트) 대문자
@@ -292,7 +292,7 @@ test('QuickJS Passed List<string> - 공백/탭/개행', async () => {
             output += str
         },
     })
-    await session.extend(new QuickJS())
+    await session.extend(await quickJS())
     session.addModule(
         'main',
         `번역(QuickJS), (리스트) 길이합치기
@@ -314,7 +314,7 @@ test('QuickJS Passed List<string> - 한글 포함 여부', async () => {
             output += str
         },
     })
-    await session.extend(new QuickJS())
+    await session.extend(await quickJS())
     session.addModule(
         'main',
         `번역(QuickJS), (리스트) 포함
@@ -336,7 +336,7 @@ test('QuickJS Passed List<string> - 숫자 문자열 합치기', async () => {
             output += str
         },
     })
-    await session.extend(new QuickJS())
+    await session.extend(await quickJS())
     session.addModule(
         'main',
         `번역(QuickJS), (리스트) 합치기
@@ -358,7 +358,7 @@ test('QuickJS Passed List<string> - 2차원 리스트 flat', async () => {
             output += str
         },
     })
-    await session.extend(new QuickJS())
+    await session.extend(await quickJS())
     session.addModule(
         'main',
         `번역(QuickJS), (리스트) flat
@@ -376,7 +376,7 @@ B flat 보여주기`,
 
 test('QuickJS passed boolean', async () => {
     const session = new YaksokSession()
-    await session.extend(new QuickJS())
+    await session.extend(await quickJS())
 
     const scope = await session
         .addModule(

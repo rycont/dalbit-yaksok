@@ -1,0 +1,9 @@
+{
+    "name": "@dalbit-yaksok/statement",
+    "version": "7.1.0",
+    "type": "module",
+    "main": "./interface.ts",
+    "dependencies": {
+        "@dalbit-yaksok/core": "workspace:*"
+    }
+}

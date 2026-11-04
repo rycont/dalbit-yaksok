@@ -11,7 +11,6 @@
         "@dalbit-yaksok/core": "workspace:*"
     },
     "devDependencies": {
-        "@deno/vite-plugin": "^2.0.3",
         "@vanilla-extract/css": "^1.21.2",
         "@vanilla-extract/vite-plugin": "^5.2.6",
         "vite": "^8.2.2"

@@ -69,19 +69,14 @@ export class YaksokSession {
 
     async extend(extension: Extension): Promise<void> {
         this.extensions.push(extension)
-        const initPromise = extension.init?.()
 
-        if (extension.manifest.module) {
-            const { module } = extension.manifest
-            for (const { fileName, code, baseScope } of module) {
-                const ranScope = await this.addModule(fileName, code).run()
-                if (baseScope) {
-                    this.useBaseScope(ranScope)
-                }
+        for (const { fileName, code, baseScope } of extension.capabilties
+            .File || []) {
+            const ranScope = await this.addModule(fileName, code).run()
+            if (baseScope) {
+                this.useBaseScope(ranScope)
             }
         }
-
-        await initPromise
     }
 
     public useBaseScope(scope: Scope): void {
@@ -137,38 +132,42 @@ export class YaksokSession {
         args: Map<string, ValueType>,
         callerScope: Scope,
     ): Promise<ValueType> {
-        const availableExtensions = this.extensions.filter(
-            (ext) => ext.manifest.ffiRunner?.runtimeName === runtime,
+        const foundCapabilities = this.extensions.flatMap(
+            (ext) =>
+                ext.capabilties.FFI?.filter((c) => c.runtimeId === runtime) ||
+                [],
         )
 
-        if (availableExtensions.length === 0) {
+        if (foundCapabilities.length === 0) {
             throw new FFIRuntimeNotFound({
                 resource: { runtimeName: runtime },
             })
         }
 
-        if (availableExtensions.length > 1) {
+        if (foundCapabilities.length > 1) {
             throw new MultipleFFIRuntimeError({
                 resource: { runtimeName: runtime },
             })
         }
 
-        const extension = availableExtensions[0]
+        const capability = foundCapabilities[0]
 
         try {
-            const result = await extension.executeFFI(code, args, callerScope)
+            const result = await capability.run(code, args, callerScope)
             return result
         } catch (error) {
             if (error instanceof ErrorInFFIExecution) {
                 throw error
             }
+
             if (error instanceof Error) {
                 throw new ErrorInFFIExecution({
                     message: `FFI 실행 중 오류 발생: ${error.message}`,
                 })
             }
+
             throw new ErrorInFFIExecution({
-                message: `FFI 실행 중 알 수 없는 오류 발생: ${error}`,
+                message: `FFI 실행 중 알 수 없는 오류 발생: ${String(error)}`,
             })
         }
     }

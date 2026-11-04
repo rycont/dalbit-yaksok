@@ -8,7 +8,7 @@ test('MentionScope validate with invalid module', async () => {
     // Should have error about module not found
     try {
         session.addModule('main', `@없는모듈 변수`)
-        unreachable()
+        expect.unreachable()
     } catch (error) {
         expect(error).toBeInstanceOf(FileForRunNotExistError)
     }

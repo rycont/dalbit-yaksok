@@ -7,5 +7,6 @@
         "esModuleInterop": true,
         "target": "esnext",
         "lib": ["ESNext", "DOM"]
-    }
+    },
+    "include": ["./**/*.ts"]
 }

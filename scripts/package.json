@@ -5,7 +5,8 @@
     "dependencies": {
         "@dalbit-yaksok/core": "workspace:*",
         "@dalbit-yaksok/pattern": "workspace:*",
-        "@dalbit-yaksok/quickjs": "workspace:*"
+        "@dalbit-yaksok/quickjs": "workspace:*",
+        "@dalbit-yaksok/statistics": "workspace:*"
     },
     "scripts": {
         "dev": "vpx --localstorage-file=/tmp/.dbys-lstore.json runtest.ts"

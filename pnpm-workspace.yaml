@@ -8,6 +8,8 @@ packages:
     - exts/math
     - exts/statistics
     - sidekick/pattern/
+    - statement
+    - statement/*
 
 allowBuilds:
     esbuild: true

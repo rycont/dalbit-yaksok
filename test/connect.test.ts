@@ -4,9 +4,10 @@ import {
     ListValue,
     NumberValue,
     StringValue,
+    ValueType,
     YaksokSession,
 } from '@dalbit-yaksok/core'
-import { QuickJS } from '@dalbit-yaksok/quickjs'
+import { quickJS } from '@dalbit-yaksok/quickjs'
 import { test, expect, assert } from 'vite-plus/test'
 
 test('연결 문법을 사용하여 자바스크립트 함수 호출', async () => {
@@ -18,7 +19,7 @@ test('연결 문법을 사용하여 자바스크립트 함수 호출', async () 
     })
 
     await session.extend(
-        new QuickJS({
+        await quickJS({
             prompt: () => {
                 return '10'
             },
@@ -67,7 +68,7 @@ test('다른 파일에 있는 연결 호출', async () => {
     })
 
     await session.extend(
-        new QuickJS({
+        await quickJS({
             prompt: () => {
                 return '황선형'
             },
@@ -104,19 +105,17 @@ test('리스트를 반환하는 연결', async () => {
     })
 
     await session.extend({
-        manifest: {
-            ffiRunner: {
-                runtimeName: 'mock',
-            },
-        },
-        executeFFI() {
-            return new ListValue([
-                new StringValue('황선형'),
-                new StringValue('도지석'),
-            ])
-        },
-        init() {
-            return Promise.resolve()
+        capabilties: {
+            FFI: [
+                {
+                    runtimeId: 'mock',
+                    run: () =>
+                        new ListValue([
+                            new StringValue('황선형'),
+                            new StringValue('도지석'),
+                        ]),
+                },
+            ],
         },
     })
 
@@ -143,16 +142,13 @@ test('올바르지 않은 연결 반환값: JS String', async () => {
     })
 
     await session.extend({
-        manifest: {
-            ffiRunner: {
-                runtimeName: 'mock',
-            },
-        },
-        executeFFI() {
-            return 'invalid value' as any
-        },
-        init() {
-            return Promise.resolve()
+        capabilties: {
+            FFI: [
+                {
+                    runtimeId: 'mock',
+                    run: () => 'invalid value' as any,
+                },
+            ],
         },
     })
 
@@ -178,16 +174,13 @@ test('올바르지 않은 연결 반환값: JS Object', async () => {
     })
 
     await session.extend({
-        manifest: {
-            ffiRunner: {
-                runtimeName: 'mock',
-            },
-        },
-        executeFFI() {
-            return {} as any
-        },
-        init() {
-            return Promise.resolve()
+        capabilties: {
+            FFI: [
+                {
+                    runtimeId: 'mock',
+                    run: () => ({}) as any,
+                },
+            ],
         },
     })
 
@@ -213,16 +206,13 @@ test('연결 반환값이 없음', async () => {
     })
 
     await session.extend({
-        manifest: {
-            ffiRunner: {
-                runtimeName: 'mock',
-            },
-        },
-        executeFFI() {
-            return undefined as any
-        },
-        init() {
-            return Promise.resolve()
+        capabilties: {
+            FFI: [
+                {
+                    runtimeId: 'mock',
+                    run: () => undefined as any,
+                },
+            ],
         },
     })
 
@@ -248,16 +238,15 @@ test('구현되지 않은 FFI', async () => {
     })
 
     await session.extend({
-        manifest: {
-            ffiRunner: {
-                runtimeName: 'mock',
-            },
-        },
-        executeFFI() {
-            throw new Error('Not implemented')
-        },
-        init() {
-            return Promise.resolve()
+        capabilties: {
+            FFI: [
+                {
+                    runtimeId: 'mock',
+                    run: () => {
+                        throw new Error('Not implemented')
+                    },
+                },
+            ],
         },
     })
 
@@ -286,23 +275,23 @@ test('Promise를 반환하는 FFI', async () => {
     })
 
     await session.extend({
-        manifest: {
-            ffiRunner: {
-                runtimeName: 'Runtime',
-            },
-        },
-        executeFFI(_code, args) {
-            return new Promise((resolve) => {
-                setTimeout(
-                    () => {
-                        resolve(new NumberValue(0))
+        capabilties: {
+            FFI: [
+                {
+                    runtimeId: 'Runtime',
+                    run: (_code: string, args: Map<string, ValueType>) => {
+                        return new Promise<NumberValue>((resolve) => {
+                            setTimeout(
+                                () => {
+                                    resolve(new NumberValue(0))
+                                },
+
+                                (args.get('숫자') as NumberValue).value * 1000,
+                            )
+                        })
                     },
-                    (args.get('숫자') as NumberValue).value * 1000,
-                )
-            })
-        },
-        init() {
-            return Promise.resolve()
+                },
+            ],
         },
     })
 
@@ -338,7 +327,7 @@ test('한 단어로 된 FFI 이름', async () => {
     })
 
     await session.extend(
-        new QuickJS({
+        await quickJS({
             prompt: () => {
                 return '성공'
             },
@@ -376,7 +365,7 @@ test('이름에 변형이 있는 함수 선언', async () => {
         },
     })
 
-    await session.extend(new QuickJS())
+    await session.extend(await quickJS())
 
     const codeFile = session.addModule(
         'main',
