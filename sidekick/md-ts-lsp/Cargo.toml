@@ -1,0 +1,12 @@
+[package]
+name = "md-ts-lsp"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "md-ts-lsp"
+path = "src/main.rs"
+
+[dependencies]
+serde_json = "1"
+oxc-markdown-parser = { git = "https://github.com/oxc-project/oxc-markdown-parser", rev = "95d04095259f89b2412da2ee0c2cf29a995e2e2c" }

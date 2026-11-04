@@ -3,6 +3,8 @@ yaksok.js
 cov
 docs/api/
 docs/docs/
+docs/dist/
+docs/.astro
 node_modules/
 docs/.vitepress/cache/
 docs/.vitepress/dist/
@@ -10,3 +12,8 @@ docs/.vitepress/dist/
 .zed
 .omx/
 /coverage
+.md-ts-lsp/
+*.wasm
+sidekick/md-ts-lsp/target/
+sidekick/md-ts-lsp-zed/target/
+sidekick/md-ts-lsp/bin/

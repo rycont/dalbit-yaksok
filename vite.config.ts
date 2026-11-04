@@ -13,6 +13,7 @@ export default defineConfig({
     lint: {
         $schema: './node_modules/oxlint/configuration_schema.json',
         plugins: ['typescript', 'unicorn', 'oxc'],
+
         categories: {
             correctness: 'error',
         },

@@ -1,16 +1,14 @@
 {
     "name": "@dalbit-yaksok/docs",
-    "version": "7.1.0",
+    "license": "MIT",
     "type": "module",
-    "scripts": {
-        "dev": "vitepress dev",
-        "build": "vitepress build"
-    },
-    "devDependencies": {
-        "vitepress": "2.0.0-alpha.21",
-        "vitepress-sidebar": "1.41.0"
-    },
     "dependencies": {
-        "@dalbit-yaksok/core": "workspace:*"
+        "@astrojs/starlight": "^0.42.8",
+        "astro": "^7.4.4"
+    },
+    "scripts": {
+        "dev": "astro dev",
+        "build": "astro build",
+        "preview": "astro preview"
     }
 }
