@@ -15,7 +15,8 @@
     "scripts": {
         "dev": "astro dev",
         "build": "astro build",
-        "preview": "astro preview"
+        "preview": "astro preview",
+        "postinstall": "astro sync"
     },
     "devDependencies": {
         "starlight-typedoc": "^0.23.2",
