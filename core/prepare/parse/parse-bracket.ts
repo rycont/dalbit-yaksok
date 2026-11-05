@@ -6,7 +6,7 @@ import {
     Node,
     Rule,
 } from '@dalbit-yaksok/core'
-import { callParseRecursively } from './srParse.ts'
+import { callSRParseRecursively } from './srParse.ts'
 
 const BRACKETS: Record<
     string,
@@ -55,7 +55,7 @@ export function parseBracket(rawNodes: Node[], externalPatterns: Rule[]) {
         const end = nodes.indexOf(range[1])
 
         const nodesInBracket = nodes.slice(start, end)
-        const parsed = callParseRecursively(nodesInBracket, externalPatterns)
+        const parsed = callSRParseRecursively(nodesInBracket, externalPatterns)
 
         nodes.splice(start, end - start, ...parsed)
     }

@@ -1,8 +1,21 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
-import { statistics } from '@dalbit-yaksok/statistics'
+import { quickJS } from '@dalbit-yaksok/quickjs'
+import functionStatement from '@dalbit-yaksok/statement-function'
 
 const session = new YaksokSession()
 
-await session.extend(statistics)
+await session.extend(await quickJS())
+await session.extend(functionStatement)
 
-await session.addModule('main', `(@통계 [1, 2, 3, 4, 5]의 합계) 보여주기`).run()
+await session
+    .addModule(
+        'main',
+        `번역(QuickJS), 안녕 말하기
+***
+  return 10
+***
+
+안녕 말하기 보여주기
+`,
+    )
+    .run()

@@ -106,7 +106,7 @@ export function reduce(nodes: Node[], rule: Rule) {
     }
 }
 
-export function callParseRecursively(
+export function callSRParseRecursively(
     nodes: Node[],
     externalPatterns: Rule[],
 ): Node[] {
@@ -116,7 +116,7 @@ export function callParseRecursively(
         const token = parsedNodes[i]
 
         if (token instanceof Block) {
-            token.subnode = callParseRecursively(
+            token.subnode = callSRParseRecursively(
                 token.subnode,
                 externalPatterns,
             )

@@ -57,7 +57,7 @@ import {
 import { DICT_RULES } from './dict.ts'
 import { LIST_LOOP_RULES } from './list-loop.ts'
 import { STRING_RULES } from './template-string.ts'
-import { FUNCTION_RULES } from './function.ts'
+// import { FUNCTION_RULES } from './function.ts'
 import { COUNT_LOOP_RULES } from './count-loop.ts'
 
 import { j } from '@dalbit-yaksok/pattern'
@@ -85,7 +85,7 @@ export const BASIC_RULES: Rule[][] = [
         }),
     ],
     STRING_RULES,
-    FUNCTION_RULES,
+    // FUNCTION_RULES,
     [
         r({
             pattern: [

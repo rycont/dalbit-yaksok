@@ -23,15 +23,14 @@ export type ValueTraits = {
     multiple: 'multiple'
 }
 
-export type TypePlaceholder<
-    Traits extends (keyof ValueTraits)[] = (keyof Partial<ValueTraits>)[],
-> = symbol & {
+export type TypePlaceholder<Traits extends (keyof ValueTraits)[]> = symbol & {
     _type: 'type_placeholder'
     traits: Traits
 }
 
-export type PlaceholderTraits<P extends TypePlaceholder> =
-    P extends TypePlaceholder<infer U> ? U : never
+export type PlaceholderTraits<
+    P extends TypePlaceholder<(keyof Partial<ValueTraits>)[]>,
+> = P extends TypePlaceholder<infer U> ? U : never
 
 export type ApplyTrait<
     Trait extends keyof ValueTraits,
@@ -55,12 +54,9 @@ export type UnpackTypePlaceholder<
       : never
 
 export type ResolvePlaceholder<MaybeTypePlaceholder, InputType> =
-    MaybeTypePlaceholder extends TypePlaceholder
-        ? UnpackTypePlaceholder<
-              InputType,
-              PlaceholderTraits<MaybeTypePlaceholder>
-          >
-        : InputType
+    MaybeTypePlaceholder extends TypePlaceholder<infer U>
+        ? UnpackTypePlaceholder<InputType, U>
+        : MaybeTypePlaceholder
 
 export type Fallback<T, Fallbacked> = [unknown] extends [T] ? Fallbacked : T
 

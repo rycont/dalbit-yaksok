@@ -35,21 +35,3 @@ export type FunctionDeclareRange =
     | 약속DeclareRange
     | 번역DeclareRange
     | 이벤트DeclareRange
-
-export enum FunctionPartType {
-    static,
-    parameter,
-}
-
-export type FunctionStaticPart = {
-    type: FunctionPartType.static
-    isSuffix: boolean
-    names: Token[]
-}
-
-export type FunctionParameterPart = {
-    type: FunctionPartType.parameter
-    params: ParameterElement[]
-}
-
-export type FunctionHeaderPart = FunctionParameterPart | FunctionStaticPart

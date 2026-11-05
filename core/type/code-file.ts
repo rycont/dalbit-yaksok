@@ -1,6 +1,6 @@
 import {
     Block,
-    createMentioningRule,
+    // createMentioningRule,
     executer,
     Identifier,
     inferTokenSplitpointsFromErrors,
@@ -99,42 +99,44 @@ export class CodeFile {
 
             this._ranScope = rootScope
 
-            const exportedFunctionRules = rootScope.functions
-                .values()
-                .flatMap((v) =>
-                    v.invokeRules.map((rule) =>
-                        createMentioningRule(this.fileName, rule, rootScope),
-                    ),
-                )
-                .toArray()
+            //             const exportedFunctionRules = rootScope.functions
+            //                 .values()
+            //                 .flatMap((v) =>
+            //                     v.invokeRules.map((rule) =>
+            //                         createMentioningRule(this.fileName, rule, rootScope),
+            //                     ),
+            //                 )
+            //                 .toArray()
+            //
+            //             const exportedEventRules = rootScope.events
+            //                 .values()
+            //                 .flatMap((n) =>
+            //                     n.header.invokingRules.map((r) =>
+            //                         createMentioningRule(this.fileName, r, rootScope),
+            //                     ),
+            //                 )
+            //                 .toArray()
+            //
+            //             const exportedVariableRules = createMentioningRule(
+            //                 this.fileName,
+            //                 r<Node[]>({
+            //                     pattern: [
+            //                         j.instance(Identifier).field({
+            //                             value: j.enum(Object.keys(rootScope.variables)),
+            //                         }),
+            //                     ],
+            //                     factory([node]) {
+            //                         return node
+            //                     },
+            //                 }),
+            //                 rootScope,
+            //             )
+            //
+            //             this._mentionRules = exportedFunctionRules
+            //                 .concat(exportedVariableRules)
+            //                 .concat(exportedEventRules)
 
-            const exportedEventRules = rootScope.events
-                .values()
-                .flatMap((n) =>
-                    n.header.invokingRules.map((r) =>
-                        createMentioningRule(this.fileName, r, rootScope),
-                    ),
-                )
-                .toArray()
-
-            const exportedVariableRules = createMentioningRule(
-                this.fileName,
-                r<Node[]>({
-                    pattern: [
-                        j.instance(Identifier).field({
-                            value: j.enum(Object.keys(rootScope.variables)),
-                        }),
-                    ],
-                    factory([node]) {
-                        return node
-                    },
-                }),
-                rootScope,
-            )
-
-            this._mentionRules = exportedFunctionRules
-                .concat(exportedVariableRules)
-                .concat(exportedEventRules)
+            this._mentionRules = []
 
             return rootScope
         } catch (e) {

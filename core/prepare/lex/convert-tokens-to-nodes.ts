@@ -4,8 +4,8 @@ import {
     Identifier,
     Node,
     Operator,
-    FFIBody,
-    Mention,
+    // FFIBody,
+    // Mention,
     EOL,
     Indent,
     TOKEN_TYPE,
@@ -28,13 +28,18 @@ function unescapeString(str: string): string {
 }
 
 export function convertTokensToNodes(
-    tokens: Token[],
+    rawTokens: Token[],
     directReplacers: DirectReplacer[],
 ): Node[] {
+    const tokens: (Token | null)[] = Array.from(rawTokens)
+
+    for (const replacer of directReplacers) {
+        tokens.fill(null, replacer.tokenRange[0], replacer.tokenRange[1])
+    }
+
     const nodes: (Node | null)[] = tokens.map(mapTokenToNode)
 
     for (const replacer of directReplacers) {
-        nodes.fill(null, replacer.tokenRange[0], replacer.tokenRange[1])
         nodes.splice(
             replacer.tokenRange[0],
             replacer.nodes.length,
@@ -45,7 +50,11 @@ export function convertTokensToNodes(
     return nodes.filter((n) => !!n)
 }
 
-function mapTokenToNode(token: Token) {
+function mapTokenToNode(token: Token | null) {
+    if (token === null) {
+        return null
+    }
+
     switch (token.type) {
         case TOKEN_TYPE.SPACE:
         case TOKEN_TYPE.LINE_COMMENT:
@@ -60,12 +69,12 @@ function mapTokenToNode(token: Token) {
             return new Indent(token)
         case TOKEN_TYPE.IDENTIFIER:
             return new Identifier(token.value, [token])
-        case TOKEN_TYPE.FFI_BODY:
-            return new FFIBody(token.value.slice(3, -3), [token])
+        // case TOKEN_TYPE.FFI_BODY:
+        //     return new FFIBody(token.value.slice(3, -3), [token])
         case TOKEN_TYPE.NEW_LINE:
             return new EOL([token])
-        case TOKEN_TYPE.MENTION:
-            return new Mention(token.value.slice(1), [token])
+        // case TOKEN_TYPE.MENTION:
+        //     return new Mention(token.value.slice(1), [token])
         default:
             return new Expression(token.value, [token])
     }

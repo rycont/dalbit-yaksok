@@ -10,29 +10,6 @@ export class CannotReturnOutsideFunctionError extends YaksokError {
     }
 }
 
-export class FunctionMustHaveSignature extends YaksokError {
-    constructor(props: { tokens: Token[]; scope: Scope; node: Node }) {
-        super(props)
-        this.message = `반점(${bold(blue(','))}) 뒤에 이 약속의 이름을 적어주세요`
-    }
-}
-
-export class FunctionMustHaveOneOrMoreStringPartError extends YaksokError {
-    constructor(props: { tokens: Token[]; scope: Scope; node: Node }) {
-        super(props)
-        this.message = `약속(번역)을 선언할 때엔 적어도 하나의 고정되는 부분이 있어야 해요.`
-    }
-}
-
-export class MissingFunctionBody extends YaksokError {
-    constructor(props: { node: Node; scope: Scope }) {
-        super(props)
-    }
-
-    override message =
-        '약속에는 내용이 필요해요. 이름의 다음 줄에 띄어쓰기 네개로 들여쓰고 내용을 작성해주세요.'
-}
-
 export class AlreadyDefinedFunctionError extends YaksokError {
     constructor(props: { resource: { name: string }; scope: Scope }) {
         super(props)
@@ -70,50 +47,5 @@ export class UnexpectedArgumentError extends YaksokError<{
         this.message = `이 약속은 ${names
             .map((name) => bold(blue(name)))
             .join(dim(', '))}이라는 값을 이해할 수 없어요.`
-    }
-}
-
-export class MissingRequiredArgumentError extends YaksokError<{
-    names: string[]
-}> {
-    constructor(props: {
-        tokens: Token[]
-        resource: { names: string[] }
-        scope: Scope
-    }) {
-        super(props)
-        const { names } = props.resource
-        this.message = `이 약속엔 ${names
-            .map((name) => bold(blue(name)))
-            .join(dim(', '))} 값이 꼭 필요해요.`
-    }
-}
-
-export class TooManyArgumentsError extends YaksokError<{
-    expectedMax: number
-    given: number
-}> {
-    constructor(props: {
-        resource: {
-            expectedMax: number
-            given: number
-        }
-        tokens: Token[]
-    }) {
-        super(props)
-
-        this.message = `주어진 값이 너무 많아요. ${bold(
-            blue(props.resource.expectedMax) + '개',
-        )} 까지만 받을 수 있는데 ${bold(
-            blue(props.resource.given) + '개',
-        )}나 들어왔어요.`
-    }
-}
-
-export class RequiredParametersShouldPriorError extends YaksokError {
-    constructor(props: { scope: Scope; tokens: Token[] }) {
-        super(props)
-
-        this.message = `약속의 필수 값은 선택 값보다 앞에 있어야 해요. ${bold(blue(props.tokens.map((t) => t.value).join('')))}의 순서를 앞으로 옮겨주세요.`
     }
 }

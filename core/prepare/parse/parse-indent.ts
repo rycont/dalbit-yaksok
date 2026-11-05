@@ -12,17 +12,8 @@ interface LineRange {
 }
 
 export function parseIndent(nodes: Node[]): Node[] {
-    const firstValidNode = nodes.find((n) => !(n instanceof EOL))
-    if (firstValidNode instanceof Indent) {
-        firstValidNode.injectParsingError(
-            new IndentLevelMismatchError({
-                resource: {
-                    expected: 0,
-                },
-            }),
-        )
-
-        return nodes
+    if (nodes.length === 0) {
+        return []
     }
 
     const linebreakIndexes = [-1]

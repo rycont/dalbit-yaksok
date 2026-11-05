@@ -179,7 +179,5 @@ export function getDeclareSignature(tokens: Token[]): FunctionDeclareRange[] {
         },
     )
 
-    console.log(signatures)
-
     return signatures
 }

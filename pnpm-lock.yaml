@@ -298,6 +298,9 @@ importers:
       '@dalbit-yaksok/quickjs':
         specifier: workspace:*
         version: link:../exts/quickjs
+      '@dalbit-yaksok/statement-function':
+        specifier: workspace:*
+        version: link:../statement/function
       '@dalbit-yaksok/statistics':
         specifier: workspace:*
         version: link:../exts/statistics
@@ -310,11 +313,14 @@ importers:
         specifier: workspace:*
         version: link:../core
 
-  statement/conditional:
+  statement/function:
     dependencies:
-      '@dalbit-yaksok/statement':
+      '@dalbit-yaksok/core':
         specifier: workspace:*
-        version: link:..
+        version: link:../../core
+      '@dalbit-yaksok/pattern':
+        specifier: workspace:*
+        version: link:../../sidekick/pattern
 
   test:
     dependencies:
