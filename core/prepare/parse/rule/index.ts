@@ -40,7 +40,6 @@ import {
     Print,
     r,
     RangeOperator,
-    ReturnStatement,
     Rule,
     Sequence,
     SetToIndex,
@@ -483,36 +482,36 @@ export const ADVANCED_RULES: Rule[] = [
         },
         isStatement: true,
     }),
-    r({
-        pattern: [
-            j.instance(Evaluable),
-            j.instance(Identifier).field({ value: j.literal('반환하기') }),
-        ],
-        factory: (nodes, tokens) => {
-            const value = nodes[0]
-            return new ReturnStatement(tokens, value)
-        },
-        isStatement: true,
-    }),
-    r({
-        pattern: [
-            j.instance(Identifier).field({ value: j.literal('반환하기') }),
-        ],
-        factory: (_nodes, tokens) => {
-            return new ReturnStatement(tokens)
-        },
-        isStatement: true,
-    }),
-    r({
-        pattern: [
-            j.instance(Identifier).field({ value: j.literal('약속') }),
-            j.instance(Identifier).field({ value: j.literal('그만') }),
-        ],
-        factory: (_nodes, tokens) => {
-            return new ReturnStatement(tokens)
-        },
-        isStatement: true,
-    }),
+    // r({
+    //     pattern: [
+    //         j.instance(Evaluable),
+    //         j.instance(Identifier).field({ value: j.literal('반환하기') }),
+    //     ],
+    //     factory: (nodes, tokens) => {
+    //         const value = nodes[0]
+    //         return new ReturnStatement(tokens, value)
+    //     },
+    //     isStatement: true,
+    // }),
+    // r({
+    //     pattern: [
+    //         j.instance(Identifier).field({ value: j.literal('반환하기') }),
+    //     ],
+    //     factory: (_nodes, tokens) => {
+    //         return new ReturnStatement(tokens)
+    //     },
+    //     isStatement: true,
+    // }),
+    // r({
+    //     pattern: [
+    //         j.instance(Identifier).field({ value: j.literal('약속') }),
+    //         j.instance(Identifier).field({ value: j.literal('그만') }),
+    //     ],
+    //     factory: (_nodes, tokens) => {
+    //         return new ReturnStatement(tokens)
+    //     },
+    //     isStatement: true,
+    // }),
     r({
         pattern: [
             j.instance(Identifier).field({ value: j.literal('반복') }),

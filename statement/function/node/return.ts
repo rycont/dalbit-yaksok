@@ -1,9 +1,12 @@
-import { ReturnSignal } from '../executer/signals.ts'
-import { Evaluable, Executable } from './base.ts'
-import { YaksokError } from '../error/common.ts'
+import {
+    Evaluable,
+    Executable,
+    Scope,
+    Token,
+    YaksokError,
+} from '@dalbit-yaksok/core'
 
-import type { Token } from '../prepare/tokenize/token.ts'
-import type { Scope } from '../executer/scope.ts'
+import { ReturnSignal } from '../signal'
 
 export class ReturnStatement extends Executable<Evaluable | null> {
     static override friendlyName = '반환하기'

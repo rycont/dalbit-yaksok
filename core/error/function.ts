@@ -1,4 +1,4 @@
-import { Node, Scope, Token } from '@dalbit-yaksok/core'
+import { Scope, Token } from '@dalbit-yaksok/core'
 import { bold, blue, dim } from '../util/terminal.ts'
 
 import { YaksokError } from './common.ts'

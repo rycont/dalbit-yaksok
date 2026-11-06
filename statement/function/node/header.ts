@@ -5,7 +5,6 @@ import {
     Scope,
     RESERVED_WORDS,
     NotProperIdentifierNameToDefineError,
-    Rule,
 } from '@dalbit-yaksok/core'
 import { FunctionPartType, FunctionSignature } from '../type'
 import { RequiredParametersShouldPriorError } from '../error/required-parameter'
@@ -18,7 +17,7 @@ export class FunctionDeclareHeader extends Node {
 
     constructor(
         public signature: FunctionSignature,
-        public callingRules: Rule[],
+        public runScope: Scope | undefined,
         public override tokens: Token[],
     ) {
         super()

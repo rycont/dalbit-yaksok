@@ -9,12 +9,14 @@ import {
     YaksokError,
 } from '@dalbit-yaksok/core'
 import { InvokingArguments } from './arguments'
+import { FunctionDeclareHeader } from './header'
 
 export class FunctionInvoke extends Evaluable<InvokingArguments> {
     static override friendlyName = '약속 사용하기'
 
     constructor(
         public readonly name: string,
+        private readonly declareHeader: FunctionDeclareHeader,
         public readonly invokingArguments: InvokingArguments,
         public override tokens: Token[],
     ) {

@@ -7,7 +7,6 @@ import {
     YaksokSession,
     RunnableObject,
     Identifier,
-    DeclareEvent,
     NotProperIdentifierNameToDefineError,
     Node,
     r,
@@ -15,6 +14,7 @@ import {
 } from '@dalbit-yaksok/core'
 import { RESERVED_WORDS } from '../constant/reserved-words.ts'
 import { j } from '@dalbit-yaksok/pattern'
+import { DeclareEvent } from '@dalbit-yaksok/statement-function'
 
 export class Scope {
     variables: Record<string, ValueType>

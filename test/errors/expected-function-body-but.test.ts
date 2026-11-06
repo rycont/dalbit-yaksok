@@ -1,4 +1,5 @@
-import { MissingFunctionBody, YaksokSession } from '@dalbit-yaksok/core'
+import { YaksokSession } from '@dalbit-yaksok/core'
+import { MissingFunctionBody } from '@dalbit-yaksok/statement-function'
 import { expect, test } from 'vite-plus/test'
 
 test('온전하지 않은 약속: 줄바꿈 후에 들여쓰기 없음', async () => {

@@ -14,8 +14,12 @@ import { FunctionSignature, FunctionStaticPart } from '../type.ts'
 import { j } from '@dalbit-yaksok/pattern'
 import { InvokingArguments } from '../node/arguments.ts'
 import { FunctionInvoke } from '../node/invoke.ts'
+import { FunctionDeclareHeader } from '../node/header.ts'
 
-export function createBlockRule(signature: FunctionSignature): Rule {
+export function createBlockRule(
+    signature: FunctionSignature,
+    header: FunctionDeclareHeader,
+): Rule {
     const staticParts = signature.headerParts.slice(
         0,
         -1,
@@ -74,6 +78,7 @@ export function createBlockRule(signature: FunctionSignature): Rule {
 
         return new FunctionInvoke(
             signature.functionName,
+            header,
             invokingArguments,
             tokens,
         )

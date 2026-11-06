@@ -31,7 +31,7 @@ export interface ParameterElement {
 }
 
 export interface FunctionSignature {
-    functionName: string
-    parameterScheme: ParameterElement[]
-    headerParts: FunctionHeaderPart[]
+    readonly functionName: string
+    readonly parameterScheme: ParameterElement[]
+    readonly headerParts: FunctionHeaderPart[]
 }

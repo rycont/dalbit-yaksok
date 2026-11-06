@@ -4,7 +4,8 @@
     "type": "module",
     "dependencies": {
         "@dalbit-yaksok/core": "workspace:*",
-        "@dalbit-yaksok/quickjs": "workspace:*"
+        "@dalbit-yaksok/quickjs": "workspace:*",
+        "@dalbit-yaksok/statement-function": "workspace:*"
     },
     "scripts": {
         "test": "vp test"

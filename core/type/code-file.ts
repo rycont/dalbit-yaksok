@@ -1,14 +1,10 @@
 import {
     Block,
-    // createMentioningRule,
     executer,
-    Identifier,
     inferTokenSplitpointsFromErrors,
-    Node,
     NotDefinedIdentifierError,
     parse,
     postprocessErrors,
-    r,
     renderErrorString,
     RuntimeContext,
     Scope,
@@ -19,8 +15,6 @@ import {
     type Rule,
     type Token,
 } from '@dalbit-yaksok/core'
-
-import { j } from '@dalbit-yaksok/pattern'
 
 export class CodeFile {
     readonly ast: Block

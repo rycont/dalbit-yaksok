@@ -1,7 +1,5 @@
-import {
-    YaksokSession,
-    FunctionMustHaveOneOrMoreStringPartError,
-} from '@dalbit-yaksok/core'
+import { YaksokSession } from '@dalbit-yaksok/core'
+import { FunctionMustHaveOneOrMoreStringPartError } from '@dalbit-yaksok/statement-function'
 import { expect, test } from 'vite-plus/test'
 
 test('고정된 부분이 없는 함수', async () => {

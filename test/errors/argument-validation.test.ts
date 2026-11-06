@@ -1,11 +1,13 @@
-import { YaksokSession } from '../../core/mod.ts'
+import {
+    YaksokError,
+    YaksokSession,
+    UnexpectedArgumentError,
+} from '@dalbit-yaksok/core'
 import {
     MissingRequiredArgumentError,
-    RequiredParametersShouldPriorError,
     TooManyArgumentsError,
-    UnexpectedArgumentError,
-} from '../../core/error/function.ts'
-import type { YaksokError } from '../../core/error/common.ts'
+    RequiredParametersShouldPriorError,
+} from '@dalbit-yaksok/statement-function'
 import { assert, expect, test } from 'vite-plus/test'
 
 function validationErrors(code: string): Promise<YaksokError[]> {

@@ -5,7 +5,18 @@ import { j } from '@dalbit-yaksok/pattern'
 import { extractSignature } from './extract-signature'
 import { FunctionDeclareHeader } from './node/header'
 import { createCallingRules } from './calling-rule/create'
-import { DeclareFFI, DeclareFunction } from './node/declare'
+import { DeclareEvent, DeclareFFI, DeclareFunction } from './node/declare'
+import { createEventSubscriptionRules } from './calling-rule/event'
+
+export * from './error/no-static'
+export * from './error/no-body'
+export * from './error/missing-required'
+export * from './error/no-signature'
+export * from './error/required-parameter'
+export * from './error/too-many-arguments'
+export * from './node/invoke'
+export * from './node/event'
+export * from './node/declare'
 
 const 약속Pattern = j
     .type<Token[]>()
@@ -44,6 +55,30 @@ const 번역Pattern = j
     ])
     .compile()
 
+const 이벤트Pattern = j
+    .type<Token[]>()
+    .list([
+        j.field({
+            type: j.literal(TOKEN_TYPE.IDENTIFIER),
+            value: j.literal('이벤트').select('type'),
+        }),
+        j.field({
+            type: j.literal(TOKEN_TYPE.OPENING_PARENTHESIS),
+        }),
+        j.field({
+            type: j.literal(TOKEN_TYPE.IDENTIFIER),
+            value: j.select('id'),
+        }),
+        j.field({
+            type: j.literal(TOKEN_TYPE.CLOSING_PARENTHESIS),
+        }),
+        j.field({
+            type: j.literal(TOKEN_TYPE.COMMA),
+        }),
+        j.type<Token>().space().select('signature'),
+    ])
+    .compile()
+
 const functionStatement: Extension = {
     capabilties: {
         Grammer: [
@@ -53,20 +88,22 @@ const functionStatement: Extension = {
                 factory(line, actions) {
                     const testResult =
                         약속Pattern.func(약속Pattern.id, line.validTokens) ||
-                        번역Pattern.func(번역Pattern.id, line.validTokens)
+                        번역Pattern.func(번역Pattern.id, line.validTokens) ||
+                        이벤트Pattern.func(이벤트Pattern.id, line.validTokens)
 
                     if (!testResult) {
                         return null
                     }
 
                     const signature = extractSignature(testResult.signature)
-                    const callingRules = createCallingRules(signature)
 
                     const header = new FunctionDeclareHeader(
                         signature,
-                        callingRules,
+                        undefined,
                         line.validTokens,
                     )
+
+                    const callingRules = createCallingRules(signature, header)
 
                     if (testResult.type === '약속') {
                         const body = actions
@@ -77,6 +114,7 @@ const functionStatement: Extension = {
                             instance: new DeclareFunction(
                                 body,
                                 header,
+                                callingRules,
                                 line.rawTokens.concat(body.tokens),
                             ),
                             rules: callingRules,
@@ -96,6 +134,7 @@ const functionStatement: Extension = {
 
                         return {
                             instance: new DeclareFFI(
+                                callingRules,
                                 header,
                                 testResult.runtime,
                                 bodyText,
@@ -103,10 +142,23 @@ const functionStatement: Extension = {
                             ),
                             rules: callingRules,
                         }
-                    } else {
-                        console.log('아직이염')
-                        return null
+                    } else if (testResult.type === '이벤트') {
+                        return {
+                            instance: new DeclareEvent(
+                                header,
+                                testResult.id,
+                                line.validTokens,
+                            ),
+                            rules: [
+                                createEventSubscriptionRules(
+                                    signature,
+                                    testResult.id,
+                                ),
+                            ],
+                        }
                     }
+
+                    return null
                 },
             },
         ],

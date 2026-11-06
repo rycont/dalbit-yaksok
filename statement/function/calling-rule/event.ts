@@ -1,5 +1,5 @@
 import { j } from '@dalbit-yaksok/pattern'
-import { FunctionHeaderPart, ParameterElement } from '../type'
+import { FunctionSignature } from '../type'
 import {
     Block,
     EOL,
@@ -12,14 +12,11 @@ import { createCallingPattern } from './pattern'
 import { SubscribeEvent } from '../node/event'
 
 export function createEventSubscriptionRules(
-    headerParts: FunctionHeaderPart[],
-    parameterScheme: ParameterElement[],
+    signature: FunctionSignature,
     eventId: string,
 ): Rule {
-    const { pattern, invokingArgumentsFactory } = createCallingPattern(
-        headerParts,
-        parameterScheme,
-    )
+    const { pattern, invokingArgumentsFactory } =
+        createCallingPattern(signature)
 
     return r({
         pattern: (pattern as PatternUnitChain<Node>[]).concat([

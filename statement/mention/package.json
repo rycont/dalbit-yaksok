@@ -1,0 +1,4 @@
+{
+    "name": "@dalbit-yaksok/statement-mention",
+    "main": "./mod.ts"
+}

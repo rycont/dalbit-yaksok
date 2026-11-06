@@ -190,6 +190,9 @@ importers:
       '@dalbit-yaksok/pattern':
         specifier: workspace:*
         version: link:../sidekick/pattern
+      '@dalbit-yaksok/statement-function':
+        specifier: workspace:*
+        version: link:../statement/function
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -322,6 +325,8 @@ importers:
         specifier: workspace:*
         version: link:../../sidekick/pattern
 
+  statement/mention: {}
+
   test:
     dependencies:
       '@dalbit-yaksok/core':
@@ -330,6 +335,9 @@ importers:
       '@dalbit-yaksok/quickjs':
         specifier: workspace:*
         version: link:../exts/quickjs
+      '@dalbit-yaksok/statement-function':
+        specifier: workspace:*
+        version: link:../statement/function
 
 packages:
 

@@ -13,7 +13,9 @@ import {
     type Extension,
     type RuntimeContext,
 } from '@dalbit-yaksok/core'
+import functionStatement from '@dalbit-yaksok/statement-function'
 
+const DEFAULT_EXTS: Extension[] = [functionStatement]
 const THREAD_YIELD_INTERVAL = 300
 
 export class YaksokSession {
@@ -22,7 +24,7 @@ export class YaksokSession {
     public stdout: (message: string) => void
     public stderr: (message: string, error: YaksokError) => void
 
-    public extensions: Extension[] = []
+    public extensions: Extension[] = DEFAULT_EXTS
     public baseScope: Scope | null = null
 
     public files: Record<string, CodeFile> = {}

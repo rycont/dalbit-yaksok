@@ -1,11 +1,13 @@
-import { test, expect, describe } from 'vite-plus/test'
-import { YaksokSession } from '../core/mod.ts'
+import {
+    YaksokSession,
+    YaksokError,
+    UnexpectedArgumentError,
+} from '@dalbit-yaksok/core'
 import {
     MissingRequiredArgumentError,
     TooManyArgumentsError,
-    UnexpectedArgumentError,
-} from '../core/error/function.ts'
-import type { YaksokError } from '../core/error/common.ts'
+} from '@dalbit-yaksok/statement-function'
+import { test, expect, describe } from 'vite-plus/test'
 
 const 모듈 = `약속, 이동하기(가로, 세로)
     "{가로},{세로}" 보여주기

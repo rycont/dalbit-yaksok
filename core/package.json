@@ -9,6 +9,7 @@
         "vite-plus": "catalog:"
     },
     "dependencies": {
-        "@dalbit-yaksok/pattern": "workspace:*"
+        "@dalbit-yaksok/pattern": "workspace:*",
+        "@dalbit-yaksok/statement-function": "workspace:*"
     }
 }
