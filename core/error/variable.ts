@@ -29,7 +29,6 @@ export class NotDefinedIdentifierError extends YaksokError<NotDefinedIdentifierE
     constructor(props: {
         node?: Node
         tokens?: Token[]
-        scope: Scope
         resource: NotDefinedIdentifierErrorResource
         texts?: string[]
     }) {

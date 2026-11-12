@@ -28,6 +28,7 @@ export class Block extends Executable<Node[]> {
                     childTokens: child.tokens,
                     scope,
                 })
+
                 await child.execute(scope)
             } else if (child instanceof EOL) {
                 continue
@@ -37,6 +38,7 @@ export class Block extends Executable<Node[]> {
                         part: child,
                     },
                     tokens: child.tokens,
+                    scope,
                 })
             }
         }

@@ -22,9 +22,7 @@ export class FFIResultTypeIsNotForYaksokError extends YaksokError {
             stringValue = JSON.stringify(props.value)
         }
 
-        this.message = `번역 ${bold(
-            blue('"' + props.ffiName + '"'),
-        )}의 결과값 ${bold(
+        this.message = `번역의 결과값 ${bold(
             blue(stringValue),
         )}는 약속에서 사용할 수 있는 값이 아니에요. 결과값은 IndexedValue, 혹은 PrimitiveValue${dim(
             '(NumberValue, StringValue, BooleanValue)',

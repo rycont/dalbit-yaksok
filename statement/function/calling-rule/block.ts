@@ -76,12 +76,7 @@ export function createBlockRule(
             return null
         }
 
-        return new FunctionInvoke(
-            signature.functionName,
-            header,
-            invokingArguments,
-            tokens,
-        )
+        return new FunctionInvoke(header, invokingArguments, tokens)
     }
 
     return r({

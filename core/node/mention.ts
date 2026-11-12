@@ -56,7 +56,7 @@ export class MentionScope extends Evaluable<Evaluable> {
     override async execute(scope: Scope): Promise<ValueType> {
         try {
             if (this.subnode instanceof FunctionInvoke) {
-                return await this.subnode.execute(scope, this.declaredScope)
+                return await this.subnode.execute(scope)
             }
 
             if (this.subnode instanceof SubscribeEvent) {

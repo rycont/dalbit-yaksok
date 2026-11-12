@@ -12,6 +12,13 @@ export class BreakNotInLoopError extends YaksokError {
     }
 }
 
+export class ContinueNotInLoopError extends YaksokError {
+    constructor(props: { tokens: Token[]; resource?: unknown }) {
+        super(props)
+        this.message = `"다음 반복"은 반복문 안에서만 사용할 수 있어요.`
+    }
+}
+
 export class LoopCountIsNotNumberError extends YaksokError {
     constructor(props: { tokens: Token[]; value: ValueType }) {
         super(props)

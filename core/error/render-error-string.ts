@@ -12,7 +12,7 @@ export interface MachineReadableError {
 }
 
 export function renderErrorString(error: YaksokError): string {
-    const code = error.codeFile?.text
+    const code = error.codeFile?.text || error.scope?.codeFile?.text
     const fileName = error.codeFile?.fileName
 
     let output = ''

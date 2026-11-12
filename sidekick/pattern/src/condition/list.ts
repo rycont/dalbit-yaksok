@@ -94,6 +94,9 @@ export class ListCondition extends MatchCondition {
         const matchResult = requester.newVar()
         const isSpacing = requester.newVar()
 
+        const noLeftInput = requester.newVar('noLeftPattern')
+        const noLeftPattern = requester.newVar('noLeftInput')
+
         const selectJar = requester.selectJar()
 
         return `
@@ -134,14 +137,27 @@ export class ListCondition extends MatchCondition {
             return false
         }
 
-        if(${i} !== ${submatchers}.length && !(${isSpacing} === -1 && ${i} === ${submatchers}.length - 1)) {
-            return false
+        const ${noLeftInput} = ${cursor} === ${accessor}.length
+        const ${noLeftPattern} = ${i} === ${submatchers}.length
+
+        if(${noLeftInput} && !${noLeftPattern}) {
+            if(${i} === (${submatchers}.length - 1) && ${submatchers}[${i}].meta.spread) {
+                // 입력이 먼저 동났는데 패턴이 spacing 딸 것만 남음
+                ${submatchers}[${i}].func(${submatchers}[${i}].id, [], ${selectJar})
+            } else {
+                // Spacing 말고도 남은 패턴이 있음
+                return false
+            }
         }
 
-        if(${isSpacing} !== -1) {
-            ${submatchers}[${i} - 1].func(${submatchers}[${i} - 1].id, ${accessor}.slice(${isSpacing}), ${selectJar})
-        } else if(${cursor} !== ${accessor}.length) {
-            return false
+        if(!${noLeftInput} && ${noLeftPattern}) {
+            if(${isSpacing} !== -1) {
+                // 패턴이 먼저 동났는데 마지막 패턴이 spacing임
+                ${submatchers}[${i} - 1].func(${submatchers}[${i} - 1].id, ${accessor}.slice(${isSpacing}), ${selectJar})
+            } else {
+                // 입력이 남았는데 spacing 따는 중이 아니였음
+                return false
+            }
         }
         `
     }

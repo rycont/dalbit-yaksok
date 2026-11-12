@@ -106,7 +106,6 @@ export class Scope {
             resource: {
                 name,
             },
-            scope: this,
         })
 
         throw errorInstance
@@ -149,7 +148,6 @@ export class Scope {
             resource: {
                 name,
             },
-            scope: this,
         })
 
         throw errorInstance

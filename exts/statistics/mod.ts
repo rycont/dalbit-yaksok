@@ -85,10 +85,7 @@ CORRELATION
         FFI: [
             {
                 runtimeId: '통계',
-                run(
-                    code: string,
-                    args: Map<string, ValueType>,
-                ): ValueType | Promise<ValueType> {
+                run(code, args): ValueType | Promise<ValueType> {
                     const action = code.trim()
 
                     switch (action) {

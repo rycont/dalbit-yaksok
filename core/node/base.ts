@@ -8,6 +8,7 @@ import {
     assertValidReturnValue,
     printTree,
     type Token,
+    CannotParseError,
 } from '@dalbit-yaksok/core'
 
 export enum NodeCapability {
@@ -101,6 +102,27 @@ export class Evaluable<
 
     override execute(_scope: Scope): Promise<T> {
         throw new Error(`${this.getNodeTypeName()} has no execute method`)
+    }
+}
+
+export class IncompleteEvaluable extends Evaluable<Node[]> {
+    constructor(
+        public subnode: Node[],
+        public tokens: Token[],
+    ) {
+        super()
+    }
+
+    override validate(scope: Scope) {
+        return [
+            new CannotParseError({
+                resource: {
+                    part: this,
+                },
+                tokens: this.tokens,
+                scope,
+            }),
+        ]
     }
 }
 

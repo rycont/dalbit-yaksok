@@ -77,7 +77,6 @@ export const mergeSequentialIdentifiers: Processor = (errors, tokens) => {
             resource: {
                 name: sequentialErrors,
             },
-            scope: group.errors[0].scope!,
             tokens: sequentialTokens,
         })
     }

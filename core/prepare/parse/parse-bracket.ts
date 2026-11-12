@@ -32,11 +32,11 @@ const BRACKETS: Record<
         role: 'close',
     },
     '[': {
-        shape: ')',
+        shape: ']',
         role: 'open',
     },
     ']': {
-        shape: ')',
+        shape: ']',
         role: 'close',
     },
 }

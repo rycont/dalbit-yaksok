@@ -42,10 +42,7 @@ export async function quickJS(
             FFI: [
                 {
                     runtimeId: 'QuickJS',
-                    async run(
-                        bodyCode: string,
-                        args: Map<string, ValueType>,
-                    ): Promise<ValueType> {
+                    async run(bodyCode, args): Promise<ValueType> {
                         const wrappedCode = createWrapperCodeFromFFICall(
                             bodyCode,
                             args,
@@ -115,7 +112,7 @@ function createContext(
 
 function createWrapperCodeFromFFICall(
     bodyCode: string,
-    args: Map<string, ValueType>,
+    args: Map<string | symbol, ValueType>,
 ) {
     const parameters = args.keys().toArray()
     const parameterValues = args

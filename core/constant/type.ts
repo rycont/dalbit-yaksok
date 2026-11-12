@@ -1,4 +1,4 @@
-import type { Rule, Token, Node, Block } from '@dalbit-yaksok/core'
+import type { Rule, Token, Node, Block, Evaluable } from '@dalbit-yaksok/core'
 
 export type Brand<K, T> = K & { __brand: T }
 
@@ -6,7 +6,7 @@ export interface TokenLine {
     level: number
     validTokens: Token[]
     rawTokens: Token[]
-    range: [number, number]
+    validRange: [number, number]
 }
 
 export interface TokenRule {
@@ -19,9 +19,10 @@ export interface TokenRule {
                 look: Block
                 consume: () => Block
             }
-            nextLine: (offset: number) => {
-                look: TokenLine
-                consume: () => TokenLine
+            parse: (tokens: Token[]) => Evaluable
+            nextLines: (count: number) => {
+                look: TokenLine[]
+                consume: () => TokenLine[]
             }
         },
     ): {

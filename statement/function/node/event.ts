@@ -4,16 +4,18 @@ import {
     Token,
     ValueType,
     YaksokError,
-    renderErrorString,
     Scope,
 } from '@dalbit-yaksok/core'
 import { InvokingArguments } from './arguments'
+import { FunctionDeclareHeader } from './header'
+import { FunctionObject } from '../value/function'
+import { EventSubscriptionObject } from '../value/event'
 
 export class SubscribeEvent extends Executable<InvokingArguments> {
     static override friendlyName = '이벤트 구독하기'
 
     constructor(
-        private readonly eventId: string,
+        private readonly declareHeader: FunctionDeclareHeader,
         private readonly body: Block,
         invokingArguments: InvokingArguments,
         public override readonly tokens: Token[],
@@ -24,35 +26,16 @@ export class SubscribeEvent extends Executable<InvokingArguments> {
     }
 
     override async execute(scope: Scope): Promise<void> {
-        const param = await this.subnode.execute(scope)
-        const session = scope.session
+        const args = await this.subnode.execute(scope)
 
-        session.aliveListeners.push(
-            new Promise((resolve) => {
-                session.eventCreation.pub(this.eventId, [
-                    param,
-                    async () => {
-                        const subScope = new Scope({
-                            parent: scope,
-                            initialVariable: Object.fromEntries(param),
-                        })
+        const argsWithBodySymbol = new Map<string | symbol, ValueType>(args)
 
-                        try {
-                            await this.body.execute(subScope)
-                        } catch (e) {
-                            if (e instanceof YaksokError) {
-                                session.stderr(renderErrorString(e), e)
-                            }
-                            resolve()
-                        }
-                    },
-                    () => {
-                        resolve()
-                    },
-                    scope,
-                ])
-            }),
+        argsWithBodySymbol.set(
+            EventSubscriptionObject.CALLBACK_BODY_KEY,
+            new FunctionObject('익명함수', this.body, [], scope),
         )
+
+        void this.declareHeader.runnable!.run(argsWithBodySymbol)
     }
 
     override validate(invokingScope: Scope): YaksokError[] {

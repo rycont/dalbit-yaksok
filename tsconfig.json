@@ -1,12 +1,13 @@
 {
     "compilerOptions": {
         "noEmit": true,
-        "module": "nodenext",
-        "moduleResolution": "nodenext",
+        "module": "esnext",
+        "moduleResolution": "bundler",
         "allowImportingTsExtensions": true,
         "esModuleInterop": true,
         "target": "esnext",
-        "lib": ["ESNext", "DOM"]
+        "lib": ["ESNext", "DOM"],
+        "allowSyntheticDefaultImports": true
     },
     "include": ["./**/*.ts"]
 }

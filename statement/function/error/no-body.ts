@@ -1,7 +1,7 @@
 import { YaksokError, Scope, Node } from '@dalbit-yaksok/core'
 
 export class MissingFunctionBody extends YaksokError {
-    constructor(props: { node: Node; scope: Scope }) {
+    constructor(props: { node: Node; scope?: Scope }) {
         super(props)
     }
 

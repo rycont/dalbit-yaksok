@@ -13,6 +13,7 @@ import { MissingFunctionBody } from '../error/no-body'
 import { FunctionDeclareHeader } from './header'
 import { FunctionObject } from '../value/function'
 import { FFIObject } from '../value/ffi'
+import { EventSubscriptionObject } from '../value/event'
 
 export class DeclareFunction extends Executable<Block> {
     static override friendlyName = '새 약속 만들기'
@@ -29,14 +30,14 @@ export class DeclareFunction extends Executable<Block> {
     }
 
     override execute(scope: Scope): Promise<void> {
-        this.header.runScope = scope
-
         const functionObject = new FunctionObject(
             this.header.signature.functionName,
             this.subnode,
             this.callingRules,
             scope,
         )
+
+        this.header.runnable = functionObject
 
         try {
             scope.addFunctionObject(functionObject)
@@ -105,17 +106,20 @@ export class DeclareFFI extends Executable {
         super()
     }
 
+    public parsingErrors: YaksokError[] = []
+
     override execute(scope: Scope): Promise<void> {
         try {
-            scope.addFunctionObject(
-                new FFIObject(
-                    this.header.signature.functionName,
-                    this.body,
-                    this.runtime,
-                    this.callingRules,
-                    scope,
-                ),
+            const runnable = new FFIObject(
+                this.header.signature.functionName,
+                this.body,
+                this.runtime,
+                this.callingRules,
+                scope,
             )
+
+            this.header.runnable = runnable
+            scope.addFunctionObject(runnable)
             return Promise.resolve()
         } catch (e) {
             if (e instanceof YaksokError && !e.tokens) {
@@ -128,6 +132,7 @@ export class DeclareFFI extends Executable {
 
     override validate(scope: Scope): YaksokError[] {
         let declareErrors: YaksokError[] = []
+
         try {
             const ffiObject = new FFIObject(
                 this.header.signature.functionName,
@@ -151,7 +156,16 @@ export class DeclareFFI extends Executable {
             .validate(scope)
             .filter((e) => !(e instanceof MissingFunctionBody))
 
-        return declareErrors.concat(headerErrors)
+        return declareErrors.concat(headerErrors).concat(
+            this.parsingErrors.map((e) => {
+                e.scope = scope
+                return e
+            }),
+        )
+    }
+
+    public injectParsingError(parsingError: YaksokError) {
+        this.parsingErrors.push(parsingError)
     }
 }
 
@@ -159,6 +173,7 @@ export class DeclareEvent extends Executable {
     static override friendlyName = '새 이벤트 만들기'
 
     constructor(
+        private callingRules: Rule[],
         public readonly header: FunctionDeclareHeader,
         private readonly eventId: string,
         public override tokens: Token[],
@@ -168,6 +183,13 @@ export class DeclareEvent extends Executable {
 
     override execute(scope: Scope): Promise<void> {
         scope.events.set(this.eventId, this)
+
+        this.header.runnable = new EventSubscriptionObject(
+            this.eventId,
+            this.callingRules,
+            scope,
+        )
+
         return Promise.resolve()
     }
 

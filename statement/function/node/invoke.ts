@@ -7,6 +7,7 @@ import {
     ErrorInFFIExecution,
     ErrorOccurredWhileRunningFFIExecution,
     YaksokError,
+    NotDefinedIdentifierError,
 } from '@dalbit-yaksok/core'
 import { InvokingArguments } from './arguments'
 import { FunctionDeclareHeader } from './header'
@@ -15,7 +16,6 @@ export class FunctionInvoke extends Evaluable<InvokingArguments> {
     static override friendlyName = '약속 사용하기'
 
     constructor(
-        public readonly name: string,
         private readonly declareHeader: FunctionDeclareHeader,
         public readonly invokingArguments: InvokingArguments,
         public override tokens: Token[],
@@ -25,17 +25,26 @@ export class FunctionInvoke extends Evaluable<InvokingArguments> {
         this.subnode = invokingArguments
     }
 
-    override async execute(
-        invokingScope: Scope,
-        declaredScope: Scope = invokingScope,
-    ): Promise<ValueType> {
-        const evaluatedArgument = await this.subnode.execute(invokingScope)
-        const functionObject = declaredScope.getFunctionObject(this.name)
+    override async execute(scope: Scope): Promise<ValueType> {
+        const evaluatedArgument = await this.subnode.execute(scope)
+        const functionObject = this.declareHeader.runnable
+
+        if (!functionObject) {
+            throw new NotDefinedIdentifierError({
+                resource: {
+                    name: this.declareHeader.signature.functionName,
+                },
+            })
+        }
 
         try {
             const returnValue = await functionObject.run(evaluatedArgument)
 
-            assertValidReturnValue(returnValue, this.tokens, this.name)
+            assertValidReturnValue(
+                returnValue,
+                this.tokens,
+                this.declareHeader.signature.functionName,
+            )
 
             return returnValue
         } catch (error) {
@@ -44,7 +53,7 @@ export class FunctionInvoke extends Evaluable<InvokingArguments> {
                     {
                         child: error,
                         tokens: this.tokens,
-                        ffiName: this.name,
+                        ffiName: this.declareHeader.signature.functionName,
                     },
                 )
 

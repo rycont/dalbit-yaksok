@@ -39,6 +39,7 @@ export class CannotUnderstandError extends YaksokError<{
 export class CannotParseError extends YaksokError {
     constructor(props: {
         tokens: Token[]
+        scope: Scope
         resource: {
             part: Node
         }

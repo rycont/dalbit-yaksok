@@ -1,11 +1,7 @@
-import {
-    BreakNotInLoopError,
-    // CannotReturnOutsideFunctionError,
-    type Executable,
-} from '@dalbit-yaksok/core'
+import { type Executable } from '@dalbit-yaksok/core'
 
 import { Scope } from './scope.ts'
-import { BreakSignal } from './signals.ts'
+import { Signal } from './signals.ts'
 
 export async function executer<NodeType extends Executable>(
     node: NodeType,
@@ -14,16 +10,8 @@ export async function executer<NodeType extends Executable>(
     try {
         await node.execute(scope)
     } catch (e) {
-        // if (e instanceof ReturnSignal) {
-        //     throw new CannotReturnOutsideFunctionError({
-        //         tokens: e.tokens,
-        //     })
-        // }
-
-        if (e instanceof BreakSignal) {
-            throw new BreakNotInLoopError({
-                tokens: e.tokens,
-            })
+        if (e instanceof Signal) {
+            throw e.getUnhandledError()
         }
 
         throw e

@@ -6,7 +6,10 @@ import {
     FunctionSignature,
 } from './type'
 
-export function extractSignature(signatureTokens: Token[]): FunctionSignature {
+export function extractSignature(signatureTokens: Token[]): {
+    signature: FunctionSignature
+    notParsableTokens: Token[]
+} {
     const tokenGroups: {
         type: FunctionPartType
         tokens: Token[]
@@ -151,9 +154,12 @@ export function extractSignature(signatureTokens: Token[]): FunctionSignature {
     )
 
     return {
-        functionName,
-        parameterScheme,
-        headerParts,
+        signature: {
+            functionName,
+            parameterScheme,
+            headerParts,
+        },
+        notParsableTokens,
     }
 
     //     const invokingRules = createCallingRules(
@@ -168,14 +174,6 @@ export function extractSignature(signatureTokens: Token[]): FunctionSignature {
 
     //
     //     if (0 < notParsableTokens.length) {
-    //         declareNode.injectError(
-    //             new UnexpectedTokenError({
-    //                 resource: {
-    //                     parts: '약속 이름',
-    //                 },
-    //                 tokens: notParsableTokens,
-    //             }),
-    //         )
     //     }
     //
     //     const replacer: DirectReplacer = {

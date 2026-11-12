@@ -1,21 +1,22 @@
 import { YaksokSession } from '@dalbit-yaksok/core'
 import { quickJS } from '@dalbit-yaksok/quickjs'
-import functionStatement from '@dalbit-yaksok/statement-function'
 
 const session = new YaksokSession()
-
 await session.extend(await quickJS())
-await session.extend(functionStatement)
 
-await session
+const scope = await session
     .addModule(
         'main',
-        `번역(QuickJS), 안녕 말하기
+        `
+번역(QuickJS), (par)에 (target)이 포함
 ***
-  return 10
+    return par.includes(target)
 ***
 
-안녕 말하기 보여주기
+결과 = "안녕하세요"에 "안녕"이 포함
+결과 보여주기
 `,
     )
     .run()
+
+console.log(scope.getVariable('결과'))

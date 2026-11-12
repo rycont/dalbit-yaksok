@@ -75,6 +75,7 @@ export class YaksokSession {
         for (const { fileName, code, baseScope } of extension.capabilties
             .File || []) {
             const ranScope = await this.addModule(fileName, code).run()
+
             if (baseScope) {
                 this.useBaseScope(ranScope)
             }
@@ -131,7 +132,7 @@ export class YaksokSession {
     public async runFFI(
         runtime: string,
         code: string,
-        args: Map<string, ValueType>,
+        args: Map<string | symbol, ValueType>,
         callerScope: Scope,
     ): Promise<ValueType> {
         const foundCapabilities = this.extensions.flatMap(

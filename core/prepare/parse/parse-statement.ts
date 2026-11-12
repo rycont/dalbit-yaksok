@@ -6,16 +6,17 @@ import {
     TokenLine,
     Rule,
     DirectReplacer,
+    EOL,
+    Evaluable,
+    IncompleteEvaluable,
+    Block,
 } from '@dalbit-yaksok/core'
-// import { createDynamicRules } from './dynamicRule/index.ts'
 
 export function parseStatement(
     tokens: Token[],
     session: YaksokSession,
     injectedRules: Rule[],
 ) {
-    // const { replacers, rules } = createDynamicRules(tokens, session)
-
     let locallyDefinedRules: Rule[] = injectedRules
     const lines = getLineTokens(tokens)
 
@@ -33,21 +34,29 @@ export function parseStatement(
         const parsed = grammers
             .values()
             .map((g) => {
-                let consumed = 0
+                let consumed = 1
 
                 function parseFollowingBlock(scopeRule: Rule[] = []) {
-                    const blockEndIndex = lines
+                    const firstLineAfterBlockIndex = lines
                         .slice(i + 1)
                         .findIndex((l) => l.level <= line.level)
 
+                    const blockEndIndex =
+                        firstLineAfterBlockIndex === -1
+                            ? lines.length - i - 2
+                            : firstLineAfterBlockIndex - 1
+
                     const tokens = lines
-                        .slice(i + 1, i + blockEndIndex + 1)
+                        .slice(i + 1, i + blockEndIndex + 2)
                         .flatMap((l) => l.rawTokens)
 
-                    const node = parse(
+                    const node = new Block(
+                        parse(
+                            tokens,
+                            session,
+                            locallyDefinedRules.concat(scopeRule),
+                        ),
                         tokens,
-                        session,
-                        locallyDefinedRules.concat(scopeRule),
                     )
 
                     return {
@@ -59,12 +68,23 @@ export function parseStatement(
                     }
                 }
 
-                function nextLine(offset: number) {
-                    const line = lines[i + offset]
+                function parseTokens(tokens: Token[]): Evaluable {
+                    const parsed = parse(tokens, session, locallyDefinedRules)
+
+                    if (parsed.length === 1 && parsed[0] instanceof Evaluable) {
+                        return parsed[0]
+                    }
+
+                    return new IncompleteEvaluable(parsed, tokens)
+                }
+
+                function nextLines(count: number) {
+                    const line = lines.slice(i + 1, i + 1 + count)
+
                     return {
                         look: line,
                         consume: () => {
-                            consumed++
+                            consumed += line.length
                             return line
                         },
                     }
@@ -72,7 +92,8 @@ export function parseStatement(
 
                 const result = g.factory(line, {
                     parseFollowingBlock,
-                    nextLine,
+                    nextLines,
+                    parse: parseTokens,
                 })
 
                 if (result) {
@@ -90,10 +111,10 @@ export function parseStatement(
             i++
         } else {
             replacers.push({
-                nodes: [parsed.result.instance],
+                nodes: [parsed.result.instance, new EOL([])],
                 tokenRange: [
-                    lines[i].range[0],
-                    lines[i + parsed.consumed].range[1],
+                    lines[i].validRange[0],
+                    lines[i + parsed.consumed - 1].validRange[1],
                 ],
             })
 
@@ -125,16 +146,15 @@ function getLineTokens(tokens: Token[]): TokenLine[] {
             linebreaks[index + 1] + 1,
         )
 
-        const validTokens = lineTokens
-            .slice(0, -1)
-            .filter(
-                (t) =>
-                    ![
-                        TOKEN_TYPE.INDENT,
-                        TOKEN_TYPE.LINE_COMMENT,
-                        TOKEN_TYPE.SPACE,
-                    ].includes(t.type),
-            )
+        const validTokens = lineTokens.filter(
+            (t) =>
+                ![
+                    TOKEN_TYPE.INDENT,
+                    TOKEN_TYPE.LINE_COMMENT,
+                    TOKEN_TYPE.SPACE,
+                    TOKEN_TYPE.NEW_LINE,
+                ].includes(t.type),
+        )
 
         const level =
             lineTokens.length && lineTokens[0].type === TOKEN_TYPE.INDENT
@@ -145,10 +165,12 @@ function getLineTokens(tokens: Token[]): TokenLine[] {
             level,
             validTokens,
             rawTokens: lineTokens,
-            range: [linebreaks[index] + 1, linebreaks[index + 1] + 1] as [
-                number,
-                number,
-            ],
+            validRange: [
+                linebreaks[index] + 1 + lineTokens.indexOf(validTokens[0]),
+                linebreaks[index] +
+                    2 +
+                    lineTokens.indexOf(validTokens.slice(-1)[0]),
+            ] as [number, number],
         }
     })
 

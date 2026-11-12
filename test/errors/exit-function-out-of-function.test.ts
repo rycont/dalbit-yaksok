@@ -1,7 +1,5 @@
-import {
-    YaksokSession,
-    CannotReturnOutsideFunctionError,
-} from '@dalbit-yaksok/core'
+import { YaksokSession } from '@dalbit-yaksok/core'
+import { CannotReturnOutsideFunctionError } from '@dalbit-yaksok/statement-function'
 import { expect, test } from 'vite-plus/test'
 
 test('약속의 밖에서는 `약속 그만`을 쓸 수 없음', async () => {

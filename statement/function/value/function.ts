@@ -23,7 +23,9 @@ export class FunctionObject extends ObjectValue implements RunnableObject {
         super()
     }
 
-    public async run(args: Map<string, ValueType>): Promise<ValueType> {
+    public async run(
+        args: Map<string | symbol, ValueType>,
+    ): Promise<ValueType> {
         const functionScope = new Scope({
             parent: this.declaredScope,
             initialVariable: Object.fromEntries(args.entries()),

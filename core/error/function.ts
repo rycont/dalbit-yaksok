@@ -3,13 +3,6 @@ import { bold, blue, dim } from '../util/terminal.ts'
 
 import { YaksokError } from './common.ts'
 
-export class CannotReturnOutsideFunctionError extends YaksokError {
-    constructor(props: { tokens: Token[] }) {
-        super(props)
-        this.message = `"약속 그만"은 약속 안에서만 사용할 수 있어요.`
-    }
-}
-
 export class AlreadyDefinedFunctionError extends YaksokError {
     constructor(props: { resource: { name: string }; scope: Scope }) {
         super(props)

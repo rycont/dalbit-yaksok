@@ -54,7 +54,6 @@ export function parseIndent(nodes: Node[]): Node[] {
         })
 
     const parsed = createIndentBlock(lineRanges).subnode
-
     return parsed
 }
 

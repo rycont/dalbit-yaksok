@@ -173,8 +173,8 @@ export class Chain<const R, const Shape extends ChainShapeBase> {
 
                 return name
             },
-            newVar: () => {
-                return `$v${variableCounter++}`
+            newVar: (annotation?: string) => {
+                return `$v_${annotation + '_' || ''}${variableCounter++}`
             },
             selectJar: () => {
                 return selectJarName

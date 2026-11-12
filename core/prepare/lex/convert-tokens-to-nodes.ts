@@ -12,6 +12,7 @@ import {
     StringStaticPart,
     type Token,
     type DirectReplacer,
+    Mention,
 } from '@dalbit-yaksok/core'
 
 const escapeMap: Record<string, string> = {
@@ -69,12 +70,10 @@ function mapTokenToNode(token: Token | null) {
             return new Indent(token)
         case TOKEN_TYPE.IDENTIFIER:
             return new Identifier(token.value, [token])
-        // case TOKEN_TYPE.FFI_BODY:
-        //     return new FFIBody(token.value.slice(3, -3), [token])
         case TOKEN_TYPE.NEW_LINE:
             return new EOL([token])
-        // case TOKEN_TYPE.MENTION:
-        //     return new Mention(token.value.slice(1), [token])
+        case TOKEN_TYPE.MENTION:
+            return new Mention(token.value.slice(1), [token])
         default:
             return new Expression(token.value, [token])
     }

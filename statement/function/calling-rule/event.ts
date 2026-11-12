@@ -10,10 +10,11 @@ import {
 } from '@dalbit-yaksok/core'
 import { createCallingPattern } from './pattern'
 import { SubscribeEvent } from '../node/event'
+import { FunctionDeclareHeader } from '../node/header'
 
 export function createEventSubscriptionRules(
     signature: FunctionSignature,
-    eventId: string,
+    declareHeader: FunctionDeclareHeader,
 ): Rule {
     const { pattern, invokingArgumentsFactory } =
         createCallingPattern(signature)
@@ -34,7 +35,12 @@ export function createEventSubscriptionRules(
 
             const body = nodes.slice(-1)[0] as Block
 
-            return new SubscribeEvent(eventId, body, invokingArguments, tokens)
+            return new SubscribeEvent(
+                declareHeader,
+                body,
+                invokingArguments,
+                tokens,
+            )
         },
     })
 }

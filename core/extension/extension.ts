@@ -18,14 +18,14 @@ export interface FFICapability {
     runtimeId: string
     run: (
         code: string,
-        args: Map<string, ValueType>,
+        args: Map<string | symbol, ValueType>,
         callerScope: Scope,
     ) => Promisable<ValueType>
 }
 
-type GrammerCapability = TokenRule[]
+export type GrammerCapability = TokenRule[]
 
-type FileCapability = {
+export type FileCapability = {
     fileName: string
     code: string
     baseScope?: boolean

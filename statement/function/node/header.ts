@@ -5,19 +5,21 @@ import {
     Scope,
     RESERVED_WORDS,
     NotProperIdentifierNameToDefineError,
+    RunnableObject,
 } from '@dalbit-yaksok/core'
-import { FunctionPartType, FunctionSignature } from '../type'
-import { RequiredParametersShouldPriorError } from '../error/required-parameter'
-import { FunctionMustHaveSignature } from '../error/no-signature'
-import { FunctionMustHaveOneOrMoreStringPartError } from '../error/no-static'
-import { MissingFunctionBody } from '../error/no-body'
+
+import { FunctionPartType, FunctionSignature } from '../type.ts'
+import { RequiredParametersShouldPriorError } from '../error/required-parameter.ts'
+import { FunctionMustHaveSignature } from '../error/no-signature.ts'
+import { FunctionMustHaveOneOrMoreStringPartError } from '../error/no-static.ts'
+import { MissingFunctionBody } from '../error/no-body.ts'
 
 export class FunctionDeclareHeader extends Node {
     private injectedErrors: YaksokError[] = []
+    public runnable?: RunnableObject = undefined
 
     constructor(
         public signature: FunctionSignature,
-        public runScope: Scope | undefined,
         public override tokens: Token[],
     ) {
         super()

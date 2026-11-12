@@ -1,4 +1,5 @@
-import { Signal, Token, ValueType } from '@dalbit-yaksok/core'
+import { Signal, Token, ValueType, YaksokError } from '@dalbit-yaksok/core'
+import { CannotReturnOutsideFunctionError } from './error/return-out-of-function'
 
 export class ReturnSignal extends Signal {
     constructor(
@@ -6,5 +7,11 @@ export class ReturnSignal extends Signal {
         public value: ValueType | null = null,
     ) {
         super(tokens)
+    }
+
+    getUnhandledError(): YaksokError {
+        return new CannotReturnOutsideFunctionError({
+            tokens: this.tokens,
+        })
     }
 }

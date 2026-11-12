@@ -120,8 +120,19 @@ export class Formula extends Evaluable<(Evaluable | Operator)[]> {
                 const rightThunk = right.thunk
                 stack.push({
                     thunk: async () => {
-                        const result = await item.call(leftThunk, rightThunk)
-                        return result
+                        try {
+                            const result = await item.call(
+                                leftThunk,
+                                rightThunk,
+                            )
+                            return result
+                        } catch (e) {
+                            if (e instanceof YaksokError && !e.scope) {
+                                e.scope = scope
+                            }
+
+                            throw e
+                        }
                     },
                     tokens: combinedTokens,
                 })

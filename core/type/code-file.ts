@@ -1,10 +1,14 @@
 import {
     Block,
+    createMentioningRule,
     executer,
+    Identifier,
     inferTokenSplitpointsFromErrors,
+    Node,
     NotDefinedIdentifierError,
     parse,
     postprocessErrors,
+    r,
     renderErrorString,
     RuntimeContext,
     Scope,
@@ -15,6 +19,7 @@ import {
     type Rule,
     type Token,
 } from '@dalbit-yaksok/core'
+import { j } from '@dalbit-yaksok/pattern'
 
 export class CodeFile {
     readonly ast: Block
@@ -93,44 +98,42 @@ export class CodeFile {
 
             this._ranScope = rootScope
 
-            //             const exportedFunctionRules = rootScope.functions
-            //                 .values()
-            //                 .flatMap((v) =>
-            //                     v.invokeRules.map((rule) =>
-            //                         createMentioningRule(this.fileName, rule, rootScope),
-            //                     ),
-            //                 )
-            //                 .toArray()
-            //
-            //             const exportedEventRules = rootScope.events
-            //                 .values()
-            //                 .flatMap((n) =>
-            //                     n.header.invokingRules.map((r) =>
-            //                         createMentioningRule(this.fileName, r, rootScope),
-            //                     ),
-            //                 )
-            //                 .toArray()
-            //
-            //             const exportedVariableRules = createMentioningRule(
-            //                 this.fileName,
-            //                 r<Node[]>({
-            //                     pattern: [
-            //                         j.instance(Identifier).field({
-            //                             value: j.enum(Object.keys(rootScope.variables)),
-            //                         }),
-            //                     ],
-            //                     factory([node]) {
-            //                         return node
-            //                     },
-            //                 }),
-            //                 rootScope,
-            //             )
-            //
-            //             this._mentionRules = exportedFunctionRules
-            //                 .concat(exportedVariableRules)
-            //                 .concat(exportedEventRules)
+            const exportedFunctionRules = rootScope.functions
+                .values()
+                .flatMap((v) =>
+                    v.invokeRules.map((rule) =>
+                        createMentioningRule(this.fileName, rule, rootScope),
+                    ),
+                )
+                .toArray()
 
-            this._mentionRules = []
+            const exportedEventRules = rootScope.events
+                .values()
+                .flatMap((n) =>
+                    n.header.runnable!.invokeRules.map((r) =>
+                        createMentioningRule(this.fileName, r, rootScope),
+                    ),
+                )
+                .toArray()
+
+            const exportedVariableRules = createMentioningRule(
+                this.fileName,
+                r<Node[]>({
+                    pattern: [
+                        j.instance(Identifier).field({
+                            value: j.enum(Object.keys(rootScope.variables)),
+                        }),
+                    ],
+                    factory([node]) {
+                        return node
+                    },
+                }),
+                rootScope,
+            )
+
+            this._mentionRules = exportedFunctionRules
+                .concat(exportedVariableRules)
+                .concat(exportedEventRules)
 
             return rootScope
         } catch (e) {
@@ -154,14 +157,14 @@ function parseWithSession(code: string, session: YaksokSession) {
     const seenSplitpointFingerprint = new Set<string>()
 
     let validationErrors: YaksokError[]
-    let ast: ReturnType<typeof parse>
+    let ast: Block
     let inferredSplitpoints: Splitpoint[] = []
     let tokens: Token[] | null = null
     let validatingScope: Scope
 
     while (true) {
         tokens = tokenize(code, inferredSplitpoints)
-        ast = parse(tokens, session)
+        ast = new Block(parse(tokens, session), tokens)
 
         validatingScope = new Scope(
             session.baseScope
