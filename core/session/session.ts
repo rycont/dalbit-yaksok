@@ -24,7 +24,7 @@ export class YaksokSession {
     public stdout: (message: string) => void
     public stderr: (message: string, error: YaksokError) => void
 
-    public extensions: Extension[] = DEFAULT_EXTS
+    public extensions: Extension[] = [...DEFAULT_EXTS]
     public baseScope: Scope | null = null
 
     public files: Record<string, CodeFile> = {}

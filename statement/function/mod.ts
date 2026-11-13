@@ -1,4 +1,9 @@
-import { TOKEN_TYPE, UnexpectedTokenError } from '@dalbit-yaksok/core'
+import {
+    Block,
+    EOL,
+    TOKEN_TYPE,
+    UnexpectedTokenError,
+} from '@dalbit-yaksok/core'
 import type {
     Extension,
     Token,
@@ -175,19 +180,19 @@ const functionGrammer: TokenRule = {
                 rules: callingRules,
             }
         } else if (testResult.type === '이벤트') {
+            const eventSubscriptionRule = createEventSubscriptionRules(
+                signatureResult.signature,
+                header,
+            )
+
             return {
                 instance: new DeclareEvent(
-                    callingRules,
+                    [eventSubscriptionRule],
                     header,
                     testResult.id,
                     line.validTokens,
                 ),
-                rules: [
-                    createEventSubscriptionRules(
-                        signatureResult.signature,
-                        header,
-                    ),
-                ],
+                rules: [eventSubscriptionRule],
             }
         }
 

@@ -29,6 +29,7 @@ export function parse(
     const rules = inheritedRules
         .concat(statementRules)
         .concat(mentionRules)
+        .concat(session.baseScope?.getExportedRules().toArray() || [])
         .toSorted((a, b) => b.pattern.length - a.pattern.length)
     const nodes = convertTokensToNodes(tokens, replacers)
 

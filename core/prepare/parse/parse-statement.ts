@@ -39,7 +39,11 @@ export function parseStatement(
                 function parseFollowingBlock(scopeRule: Rule[] = []) {
                     const firstLineAfterBlockIndex = lines
                         .slice(i + 1)
-                        .findIndex((l) => l.level <= line.level)
+                        .findIndex(
+                            (l) =>
+                                l.level <= line.level &&
+                                0 < l.validTokens.length,
+                        )
 
                     const blockEndIndex =
                         firstLineAfterBlockIndex === -1
