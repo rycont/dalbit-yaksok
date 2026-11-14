@@ -8,6 +8,7 @@
         "@astrojs/starlight": "^0.42.8",
         "@astrojs/vue": "^7.1.2",
         "@dalbit-yaksok/core": "workspace:*",
+        "ansi-to-html": "^0.7.2",
         "astro": "^7.4.4",
         "codemirror": "^6.0.2",
         "vue": "^3.5.44"

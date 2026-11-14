@@ -198,9 +198,13 @@ CODES
 
 test('연결 반환값이 없음', async () => {
     const errors: unknown[] = []
+    let output = ''
     const session = new YaksokSession({
         stderr(_message, error) {
             errors.push(error)
+        },
+        stdout(text) {
+            output += text
         },
     })
 
@@ -225,7 +229,8 @@ CODES
     )
 
     await codeFile.run()
-    expect(errors[0]).toBeInstanceOf(FFIResultTypeIsNotForYaksokError)
+    expect(errors.length).toBe(0)
+    expect(output).toBe('비어있음')
 })
 
 test('구현되지 않은 FFI', async () => {
