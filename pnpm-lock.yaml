@@ -193,6 +193,9 @@ importers:
       '@dalbit-yaksok/statement-function':
         specifier: workspace:*
         version: link:../statement/function
+      '@dalbit-yaksok/statement-variable':
+        specifier: workspace:*
+        version: link:../statement/variable
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -325,7 +328,11 @@ importers:
         specifier: workspace:*
         version: link:../../sidekick/pattern
 
-  statement/mention: {}
+  statement/variable:
+    dependencies:
+      '@dalbit-yaksok/pattern':
+        specifier: workspace:*
+        version: link:../../sidekick/pattern
 
   test:
     dependencies:

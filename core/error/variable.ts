@@ -4,7 +4,7 @@ import type { Node, Scope, Token } from '@dalbit-yaksok/core'
 import { bold, blue } from '../util/terminal.ts'
 
 export class NotProperIdentifierNameToDefineError extends YaksokError {
-    constructor(props?: { tokens: Token[]; scope: Scope }) {
+    constructor(props?: { tokens: Token[]; scope?: Scope }) {
         super({})
 
         if (props) {

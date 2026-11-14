@@ -12,6 +12,8 @@ import {
 export class SetVariable extends Evaluable<Evaluable> {
     static override friendlyName = '변수 정하기'
 
+    public parsingErrors: YaksokError[] = []
+
     constructor(
         public name: string,
         evaluator: Evaluable,
@@ -58,6 +60,24 @@ export class SetVariable extends Evaluable<Evaluable> {
     }
 
     override validate(scope: Scope): YaksokError[] {
+        if (this.parsingErrors.length) {
+            for (const error of this.parsingErrors) {
+                if (!error.scope) {
+                    error.scope = scope
+                }
+
+                if (!error.node) {
+                    error.node = this
+                }
+
+                if (!error.tokens) {
+                    error.tokens = this.tokens
+                }
+            }
+
+            return this.parsingErrors
+        }
+
         const errors = this.subnode.validate(scope)
 
         try {
@@ -75,5 +95,9 @@ export class SetVariable extends Evaluable<Evaluable> {
 
             throw e
         }
+    }
+
+    public injectParsingError(parsingError: YaksokError) {
+        this.parsingErrors.push(parsingError)
     }
 }

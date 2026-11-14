@@ -4,7 +4,6 @@ import {
     ListValue,
     NumberValue,
     StringValue,
-    ValueType,
     YaksokSession,
 } from '@dalbit-yaksok/core'
 import { quickJS } from '@dalbit-yaksok/quickjs'
@@ -279,7 +278,7 @@ test('Promise를 반환하는 FFI', async () => {
             FFI: [
                 {
                     runtimeId: 'Runtime',
-                    run: (_code: string, args: Map<string, ValueType>) => {
+                    run: (_code, args) => {
                         return new Promise<NumberValue>((resolve) => {
                             setTimeout(
                                 () => {

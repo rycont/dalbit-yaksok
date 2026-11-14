@@ -1,14 +1,13 @@
 import {
-    assignerToOperatorMap,
     BrokenBracketError,
     Evaluable,
-    Executable,
     Expression,
     IndexedValue,
-    ListIndexTypeError,
+    ListIndexMustBeGreaterOrEqualThan0Error,
     ListValue,
     Node,
     NotExecutableNodeError,
+    NotProperIndexKeyType,
     NumberValue,
     Scope,
     StringIndexOutOfRangeError,
@@ -119,11 +118,8 @@ export class IndexFetch extends Evaluable {
     static override friendlyName = '사전에서 값 가져오기'
 
     constructor(
-        public list: Evaluable<SubnodeScheme, IndexedValue | StringValue>,
-        public index: Evaluable<
-            SubnodeScheme,
-            StringValue | NumberValue | ListValue
-        >,
+        public list: Evaluable<SubnodeScheme>,
+        public index: Evaluable<SubnodeScheme>,
         public override tokens: Token[],
     ) {
         super()
@@ -135,10 +131,13 @@ export class IndexFetch extends Evaluable {
 
         if (list instanceof StringValue) {
             if (!(index instanceof NumberValue)) {
-                throw new ListIndexTypeError({
+                throw new NotProperIndexKeyType({
+                    scope,
                     tokens: this.index.tokens,
                     resource: {
-                        index: index.toPrint(),
+                        index,
+                        targetNode: this.list,
+                        targetValue: list,
                     },
                 })
             }
@@ -181,20 +180,40 @@ export class IndexFetch extends Evaluable {
             return values
         }
 
-        try {
-            const value = list.getItem(index.value)
-            return value
-        } catch (error) {
-            if (error instanceof YaksokError && !error.tokens) {
-                if (error instanceof ListIndexTypeError) {
-                    error.tokens = this.index.tokens
-                } else {
-                    error.tokens = this.tokens
+        if (index instanceof StringValue || index instanceof NumberValue) {
+            try {
+                const value = list.getItem(index.value)
+                return value
+            } catch (e) {
+                if (e instanceof ListIndexMustBeGreaterOrEqualThan0Error) {
+                    e.scope = scope
+                    e.tokens = this.index.tokens
+                } else if (e instanceof NotProperIndexKeyType) {
+                    e.scope = scope
+                    e.resource = {
+                        index,
+                        targetNode: this.list,
+                        targetValue: list,
+                    }
+                    e.tokens = this.index.tokens
+                } else if (e instanceof YaksokError) {
+                    e.scope = scope
+                    e.tokens = this.index.tokens
                 }
-            }
 
-            throw error
+                throw e
+            }
         }
+
+        throw new NotProperIndexKeyType({
+            scope,
+            tokens: this.index.tokens,
+            resource: {
+                index,
+                targetNode: this.list,
+                targetValue: list,
+            },
+        })
     }
 
     public async setValue(scope: Scope, value: ValueType) {
@@ -221,10 +240,13 @@ export class IndexFetch extends Evaluable {
             !(index instanceof NumberValue) &&
             !(index instanceof StringValue)
         ) {
-            throw new ListIndexTypeError({
-                tokens: this.tokens,
+            throw new NotProperIndexKeyType({
+                scope,
+                tokens: this.index.tokens,
                 resource: {
-                    index: index.toPrint(),
+                    index,
+                    targetNode: this.list,
+                    targetValue: list,
                 },
             })
         }
@@ -236,61 +258,6 @@ export class IndexFetch extends Evaluable {
         const errors = [
             ...(this.list.validate(scope) || []),
             ...(this.index.validate(scope) || []),
-        ]
-
-        return errors
-    }
-}
-
-export class SetToIndex extends Executable<Evaluable> {
-    static override friendlyName = '목록에 값 넣기'
-
-    constructor(
-        public target: IndexFetch,
-        value: Evaluable,
-        private readonly operator: string,
-        public override tokens: Token[],
-    ) {
-        super()
-        this.subnode = value
-    }
-
-    override async execute(scope: Scope): Promise<void> {
-        const operatorNode =
-            assignerToOperatorMap[
-                this.operator as keyof typeof assignerToOperatorMap
-            ]
-
-        const operand = await this.subnode.execute(scope)
-        let newValue = operand
-
-        if (operatorNode) {
-            const oldValue = await this.target.execute(scope)
-            const tempOperator = new operatorNode(this.tokens)
-
-            try {
-                newValue = await tempOperator.call(
-                    () => Promise.resolve(oldValue),
-                    () => Promise.resolve(operand),
-                )
-            } catch (error) {
-                if (error instanceof YaksokError) {
-                    if (!error.tokens) {
-                        error.tokens = this.tokens
-                    }
-                }
-
-                throw error
-            }
-        }
-
-        await this.target.setValue(scope, newValue)
-    }
-
-    override validate(scope: Scope): YaksokError[] {
-        const errors = [
-            ...(this.target.validate(scope) || []),
-            ...(this.subnode.validate(scope) || []),
         ]
 
         return errors

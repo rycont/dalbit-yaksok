@@ -1,0 +1,7 @@
+{
+    "name": "@dalbit-yaksok/statement-variable",
+    "main": "./mod.ts",
+    "dependencies": {
+        "@dalbit-yaksok/pattern": "workspace:*"
+    }
+}

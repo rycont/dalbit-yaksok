@@ -1,10 +1,10 @@
 import {
     ListIndexMustBeGreaterOrEqualThan0Error,
-    ListIndexTypeError,
     ListValue,
     StringIndexOutOfRangeError,
     StringValue,
     YaksokSession,
+    LinearIndexNotInteger,
 } from '@dalbit-yaksok/core'
 
 import { expect, test } from 'vite-plus/test'
@@ -39,7 +39,7 @@ test('String index must be a non-negative integer within bounds', async () => {
     })
     const codeFile2 = session2.addModule('main', `결과 = '가'[0.5]`)
     await codeFile2.run()
-    expect(errors2[0]).toBeInstanceOf(ListIndexTypeError)
+    expect(errors2[0]).toBeInstanceOf(LinearIndexNotInteger)
 
     const errors3: unknown[] = []
     const session3 = new YaksokSession({

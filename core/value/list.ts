@@ -1,6 +1,7 @@
 import {
     ListIndexMustBeGreaterOrEqualThan0Error,
-    ListIndexTypeError,
+    LinearIndexNotInteger,
+    NotProperIndexKeyType,
 } from '../error/indexed.ts'
 import { dim } from '../util/terminal.ts'
 import { ValueType } from './base.ts'
@@ -33,8 +34,12 @@ export class ListValue extends IndexedValue {
     }
 
     static assertProperIndex(index: number): void {
+        if (typeof index !== 'number') {
+            throw new NotProperIndexKeyType()
+        }
+
         if (!Number.isSafeInteger(index)) {
-            throw new ListIndexTypeError({
+            throw new LinearIndexNotInteger({
                 resource: {
                     index,
                 },
@@ -84,9 +89,9 @@ export class ListValue extends IndexedValue {
 
         for (const keyValue of keys) {
             if (!(keyValue instanceof NumberValue)) {
-                throw new ListIndexTypeError({
+                throw new NotProperIndexKeyType({
                     resource: {
-                        index: keyValue.toPrint(),
+                        index: keyValue,
                     },
                 })
             }

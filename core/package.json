@@ -10,6 +10,7 @@
     },
     "dependencies": {
         "@dalbit-yaksok/pattern": "workspace:*",
-        "@dalbit-yaksok/statement-function": "workspace:*"
+        "@dalbit-yaksok/statement-function": "workspace:*",
+        "@dalbit-yaksok/statement-variable": "workspace:*"
     }
 }

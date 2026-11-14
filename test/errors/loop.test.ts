@@ -9,9 +9,10 @@ import {
     RangeEndMustBeIntegerError,
     TargetIsNotIndexedValueError,
     IndexKeyNotFoundError,
-    ListIndexTypeError,
     ListIndexMustBeGreaterOrEqualThan0Error,
     LoopCountIsNotNumberError,
+    NotProperIndexKeyType,
+    LinearIndexNotInteger,
 } from '@dalbit-yaksok/core'
 import { expect, test } from 'vite-plus/test'
 
@@ -207,7 +208,7 @@ test('List index must be number', async () => {
 `,
     )
     await codeFile.run()
-    expect.assert.instanceOf(errors[0], ListIndexTypeError)
+    expect.assert.instanceOf(errors[0], NotProperIndexKeyType)
 })
 
 test('List index must be integer', async () => {
@@ -224,7 +225,7 @@ test('List index must be integer', async () => {
 `,
     )
     await codeFile.run()
-    expect.assert.instanceOf(errors[0], ListIndexTypeError)
+    expect.assert.instanceOf(errors[0], LinearIndexNotInteger)
 })
 
 test('List index must bigger than 0', async () => {

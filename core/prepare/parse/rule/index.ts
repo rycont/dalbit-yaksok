@@ -1,6 +1,5 @@
 import {
     AndOperator,
-    ASSIGNERS,
     Block,
     BooleanLiteral,
     Break,
@@ -42,8 +41,6 @@ import {
     RangeOperator,
     Rule,
     Sequence,
-    SetToIndex,
-    SetVariable,
     StringValue,
     SubnodeScheme,
     TupleLiteral,
@@ -344,40 +341,6 @@ export const ADVANCED_RULES: Rule[] = [
         ],
         factory: (nodes, tokens) => new ListLiteral([], nodes[1], tokens),
     }),
-    ...ASSIGNERS.map<Rule>((assigner) =>
-        r({
-            pattern: [
-                j.instance(IndexFetch),
-                j.instance(Expression).field({ value: j.literal(assigner) }),
-                j.instance(Evaluable),
-            ],
-            factory: (nodes, tokens) => {
-                const target = nodes[0]
-                const operator = nodes[1]
-                const value = nodes[2]
-
-                return new SetToIndex(target, value, operator.value, tokens)
-            },
-            isStatement: true,
-        }),
-    ),
-    ...ASSIGNERS.map<Rule>((assigner) =>
-        r({
-            pattern: [
-                j.instance(Identifier),
-                j.instance(Expression).field({ value: j.literal(assigner) }),
-                j.instance(Evaluable),
-            ],
-            factory: (nodes, tokens) => {
-                const name = nodes[0].value
-                const operator = nodes[1]
-                const value = nodes[2]
-
-                return new SetVariable(name, value, tokens, operator.value)
-            },
-            isStatement: true,
-        }),
-    ),
     r({
         pattern: [
             j.instance(IfStatement),

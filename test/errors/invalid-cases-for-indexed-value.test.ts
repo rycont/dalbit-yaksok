@@ -1,5 +1,5 @@
 import {
-    ListIndexTypeError,
+    NotProperIndexKeyType,
     TupleNotMutableError,
     YaksokSession,
 } from '@dalbit-yaksok/core'
@@ -36,5 +36,5 @@ test('Key for list fancy indexing is not a number', async () => {
 목록[[2, "a"]] 보여주기`,
     )
     await codeFile.run()
-    expect.assert.instanceOf(errors[0], ListIndexTypeError)
+    expect.assert.instanceOf(errors[0], NotProperIndexKeyType)
 })

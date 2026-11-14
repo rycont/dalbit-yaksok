@@ -13,9 +13,11 @@ import {
     type Extension,
     type RuntimeContext,
 } from '@dalbit-yaksok/core'
-import functionStatement from '@dalbit-yaksok/statement-function'
 
-const DEFAULT_EXTS: Extension[] = [functionStatement]
+import functionStatement from '@dalbit-yaksok/statement-function'
+import variableStatement from '@dalbit-yaksok/statement-variable'
+
+const DEFAULT_EXTS: Extension[] = [functionStatement, variableStatement]
 const THREAD_YIELD_INTERVAL = 300
 
 export class YaksokSession {

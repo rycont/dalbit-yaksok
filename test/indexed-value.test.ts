@@ -2,11 +2,11 @@ import { test, expect } from 'vite-plus/test'
 import {
     IndexedValue,
     ListValue,
+    NotProperIndexKeyType,
     NumberValue,
     StringValue,
     ValueType,
 } from '@dalbit-yaksok/core'
-import { ListIndexTypeError } from '@dalbit-yaksok/core'
 
 test('IndexedValue getItemsFromKeys', () => {
     const indexed = new IndexedValue(
@@ -44,7 +44,7 @@ test('IndexedValue getItemsFromKeys with invalid key type', () => {
         indexed.getItemsFromKeys(keys)
         throw new Error('Should have thrown ListIndexTypeError')
     } catch (e) {
-        expect(e instanceof ListIndexTypeError).toBe(true)
+        expect(e).toBeInstanceOf(NotProperIndexKeyType)
     }
 })
 

@@ -1,4 +1,7 @@
-import { IndexKeyNotFoundError, ListIndexTypeError } from '../error/indexed.ts'
+import {
+    IndexKeyNotFoundError,
+    NotProperIndexKeyType,
+} from '../error/indexed.ts'
 import { ObjectValue, ValueType } from './base.ts'
 import { NumberValue, StringValue } from './primitive.ts'
 
@@ -45,9 +48,9 @@ export class IndexedValue extends ObjectValue {
                     keyValue instanceof NumberValue
                 )
             ) {
-                throw new ListIndexTypeError({
+                throw new NotProperIndexKeyType({
                     resource: {
-                        index: keyValue.toPrint(),
+                        index: keyValue,
                     },
                 })
             }

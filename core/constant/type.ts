@@ -11,7 +11,7 @@ export interface TokenLine {
 
 export interface TokenRule {
     name: string
-    description: string
+    description?: string
     factory(
         line: TokenLine,
         actions: {

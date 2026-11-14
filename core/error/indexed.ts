@@ -1,9 +1,13 @@
 import {
+    blue,
     bold,
     dim,
     Evaluable,
     evaluableToText,
+    ListValue,
+    Node,
     Position,
+    Scope,
     StringValue,
     Token,
     ValueType,
@@ -27,6 +31,28 @@ export class IndexKeyNotFoundError extends YaksokError {
                 `(${typeof props.resource.index === 'number' ? '숫자' : '문자'})`,
             )
         }라는 값이 없어요. `
+    }
+}
+
+export class NotProperIndexKeyType extends YaksokError<{
+    index: ValueType
+    targetNode?: Node
+    targetValue?: ValueType
+}> {
+    constructor(props?: {
+        resource: {
+            index: ValueType
+            targetNode?: Node
+            targetValue?: ValueType
+        }
+        tokens?: Token[]
+        scope?: Scope
+    }) {
+        super(props || {})
+    }
+
+    get message() {
+        return `${bold(blue(this.resource.targetNode?.tokens.map((t) => t.value).join('') || ''))}에 담긴 값은 ${this.resource.targetValue instanceof ListValue ? '숫자' : '문자'}로 값을 꺼낼 수 있어요.`
     }
 }
 
@@ -100,15 +126,16 @@ export class RangeStartMustBeLessThanEndError extends YaksokError {
     }
 }
 
-export class ListIndexTypeError extends YaksokError {
+export class LinearIndexNotInteger extends YaksokError {
     constructor(props: {
         tokens?: Token[]
         resource: {
             index: string | number
+            targetType?: 'list' | 'string'
         }
     }) {
         super(props)
-        this.message = `목록의 인덱스는 정수여야 해요. ${props.resource.index}는 정수가 아니에요.`
+        this.message = `${props.resource.targetType === 'list' ? '목록' : '문자'}의 인덱스는 정수여야 해요. ${props.resource.index}는 정수가 아니에요.`
     }
 }
 

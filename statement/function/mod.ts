@@ -1,9 +1,4 @@
-import {
-    Block,
-    EOL,
-    TOKEN_TYPE,
-    UnexpectedTokenError,
-} from '@dalbit-yaksok/core'
+import { TOKEN_TYPE, UnexpectedTokenError } from '@dalbit-yaksok/core'
 import type {
     Extension,
     Token,

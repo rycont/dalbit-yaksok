@@ -9,7 +9,7 @@ import {
     type Token,
 } from '@dalbit-yaksok/core'
 
-import { tokenToText, YaksokError } from './common.ts'
+import { YaksokError } from './common.ts'
 
 export class CannotUnderstandError extends YaksokError<{
     additionalMessage?: string
@@ -164,7 +164,7 @@ export class UnexpectedTokenError extends YaksokError {
     }) {
         super(props)
 
-        this.message = `${tokenToText(props.tokens[0])}은 ${bold(
+        this.message = `${blue(bold(props.tokens.map((t) => t.value).join('')))}은 ${bold(
             props.resource.parts,
         )}에 사용할 수 없어요.`
     }

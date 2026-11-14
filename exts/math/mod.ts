@@ -191,10 +191,7 @@ AVERAGE
         FFI: [
             {
                 runtimeId: '수학',
-                run(
-                    code: string,
-                    args: Map<string, ValueType>,
-                ): ValueType | Promise<ValueType> {
+                run(code, args): ValueType | Promise<ValueType> {
                     const action = code.trim()
 
                     switch (action) {

@@ -8,7 +8,7 @@ import {
     assertValidReturnValue,
     printTree,
     type Token,
-    CannotParseError,
+    EmptyValue,
 } from '@dalbit-yaksok/core'
 
 export enum NodeCapability {
@@ -114,15 +114,7 @@ export class IncompleteEvaluable extends Evaluable<Node[]> {
     }
 
     override validate(scope: Scope) {
-        return [
-            new CannotParseError({
-                resource: {
-                    part: this,
-                },
-                tokens: this.tokens,
-                scope,
-            }),
-        ]
+        return this.subnode.flatMap((s) => s.validate(scope))
     }
 }
 
@@ -147,7 +139,9 @@ export class Identifier extends Evaluable {
             if (e instanceof NotDefinedIdentifierError) {
                 try {
                     const functionObject = scope.getFunctionObject(this.value)
-                    const functionResult = await functionObject.run(new Map())
+                    const functionResult =
+                        (await functionObject.run(new Map())) ||
+                        new EmptyValue()
 
                     assertValidReturnValue(
                         functionResult,

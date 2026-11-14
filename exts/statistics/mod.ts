@@ -212,7 +212,7 @@ function extractNumbers(list: ListValue): number[] {
 }
 
 function withNumbers(
-    args: Map<string, ValueType>,
+    args: Map<string | symbol, ValueType>,
     callback: (numbers: number[]) => ValueType,
 ): ValueType {
     const 목록 = args.get('목록')
@@ -222,7 +222,7 @@ function withNumbers(
 }
 
 function withTwoNumberLists(
-    args: Map<string, ValueType>,
+    args: Map<string | symbol, ValueType>,
     callback: (numbersA: number[], numbersB: number[]) => ValueType,
 ): ValueType {
     const 가 = args.get('가')

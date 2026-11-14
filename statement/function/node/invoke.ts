@@ -8,6 +8,7 @@ import {
     ErrorOccurredWhileRunningFFIExecution,
     YaksokError,
     NotDefinedIdentifierError,
+    EmptyValue,
 } from '@dalbit-yaksok/core'
 import { InvokingArguments } from './arguments'
 import { FunctionDeclareHeader } from './header'
@@ -38,7 +39,9 @@ export class FunctionInvoke extends Evaluable<InvokingArguments> {
         }
 
         try {
-            const returnValue = await functionObject.run(evaluatedArgument)
+            const returnValue =
+                (await functionObject.run(evaluatedArgument)) ||
+                new EmptyValue()
 
             assertValidReturnValue(
                 returnValue,
