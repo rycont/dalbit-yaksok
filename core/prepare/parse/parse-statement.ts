@@ -38,20 +38,23 @@ export function parseStatement(
 
                 function parseFollowingBlock(scopeRule: Rule[] = []) {
                     const firstLineAfterBlockIndex = lines
-                        .slice(i + 1)
+                        .slice(i + consumed)
                         .findIndex(
                             (l) =>
                                 l.level <= line.level &&
                                 0 < l.validTokens.length,
                         )
 
-                    const blockEndIndex =
+                    const blockLinesLength =
                         firstLineAfterBlockIndex === -1
-                            ? lines.length - i - 2
+                            ? lines.length - i - 1 - consumed
                             : firstLineAfterBlockIndex - 1
 
                     const tokens = lines
-                        .slice(i + 1, i + blockEndIndex + 2)
+                        .slice(
+                            i + consumed,
+                            i + blockLinesLength + 1 + consumed,
+                        )
                         .flatMap((l) => l.rawTokens)
 
                     const node = new Block(
@@ -66,7 +69,7 @@ export function parseStatement(
                     return {
                         look: node,
                         consume: () => {
-                            consumed += blockEndIndex + 1
+                            consumed += blockLinesLength + 1
                             return node
                         },
                     }
@@ -83,7 +86,7 @@ export function parseStatement(
                 }
 
                 function nextLines(count: number) {
-                    const line = lines.slice(i + 1, i + 1 + count)
+                    const line = lines.slice(i + consumed, i + consumed + count)
 
                     return {
                         look: line,

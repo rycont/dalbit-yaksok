@@ -25,6 +25,7 @@ export class Chain<const R, const Shape extends ChainShapeBase> {
     constructor(
         private paths: MatchCondition[] = [],
         private metaContent: unknown = {},
+        private defaultSelect: unknown = {},
     ) {}
 
     public static type<const T>() {
@@ -40,7 +41,27 @@ export class Chain<const R, const Shape extends ChainShapeBase> {
                     Meta: Shape['Meta'] & M
                 }
             >
-        >(this.paths, Object.assign({}, this.metaContent, content))
+        >(
+            this.paths,
+            Object.assign({}, this.metaContent, content),
+            this.defaultSelect,
+        )
+    }
+
+    public injectSelect<T>(content: T) {
+        return new Chain<
+            R,
+            UpdateShape<
+                Shape,
+                {
+                    Select: Shape['Select'] & T
+                }
+            >
+        >(
+            this.paths,
+            this.metaContent,
+            Object.assign({}, this.defaultSelect, content),
+        )
     }
 
     public static get [ExistCondition.methodName]() {
@@ -143,6 +164,7 @@ export class Chain<const R, const Shape extends ChainShapeBase> {
         return new Chain<R, NewShape>(
             this.paths.concat(c),
             Object.assign({}, this.metaContent, m),
+            this.defaultSelect,
         )
     }
 
@@ -161,6 +183,7 @@ export class Chain<const R, const Shape extends ChainShapeBase> {
 
         const inputName = '$input'
         const selectJarName = '$select'
+        const selectJarContent = JSON.stringify(this.defaultSelect)
         const argArrayName = '$a'
 
         const args = new Map<string, unknown>()
@@ -188,7 +211,7 @@ export class Chain<const R, const Shape extends ChainShapeBase> {
             return new Function(
                 argArrayName,
                 inputName,
-                `${selectJarName} = {}`,
+                `${selectJarName} = ${selectJarContent}`,
                 body,
             )
         })

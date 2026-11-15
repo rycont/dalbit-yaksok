@@ -50,7 +50,6 @@ export * from './node/listLoop.ts'
 export * from './node/count-loop.ts'
 export * from './node/conditional-loop.ts'
 export * from './node/operator.ts'
-export * from './node/IfStatement.ts'
 export * from './node/typecast.ts'
 
 export * from './prepare/parse/type.ts'

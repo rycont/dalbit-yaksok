@@ -16,8 +16,14 @@ import {
 
 import functionStatement from '@dalbit-yaksok/statement-function'
 import variableStatement from '@dalbit-yaksok/statement-variable'
+import conditionalStatement from '@dalbit-yaksok/statement-conditional'
 
-const DEFAULT_EXTS: Extension[] = [functionStatement, variableStatement]
+const DEFAULT_EXTS: Extension[] = [
+    functionStatement,
+    variableStatement,
+    conditionalStatement,
+]
+
 const THREAD_YIELD_INTERVAL = 300
 
 export class YaksokSession {

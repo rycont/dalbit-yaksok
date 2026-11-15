@@ -190,6 +190,9 @@ importers:
       '@dalbit-yaksok/pattern':
         specifier: workspace:*
         version: link:../sidekick/pattern
+      '@dalbit-yaksok/statement-conditional':
+        specifier: workspace:*
+        version: link:../statement/conditional
       '@dalbit-yaksok/statement-function':
         specifier: workspace:*
         version: link:../statement/function
@@ -321,6 +324,15 @@ importers:
       '@dalbit-yaksok/core':
         specifier: workspace:*
         version: link:../core
+
+  statement/conditional:
+    dependencies:
+      '@dalbit-yaksok/core':
+        specifier: workspace:*
+        version: link:../../core
+      '@dalbit-yaksok/pattern':
+        specifier: workspace:*
+        version: link:../../sidekick/pattern
 
   statement/function:
     dependencies:

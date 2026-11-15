@@ -6,8 +6,6 @@ import {
     ConditionalLoop,
     Continue,
     DivideOperator,
-    ElseIfStatement,
-    ElseStatement,
     EmptyLiteral,
     EOL,
     EqualOperator,
@@ -17,7 +15,6 @@ import {
     GreaterThanOperator,
     GreaterThanOrEqualOperator,
     Identifier,
-    IfStatement,
     IndexedValue,
     IndexFetch,
     IntegerDivideOperator,
@@ -340,86 +337,6 @@ export const ADVANCED_RULES: Rule[] = [
             j.instance(Expression).field({ value: j.literal(']') }),
         ],
         factory: (nodes, tokens) => new ListLiteral([], nodes[1], tokens),
-    }),
-    r({
-        pattern: [
-            j.instance(IfStatement),
-            j.instance(EOL),
-            j.instance(ElseIfStatement),
-        ],
-        factory: ([ifStatement, __, elseIfStatement], tokens) => {
-            const elseIfCase = elseIfStatement.elseIfCase
-            ifStatement.cases.push(elseIfCase)
-
-            ifStatement.tokens = tokens
-
-            return ifStatement
-        },
-        isStatement: true,
-    }),
-    r({
-        pattern: [
-            j.instance(IfStatement),
-            j.instance(EOL),
-            j.instance(ElseStatement),
-        ],
-        factory: ([ifStatement, __, elseStatement], tokens) => {
-            const elseCase = {
-                body: elseStatement.body,
-            }
-
-            ifStatement.cases.push(elseCase)
-            ifStatement.tokens = tokens
-
-            return ifStatement
-        },
-        isStatement: true,
-    }),
-    r({
-        pattern: [
-            j.instance(Identifier).field({ value: j.literal('아니면') }),
-            j.instance(Identifier).field({ value: j.literal('만약') }),
-            j.instance(Evaluable),
-            j.instance(Identifier).field({ value: j.literal('이면') }),
-            j.instance(EOL),
-            j.instance(Block),
-        ],
-        factory: (nodes, tokens) => {
-            const condition = nodes[2]
-            const body = nodes[5]
-
-            return new ElseIfStatement({ condition, body }, tokens)
-        },
-        isStatement: true,
-    }),
-    r({
-        pattern: [
-            j.instance(Identifier).field({ value: j.literal('아니면') }),
-            j.instance(EOL),
-            j.instance(Block),
-        ],
-        factory: (nodes, tokens) => {
-            const body = nodes[2]
-
-            return new ElseStatement(body, tokens)
-        },
-        isStatement: true,
-    }),
-    r({
-        pattern: [
-            j.instance(Identifier).field({ value: j.literal('만약') }),
-            j.instance(Evaluable),
-            j.instance(Identifier).field({ value: j.literal('이면') }),
-            j.instance(EOL),
-            j.instance(Block),
-        ],
-        factory: (nodes, tokens) => {
-            const condition = nodes[1]
-            const body = nodes[4]
-
-            return new IfStatement([{ condition, body }], tokens)
-        },
-        isStatement: true,
     }),
     r({
         pattern: [

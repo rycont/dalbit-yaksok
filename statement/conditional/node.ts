@@ -22,8 +22,8 @@ class StandaloneElseIfError extends YaksokError {
     }
 }
 
-interface Case {
-    condition?: Evaluable
+export interface Case {
+    condition: Evaluable | null
     body: Block
 }
 
@@ -39,7 +39,7 @@ export class IfStatement extends Executable {
 
     override async execute(scope: Scope) {
         for (const { condition, body } of this.cases) {
-            const shouldStop = await this.shouldStop(condition, scope)
+            const shouldStop = await this.shouldRun(condition, scope)
             if (!shouldStop) continue
 
             await body.execute(scope)
@@ -47,11 +47,16 @@ export class IfStatement extends Executable {
         }
     }
 
-    async shouldStop(
-        condition: Evaluable | undefined,
+    async shouldRun(
+        condition: Evaluable | null,
         scope: Scope,
     ): Promise<boolean> {
-        return !condition || isTruthy(await condition.execute(scope))
+        if (condition === null) {
+            return true
+        }
+
+        const evaluated = await condition.execute(scope)
+        return isTruthy(evaluated)
     }
 
     override validate(scope: Scope): YaksokError[] {
