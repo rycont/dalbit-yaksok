@@ -1,25 +1,27 @@
 import {
     Block,
+    concatRuleList,
     createMentioningRule,
     executer,
     Identifier,
     inferTokenSplitpointsFromErrors,
     Node,
     NotDefinedIdentifierError,
-    parse,
+    parseStatement,
     postprocessErrors,
     r,
     renderErrorString,
+    RuleList,
     RuntimeContext,
     Scope,
     Splitpoint,
     tokenize,
     YaksokError,
     YaksokSession,
-    type Rule,
     type Token,
 } from '@dalbit-yaksok/core'
 import { j } from '@dalbit-yaksok/pattern'
+import { getRulesFromMentioningFile } from '../prepare/parse/mention'
 
 export class CodeFile {
     readonly ast: Block
@@ -27,7 +29,7 @@ export class CodeFile {
     readonly text: string
     readonly prepareErrors: YaksokError[]
 
-    private _mentionRules: Rule[] | null = null
+    private _mentionRules: RuleList | null = null
     private _ranScope: Scope | null = null
 
     constructor(
@@ -62,11 +64,12 @@ export class CodeFile {
         return this._ranScope
     }
 
-    public get mentionRules(): Rule[] | null {
+    public get mentionRules(): RuleList | null {
         return this._mentionRules
     }
 
     public async run(runtimeContext?: Partial<RuntimeContext>): Promise<Scope> {
+        // console.log(this.ast)
         if (this.prepareErrors.length !== 0) {
             throw new Error('오류가 존재하는 CodeFile은 실행할 수 없습니다.')
         }
@@ -98,42 +101,59 @@ export class CodeFile {
 
             this._ranScope = rootScope
 
-            const exportedFunctionRules = rootScope.functions
-                .values()
-                .flatMap((v) =>
-                    v.invokeRules.map((rule) =>
-                        createMentioningRule(this.fileName, rule, rootScope),
-                    ),
-                )
-                .toArray()
+            const exportedFunctionRules = concatRuleList(
+                rootScope.functions
+                    .values()
+                    .map((v) =>
+                        createMentioningRule(
+                            this.fileName,
+                            v.invokeRules,
+                            rootScope,
+                        ),
+                    )
+                    .toArray(),
+            )
 
-            const exportedEventRules = rootScope.events
-                .values()
-                .flatMap((n) =>
-                    n.header.runnable!.invokeRules.map((r) =>
-                        createMentioningRule(this.fileName, r, rootScope),
-                    ),
-                )
-                .toArray()
+            const exportedEventRules = concatRuleList(
+                rootScope.events
+                    .values()
+                    .map((n) =>
+                        createMentioningRule(
+                            this.fileName,
+                            n.header.runnable!.invokeRules,
+                            rootScope,
+                        ),
+                    )
+                    .toArray(),
+            )
 
             const exportedVariableRules = createMentioningRule(
                 this.fileName,
-                r<Node[]>({
-                    pattern: [
-                        j.instance(Identifier).field({
-                            value: j.enum(Object.keys(rootScope.variables)),
+                {
+                    sr: [
+                        r<Node[]>({
+                            pattern: [
+                                j.instance(Identifier).field({
+                                    value: j.enum(
+                                        Object.keys(rootScope.variables),
+                                    ),
+                                }),
+                            ],
+                            factory([node]) {
+                                return node
+                            },
                         }),
                     ],
-                    factory([node]) {
-                        return node
-                    },
-                }),
+                    rd: [],
+                },
                 rootScope,
             )
 
-            this._mentionRules = exportedFunctionRules
-                .concat(exportedVariableRules)
-                .concat(exportedEventRules)
+            this._mentionRules = concatRuleList([
+                exportedFunctionRules,
+                exportedVariableRules,
+                exportedEventRules,
+            ])
 
             return rootScope
         } catch (e) {
@@ -164,7 +184,11 @@ function parseWithSession(code: string, session: YaksokSession) {
 
     while (true) {
         tokens = tokenize(code, inferredSplitpoints)
-        ast = new Block(parse(tokens, session), tokens)
+        const mentionRules = getRulesFromMentioningFile(tokens, session)
+
+        const parseResult = parseStatement(tokens, session, mentionRules)
+
+        ast = new Block(parseResult.statements, tokens)
 
         validatingScope = new Scope(
             session.baseScope

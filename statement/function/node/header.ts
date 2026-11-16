@@ -1,11 +1,11 @@
 import {
     Token,
     YaksokError,
-    Node,
     Scope,
     RESERVED_WORDS,
     NotProperIdentifierNameToDefineError,
     RunnableObject,
+    Statement,
 } from '@dalbit-yaksok/core'
 
 import { FunctionPartType, FunctionSignature } from '../type.ts'
@@ -14,22 +14,24 @@ import { FunctionMustHaveSignature } from '../error/no-signature.ts'
 import { FunctionMustHaveOneOrMoreStringPartError } from '../error/no-static.ts'
 import { MissingFunctionBody } from '../error/no-body.ts'
 
-export class FunctionDeclareHeader extends Node {
+export class FunctionDeclareHeader implements Statement {
     private injectedErrors: YaksokError[] = []
     public runnable?: RunnableObject = undefined
 
     constructor(
         public signature: FunctionSignature,
-        public override tokens: Token[],
-    ) {
-        super()
-    }
+        public tokens: Token[],
+    ) {}
 
     public injectError(error: YaksokError) {
         this.injectedErrors.push(error)
     }
 
-    override validate(scope: Scope): YaksokError[] {
+    execute(scope: Scope): Promise<void> {
+        throw this.validate(scope)[0]
+    }
+
+    validate(scope: Scope): YaksokError[] {
         const firstOptionalParameter = this.signature.parameterScheme.findIndex(
             (s) => s.optional,
         )
@@ -67,7 +69,7 @@ export class FunctionDeclareHeader extends Node {
             this.signature.headerParts.length === 0
                 ? [
                       new FunctionMustHaveSignature({
-                          node: this,
+                          statement: this,
                           scope,
                           tokens: this.tokens,
                       }),
@@ -79,14 +81,13 @@ export class FunctionDeclareHeader extends Node {
                   : [
                         new FunctionMustHaveOneOrMoreStringPartError({
                             scope,
-                            node: this,
+                            statement: this,
                             tokens: this.tokens,
                         }),
                     ]
 
         for (const e of this.injectedErrors) {
             e.scope = scope
-            e.node = this
         }
 
         return this.injectedErrors
@@ -95,7 +96,7 @@ export class FunctionDeclareHeader extends Node {
             .concat(signatureError)
             .concat(
                 new MissingFunctionBody({
-                    node: this,
+                    statement: this,
                     scope,
                 }),
             )

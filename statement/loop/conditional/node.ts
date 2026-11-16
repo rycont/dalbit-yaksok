@@ -1,57 +1,47 @@
 import {
     Block,
     Evaluable,
-    Executable,
     isTruthy,
     LoopWithoutBodyError,
     NodeCapability,
+    onRunChild,
     Scope,
+    Statement,
     Token,
     YaksokError,
 } from '@dalbit-yaksok/core'
 import { ContinueSignal } from '../continue/signal'
 import { BreakSignal } from '../break/signal'
 
-export class ConditionalLoop extends Executable<{
-    condition: Evaluable
-    body: Block
-}> {
-    static override friendlyName = '반복 동안'
-    static override accepts = [NodeCapability.LOOP_CONTROL]
+export class ConditionalLoop implements Statement {
+    static friendlyName = '반복 동안'
+    static accepts = [NodeCapability.LOOP_CONTROL]
 
     constructor(
-        condition: Evaluable,
-        body: Block,
-        public override tokens: Token[],
-    ) {
-        super()
+        private condition: Evaluable,
+        private body: Block,
+        public tokens: Token[],
+    ) {}
 
-        this.subnode = {
-            condition,
-            body,
-        }
-    }
-
-    override async execute(scope: Scope) {
-        if (this.subnode.body.tokens.length === 0) {
+    async execute(scope: Scope) {
+        if (this.body.tokens.length === 0) {
             return
         }
 
         try {
             while (true) {
-                const conditionValue =
-                    await this.subnode.condition.execute(scope)
+                const conditionValue = await this.condition.execute(scope)
                 if (!isTruthy(conditionValue)) {
                     break
                 }
 
-                await this.onRunChild({
+                await onRunChild({
                     scope,
-                    childTokens: this.subnode.body.tokens,
+                    childTokens: this.body.tokens,
                     skipReport: true,
                 })
                 try {
-                    await this.subnode.body.execute(scope)
+                    await this.body.execute(scope)
                 } catch (e) {
                     if (e instanceof ContinueSignal) continue
                     throw e
@@ -64,12 +54,12 @@ export class ConditionalLoop extends Executable<{
         }
     }
 
-    override validate(scope: Scope): YaksokError[] {
-        const childErrors = this.subnode.body.validate(scope)
-        const conditionErrors = this.subnode.condition.validate(scope)
+    validate(scope: Scope): YaksokError[] {
+        const childErrors = this.body.validate(scope)
+        const conditionErrors = this.condition.validate(scope)
 
         const hasBodyError =
-            this.subnode.body.subnode.length === 0
+            this.body.statements.length === 0
                 ? new LoopWithoutBodyError({
                       tokens: this.tokens,
                   })

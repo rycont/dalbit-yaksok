@@ -1,0 +1,8 @@
+{
+    "main": "mod.ts",
+    "name": "@dalbit-yaksok/statement-print",
+    "dependencies": {
+        "@dalbit-yaksok/core": "workspace:*",
+        "@dalbit-yaksok/pattern": "workspace:*"
+    }
+}

@@ -1,36 +1,33 @@
 import {
     Evaluable,
-    Executable,
     Scope,
+    Statement,
     Token,
     YaksokError,
 } from '@dalbit-yaksok/core'
 
 import { ReturnSignal } from '../signal'
 
-export class ReturnStatement extends Executable<Evaluable | null> {
-    static override friendlyName = '반환하기'
+export class ReturnStatement implements Statement {
+    static friendlyName = '반환하기'
 
     constructor(
-        public override tokens: Token[],
-        subnode?: Evaluable,
-    ) {
-        super()
-        this.subnode = subnode || null
-    }
+        public tokens: Token[],
+        private value?: Evaluable,
+    ) {}
 
-    override async execute(scope: Scope) {
-        if (!this.subnode) {
+    async execute(scope: Scope) {
+        if (!this.value) {
             throw new ReturnSignal(this.tokens, null)
         }
 
-        const returnValue = await this.subnode?.execute(scope)
+        const returnValue = await this.value?.execute(scope)
         throw new ReturnSignal(this.tokens, returnValue)
     }
 
-    override validate(scope: Scope): YaksokError[] {
-        if (this.subnode) {
-            return this.subnode?.validate(scope)
+    validate(scope: Scope): YaksokError[] {
+        if (this.value) {
+            return this.value?.validate(scope)
         }
 
         return []

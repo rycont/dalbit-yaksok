@@ -1,18 +1,16 @@
-import { Executable, Scope, Token, YaksokError } from '@dalbit-yaksok/core'
+import { Scope, Statement, Token, YaksokError } from '@dalbit-yaksok/core'
 import { BreakSignal } from './signal'
 
-export class Break extends Executable {
-    static override friendlyName = '그만'
+export class Break implements Statement {
+    static friendlyName = '그만'
 
-    constructor(public override tokens: Token[]) {
-        super()
-    }
+    constructor(public tokens: Token[]) {}
 
-    override execute(_scope: Scope): Promise<never> {
+    execute(_scope: Scope): Promise<never> {
         throw new BreakSignal(this.tokens)
     }
 
-    override validate(): YaksokError[] {
+    validate(): YaksokError[] {
         return []
     }
 }

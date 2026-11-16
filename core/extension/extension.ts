@@ -1,4 +1,4 @@
-import type { Scope, ValueType, TokenRule } from '@dalbit-yaksok/core'
+import type { Scope, ValueType, RDRule } from '@dalbit-yaksok/core'
 
 enum CapabilityType {
     FFI = 'FFI',
@@ -23,7 +23,7 @@ export interface FFICapability {
     ) => Promisable<ValueType>
 }
 
-export type GrammerCapability = TokenRule[]
+export type GrammerCapability = RDRule[]
 
 export type FileCapability = {
     fileName: string

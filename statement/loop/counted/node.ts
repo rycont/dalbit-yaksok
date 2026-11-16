@@ -1,47 +1,38 @@
 import {
     Block,
     Evaluable,
-    Executable,
     LoopCountIsNotNumberError,
     NodeCapability,
     NumberValue,
+    onRunChild,
     Scope,
+    Statement,
     Token,
     YaksokError,
 } from '@dalbit-yaksok/core'
 import { ContinueSignal } from '../continue/signal'
 import { BreakSignal } from '../break/signal'
 
-export class CountLoop extends Executable<{
-    count: Evaluable
-    body: Block
-}> {
-    static override friendlyName = '횟수 반복'
-    static override accepts = [NodeCapability.LOOP_CONTROL]
+export class CountLoop implements Statement {
+    static friendlyName = '횟수 반복'
+    static accepts = [NodeCapability.LOOP_CONTROL]
 
     constructor(
-        count: Evaluable,
-        body: Block,
-        public override tokens: Token[],
-    ) {
-        super()
+        private count: Evaluable,
+        private body: Block,
+        public tokens: Token[],
+    ) {}
 
-        this.subnode = {
-            count,
-            body,
-        }
-    }
-
-    override async execute(parent: Scope): Promise<void> {
+    async execute(parent: Scope): Promise<void> {
         const scope = new Scope({
             parent: parent,
         })
 
-        const countValue = await this.subnode.count.execute(scope)
+        const countValue = await this.count.execute(scope)
 
         if (!(countValue instanceof NumberValue)) {
             throw new LoopCountIsNotNumberError({
-                tokens: this.subnode.count.tokens,
+                tokens: this.count.tokens,
                 value: countValue,
             })
         }
@@ -50,13 +41,13 @@ export class CountLoop extends Executable<{
 
         try {
             for (let i = 0; i < countNumber; i++) {
-                await this.onRunChild({
+                await onRunChild({
                     scope,
-                    childTokens: this.subnode.body.tokens,
+                    childTokens: this.body.tokens,
                     skipReport: true,
                 })
                 try {
-                    await this.subnode.body.execute(scope)
+                    await this.body.execute(scope)
                 } catch (e) {
                     if (e instanceof ContinueSignal) continue
                     throw e
@@ -67,7 +58,7 @@ export class CountLoop extends Executable<{
         }
     }
 
-    override validate(scope: Scope): YaksokError[] {
-        return this.subnode.body.validate(scope)
+    validate(scope: Scope): YaksokError[] {
+        return this.body.validate(scope)
     }
 }

@@ -1,12 +1,12 @@
 import {
     FileForRunNotExistError,
-    Rule,
+    RuleList,
     YaksokSession,
 } from '@dalbit-yaksok/core'
 
 export const getExportedRules =
     (session: YaksokSession) =>
-    (fileName: string): Rule[] => {
+    (fileName: string): RuleList => {
         const codeFile = session.files[fileName]
 
         if (!codeFile) {

@@ -4,28 +4,25 @@ import {
     NotProperIdentifierNameToDefineError,
     NumberValue,
     Scope,
+    Statement,
     Token,
-    ValueType,
     YaksokError,
 } from '@dalbit-yaksok/core'
 
-export class SetVariable extends Evaluable<Evaluable> {
-    static override friendlyName = '변수 정하기'
+export class SetVariable implements Statement {
+    static friendlyName = '변수 정하기'
 
     public parsingErrors: YaksokError[] = []
 
     constructor(
         public name: string,
-        evaluator: Evaluable,
-        public override tokens: Token[],
+        private evaluator: Evaluable,
+        public tokens: Token[],
         public operator: string,
-    ) {
-        super()
-        this.subnode = evaluator
-    }
+    ) {}
 
-    override async execute(scope: Scope): Promise<ValueType> {
-        const { name, subnode: evaluator } = this
+    async execute(scope: Scope) {
+        const { name, evaluator } = this
 
         const operatorNode =
             assignerToOperatorMap[
@@ -56,18 +53,13 @@ export class SetVariable extends Evaluable<Evaluable> {
         }
 
         scope.setVariable(name, newValue)
-        return newValue
     }
 
-    override validate(scope: Scope): YaksokError[] {
+    validate(scope: Scope): YaksokError[] {
         if (this.parsingErrors.length) {
             for (const error of this.parsingErrors) {
                 if (!error.scope) {
                     error.scope = scope
-                }
-
-                if (!error.node) {
-                    error.node = this
                 }
 
                 if (!error.tokens) {
@@ -78,7 +70,7 @@ export class SetVariable extends Evaluable<Evaluable> {
             return this.parsingErrors
         }
 
-        const errors = this.subnode.validate(scope)
+        const errors = this.evaluator.validate(scope)
 
         try {
             scope.setVariable(this.name, new NumberValue(0))

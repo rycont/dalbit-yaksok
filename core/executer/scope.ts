@@ -1,7 +1,6 @@
 import {
     AlreadyDefinedFunctionError,
     NotDefinedIdentifierError,
-    Rule,
     Token,
     ValueType,
     YaksokSession,
@@ -11,6 +10,8 @@ import {
     Node,
     r,
     CodeFile,
+    RuleList,
+    concatRuleList,
 } from '@dalbit-yaksok/core'
 import { RESERVED_WORDS } from '../constant/reserved-words.ts'
 import { j } from '@dalbit-yaksok/pattern'
@@ -153,9 +154,10 @@ export class Scope {
         throw errorInstance
     }
 
-    public *getExportedRules(): Generator<Rule<Node[]>> {
-        yield* this.parent?.getExportedRules() || []
-        yield* Object.keys(this.variables).map((v) =>
+    public getExportedRules(): RuleList {
+        const rulesFromParent = this.parent?.getExportedRules()
+
+        const variableRules = Object.keys(this.variables).map((v) =>
             r<Node[]>({
                 pattern: [
                     j.instance(Identifier).field({ value: j.literal(v) }),
@@ -165,6 +167,20 @@ export class Scope {
                 },
             }),
         )
-        yield* this.functions.values().flatMap((v) => v.invokeRules)
+
+        const functionRules = this.functions
+            .values()
+            .map((v) => v.invokeRules)
+            .toArray()
+
+        return concatRuleList(
+            [
+                rulesFromParent,
+                {
+                    sr: variableRules,
+                    rd: [],
+                },
+            ].concat(functionRules),
+        )
     }
 }

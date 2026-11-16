@@ -1,9 +1,9 @@
-import { type Executable } from '@dalbit-yaksok/core'
+import { Statement } from '../mod.ts'
 
 import { Scope } from './scope.ts'
 import { Signal } from './signals.ts'
 
-export async function executer<NodeType extends Executable>(
+export async function executer<NodeType extends Statement>(
     node: NodeType,
     scope: Scope,
 ): Promise<void> {

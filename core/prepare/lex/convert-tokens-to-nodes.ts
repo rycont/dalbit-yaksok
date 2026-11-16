@@ -4,15 +4,11 @@ import {
     Identifier,
     Node,
     Operator,
-    // FFIBody,
-    // Mention,
     EOL,
-    Indent,
     TOKEN_TYPE,
     StringStaticPart,
-    type Token,
-    type DirectReplacer,
     Mention,
+    type Token,
 } from '@dalbit-yaksok/core'
 
 const escapeMap: Record<string, string> = {
@@ -28,25 +24,9 @@ function unescapeString(str: string): string {
     return str.replace(/\\(.)/g, (_, char) => escapeMap[char] ?? `\\${char}`)
 }
 
-export function convertTokensToNodes(
-    rawTokens: Token[],
-    directReplacers: DirectReplacer[],
-): Node[] {
+export function convertTokensToNodes(rawTokens: Token[]): Node[] {
     const tokens: (Token | null)[] = Array.from(rawTokens)
-
-    for (const replacer of directReplacers) {
-        tokens.fill(null, replacer.tokenRange[0], replacer.tokenRange[1])
-    }
-
     const nodes: (Node | null)[] = tokens.map(mapTokenToNode)
-
-    for (const replacer of directReplacers) {
-        nodes.splice(
-            replacer.tokenRange[0],
-            replacer.nodes.length,
-            ...replacer.nodes,
-        )
-    }
 
     return nodes.filter((n) => !!n)
 }
@@ -66,8 +46,6 @@ function mapTokenToNode(token: Token | null) {
             return new StringStaticPart(unescapeString(token.value), [token])
         case TOKEN_TYPE.OPERATOR:
             return new Operator(token.value, [token])
-        case TOKEN_TYPE.INDENT:
-            return new Indent(token)
         case TOKEN_TYPE.IDENTIFIER:
             return new Identifier(token.value, [token])
         case TOKEN_TYPE.NEW_LINE:

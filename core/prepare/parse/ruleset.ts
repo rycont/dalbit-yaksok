@@ -1,9 +1,9 @@
-import type { Node, Rule } from '@dalbit-yaksok/core'
+import type { Node, SRRule } from '@dalbit-yaksok/core'
 import { ClassType } from '@dalbit-yaksok/pattern'
 
 interface RuleWithPriority {
     priority: number
-    rule: Rule
+    rule: SRRule
 }
 
 export class TrieNode {
@@ -71,7 +71,7 @@ export class TrieNode {
 export class Ruleset {
     private trieNodes: TrieNode[]
 
-    constructor(rules: Rule[]) {
+    constructor(rules: SRRule[]) {
         const ruleWithPriority: RuleWithPriority[] = rules.map(
             (rule, index) => ({
                 priority: index,
@@ -83,16 +83,16 @@ export class Ruleset {
         this.trieNodes = tries
     }
 
-    static instanceCache = new WeakMap<Rule[], Ruleset>()
+    static instanceCache = new WeakMap<SRRule[], Ruleset>()
 
-    static createFromRules(rules: Rule[]) {
+    static createFromRules(rules: SRRule[]) {
         return Ruleset.instanceCache.getOrInsertComputed(
             rules,
             (fetchingRules) => new Ruleset(fetchingRules),
         )
     }
 
-    public findRule(nodes: Node[]): Rule[] {
+    public findRule(nodes: Node[]): SRRule[] {
         const rules = this.trieNodes
             .flatMap((t) => t.discover(nodes))
             .toSorted((a, b) => a.priority - b.priority)

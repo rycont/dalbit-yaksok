@@ -1,34 +1,29 @@
 import {
-    Executable,
     Evaluable,
     ValueType,
-    Token,
     YaksokError,
     EmptyValue,
     Scope,
     UnexpectedArgumentError,
+    Token,
 } from '@dalbit-yaksok/core'
 
 import { MissingRequiredArgumentError } from '../error/missing-required'
 import { ParameterElement } from '../type'
 
-export class InvokingArguments extends Executable<Map<string, Evaluable>> {
+export class InvokingArguments {
     private readonly optionalFiller: [string, ValueType][]
 
     constructor(
-        public readonly entries: Map<string, Evaluable>,
+        public readonly argumentValues: Map<string, Evaluable>,
         public readonly parameterScheme: ParameterElement[],
-        public override readonly tokens: Token[],
+        public readonly tokens: Token[],
         public readonly parsingErrors: YaksokError[],
     ) {
-        super()
-
-        this.subnode = new Map(entries.entries())
-
         const optionalKeys = new Set(
             parameterScheme.filter((p) => p.optional).map((p) => p.name),
         )
-        const providedKeys = new Set(entries.keys())
+        const providedKeys = new Set(argumentValues.keys())
 
         const missingOptionals = Array.from(
             optionalKeys.difference(providedKeys),
@@ -40,11 +35,11 @@ export class InvokingArguments extends Executable<Map<string, Evaluable>> {
         ])
     }
 
-    override async execute(scope: Scope): Promise<Map<string, ValueType>> {
+    async execute(scope: Scope): Promise<Map<string, ValueType>> {
         const args = new Map(
             this.optionalFiller.concat(
                 await Promise.all(
-                    this.subnode
+                    this.argumentValues
                         .entries()
                         .map<Promise<[string, ValueType]>>(async ([k, v]) => [
                             k,
@@ -58,12 +53,12 @@ export class InvokingArguments extends Executable<Map<string, Evaluable>> {
         return args
     }
 
-    override validate(invokingScope: Scope): YaksokError[] {
-        const argumentErrors = this.subnode
+    validate(invokingScope: Scope): YaksokError[] {
+        const argumentErrors = this.argumentValues
             .values()
             .flatMap((e) => e.validate(invokingScope))
 
-        const providedArguments = new Set(this.subnode.keys())
+        const providedArguments = new Set(this.argumentValues.keys())
 
         const requiredArguments = new Set(
             this.parameterScheme.filter((p) => !p.optional).map((p) => p.name),
@@ -91,7 +86,7 @@ export class InvokingArguments extends Executable<Map<string, Evaluable>> {
         const unknownKeysError = unknownKeys.length
             ? [
                   new UnexpectedArgumentError({
-                      tokens: this.subnode.get(unknownKeys[0])!.tokens,
+                      tokens: this.argumentValues.get(unknownKeys[0])!.tokens,
                       resource: {
                           names: unknownKeys,
                       },

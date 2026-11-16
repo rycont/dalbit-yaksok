@@ -38,7 +38,7 @@ export interface DirectReplacer {
     nodes: Node[]
 }
 
-export interface Rule<NodeSequence extends Node[] = Node[]> {
+export interface SRRule<NodeSequence extends Node[] = Node[]> {
     pattern: {
         [K in keyof NodeSequence]: PatternUnit<NodeSequence[K]>
     }
@@ -47,20 +47,20 @@ export interface Rule<NodeSequence extends Node[] = Node[]> {
             [K in keyof NodeSequence]: NodeSequence[K]
         },
         tokens: Token[],
-        rule: Rule<NodeSequence>,
+        rule: SRRule<NodeSequence>,
     ) => Node | null
     isStatement?: boolean
 }
 
 export function r<NodeSequence extends Node[] = Node[]>(
-    props: Omit<Rule<NodeSequence>, 'pattern'> & {
+    props: Omit<SRRule<NodeSequence>, 'pattern'> & {
         pattern: {
             [K in keyof NodeSequence]:
                 | PatternUnitChain<NodeSequence[K]>
                 | PatternUnit<NodeSequence[K]>
         }
     },
-): Rule<Node[]> {
+): SRRule<Node[]> {
     const compiled = props.pattern.map((p) =>
         'compile' in p ? p.compile() : p,
     )
@@ -69,11 +69,11 @@ export function r<NodeSequence extends Node[] = Node[]>(
         factory: props.factory,
         isStatement: props.isStatement,
         pattern: compiled,
-    } as unknown as Rule
+    } as unknown as SRRule
 }
 
 export interface DynamicRules {
-    rules: Rule<Node[]>[]
+    rules: SRRule<Node[]>[]
     replacers: DirectReplacer[]
 }
 

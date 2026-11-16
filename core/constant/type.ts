@@ -1,4 +1,10 @@
-import type { Rule, Token, Node, Block, Evaluable } from '@dalbit-yaksok/core'
+import type {
+    SRRule,
+    Token,
+    Block,
+    Evaluable,
+    Statement,
+} from '@dalbit-yaksok/core'
 
 export type Brand<K, T> = K & { __brand: T }
 
@@ -10,7 +16,11 @@ export interface TokenLine {
 }
 
 export interface NodeFactoryAction {
-    parseFollowingBlock: (localRules?: Rule[]) => {
+    getFollowingBlockTokens: () => {
+        look: Token[]
+        consume: () => Token[]
+    }
+    parseFollowingBlock: (localRules?: RuleList) => {
         look: Block
         consume: () => Block
     }
@@ -21,14 +31,19 @@ export interface NodeFactoryAction {
     }
 }
 
-export interface TokenRule {
+export interface RDRule {
     name: string
     description?: string
     factory(
         line: TokenLine,
         actions: NodeFactoryAction,
     ): {
-        instance: Node
-        rules?: Rule[]
+        instance: Statement
+        rule?: RuleList
     } | null
+}
+
+export interface RuleList {
+    sr: SRRule[]
+    rd: RDRule[]
 }

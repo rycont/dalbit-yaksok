@@ -4,8 +4,8 @@ import {
     YaksokError,
     renderErrorString,
     type ValueType,
-    type Rule,
     type RunnableObject,
+    RuleList,
 } from '@dalbit-yaksok/core'
 import { FunctionObject } from './function'
 
@@ -20,7 +20,7 @@ export class EventSubscriptionObject
 
     constructor(
         public eventId: string,
-        public invokeRules: Rule[],
+        public invokeRules: RuleList,
         private declaredScope: Scope,
     ) {
         super()

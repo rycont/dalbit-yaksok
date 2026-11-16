@@ -1,11 +1,10 @@
 import {
     AmbiguousFormulaBoundary,
-    Block,
     EOL,
     Formula,
     Identifier,
     Node,
-    type Rule,
+    type SRRule,
     RESERVED_WORDS,
     getTokensFromNodes,
 } from '@dalbit-yaksok/core'
@@ -87,7 +86,7 @@ export function SRParse(nodes: Node[], ruleset: Ruleset) {
     }
 }
 
-export function reduce(nodes: Node[], rule: Rule) {
+export function reduce(nodes: Node[], rule: SRRule) {
     const tokens = getTokensFromNodes(nodes)
 
     try {
@@ -108,20 +107,9 @@ export function reduce(nodes: Node[], rule: Rule) {
 
 export function callSRParseRecursively(
     nodes: Node[],
-    externalPatterns: Rule[],
+    externalPatterns: SRRule[],
 ): Node[] {
     let parsedNodes = [...nodes]
-
-    for (let i = 0; i < parsedNodes.length; i++) {
-        const token = parsedNodes[i]
-
-        if (token instanceof Block) {
-            token.subnode = callSRParseRecursively(
-                token.subnode,
-                externalPatterns,
-            )
-        }
-    }
 
     const rulesByLevel = [...BASIC_RULES, externalPatterns, ADVANCED_RULES]
     const rulesets = rulesByLevel.map((rules) => Ruleset.createFromRules(rules))

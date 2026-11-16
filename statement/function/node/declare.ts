@@ -1,5 +1,4 @@
 import {
-    Executable,
     Block,
     NodeCapability,
     Token,
@@ -7,7 +6,8 @@ import {
     YaksokError,
     ValueType,
     EmptyValue,
-    Rule,
+    RuleList,
+    Statement,
 } from '@dalbit-yaksok/core'
 import { MissingFunctionBody } from '../error/no-body'
 import { FunctionDeclareHeader } from './header'
@@ -15,24 +15,21 @@ import { FunctionObject } from '../value/function'
 import { FFIObject } from '../value/ffi'
 import { EventSubscriptionObject } from '../value/event'
 
-export class DeclareFunction extends Executable<Block> {
-    static override friendlyName = '새 약속 만들기'
-    static override accepts = [NodeCapability.RETURN]
+export class DeclareFunction implements Statement {
+    static friendlyName = '새 약속 만들기'
+    static accepts = [NodeCapability.RETURN]
 
     constructor(
-        body: Block,
+        private body: Block,
         public readonly header: FunctionDeclareHeader,
-        private callingRules: Rule[],
-        public override tokens: Token[],
-    ) {
-        super()
-        this.subnode = body
-    }
+        private callingRules: RuleList,
+        public tokens: Token[],
+    ) {}
 
-    override execute(scope: Scope): Promise<void> {
+    execute(scope: Scope): Promise<void> {
         const functionObject = new FunctionObject(
             this.header.signature.functionName,
-            this.subnode,
+            this.body,
             this.callingRules,
             scope,
         )
@@ -51,7 +48,7 @@ export class DeclareFunction extends Executable<Block> {
         }
     }
 
-    override validate(scope: Scope): YaksokError[] {
+    validate(scope: Scope): YaksokError[] {
         const declarationErrors = []
 
         const params: Record<string, ValueType> = Object.fromEntries(
@@ -70,7 +67,7 @@ export class DeclareFunction extends Executable<Block> {
             scope.addFunctionObject(
                 new FunctionObject(
                     this.header.signature.functionName,
-                    this.subnode,
+                    this.body,
                     this.callingRules,
                     functionScope,
                 ),
@@ -84,7 +81,7 @@ export class DeclareFunction extends Executable<Block> {
             }
         }
 
-        const bodyErrors = this.subnode.validate(functionScope)
+        const bodyErrors = this.body.validate(functionScope)
         const headerErrors = this.header
             .validate(scope)
             .filter((e) => !(e instanceof MissingFunctionBody))
@@ -93,22 +90,20 @@ export class DeclareFunction extends Executable<Block> {
     }
 }
 
-export class DeclareFFI extends Executable {
-    static override friendlyName = '번역 만들기'
+export class DeclareFFI implements Statement {
+    static friendlyName = '번역 만들기'
 
     constructor(
-        private callingRules: Rule[],
+        private callingRules: RuleList,
         public readonly header: FunctionDeclareHeader,
         public runtime: string,
         public body: string,
-        public override tokens: Token[],
-    ) {
-        super()
-    }
+        public tokens: Token[],
+    ) {}
 
     public parsingErrors: YaksokError[] = []
 
-    override execute(scope: Scope): Promise<void> {
+    execute(scope: Scope): Promise<void> {
         try {
             const runnable = new FFIObject(
                 this.header.signature.functionName,
@@ -130,7 +125,7 @@ export class DeclareFFI extends Executable {
         }
     }
 
-    override validate(scope: Scope): YaksokError[] {
+    validate(scope: Scope): YaksokError[] {
         let declareErrors: YaksokError[] = []
 
         try {
@@ -169,19 +164,17 @@ export class DeclareFFI extends Executable {
     }
 }
 
-export class DeclareEvent extends Executable {
-    static override friendlyName = '새 이벤트 만들기'
+export class DeclareEvent implements Statement {
+    static friendlyName = '새 이벤트 만들기'
 
     constructor(
-        private callingRules: Rule[],
+        private callingRules: RuleList,
         public readonly header: FunctionDeclareHeader,
         private readonly eventId: string,
-        public override tokens: Token[],
-    ) {
-        super()
-    }
+        public tokens: Token[],
+    ) {}
 
-    override execute(scope: Scope): Promise<void> {
+    execute(scope: Scope): Promise<void> {
         scope.events.set(this.eventId, this)
 
         this.header.runnable = new EventSubscriptionObject(
@@ -193,7 +186,7 @@ export class DeclareEvent extends Executable {
         return Promise.resolve()
     }
 
-    override validate(scope: Scope): YaksokError[] {
+    validate(scope: Scope): YaksokError[] {
         return this.header
             .validate(scope)
             .filter((e) => !(e instanceof MissingFunctionBody))

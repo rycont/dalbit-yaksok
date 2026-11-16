@@ -2,10 +2,10 @@ import {
     Block,
     NumberValue,
     ObjectValue,
-    Rule,
     RunnableObject,
     Scope,
     ValueType,
+    RuleList,
 } from '@dalbit-yaksok/core'
 import { ReturnSignal } from '../signal.ts'
 
@@ -17,7 +17,7 @@ export class FunctionObject extends ObjectValue implements RunnableObject {
     constructor(
         public name: string,
         private body: Block,
-        public invokeRules: Rule[],
+        public invokeRules: RuleList,
         private declaredScope: Scope,
     ) {
         super()

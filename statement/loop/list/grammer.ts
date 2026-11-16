@@ -2,7 +2,7 @@ import {
     NotProperIdentifierNameToDefineError,
     Token,
     TOKEN_TYPE,
-    TokenRule,
+    RDRule,
 } from '@dalbit-yaksok/core'
 import { j } from '@dalbit-yaksok/pattern'
 import { ListLoop } from './node'
@@ -47,7 +47,7 @@ const patternB = j
     ])
     .compile()
 
-const grammer: TokenRule = {
+const grammer: RDRule = {
     name: '리스트 순회',
     factory(line, action) {
         const test =

@@ -1,9 +1,10 @@
 import {
+    concatRuleList,
     ErrorInModuleError,
     FileForRunNotExistError,
+    RuleList,
     TOKEN_TYPE,
     YaksokSession,
-    type Rule,
     type Token,
 } from '@dalbit-yaksok/core'
 
@@ -13,10 +14,10 @@ import { getExportedRules } from './get-exported-rules.ts'
 export function getRulesFromMentioningFile(
     tokens: Token[],
     session: YaksokSession,
-): Rule[] {
+): RuleList {
     try {
-        const rules = getMentioningFiles(tokens).flatMap(
-            getExportedRules(session),
+        const rules = concatRuleList(
+            getMentioningFiles(tokens).map(getExportedRules(session)),
         )
 
         return rules

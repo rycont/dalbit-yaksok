@@ -5,17 +5,31 @@ import {
     r,
     Scope,
     getTokensFromNodes,
-    type Rule,
+    type SRRule,
     type Token,
     Evaluable,
+    RuleList,
 } from '@dalbit-yaksok/core'
 import { j } from '@dalbit-yaksok/pattern'
 
 export function createMentioningRule(
     fileName: string,
-    originalRule: Rule,
+    originalRule: RuleList,
     declaredScope: Scope,
-): Rule {
+): RuleList {
+    return {
+        sr: originalRule.sr.map((r) =>
+            createSRMentioning(fileName, r, declaredScope),
+        ),
+        rd: [],
+    }
+}
+
+function createSRMentioning(
+    fileName: string,
+    originalRule: SRRule,
+    declaredScope: Scope,
+) {
     const mergedPattern = [
         j.instance(Mention).field({ value: j.literal(fileName) }),
         ...originalRule.pattern,
@@ -27,7 +41,7 @@ export function createMentioningRule(
     })
 }
 
-function createFactory(fileName: string, rule: Rule, declaredScope: Scope) {
+function createFactory(fileName: string, rule: SRRule, declaredScope: Scope) {
     return (nodes: Node[], tokens: Token[]) => {
         const childNodes = nodes.slice(1)
         const childTokens = getTokensFromNodes(childNodes)

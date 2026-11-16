@@ -1,4 +1,4 @@
-import { Token, TOKEN_TYPE, TokenRule } from '@dalbit-yaksok/core'
+import { Token, TOKEN_TYPE, RDRule } from '@dalbit-yaksok/core'
 import { j } from '@dalbit-yaksok/pattern'
 import { CountLoop } from './node'
 
@@ -32,7 +32,7 @@ const patternB = j
     ])
     .compile()
 
-const grammer: TokenRule = {
+const grammer: RDRule = {
     name: '조건 반복',
     factory(line, action) {
         const test =

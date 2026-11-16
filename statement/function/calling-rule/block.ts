@@ -1,86 +1,165 @@
 import {
-    Block,
-    EOL,
-    Identifier,
-    KeyValuePair,
-    KeyValuePairSequence,
-    Node,
-    PatternUnitChain,
-    r,
-    Rule,
+    TOKEN_TYPE,
+    RDRule,
     Token,
+    NotProperIdentifierNameToDefineError,
+    UnexpectedTokenError,
+    YaksokError,
+    NodeFactoryAction,
 } from '@dalbit-yaksok/core'
 import { FunctionSignature, FunctionStaticPart } from '../type.ts'
 import { j } from '@dalbit-yaksok/pattern'
-import { InvokingArguments } from '../node/arguments.ts'
-import { FunctionInvoke } from '../node/invoke.ts'
 import { FunctionDeclareHeader } from '../node/header.ts'
+import { FunctionInvoke } from '../mod.ts'
+import { InvokingArguments } from '../node/arguments.ts'
 
 export function createBlockRule(
     signature: FunctionSignature,
     header: FunctionDeclareHeader,
-): Rule {
+): RDRule {
     const staticParts = signature.headerParts.slice(
         0,
         -1,
     ) as FunctionStaticPart[]
 
-    const signaturePattern = staticParts
-        .map<PatternUnitChain<Node>>((part) =>
-            j.instance(Identifier).field({
-                value: j.enum(part.names.map((n) => n.value)),
+    const pattern = j
+        .list(
+            staticParts.map((p) =>
+                j.field({
+                    type: j.literal(TOKEN_TYPE.IDENTIFIER),
+                    value: p.names.length
+                        ? j.enum(p.names.map((t) => t.value))
+                        : j.literal(p.names[0].value),
+                }),
+            ),
+        )
+        .compile()
+
+    return {
+        name: '함수',
+        factory(line, action) {
+            const test = pattern.func(pattern.id, line.validTokens)
+            if (!test) {
+                return null
+            }
+
+            const blockParameterTokens = action
+                .getFollowingBlockTokens()
+                .consume()
+            const parameterExtraction = parseBlockParameterTokens(
+                blockParameterTokens,
+                action,
+            )
+
+            const invokingArguments = new InvokingArguments(
+                parameterExtraction.parameters,
+                header.signature.parameterScheme,
+                line.validTokens,
+                parameterExtraction.parsingErrors,
+            )
+
+            const nodeInstance = new FunctionInvoke(
+                header,
+                invokingArguments,
+                line.validTokens,
+            )
+
+            return {
+                instance: {
+                    async execute(scope) {
+                        await nodeInstance.execute(scope)
+                    },
+                    validate(scope) {
+                        return nodeInstance.validate(scope)
+                    },
+                    tokens: nodeInstance.tokens,
+                },
+            }
+        },
+    }
+}
+
+function parseBlockParameterTokens(tokens: Token[], action: NodeFactoryAction) {
+    const linebreaks = [-1]
+        .concat(
+            tokens.flatMap((t, index) =>
+                t.type === TOKEN_TYPE.NEW_LINE ? [index] : [],
+            ),
+        )
+        .concat(tokens.length)
+
+    const tokenLines = Array.from({ length: linebreaks.length - 1 }, (_, i) =>
+        tokens.slice(linebreaks[i] + 1, linebreaks[i + 1]),
+    )
+
+    const parsedLines = tokenLines.map(parseTokenLine)
+
+    const parsingErrors: YaksokError[] = parsedLines
+        .map((l) => l.parseError)
+        .filter((e) => !!e)
+
+    return {
+        parsingErrors,
+        parameters: new Map(
+            parsedLines
+                .filter((l) => l.name)
+                .map((l) => [l.name!, action.parse(l.valueTokens!)]),
+        ),
+    }
+}
+
+const tokenLinePattern = j
+    .type<Token[]>()
+    .list([
+        j.type<Token>().space().select('name'),
+        j.field({
+            type: j.literal(TOKEN_TYPE.COLON),
+        }),
+        j.type<Token>().space().select('value'),
+    ])
+    .compile()
+
+function parseTokenLine(tokens: Token[]) {
+    const test = tokenLinePattern.func(tokenLinePattern.id, tokens)
+
+    if (!test) {
+        return {
+            parseError: new UnexpectedTokenError({
+                resource: {
+                    parts: '약속 부르기',
+                },
+                tokens,
             }),
-        )
-        .concat([j.instance(EOL), j.instance(Block)])
-
-    function createInvokingArguments(block: Node): InvokingArguments | null {
-        if (!(block instanceof Block)) {
-            return null
         }
-
-        if (block.subnode.length !== 1) {
-            return null
-        }
-
-        const [subnode] = block.subnode
-
-        const entries =
-            subnode instanceof KeyValuePairSequence
-                ? new Map(
-                      subnode.subnode.map((kvPair) => [
-                          kvPair.key.toString(),
-                          kvPair.subnode,
-                      ]),
-                  )
-                : subnode instanceof KeyValuePair
-                  ? new Map([[subnode.key.toString(), subnode.subnode]])
-                  : null
-
-        if (entries === null) {
-            return null
-        }
-
-        return new InvokingArguments(
-            entries,
-            signature.parameterScheme,
-            block.tokens,
-            [],
-        )
     }
 
-    function factory(nodes: Node[], tokens: Token[]) {
-        const parameterNode = nodes[nodes.length - 1]
-        const invokingArguments = createInvokingArguments(parameterNode)
+    const nameExtraction = extractName(test.name)
 
-        if (invokingArguments === null) {
-            return null
-        }
+    return {
+        name: nameExtraction.name,
+        valueTokens: test.value,
+        parseError: nameExtraction.parseError,
+    }
+}
 
-        return new FunctionInvoke(header, invokingArguments, tokens)
+function extractName(nameTokens: Token[]) {
+    if (
+        nameTokens.length === 1 &&
+        nameTokens[0].type === TOKEN_TYPE.IDENTIFIER
+    ) {
+        const name = nameTokens[0].value
+        return { name }
     }
 
-    return r({
-        pattern: signaturePattern,
-        factory,
-    })
+    const name = nameTokens
+        .filter((t) => t.type === TOKEN_TYPE.IDENTIFIER)
+        .map((t) => t.value)
+        .join('')
+
+    return {
+        name,
+        parseError: new NotProperIdentifierNameToDefineError({
+            tokens: nameTokens,
+        }),
+    }
 }

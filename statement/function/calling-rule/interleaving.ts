@@ -1,4 +1,4 @@
-import { Rule, r } from '@dalbit-yaksok/core'
+import { SRRule, r } from '@dalbit-yaksok/core'
 
 import { createCallingPattern } from './pattern.ts'
 import { FunctionSignature } from '../type.ts'
@@ -8,7 +8,7 @@ import { FunctionDeclareHeader } from '../node/header.ts'
 export function createInterleavingRule(
     signature: FunctionSignature,
     header: FunctionDeclareHeader,
-): Rule {
+): SRRule {
     const { pattern, invokingArgumentsFactory } =
         createCallingPattern(signature)
 

@@ -28,10 +28,9 @@ import {
     OrOperator,
     PlusOperator,
     PowerOperator,
-    Print,
     r,
     RangeOperator,
-    Rule,
+    SRRule,
     Sequence,
     StringValue,
     SubnodeScheme,
@@ -46,7 +45,7 @@ import { DICT_RULES } from './dict.ts'
 import { STRING_RULES } from './template-string.ts'
 
 import { j } from '@dalbit-yaksok/pattern'
-export const BASIC_RULES: Rule[][] = [
+export const BASIC_RULES: SRRule[][] = [
     [
         r({
             pattern: [
@@ -296,7 +295,7 @@ export const BASIC_RULES: Rule[][] = [
     ],
 ]
 
-export const ADVANCED_RULES: Rule[] = [
+export const ADVANCED_RULES: SRRule[] = [
     r({
         pattern: [
             j.instance(Evaluable),
@@ -345,17 +344,6 @@ export const ADVANCED_RULES: Rule[] = [
     ...createTypeCastRules(),
     r({
         pattern: [
-            j.instance(Evaluable),
-            j.instance(Identifier).field({ value: j.literal('보여주기') }),
-        ],
-        factory: (nodes, tokens) => {
-            const value = nodes[0]
-            return new Print(value, tokens)
-        },
-        isStatement: true,
-    }),
-    r({
-        pattern: [
             j.instance(Expression).field({ value: j.literal('[') }),
             j.instance(Evaluable),
             j.instance(Expression).field({ value: j.literal(']') }),
@@ -368,7 +356,7 @@ export const ADVANCED_RULES: Rule[] = [
     ...DICT_RULES,
 ]
 
-function createTypeCastRules(): Rule[] {
+function createTypeCastRules(): SRRule[] {
     const particles = ['을', '를']
     const targetTypes: {
         keywords: string[]
@@ -398,7 +386,7 @@ function createTypeCastRules(): Rule[] {
         },
     ]
 
-    const rules: Rule[] = []
+    const rules: SRRule[] = []
 
     for (const particle of particles) {
         for (const { keywords, target, split } of targetTypes) {

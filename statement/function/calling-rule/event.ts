@@ -6,7 +6,7 @@ import {
     Node,
     PatternUnitChain,
     r,
-    Rule,
+    RuleList,
 } from '@dalbit-yaksok/core'
 import { createCallingPattern } from './pattern'
 import { SubscribeEvent } from '../node/event'
@@ -15,11 +15,11 @@ import { FunctionDeclareHeader } from '../node/header'
 export function createEventSubscriptionRules(
     signature: FunctionSignature,
     declareHeader: FunctionDeclareHeader,
-): Rule {
+): RuleList {
     const { pattern, invokingArgumentsFactory } =
         createCallingPattern(signature)
 
-    return r({
+    const srRule = r({
         pattern: (pattern as PatternUnitChain<Node>[]).concat([
             j.instance(EOL),
             j.instance(Block),
@@ -43,4 +43,9 @@ export function createEventSubscriptionRules(
             )
         },
     })
+
+    return {
+        sr: [srRule],
+        rd: [],
+    }
 }

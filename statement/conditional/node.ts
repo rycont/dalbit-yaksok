@@ -1,43 +1,27 @@
 import {
     Block,
     Evaluable,
-    Executable,
     isTruthy,
     Scope,
+    Statement,
     Token,
     YaksokError,
 } from '@dalbit-yaksok/core'
-
-class StandaloneElseError extends YaksokError {
-    constructor(props: { tokens: Token[]; scope: Scope }) {
-        super(props)
-        this.message = `"아니면"은 "만약" 조건문의 본문이 있어야 사용할 수 있어요.`
-    }
-}
-
-class StandaloneElseIfError extends YaksokError {
-    constructor(props: { tokens: Token[] }) {
-        super(props)
-        this.message = `"아니면 만약"은 "만약" 조건문의 본문이 있어야 사용할 수 있어요.`
-    }
-}
 
 export interface Case {
     condition: Evaluable | null
     body: Block
 }
 
-export class IfStatement extends Executable {
-    static override friendlyName = '조건문(만약)'
+export class IfStatement implements Statement {
+    static friendlyName = '조건문(만약)'
 
     constructor(
         public cases: Case[],
-        public override tokens: Token[],
-    ) {
-        super()
-    }
+        public tokens: Token[],
+    ) {}
 
-    override async execute(scope: Scope) {
+    async execute(scope: Scope) {
         for (const { condition, body } of this.cases) {
             const shouldStop = await this.shouldRun(condition, scope)
             if (!shouldStop) continue
@@ -59,7 +43,7 @@ export class IfStatement extends Executable {
         return isTruthy(evaluated)
     }
 
-    override validate(scope: Scope): YaksokError[] {
+    validate(scope: Scope): YaksokError[] {
         const errors = this.cases.flatMap((caseItem) => {
             const { condition, body } = caseItem
 
@@ -70,42 +54,5 @@ export class IfStatement extends Executable {
         })
 
         return errors
-    }
-}
-
-export class ElseStatement extends Executable {
-    static override friendlyName = '조건문(아니면)'
-
-    constructor(
-        public body: Block,
-        public override tokens: Token[],
-    ) {
-        super()
-    }
-
-    override validate(scope: Scope): YaksokError[] {
-        return [
-            new StandaloneElseError({ tokens: this.tokens, scope }),
-            ...this.body.validate(scope),
-        ]
-    }
-}
-
-export class ElseIfStatement extends Executable {
-    static override friendlyName = '조건문(아니면 만약)'
-
-    constructor(
-        public elseIfCase: Case,
-        public override tokens: Token[],
-    ) {
-        super()
-    }
-
-    override validate(scope: Scope): YaksokError[] {
-        return [
-            new StandaloneElseIfError({ tokens: this.tokens }),
-            ...(this.elseIfCase.condition?.validate(scope) || []),
-            ...this.elseIfCase.body.validate(scope),
-        ]
     }
 }

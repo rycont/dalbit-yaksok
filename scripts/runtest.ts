@@ -5,10 +5,11 @@ const session = new YaksokSession()
 await session
     .addModule(
         'main',
-        `
-반복
-    "Hello, world!" * "Hello, world!" 보여주기
-    반복 그만
-`,
+        `약속, 이동하기(가로, 세로)
+    가로 보여주기
+
+이동하기
+    가로: 1
+    세루: 2`,
     )
     .run()

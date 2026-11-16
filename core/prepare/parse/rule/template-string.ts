@@ -1,14 +1,14 @@
 import {
     Evaluable,
     Expression,
-    Rule,
+    SRRule,
     StringStaticPart,
     StringPartSequence,
     r,
 } from '@dalbit-yaksok/core'
 import { j } from '@dalbit-yaksok/pattern'
 
-export const STRING_RULES: Rule[] = [
+export const STRING_RULES: SRRule[] = [
     r({
         pattern: [
             j.instance(Expression).field({ value: j.literal('"') }),

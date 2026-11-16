@@ -4,7 +4,6 @@ import {
     ValueType,
     YaksokError,
     NotExecutableNodeError,
-    AbortedSessionSignal,
     assertValidReturnValue,
     printTree,
     type Token,
@@ -51,56 +50,13 @@ export class Node<SubnodeShape extends SubnodeScheme = SubnodeScheme> {
     }
 }
 
-export class Executable<
-    T extends SubnodeScheme = SubnodeScheme,
-> extends Node<T> {
-    static override friendlyName = '실행 가능한 노드'
-
-    execute(_scope: Scope): Promise<unknown> {
-        throw new Error(`${this.getNodeTypeName()} has no execute method`)
-    }
-
-    override toPrint(): string {
-        throw new Error(`${this.getNodeTypeName()} has no toPrint method`)
-    }
-
-    protected async onRunChild({
-        scope,
-        childTokens,
-    }: {
-        scope: Scope
-        childTokens: Token[]
-        skipReport?: boolean
-    }) {
-        if (!scope.session) {
-            return
-        }
-
-        if (scope.session.runtimeContext?.abort?.signal.aborted) {
-            throw new AbortedSessionSignal(childTokens)
-        }
-
-        await scope.session.tick()
-
-        const throttle = scope.session.runtimeContext?.throttle ?? 0
-
-        if (
-            0 < throttle &&
-            scope.codeFile &&
-            scope.session.runtimeContext?.entry.has(scope.codeFile)
-        ) {
-            await new Promise((ok) => setTimeout(ok, throttle))
-        }
-    }
-}
-
 export class Evaluable<
     LeavesType extends SubnodeScheme = SubnodeScheme,
     T extends ValueType = ValueType,
-> extends Executable<LeavesType> {
+> extends Node<LeavesType> {
     static override friendlyName = '값이 있는 노드'
 
-    override execute(_scope: Scope): Promise<T> {
+    execute(_scope: Scope): Promise<T> {
         throw new Error(`${this.getNodeTypeName()} has no execute method`)
     }
 }

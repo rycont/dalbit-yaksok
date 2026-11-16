@@ -2,41 +2,50 @@ import {
     TOKEN_TYPE,
     type Token,
     type YaksokSession,
-    parse,
     TokenLine,
-    Rule,
-    DirectReplacer,
-    EOL,
     Evaluable,
     IncompleteEvaluable,
+    RuleList,
+    concatRuleList,
+    Statement,
+    parseValue,
     Block,
 } from '@dalbit-yaksok/core'
+import { unindent } from './unindent'
 
 export function parseStatement(
     tokens: Token[],
     session: YaksokSession,
-    injectedRules: Rule[],
-) {
-    let locallyDefinedRules: Rule[] = injectedRules
+    injectedRules: RuleList,
+): {
+    rules: RuleList
+    statements: Statement[]
+} {
+    let locallyDefinedRules: RuleList = {
+        sr: [],
+        rd: [],
+    }
+
     const lines = getLineTokens(tokens)
 
-    const grammers = session.extensions
+    const extensionGrammers = session.extensions
         .flatMap((e) => e.capabilties.Grammer)
         .filter((g) => !!g)
 
     let i = 0
 
-    const replacers: DirectReplacer[] = []
+    const statements: Statement[] = []
 
     while (i < lines.length) {
         const line = lines[i]
 
-        const parsed = grammers
+        const parsed = extensionGrammers
+            .concat(locallyDefinedRules.rd)
             .values()
             .map((g) => {
                 let consumed = 1
 
-                function parseFollowingBlock(scopeRule: Rule[] = []) {
+                function getFollowingBlockTokens() {
                     const firstLineAfterBlockIndex = lines
                         .slice(i + consumed)
                         .findIndex(
@@ -50,33 +59,63 @@ export function parseStatement(
                             ? lines.length - i - 1 - consumed
                             : firstLineAfterBlockIndex - 1
 
-                    const tokens = lines
-                        .slice(
-                            i + consumed,
-                            i + blockLinesLength + 1 + consumed,
-                        )
-                        .flatMap((l) => l.rawTokens)
+                    const tokens = unindent(
+                        lines
+                            .slice(
+                                i + consumed,
+                                i + blockLinesLength + 1 + consumed,
+                            )
+                            .flatMap((l) => l.rawTokens),
+                    )
+
+                    return {
+                        look: tokens,
+                        consume: () => {
+                            consumed += blockLinesLength + 1
+                            return tokens
+                        },
+                    }
+                }
+
+                function parseFollowingBlock(scopeRule?: RuleList) {
+                    const blockTokens = getFollowingBlockTokens()
+
+                    const parseResult = parseStatement(
+                        blockTokens.look,
+                        session,
+                        concatRuleList([
+                            injectedRules,
+                            locallyDefinedRules,
+                            scopeRule,
+                        ]),
+                    )
+
+                    if (parseResult.rules) {
+                        locallyDefinedRules = concatRuleList([
+                            locallyDefinedRules,
+                            parseResult.rules,
+                        ])
+                    }
 
                     const node = new Block(
-                        parse(
-                            tokens,
-                            session,
-                            locallyDefinedRules.concat(scopeRule),
-                        ),
-                        tokens,
+                        parseResult.statements,
+                        blockTokens.look,
                     )
 
                     return {
                         look: node,
                         consume: () => {
-                            consumed += blockLinesLength + 1
+                            blockTokens.consume()
                             return node
                         },
                     }
                 }
 
                 function parseTokens(tokens: Token[]): Evaluable {
-                    const parsed = parse(tokens, session, locallyDefinedRules)
+                    const parsed = parseValue(
+                        tokens,
+                        concatRuleList([injectedRules, locallyDefinedRules]),
+                    )
 
                     if (parsed.length === 1 && parsed[0] instanceof Evaluable) {
                         return parsed[0]
@@ -99,6 +138,7 @@ export function parseStatement(
 
                 const result = g.factory(line, {
                     parseFollowingBlock,
+                    getFollowingBlockTokens,
                     nextLines,
                     parse: parseTokens,
                 })
@@ -117,25 +157,20 @@ export function parseStatement(
         if (!parsed) {
             i++
         } else {
-            replacers.push({
-                nodes: [parsed.result.instance, new EOL([])],
-                tokenRange: [
-                    lines[i].validRange[0],
-                    lines[i + parsed.consumed - 1].validRange[1],
-                ],
-            })
+            statements.push(parsed.result.instance)
 
-            if (parsed.result.rules) {
-                locallyDefinedRules = locallyDefinedRules.concat(
-                    parsed.result.rules,
-                )
+            if (parsed.result.rule) {
+                locallyDefinedRules = concatRuleList([
+                    locallyDefinedRules,
+                    parsed.result.rule,
+                ])
             }
 
             i += parsed.consumed
         }
     }
 
-    return { replacers, rules: locallyDefinedRules }
+    return { statements, rules: locallyDefinedRules }
 }
 
 function getLineTokens(tokens: Token[]): TokenLine[] {

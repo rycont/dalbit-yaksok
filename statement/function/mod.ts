@@ -1,10 +1,5 @@
 import { TOKEN_TYPE, UnexpectedTokenError } from '@dalbit-yaksok/core'
-import type {
-    Extension,
-    Token,
-    TokenLine,
-    TokenRule,
-} from '@dalbit-yaksok/core'
+import type { Extension, Token, TokenLine, RDRule } from '@dalbit-yaksok/core'
 
 import { j } from '@dalbit-yaksok/pattern'
 import { extractSignature } from './extract-signature.ts'
@@ -87,7 +82,7 @@ const 이벤트Pattern = j
     ])
     .compile()
 
-const functionGrammer: TokenRule = {
+const functionGrammer: RDRule = {
     name: '약속(함수) 만들기',
     description: '설명이 여기 들어감',
     factory(line, actions) {
@@ -127,7 +122,7 @@ const functionGrammer: TokenRule = {
             const body = actions.parseFollowingBlock(callingRules).consume()
 
             const instance =
-                body.subnode.length === 0
+                body.statements.length === 0
                     ? header
                     : new DeclareFunction(
                           body,
@@ -138,7 +133,7 @@ const functionGrammer: TokenRule = {
 
             return {
                 instance,
-                rules: callingRules,
+                rule: callingRules,
             }
         } else if (testResult.type === '번역') {
             const nextLine: TokenLine | undefined = actions
@@ -165,14 +160,14 @@ const functionGrammer: TokenRule = {
             if (bodyToken?.type !== TOKEN_TYPE.FFI_BODY) {
                 instance.injectParsingError(
                     new MissingFunctionBody({
-                        node: instance,
+                        statement: instance,
                     }),
                 )
             }
 
             return {
                 instance,
-                rules: callingRules,
+                rule: callingRules,
             }
         } else if (testResult.type === '이벤트') {
             const eventSubscriptionRule = createEventSubscriptionRules(
@@ -182,12 +177,12 @@ const functionGrammer: TokenRule = {
 
             return {
                 instance: new DeclareEvent(
-                    [eventSubscriptionRule],
+                    eventSubscriptionRule,
                     header,
                     testResult.id,
                     line.validTokens,
                 ),
-                rules: [eventSubscriptionRule],
+                rule: eventSubscriptionRule,
             }
         }
 
@@ -220,7 +215,7 @@ const altReturnPattern = j
     ])
     .compile()
 
-const returnGrammer: TokenRule = {
+const returnGrammer: RDRule = {
     name: '반환하기',
     description: '설명?',
     factory(line, actions) {

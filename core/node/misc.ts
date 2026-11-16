@@ -1,7 +1,5 @@
 import {
     Evaluable,
-    Executable,
-    IndentIsNotMultipleOf4Error,
     Scope,
     StringValue,
     Token,
@@ -19,79 +17,6 @@ export class EOL extends Node {
 
     override validate(): YaksokError[] {
         return []
-    }
-}
-
-export class Indent extends Node {
-    static override friendlyName = '들여쓰기'
-
-    public size: number
-    public width: number
-
-    public parsingErrors: YaksokError[] = []
-
-    constructor(token: Token) {
-        super()
-
-        this.tokens = [token]
-
-        this.width = Array.from(token.value)
-            .map((t) => (t === '\t' ? 4 : 1))
-            .reduce((a, b) => a + b, 0)
-
-        this.size = Math.round(this.width / 4)
-    }
-
-    override validate(scope?: Scope): YaksokError[] {
-        if (this.parsingErrors.length !== 0) {
-            for (const e of this.parsingErrors) {
-                e.scope = scope
-                e.tokens = this.tokens
-            }
-
-            return this.parsingErrors
-        }
-
-        if (this.width % 4 !== 0) {
-            return [
-                new IndentIsNotMultipleOf4Error({
-                    resource: {
-                        width: this.width,
-                    },
-                    tokens: this.tokens,
-                    scope,
-                }),
-            ]
-        }
-
-        return []
-    }
-
-    public injectParsingError(parsingError: YaksokError) {
-        this.parsingErrors.push(parsingError)
-    }
-}
-
-export class Print extends Executable<Evaluable> {
-    static override friendlyName = '보여주기'
-
-    constructor(
-        value: Evaluable,
-        public override tokens: Token[],
-    ) {
-        super()
-        this.subnode = value
-    }
-
-    override async execute(scope: Scope): Promise<void> {
-        const printFunction = scope.session?.stdout ?? console.log
-        const evaluated = await this.subnode.execute(scope)
-
-        printFunction(evaluated.toPrint())
-    }
-
-    override validate(scope: Scope): YaksokError[] {
-        return this.subnode.validate(scope)
     }
 }
 

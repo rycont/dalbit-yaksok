@@ -1,18 +1,16 @@
-import { Executable, Token, Scope, YaksokError } from '@dalbit-yaksok/core'
+import { Token, Scope, YaksokError, Statement } from '@dalbit-yaksok/core'
 import { ContinueSignal } from './signal'
 
-export class Continue extends Executable {
-    static override friendlyName = '다음 반복'
+export class Continue implements Statement {
+    static friendlyName = '다음 반복'
 
-    constructor(public override tokens: Token[]) {
-        super()
-    }
+    constructor(public tokens: Token[]) {}
 
-    override execute(_scope: Scope): Promise<never> {
+    execute(_scope: Scope): Promise<never> {
         throw new ContinueSignal(this.tokens)
     }
 
-    override validate(): YaksokError[] {
+    validate(): YaksokError[] {
         return []
     }
 }

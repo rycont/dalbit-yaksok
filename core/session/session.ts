@@ -4,26 +4,28 @@ import {
     ErrorInFFIExecution,
     FFIRuntimeNotFound,
     MultipleFFIRuntimeError,
-    Node,
     Scope,
     ValueType,
     YaksokError,
     PubSub,
-    type Rule,
     type Extension,
     type RuntimeContext,
+    RuleList,
+    concatRuleList,
 } from '@dalbit-yaksok/core'
 
 import functionStatement from '@dalbit-yaksok/statement-function'
 import variableStatement from '@dalbit-yaksok/statement-variable'
 import conditionalStatement from '@dalbit-yaksok/statement-conditional'
 import loopStatement from '@dalbit-yaksok/statement-loop'
+import printStatement from '@dalbit-yaksok/statement-print'
 
 const DEFAULT_EXTS: Extension[] = [
     functionStatement,
     variableStatement,
     conditionalStatement,
     loopStatement,
+    printStatement,
 ]
 
 const THREAD_YIELD_INTERVAL = 300
@@ -191,9 +193,11 @@ export class YaksokSession {
         }
     }
 
-    public getMentionRules(): Rule<Node[]>[] {
-        return Object.values(this.files).flatMap(
-            (codeFile) => codeFile.mentionRules || [],
+    public getMentionRules(): RuleList {
+        return concatRuleList(
+            Object.values(this.files).map(
+                (codeFile) => codeFile.mentionRules || undefined,
+            ),
         )
     }
 }

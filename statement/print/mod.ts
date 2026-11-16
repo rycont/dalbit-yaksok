@@ -1,0 +1,38 @@
+import { Extension, Token, TOKEN_TYPE } from '@dalbit-yaksok/core'
+import { j } from '@dalbit-yaksok/pattern'
+import { Print } from './node'
+
+const pattern = j
+    .type<Token[]>()
+    .list([
+        j.type<Token>().space().select('content'),
+        j.field({
+            type: j.literal(TOKEN_TYPE.IDENTIFIER),
+            value: j.literal('보여주기'),
+        }),
+    ])
+    .compile()
+
+const extension: Extension = {
+    capabilties: {
+        Grammer: [
+            {
+                name: '보여주기',
+                factory(line, actions) {
+                    const test = pattern.func(pattern.id, line.validTokens)
+
+                    if (!test) {
+                        return null
+                    }
+
+                    const content = actions.parse(test.content)
+                    return {
+                        instance: new Print(content, line.validTokens),
+                    }
+                },
+            },
+        ],
+    },
+}
+
+export default extension

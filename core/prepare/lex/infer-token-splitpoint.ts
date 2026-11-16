@@ -3,8 +3,9 @@ import {
     Node,
     NotDefinedIdentifierError,
     PatternUnit,
-    Rule,
+    SRRule,
     Scope,
+    concatRuleList,
 } from '@dalbit-yaksok/core'
 
 export type Splitpoint = Brand<number, 'Splitpoint'>
@@ -63,12 +64,12 @@ function inferSplitpointByLine(
     scope: Scope,
 ) {
     const scopeNames = scope.getAccessibleNames().toArray()
-    const accessiblePatterns = scope
-        .getExportedRules()
-        .toArray()
-        .concat(scope.session.getMentionRules())
+    const accessiblePatterns = concatRuleList([
+        scope.getExportedRules(),
+        scope.session.getMentionRules(),
+    ])
 
-    const patternsWithOptions = accessiblePatterns
+    const patternsWithOptions = accessiblePatterns.sr
         .map((rule) => ({
             rule,
             options: rule.pattern.flatMap((u) => inferNameGroup(u)),
@@ -117,10 +118,10 @@ function inferSplitpointByLine(
     }
 
     const intersectingRules = Array.from(
-        intersectAll<Rule<Node[]>>(
+        intersectAll<SRRule<Node[]>>(
             inferredPrefixes.map(
                 (inferredPrefix) =>
-                    new Set<Rule<Node[]>>(
+                    new Set<SRRule<Node[]>>(
                         inferredPrefix.candidates.flatMap(
                             (candidate) => candidate.rules!,
                         ),

@@ -2,8 +2,8 @@ import {
     ObjectValue,
     type Scope,
     type ValueType,
-    type Rule,
     type RunnableObject,
+    RuleList,
 } from '@dalbit-yaksok/core'
 
 export class FFIObject extends ObjectValue implements RunnableObject {
@@ -15,7 +15,7 @@ export class FFIObject extends ObjectValue implements RunnableObject {
         public name: string,
         private code: string,
         private runtime: string,
-        public invokeRules: Rule[],
+        public invokeRules: RuleList,
         private declaredScope: Scope,
     ) {
         super()

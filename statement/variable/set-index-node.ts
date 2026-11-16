@@ -1,33 +1,30 @@
 import {
     assignerToOperatorMap,
     Evaluable,
-    Executable,
     IndexFetch,
     Scope,
+    Statement,
     Token,
     YaksokError,
 } from '@dalbit-yaksok/core'
 
-export class SetToIndex extends Executable<Evaluable> {
-    static override friendlyName = '목록에 값 넣기'
+export class SetToIndex implements Statement {
+    static friendlyName = '목록에 값 넣기'
 
     constructor(
-        public target: IndexFetch,
-        value: Evaluable,
+        public readonly target: IndexFetch,
+        private readonly value: Evaluable,
         private readonly operator: string,
-        public override tokens: Token[],
-    ) {
-        super()
-        this.subnode = value
-    }
+        public readonly tokens: Token[],
+    ) {}
 
-    override async execute(scope: Scope): Promise<void> {
+    async execute(scope: Scope): Promise<void> {
         const operatorNode =
             assignerToOperatorMap[
                 this.operator as keyof typeof assignerToOperatorMap
             ]
 
-        const operand = await this.subnode.execute(scope)
+        const operand = await this.value.execute(scope)
         let newValue = operand
 
         if (operatorNode) {
@@ -53,10 +50,10 @@ export class SetToIndex extends Executable<Evaluable> {
         await this.target.setValue(scope, newValue)
     }
 
-    override validate(scope: Scope): YaksokError[] {
+    validate(scope: Scope): YaksokError[] {
         const errors = [
             ...(this.target.validate(scope) || []),
-            ...(this.subnode.validate(scope) || []),
+            ...(this.value.validate(scope) || []),
         ]
 
         return errors

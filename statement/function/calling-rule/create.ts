@@ -1,4 +1,4 @@
-import { Rule } from '@dalbit-yaksok/core'
+import { RuleList } from '@dalbit-yaksok/core'
 import { FunctionPartType, FunctionSignature } from '../type'
 import { createInterleavingRule } from './interleaving'
 import { createBlockRule } from './block'
@@ -7,7 +7,7 @@ import { FunctionDeclareHeader } from '../node/header'
 export function createCallingRules(
     signature: FunctionSignature,
     header: FunctionDeclareHeader,
-): Rule[] {
+): RuleList {
     const interleavingRule = createInterleavingRule(signature, header)
 
     const isTrailingParameters =
@@ -17,10 +17,16 @@ export function createCallingRules(
         signature.headerParts.length - 1
 
     if (!isTrailingParameters) {
-        return [interleavingRule]
+        return {
+            sr: [interleavingRule],
+            rd: [],
+        }
     }
 
     const blockRule = createBlockRule(signature, header)
 
-    return [interleavingRule, blockRule]
+    return {
+        sr: [],
+        rd: [blockRule],
+    }
 }

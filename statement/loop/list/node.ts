@@ -1,12 +1,13 @@
 import {
     Block,
     Evaluable,
-    Executable,
     IndexedValue,
     NodeCapability,
     NotEnumerableValueForListLoopError,
     NumberValue,
+    onRunChild,
     Scope,
+    Statement,
     StringValue,
     Token,
     ValueType,
@@ -15,22 +16,20 @@ import {
 import { ContinueSignal } from '../continue/signal'
 import { BreakSignal } from '../break/signal'
 
-export class ListLoop extends Executable {
+export class ListLoop implements Statement {
     public parsingErrors: YaksokError[] = []
 
-    static override friendlyName = '목록 반복'
-    static override accepts = [NodeCapability.LOOP_CONTROL]
+    static friendlyName = '목록 반복'
+    static accepts = [NodeCapability.LOOP_CONTROL]
 
     constructor(
         public list: Evaluable,
         public variableName: string,
         public body: Block,
-        public override tokens: Token[],
-    ) {
-        super()
-    }
+        public tokens: Token[],
+    ) {}
 
-    override async execute(parent: Scope): Promise<void> {
+    async execute(parent: Scope): Promise<void> {
         const scope = new Scope({
             parent,
         })
@@ -41,7 +40,7 @@ export class ListLoop extends Executable {
 
         try {
             for (const value of list.enumerate()) {
-                await this.onRunChild({
+                await onRunChild({
                     scope,
                     childTokens: this.body.tokens,
                     skipReport: true,
@@ -74,7 +73,7 @@ export class ListLoop extends Executable {
         })
     }
 
-    override validate(scope: Scope): YaksokError[] {
+    validate(scope: Scope): YaksokError[] {
         const listScope = new Scope({
             parent: scope,
             initialVariable: {
