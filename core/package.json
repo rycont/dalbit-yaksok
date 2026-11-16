@@ -12,6 +12,7 @@
         "@dalbit-yaksok/pattern": "workspace:*",
         "@dalbit-yaksok/statement-conditional": "workspace:*",
         "@dalbit-yaksok/statement-function": "workspace:*",
+        "@dalbit-yaksok/statement-loop": "workspace:*",
         "@dalbit-yaksok/statement-variable": "workspace:*"
     }
 }

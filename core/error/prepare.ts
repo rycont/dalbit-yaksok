@@ -11,31 +11,6 @@ import {
 
 import { YaksokError } from './common.ts'
 
-export class CannotUnderstandError extends YaksokError<{
-    additionalMessage?: string
-}> {
-    constructor(props: {
-        tokens: Token[]
-        resource?: { additionalMessage?: string }
-    }) {
-        super(props)
-    }
-
-    override get message(): string {
-        if (this.resource?.additionalMessage) {
-            return this.resource.additionalMessage
-        }
-
-        return `${blue(
-            bold(
-                this.tokens!.map((t) => t.value)
-                    .join('')
-                    .trim(),
-            ),
-        )} 부분을 실행할 수 없어요.`
-    }
-}
-
 export class CannotParseError extends YaksokError {
     constructor(props: {
         tokens: Token[]

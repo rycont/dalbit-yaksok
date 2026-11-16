@@ -1,0 +1,9 @@
+{
+    "name": "@dalbit-yaksok/statement-loop",
+    "type": "module",
+    "main": "./mod.ts",
+    "dependencies": {
+        "@dalbit-yaksok/core": "workspace:*",
+        "@dalbit-yaksok/pattern": "workspace:*"
+    }
+}

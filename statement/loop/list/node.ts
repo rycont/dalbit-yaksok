@@ -1,7 +1,5 @@
 import {
     Block,
-    BreakSignal,
-    ContinueSignal,
     Evaluable,
     Executable,
     IndexedValue,
@@ -14,8 +12,12 @@ import {
     ValueType,
     YaksokError,
 } from '@dalbit-yaksok/core'
+import { ContinueSignal } from '../continue/signal'
+import { BreakSignal } from '../break/signal'
 
 export class ListLoop extends Executable {
+    public parsingErrors: YaksokError[] = []
+
     static override friendlyName = '목록 반복'
     static override accepts = [NodeCapability.LOOP_CONTROL]
 
@@ -84,5 +86,9 @@ export class ListLoop extends Executable {
         const bodyErrors = this.body.validate(listScope)
 
         return [...listErrors, ...bodyErrors]
+    }
+
+    public injectParsingError(parsingError: YaksokError) {
+        this.parsingErrors.push(parsingError)
     }
 }

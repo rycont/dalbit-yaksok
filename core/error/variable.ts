@@ -3,8 +3,14 @@ import { YaksokError } from './common.ts'
 import type { Node, Scope, Token } from '@dalbit-yaksok/core'
 import { bold, blue } from '../util/terminal.ts'
 
-export class NotProperIdentifierNameToDefineError extends YaksokError {
-    constructor(props?: { tokens: Token[]; scope?: Scope }) {
+export class NotProperIdentifierNameToDefineError extends YaksokError<{
+    context?: string
+}> {
+    constructor(props?: {
+        tokens: Token[]
+        scope?: Scope
+        resource?: { context: string }
+    }) {
         super({})
 
         if (props) {
@@ -16,7 +22,7 @@ export class NotProperIdentifierNameToDefineError extends YaksokError {
     override get message(): string {
         return `${bold(
             blue(this.tokens!.map((t) => t.value).join('')),
-        )}는 변수나 약속의 이름으로 사용할 수 없어요.`
+        )}는 ${this.resource?.context || '변수나 약속'}의 이름으로 사용할 수 없어요.`
     }
 }
 

@@ -1,7 +1,5 @@
 import {
     Block,
-    BreakSignal,
-    ContinueSignal,
     Evaluable,
     Executable,
     LoopCountIsNotNumberError,
@@ -11,6 +9,8 @@ import {
     Token,
     YaksokError,
 } from '@dalbit-yaksok/core'
+import { ContinueSignal } from '../continue/signal'
+import { BreakSignal } from '../break/signal'
 
 export class CountLoop extends Executable<{
     count: Evaluable

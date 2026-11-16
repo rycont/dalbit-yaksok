@@ -1,7 +1,5 @@
 import {
     Block,
-    BreakSignal,
-    ContinueSignal,
     Executable,
     LoopWithoutBodyError,
     NodeCapability,
@@ -9,8 +7,10 @@ import {
     Token,
     YaksokError,
 } from '@dalbit-yaksok/core'
+import { ContinueSignal } from '../continue/signal'
+import { BreakSignal } from '../break/signal'
 
-export class Loop extends Executable {
+export class UnconditionedLoop extends Executable {
     static override accepts = [NodeCapability.LOOP_CONTROL]
 
     static override friendlyName = '반복'
@@ -59,37 +59,5 @@ export class Loop extends Executable {
                 : null
 
         return [...childErrors, hasBodyError].filter(Boolean) as YaksokError[]
-    }
-}
-
-export class Break extends Executable {
-    static override friendlyName = '그만'
-
-    constructor(public override tokens: Token[]) {
-        super()
-    }
-
-    override execute(_scope: Scope): Promise<never> {
-        throw new BreakSignal(this.tokens)
-    }
-
-    override validate(): YaksokError[] {
-        return []
-    }
-}
-
-export class Continue extends Executable {
-    static override friendlyName = '다음 반복'
-
-    constructor(public override tokens: Token[]) {
-        super()
-    }
-
-    override execute(_scope: Scope): Promise<never> {
-        throw new ContinueSignal(this.tokens)
-    }
-
-    override validate(): YaksokError[] {
-        return []
     }
 }

@@ -196,6 +196,9 @@ importers:
       '@dalbit-yaksok/statement-function':
         specifier: workspace:*
         version: link:../statement/function
+      '@dalbit-yaksok/statement-loop':
+        specifier: workspace:*
+        version: link:../statement/loop
       '@dalbit-yaksok/statement-variable':
         specifier: workspace:*
         version: link:../statement/variable
@@ -335,6 +338,15 @@ importers:
         version: link:../../sidekick/pattern
 
   statement/function:
+    dependencies:
+      '@dalbit-yaksok/core':
+        specifier: workspace:*
+        version: link:../../core
+      '@dalbit-yaksok/pattern':
+        specifier: workspace:*
+        version: link:../../sidekick/pattern
+
+  statement/loop:
     dependencies:
       '@dalbit-yaksok/core':
         specifier: workspace:*

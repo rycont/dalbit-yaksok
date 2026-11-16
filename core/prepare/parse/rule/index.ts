@@ -1,10 +1,6 @@
 import {
     AndOperator,
-    Block,
     BooleanLiteral,
-    Break,
-    ConditionalLoop,
-    Continue,
     DivideOperator,
     EmptyLiteral,
     EOL,
@@ -22,7 +18,6 @@ import {
     LessThanOrEqualOperator,
     ListLiteral,
     ListValue,
-    Loop,
     MinusOperator,
     ModularOperator,
     MultiplyOperator,
@@ -48,10 +43,7 @@ import {
 } from '@dalbit-yaksok/core'
 
 import { DICT_RULES } from './dict.ts'
-import { LIST_LOOP_RULES } from './list-loop.ts'
 import { STRING_RULES } from './template-string.ts'
-// import { FUNCTION_RULES } from './function.ts'
-import { COUNT_LOOP_RULES } from './count-loop.ts'
 
 import { j } from '@dalbit-yaksok/pattern'
 export const BASIC_RULES: Rule[][] = [
@@ -359,87 +351,6 @@ export const ADVANCED_RULES: Rule[] = [
         factory: (nodes, tokens) => {
             const value = nodes[0]
             return new Print(value, tokens)
-        },
-        isStatement: true,
-    }),
-    // r({
-    //     pattern: [
-    //         j.instance(Evaluable),
-    //         j.instance(Identifier).field({ value: j.literal('반환하기') }),
-    //     ],
-    //     factory: (nodes, tokens) => {
-    //         const value = nodes[0]
-    //         return new ReturnStatement(tokens, value)
-    //     },
-    //     isStatement: true,
-    // }),
-    // r({
-    //     pattern: [
-    //         j.instance(Identifier).field({ value: j.literal('반환하기') }),
-    //     ],
-    //     factory: (_nodes, tokens) => {
-    //         return new ReturnStatement(tokens)
-    //     },
-    //     isStatement: true,
-    // }),
-    // r({
-    //     pattern: [
-    //         j.instance(Identifier).field({ value: j.literal('약속') }),
-    //         j.instance(Identifier).field({ value: j.literal('그만') }),
-    //     ],
-    //     factory: (_nodes, tokens) => {
-    //         return new ReturnStatement(tokens)
-    //     },
-    //     isStatement: true,
-    // }),
-    r({
-        pattern: [
-            j.instance(Identifier).field({ value: j.literal('반복') }),
-            j.instance(EOL),
-            j.instance(Block),
-        ],
-        factory: (nodes, tokens) => new Loop(nodes[2], tokens),
-        isStatement: true,
-    }),
-    r({
-        pattern: [
-            j.instance(Identifier).field({ value: j.literal('반복하기') }),
-            j.instance(EOL),
-            j.instance(Block),
-        ],
-        factory: (nodes, tokens) => new Loop(nodes[2], tokens),
-        isStatement: true,
-    }),
-    r({
-        pattern: [
-            j.instance(Identifier).field({ value: j.literal('반복') }),
-            j.instance(Identifier).field({ value: j.literal('그만') }),
-        ],
-        factory: (_nodes, tokens) => new Break(tokens),
-        isStatement: true,
-    }),
-    r({
-        pattern: [
-            j.instance(Identifier).field({ value: j.literal('다음') }),
-            j.instance(Identifier).field({ value: j.literal('반복') }),
-        ],
-        factory: (_nodes, tokens) => new Continue(tokens),
-        isStatement: true,
-    }),
-    ...LIST_LOOP_RULES,
-    ...COUNT_LOOP_RULES,
-    r({
-        pattern: [
-            j.instance(Identifier).field({ value: j.literal('반복') }),
-            j.instance(Evaluable),
-            j.instance(Identifier).field({ value: j.literal('동안') }),
-            j.instance(EOL),
-            j.instance(Block),
-        ],
-        factory: (nodes, tokens) => {
-            const condition = nodes[1]
-            const body = nodes[4]
-            return new ConditionalLoop(condition, body, tokens)
         },
         isStatement: true,
     }),
