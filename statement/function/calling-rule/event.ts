@@ -7,6 +7,7 @@ import {
     PatternUnitChain,
     r,
     RuleList,
+    StatementCaller,
 } from '@dalbit-yaksok/core'
 import { createCallingPattern } from './pattern'
 import { SubscribeEvent } from '../node/event'
@@ -20,10 +21,7 @@ export function createEventSubscriptionRules(
         createCallingPattern(signature)
 
     const srRule = r({
-        pattern: (pattern as PatternUnitChain<Node>[]).concat([
-            j.instance(EOL),
-            j.instance(Block),
-        ]),
+        pattern: pattern,
         factory(nodes, tokens) {
             const invokingArguments = invokingArgumentsFactory(
                 nodes.slice(0, -2),
@@ -33,13 +31,14 @@ export function createEventSubscriptionRules(
                 return null
             }
 
-            const body = nodes.slice(-1)[0] as Block
-
-            return new SubscribeEvent(
-                declareHeader,
-                body,
-                invokingArguments,
-                tokens,
+            return new StatementCaller(
+                (body) =>
+                    new SubscribeEvent(
+                        declareHeader,
+                        body,
+                        invokingArguments,
+                        tokens,
+                    ),
             )
         },
     })

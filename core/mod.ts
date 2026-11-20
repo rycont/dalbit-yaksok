@@ -39,6 +39,7 @@ export * from './error/postprocess/index.ts'
 
 export * from './statement/index.ts'
 export * from './statement/block.ts'
+export * from './statement/evaluator.ts'
 
 export * from './node/misc.ts'
 export * from './node/primitive-literals/index.ts'
@@ -54,6 +55,7 @@ export * from './prepare/parse/type.ts'
 export * from './prepare/parse/signal.ts'
 export * from './prepare/parse/parse-value.ts'
 export * from './prepare/parse/parse-statement.ts'
+export * from './prepare/parse/line-fetcher.ts'
 
 export * from './constant/type.ts'
 export * from './constant/reserved-words.ts'

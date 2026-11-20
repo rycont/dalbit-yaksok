@@ -5,11 +5,13 @@ const session = new YaksokSession()
 await session
     .addModule(
         'main',
-        `약속, 이동하기(가로, 세로)
-    가로 보여주기
+        `이벤트(TEST_EVENT), 테스트 이벤트
 
-이동하기
-    가로: 1
-    세루: 2`,
+상태 = "정지 중"
+
+테스트 이벤트
+    상태 보여주기
+    상태 = "가는 중"
+    상태 보여주기`,
     )
     .run()

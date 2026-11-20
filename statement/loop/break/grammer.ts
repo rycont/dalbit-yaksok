@@ -18,7 +18,8 @@ const pattern = j
 
 const grammer: RDRule = {
     name: '조건 반복',
-    factory(line) {
+    factory(code) {
+        const [line, consumed] = code.consume()
         const test = pattern.func(pattern.id, line.validTokens)
 
         if (!test) {
@@ -27,6 +28,7 @@ const grammer: RDRule = {
 
         return {
             instance: new Break(line.validTokens),
+            consumed,
         }
     },
 }

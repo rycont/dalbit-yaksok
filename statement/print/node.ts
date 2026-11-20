@@ -8,6 +8,7 @@ import {
 
 export class Print implements Statement {
     static friendlyName = '보여주기'
+    public parsingErrors: YaksokError[] = []
 
     constructor(
         private value: Evaluable,

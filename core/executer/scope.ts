@@ -27,6 +27,7 @@ export class Scope {
 
     public readonly session: YaksokSession
     public readonly codeFile?: CodeFile
+    private ruleList?: RuleList
 
     private _finalized = false
 
@@ -182,5 +183,13 @@ export class Scope {
                 },
             ].concat(functionRules),
         )
+    }
+
+    public *getRuleListStack(): Generator<RuleList> {
+        if (this.ruleList) {
+            yield this.ruleList
+        }
+
+        yield* this.parent.getRuleListStack()
     }
 }

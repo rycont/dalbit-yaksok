@@ -11,7 +11,7 @@ export function unindent(tokens: Token[]) {
 
     const indentWidth = tokens[0].value.length
 
-    return tokens
+    const unindented = tokens
         .slice(1)
         .map((t): Token =>
             t.type === TOKEN_TYPE.INDENT
@@ -23,4 +23,6 @@ export function unindent(tokens: Token[]) {
                 : t,
         )
         .filter((t) => t.type !== TOKEN_TYPE.INDENT || 0 < t.value.length)
+
+    return unindented
 }

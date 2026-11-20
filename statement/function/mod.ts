@@ -128,7 +128,7 @@ const functionGrammer: RDRule = {
                           body,
                           header,
                           callingRules,
-                          line.rawTokens.concat(body.tokens),
+                          line.validTokens.concat(body.tokens),
                       )
 
             return {
@@ -154,7 +154,7 @@ const functionGrammer: RDRule = {
                 header,
                 testResult.runtime,
                 bodyText,
-                line.rawTokens.concat(nextLine?.rawTokens ?? []),
+                line.validTokens.concat(nextLine?.validTokens ?? []),
             )
 
             if (bodyToken?.type !== TOKEN_TYPE.FFI_BODY) {
@@ -228,7 +228,7 @@ const returnGrammer: RDRule = {
             const node = actions.parse(testResult.returnValueTokens)
 
             return {
-                instance: new ReturnStatement(line.rawTokens, node),
+                instance: new ReturnStatement(line.validTokens, node),
             }
         }
 
@@ -239,7 +239,7 @@ const returnGrammer: RDRule = {
 
         if (altTestResult) {
             return {
-                instance: new ReturnStatement(line.rawTokens),
+                instance: new ReturnStatement(line.validTokens),
             }
         }
 

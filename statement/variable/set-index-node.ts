@@ -10,6 +10,7 @@ import {
 
 export class SetToIndex implements Statement {
     static friendlyName = '목록에 값 넣기'
+    public parsingErrors: YaksokError[] = []
 
     constructor(
         public readonly target: IndexFetch,

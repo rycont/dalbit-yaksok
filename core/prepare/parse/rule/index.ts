@@ -11,19 +11,16 @@ import {
     GreaterThanOperator,
     GreaterThanOrEqualOperator,
     Identifier,
-    IndexedValue,
     IndexFetch,
     IntegerDivideOperator,
     LessThanOperator,
     LessThanOrEqualOperator,
     ListLiteral,
-    ListValue,
     MinusOperator,
     ModularOperator,
     MultiplyOperator,
     NotEqualOperator,
     NotExpression,
-    NumberValue,
     Operator,
     OrOperator,
     PlusOperator,
@@ -32,8 +29,6 @@ import {
     RangeOperator,
     SRRule,
     Sequence,
-    StringValue,
-    SubnodeScheme,
     TupleLiteral,
     TypeCast,
     TypeCastTarget,
@@ -55,21 +50,14 @@ export const BASIC_RULES: SRRule[][] = [
                 j.instance(Expression).field({ value: j.literal(']') }),
             ],
             factory: (nodes, tokens) => {
-                const target = nodes[0] as Evaluable<
-                    SubnodeScheme,
-                    IndexedValue | StringValue
-                >
-                const index = nodes[2] as Evaluable<
-                    SubnodeScheme,
-                    StringValue | NumberValue | ListValue
-                >
+                const target = nodes[0]
+                const index = nodes[2]
 
                 return new IndexFetch(target, index, tokens)
             },
         }),
     ],
     STRING_RULES,
-    // FUNCTION_RULES,
     [
         r({
             pattern: [

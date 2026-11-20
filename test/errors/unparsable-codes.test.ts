@@ -19,6 +19,7 @@ test('Unparsable numbers', async () => {
     const codeFile = session.addModule('main', `1.2.3`)
 
     expect(codeFile.prepareErrors[0]).toBeInstanceOf(NotExecutableNodeError)
+    expect(codeFile.prepareErrors[1]).toBeInstanceOf(NotExecutableNodeError)
 })
 
 test('Unparsable list', async () => {

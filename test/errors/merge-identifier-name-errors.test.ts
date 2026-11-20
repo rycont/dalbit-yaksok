@@ -21,5 +21,5 @@ test('Merge identifier name errors', async () => {
     const [error] = errors
 
     assert(error instanceof NotDefinedIdentifierError)
-    assert(error.resource.name === '정의 되지 않은 약속')
+    assert(error.resource?.name === '정의 되지 않은 약속')
 })

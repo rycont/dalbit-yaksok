@@ -13,6 +13,7 @@ import { EventSubscriptionObject } from '../value/event'
 
 export class SubscribeEvent implements Statement {
     static friendlyName = '이벤트 구독하기'
+    public parsingErrors: YaksokError[] = []
 
     constructor(
         private readonly declareHeader: FunctionDeclareHeader,

@@ -14,6 +14,7 @@ export interface Case {
 }
 
 export class IfStatement implements Statement {
+    public parsingErrors: YaksokError[] = []
     static friendlyName = '조건문(만약)'
 
     constructor(

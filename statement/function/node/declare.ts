@@ -19,6 +19,8 @@ export class DeclareFunction implements Statement {
     static friendlyName = '새 약속 만들기'
     static accepts = [NodeCapability.RETURN]
 
+    public parsingErrors: YaksokError[] = []
+
     constructor(
         private body: Block,
         public readonly header: FunctionDeclareHeader,
@@ -166,6 +168,7 @@ export class DeclareFFI implements Statement {
 
 export class DeclareEvent implements Statement {
     static friendlyName = '새 이벤트 만들기'
+    public parsingErrors: YaksokError[] = []
 
     constructor(
         private callingRules: RuleList,

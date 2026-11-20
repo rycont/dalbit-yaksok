@@ -15,7 +15,7 @@ import { FunctionMustHaveOneOrMoreStringPartError } from '../error/no-static.ts'
 import { MissingFunctionBody } from '../error/no-body.ts'
 
 export class FunctionDeclareHeader implements Statement {
-    private injectedErrors: YaksokError[] = []
+    public parsingErrors: YaksokError[] = []
     public runnable?: RunnableObject = undefined
 
     constructor(
@@ -24,7 +24,7 @@ export class FunctionDeclareHeader implements Statement {
     ) {}
 
     public injectError(error: YaksokError) {
-        this.injectedErrors.push(error)
+        this.parsingErrors.push(error)
     }
 
     execute(scope: Scope): Promise<void> {
@@ -86,11 +86,11 @@ export class FunctionDeclareHeader implements Statement {
                         }),
                     ]
 
-        for (const e of this.injectedErrors) {
+        for (const e of this.parsingErrors) {
             e.scope = scope
         }
 
-        return this.injectedErrors
+        return this.parsingErrors
             .concat(parameterOrderErrors)
             .concat(invalidNames)
             .concat(signatureError)

@@ -3,6 +3,7 @@ import { YaksokError, Scope, Statement } from '@dalbit-yaksok/core'
 export class MissingFunctionBody extends YaksokError {
     constructor(props: { statement: Statement; scope?: Scope }) {
         super(props)
+        this.tokens = props.statement?.tokens
     }
 
     override message =

@@ -13,8 +13,9 @@ const GLOBAL_PROCESSORS: Processor[] = [prettifyIndentError]
 
 export function postprocessErrors(errors: YaksokError[], tokens: Token[]) {
     const insufficientError = errors.find(
-        (e) => e.tokens?.length === 0 || !e.scope,
+        (e) => !e.tokens || e.tokens.length === 0 || !e.scope,
     )
+
     if (insufficientError) {
         console.error(insufficientError)
         throw new Error('scope is required')

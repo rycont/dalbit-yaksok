@@ -13,6 +13,7 @@ import { BreakSignal } from '../break/signal'
 
 export class UnconditionedLoop implements Statement {
     static accepts = [NodeCapability.LOOP_CONTROL]
+    public parsingErrors: YaksokError[] = []
 
     static friendlyName = '반복'
 

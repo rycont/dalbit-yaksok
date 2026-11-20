@@ -129,6 +129,13 @@ export class AmbiguousFormulaBoundary extends YaksokError {
     }
 }
 
+export class UnparsableStatementError extends YaksokError {
+    constructor(props: { tokens: Token[]; scope?: Scope }) {
+        super(props)
+        this.message = `${blue(bold(props.tokens.map((t) => t.value).join('')))}는 구문으로 해석할 수 없어요.`
+    }
+}
+
 export class UnexpectedTokenError extends YaksokError {
     constructor(props: {
         resource: {
@@ -136,6 +143,7 @@ export class UnexpectedTokenError extends YaksokError {
         }
         tokens: Token[]
         position?: Position
+        scope?: Scope
     }) {
         super(props)
 

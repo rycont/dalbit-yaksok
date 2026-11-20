@@ -18,16 +18,18 @@ const extension: Extension = {
         Grammer: [
             {
                 name: '보여주기',
-                factory(line, actions) {
+                factory(code, parse) {
+                    const [line, consumed] = code.consume()
                     const test = pattern.func(pattern.id, line.validTokens)
 
                     if (!test) {
                         return null
                     }
 
-                    const content = actions.parse(test.content)
+                    const content = parse.value(test.content)
                     return {
                         instance: new Print(content, line.validTokens),
+                        consumed,
                     }
                 },
             },

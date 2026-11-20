@@ -1,6 +1,7 @@
 import {
     Extension,
-    NodeFactoryAction,
+    FactoryParsers,
+    LineFetcher,
     Token,
     TOKEN_TYPE,
 } from '@dalbit-yaksok/core'
@@ -60,15 +61,16 @@ const extension: Extension = {
             {
                 name: '조건문',
                 description: '조건이 맞을 때만 실행해요',
-                factory(line, action) {
-                    const cases = buildCases(action, line.validTokens)
+                factory(code, parse) {
+                    const [cases, consumed] = buildCases(code, parse, true)
 
                     if (cases.length === 0) {
                         return null
                     }
 
                     return {
-                        instance: new IfStatement(cases, line.validTokens),
+                        instance: new IfStatement(cases, code.look.validTokens),
+                        consumed,
                     }
                 },
             },
@@ -76,71 +78,50 @@ const extension: Extension = {
     },
 }
 
-function buildCases(action: NodeFactoryAction, tokens?: Token[]): Case[] {
-    if (tokens) {
-        const conditionalCase = tokensToCase(
-            {
-                isFirstLine: true,
-            },
-            tokens,
-            action,
-        )
-
-        if (!conditionalCase) {
-            return []
-        }
-
-        return [conditionalCase].concat(buildCases(action))
-    }
-
-    const lineFetcher = action.nextLines(1)
-
-    if (lineFetcher.look.length === 0) {
-        return []
-    }
-
-    const conditionalCase = tokensToCase(
-        {
-            isFirstLine: false,
-            consumer: () => lineFetcher.consume(),
-        },
-        lineFetcher.look[0].validTokens,
-        action,
-    )
+function buildCases(
+    code: LineFetcher,
+    parse: FactoryParsers,
+    isFirstLine: boolean = false,
+): [Case[], LineFetcher] {
+    const [conditionalCase, consumed] = tokensToCase(isFirstLine, code, parse)
 
     if (!conditionalCase) {
-        return []
+        return [[], consumed]
     }
 
-    return [conditionalCase].concat(buildCases(action))
+    const [followingCases, followingConsumed] = buildCases(consumed, parse)
+
+    return [[conditionalCase].concat(followingCases), followingConsumed]
 }
 
 function tokensToCase(
-    context: {
-        isFirstLine: boolean
-        consumer?: () => void
-    },
-    tokens: Token[],
-    action: NodeFactoryAction,
-): Case | null {
-    const test = context.isFirstLine
-        ? ifPattern.func(ifPattern.id, tokens)
-        : elseIfPattern.func(elseIfPattern.id, tokens) ||
-          elsePattern.func(elsePattern.id, tokens)
+    isFirstLine: boolean,
+    code: LineFetcher,
+    parse: FactoryParsers,
+): [Case | null, LineFetcher] {
+    const [line, consumed] = code.consume()
+
+    const test = isFirstLine
+        ? ifPattern.func(ifPattern.id, line.validTokens)
+        : elseIfPattern.func(elseIfPattern.id, line.validTokens) ||
+          elsePattern.func(elsePattern.id, line.validTokens)
 
     if (!test) {
         return null
     }
 
-    context.consumer?.()
+    const [bodyTokens, bodyConsumed] = consumed.block.consume()
 
-    const condition = test.condition ? action.parse(test.condition) : null
-    const body = action.parseFollowingBlock().consume()
+    const condition = test.condition ? parse.value(test.condition) : null
+    const body = parse.statement(bodyTokens)
 
-    return {
-        condition,
-        body,
-    }
+    return [
+        {
+            condition,
+            body,
+        },
+        bodyConsumed,
+    ]
 }
 
 export default extension

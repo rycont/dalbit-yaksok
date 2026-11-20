@@ -26,7 +26,7 @@ export function createCallingRules(
     const blockRule = createBlockRule(signature, header)
 
     return {
-        sr: [],
+        sr: [interleavingRule],
         rd: [blockRule],
     }
 }

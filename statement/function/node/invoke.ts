@@ -13,7 +13,7 @@ import {
 import { InvokingArguments } from './arguments'
 import { FunctionDeclareHeader } from './header'
 
-export class FunctionInvoke extends Evaluable<InvokingArguments> {
+export class FunctionInvoke extends Evaluable {
     static override friendlyName = '약속 사용하기'
 
     constructor(
@@ -22,12 +22,10 @@ export class FunctionInvoke extends Evaluable<InvokingArguments> {
         public override tokens: Token[],
     ) {
         super()
-
-        this.subnode = invokingArguments
     }
 
     override async execute(scope: Scope): Promise<ValueType> {
-        const evaluatedArgument = await this.subnode.execute(scope)
+        const evaluatedArgument = await this.invokingArguments.execute(scope)
         const functionObject = this.declareHeader.runnable
 
         if (!functionObject) {

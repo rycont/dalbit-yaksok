@@ -3,6 +3,7 @@ import { ContinueSignal } from './signal'
 
 export class Continue implements Statement {
     static friendlyName = '다음 반복'
+    public parsingErrors: YaksokError[] = []
 
     constructor(public tokens: Token[]) {}
 

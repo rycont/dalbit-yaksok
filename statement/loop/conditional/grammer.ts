@@ -19,18 +19,23 @@ const pattern = j
 
 const grammer: RDRule = {
     name: '조건 반복',
-    factory(line, action) {
+    factory(code, parse) {
+        const [line, lineConsumed] = code.consume()
+
         const test = pattern.func(pattern.id, line.validTokens)
 
-        if (!test) {
+        if (!test || !lineConsumed.block) {
             return null
         }
 
-        const condition = action.parse(test.condition)
-        const body = action.parseFollowingBlock().consume()
+        const condition = parse.value(test.condition)
+
+        const [bodyTokens, bodyConsumed] = lineConsumed.block.consume()
+        const body = parse.statement(bodyTokens)
 
         return {
             instance: new ConditionalLoop(condition, body, line.validTokens),
+            consumed: bodyConsumed,
         }
     },
 }

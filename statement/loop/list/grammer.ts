@@ -49,19 +49,23 @@ const patternB = j
 
 const grammer: RDRule = {
     name: '리스트 순회',
-    factory(line, action) {
+    factory(code, parse) {
+        const [line, lineConsumed] = code.consume()
+
         const test =
             patternA.func(patternA.id, line.validTokens) ||
             patternB.func(patternB.id, line.validTokens)
 
-        if (!test) {
+        if (!test || !lineConsumed.block) {
             return null
         }
 
-        const loopTarget = action.parse(test.loopTarget)
+        const loopTarget = parse.value(test.loopTarget)
         const loopIndex = extractName(test.name)
 
-        const body = action.parseFollowingBlock().consume()
+        const [bodyTokens, bodyConsumed] = lineConsumed.block.consume()
+        const body = parse.statement(bodyTokens)
+
         const instance = new ListLoop(
             loopTarget,
             loopIndex.name,
@@ -75,6 +79,7 @@ const grammer: RDRule = {
 
         return {
             instance,
+            consumed: bodyConsumed,
         }
     },
 }

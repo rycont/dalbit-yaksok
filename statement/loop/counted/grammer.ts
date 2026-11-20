@@ -34,20 +34,25 @@ const patternB = j
 
 const grammer: RDRule = {
     name: '조건 반복',
-    factory(line, action) {
+    factory(code, parse) {
+        const [line, lineConsumed] = code.consume()
+
         const test =
             patternA.func(patternA.id, line.validTokens) ||
             patternB.func(patternB.id, line.validTokens)
 
-        if (!test) {
+        if (!test || !lineConsumed.block) {
             return null
         }
 
-        const count = action.parse(test.count)
-        const body = action.parseFollowingBlock().consume()
+        const count = parse.value(test.count)
+        const [bodyTokens, bodyConsumed] = lineConsumed.block.consume()
+
+        const body = parse.statement(bodyTokens)
 
         return {
             instance: new CountLoop(count, body, line.validTokens),
+            consumed: bodyConsumed,
         }
     },
 }

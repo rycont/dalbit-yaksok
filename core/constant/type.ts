@@ -1,9 +1,11 @@
 import type {
     SRRule,
     Token,
-    Block,
-    Evaluable,
     Statement,
+    LineFetcher,
+    Evaluable,
+    Scope,
+    Block,
 } from '@dalbit-yaksok/core'
 
 export type Brand<K, T> = K & { __brand: T }
@@ -11,36 +13,28 @@ export type Brand<K, T> = K & { __brand: T }
 export interface TokenLine {
     level: number
     validTokens: Token[]
-    rawTokens: Token[]
-    validRange: [number, number]
+    rawRange: [number, number]
 }
 
-export interface NodeFactoryAction {
-    getFollowingBlockTokens: () => {
-        look: Token[]
-        consume: () => Token[]
-    }
-    parseFollowingBlock: (localRules?: RuleList) => {
-        look: Block
-        consume: () => Block
-    }
-    parse: (tokens: Token[]) => Evaluable
-    nextLines: (count: number) => {
-        look: TokenLine[]
-        consume: () => TokenLine[]
-    }
+export interface FactoryParsers {
+    statement: (lines: TokenLine[]) => Block
+    value: (tokens: Token[]) => Evaluable
 }
 
 export interface RDRule {
     name: string
     description?: string
     factory(
-        line: TokenLine,
-        actions: NodeFactoryAction,
-    ): {
-        instance: Statement
-        rule?: RuleList
-    } | null
+        next: LineFetcher<true>,
+        parse: FactoryParsers,
+        scope: Scope,
+    ): FactoryResult | null
+}
+
+export interface FactoryResult {
+    instance: Statement
+    consumed: LineFetcher
+    scope?: Scope
 }
 
 export interface RuleList {

@@ -16,6 +16,7 @@ import { BreakSignal } from '../break/signal'
 export class ConditionalLoop implements Statement {
     static friendlyName = '반복 동안'
     static accepts = [NodeCapability.LOOP_CONTROL]
+    public parsingErrors: YaksokError[] = []
 
     constructor(
         private condition: Evaluable,

@@ -6,7 +6,7 @@ test('문자열 내 줄바꿈', async () => {
     const codeFile = session.addModule(
         'main',
         `"줄바꿈이
-있는 문자열"`,
+있는 문자열" 보여주기`,
     )
 
     const [error] = codeFile.prepareErrors

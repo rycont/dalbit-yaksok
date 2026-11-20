@@ -10,6 +10,7 @@ import { ReturnSignal } from '../signal'
 
 export class ReturnStatement implements Statement {
     static friendlyName = '반환하기'
+    public parsingErrors: YaksokError[] = []
 
     constructor(
         public tokens: Token[],

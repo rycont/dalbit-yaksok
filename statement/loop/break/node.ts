@@ -3,6 +3,7 @@ import { BreakSignal } from './signal'
 
 export class Break implements Statement {
     static friendlyName = '그만'
+    public parsingErrors: YaksokError[] = []
 
     constructor(public tokens: Token[]) {}
 

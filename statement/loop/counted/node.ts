@@ -16,6 +16,7 @@ import { BreakSignal } from '../break/signal'
 export class CountLoop implements Statement {
     static friendlyName = '횟수 반복'
     static accepts = [NodeCapability.LOOP_CONTROL]
+    public parsingErrors: YaksokError[] = []
 
     constructor(
         private count: Evaluable,

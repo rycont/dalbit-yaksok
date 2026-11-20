@@ -5,9 +5,10 @@ import {
     YaksokError,
     NotExecutableNodeError,
     assertValidReturnValue,
-    printTree,
     type Token,
     EmptyValue,
+    Statement,
+    Block,
 } from '@dalbit-yaksok/core'
 
 export enum NodeCapability {
@@ -43,10 +44,6 @@ export class Node<SubnodeShape extends SubnodeScheme = SubnodeScheme> {
 
     protected getNodeTypeName(): string {
         return (this.constructor as typeof Node).friendlyName || '노드'
-    }
-
-    [Symbol.for('Deno.customInspect')](): string {
-        return printTree(this)
     }
 }
 
@@ -237,5 +234,15 @@ export class Expression<
 
     public injectParsingError(parsingError: YaksokError) {
         this.parsingErrors.push(parsingError)
+    }
+}
+
+export class StatementCaller extends Node {
+    constructor(private statementFactory: (body: Block) => Statement) {
+        super()
+    }
+
+    public toStatement(body: Block) {
+        return this.statementFactory(body)
     }
 }

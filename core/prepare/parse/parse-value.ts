@@ -9,12 +9,21 @@ export function parseValue(
         sr: [],
     },
 ) {
+    const sortedRulelist = sortSRRules(inheritedRules)
     const nodes = convertTokensToNodes(tokens)
-    const priorityParsedNodes = parseBracket(nodes, inheritedRules)
+
+    const priorityParsedNodes = parseBracket(nodes, sortedRulelist)
 
     const childNodes = callSRParseRecursively(
         priorityParsedNodes,
-        inheritedRules.sr,
+        sortedRulelist.sr,
     )
     return childNodes
+}
+
+function sortSRRules(rulelist: RuleList) {
+    return {
+        rd: rulelist.rd,
+        sr: rulelist.sr.toSorted((a, b) => b.pattern.length - a.pattern.length),
+    }
 }

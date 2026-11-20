@@ -18,10 +18,10 @@ import {
     tokenize,
     YaksokError,
     YaksokSession,
+    getLineTokens,
     type Token,
 } from '@dalbit-yaksok/core'
 import { j } from '@dalbit-yaksok/pattern'
-import { getRulesFromMentioningFile } from '../prepare/parse/mention'
 
 export class CodeFile {
     readonly ast: Block
@@ -184,9 +184,19 @@ function parseWithSession(code: string, session: YaksokSession) {
 
     while (true) {
         tokens = tokenize(code, inferredSplitpoints)
-        const mentionRules = getRulesFromMentioningFile(tokens, session)
 
-        const parseResult = parseStatement(tokens, session, mentionRules)
+        // const mentionRules = getRulesFromMentioningFile(tokens, session)
+        // const baseScopeRules = session.baseScope?.getExportedRules()
+
+        const tokenLines = getLineTokens(tokens)
+
+        const scope = new Scope({
+            session,
+        })
+
+        // concatRuleList([mentionRules, baseScopeRules])
+
+        const parseResult = parseStatement(tokenLines, scope)
 
         ast = new Block(parseResult.statements, tokens)
 

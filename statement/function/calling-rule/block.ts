@@ -6,6 +6,7 @@ import {
     UnexpectedTokenError,
     YaksokError,
     NodeFactoryAction,
+    Evaluator,
 } from '@dalbit-yaksok/core'
 import { FunctionSignature, FunctionStaticPart } from '../type.ts'
 import { j } from '@dalbit-yaksok/pattern'
@@ -46,6 +47,7 @@ export function createBlockRule(
             const blockParameterTokens = action
                 .getFollowingBlockTokens()
                 .consume()
+
             const parameterExtraction = parseBlockParameterTokens(
                 blockParameterTokens,
                 action,
@@ -65,15 +67,7 @@ export function createBlockRule(
             )
 
             return {
-                instance: {
-                    async execute(scope) {
-                        await nodeInstance.execute(scope)
-                    },
-                    validate(scope) {
-                        return nodeInstance.validate(scope)
-                    },
-                    tokens: nodeInstance.tokens,
-                },
+                instance: new Evaluator(nodeInstance, line.validTokens),
             }
         },
     }
@@ -90,7 +84,7 @@ function parseBlockParameterTokens(tokens: Token[], action: NodeFactoryAction) {
 
     const tokenLines = Array.from({ length: linebreaks.length - 1 }, (_, i) =>
         tokens.slice(linebreaks[i] + 1, linebreaks[i + 1]),
-    )
+    ).filter((l) => 0 < l.length)
 
     const parsedLines = tokenLines.map(parseTokenLine)
 

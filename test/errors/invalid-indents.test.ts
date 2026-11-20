@@ -1,8 +1,4 @@
-import {
-    YaksokSession,
-    IndentIsNotMultipleOf4Error,
-    IndentLevelMismatchError,
-} from '@dalbit-yaksok/core'
+import { YaksokSession, IndentLevelMismatchError } from '@dalbit-yaksok/core'
 import { expect, test } from 'vite-plus/test'
 
 test('길이가 잘못된 인덴트', async () => {
@@ -16,7 +12,7 @@ test('길이가 잘못된 인덴트', async () => {
     )
     expect.assert.instanceOf(
         codeFile.prepareErrors[0],
-        IndentIsNotMultipleOf4Error,
+        IndentLevelMismatchError,
     )
 })
 
