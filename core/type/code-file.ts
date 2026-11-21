@@ -69,7 +69,6 @@ export class CodeFile {
     }
 
     public async run(runtimeContext?: Partial<RuntimeContext>): Promise<Scope> {
-        // console.log(this.ast)
         if (this.prepareErrors.length !== 0) {
             throw new Error('오류가 존재하는 CodeFile은 실행할 수 없습니다.')
         }

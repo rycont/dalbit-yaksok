@@ -33,15 +33,11 @@ export function parseStatement(
         .find((p) => p !== null)
 
     if (!parsed) {
-        return {
-            statements: [],
-            scope,
-        }
+        throw '예?'
     }
 
     const newScope = parsed.scope || scope
-
-    const leftLines = lines.slice(parsed.consumed.currentIndex + 1)
+    const leftLines = lines.slice(parsed.consumed.currentIndex)
 
     const followingStatement = parseStatement(leftLines, newScope)
 
@@ -65,7 +61,7 @@ function createStatement(
             return node
         },
         value(valueTokens) {
-            const parsed = parseValue(valueTokens)
+            const parsed = parseValue(valueTokens, scope)
 
             if (parsed.length === 1 && parsed[0] instanceof Evaluable) {
                 return parsed[0]

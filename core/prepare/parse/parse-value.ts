@@ -1,29 +1,21 @@
-import { convertTokensToNodes, type Token, RuleList } from '@dalbit-yaksok/core'
+import { convertTokensToNodes, type Token, Scope } from '@dalbit-yaksok/core'
 import { parseBracket } from './parse-bracket'
 import { callSRParseRecursively } from './srParse'
 
-export function parseValue(
-    tokens: Token[],
-    inheritedRules: RuleList = {
-        rd: [],
-        sr: [],
-    },
-) {
-    const sortedRulelist = sortSRRules(inheritedRules)
+export function parseValue(tokens: Token[], scope: Scope) {
+    const srRules = getSRRules(scope)
     const nodes = convertTokensToNodes(tokens)
 
-    const priorityParsedNodes = parseBracket(nodes, sortedRulelist)
+    const priorityParsedNodes = parseBracket(nodes, srRules)
 
-    const childNodes = callSRParseRecursively(
-        priorityParsedNodes,
-        sortedRulelist.sr,
-    )
+    const childNodes = callSRParseRecursively(priorityParsedNodes, srRules)
     return childNodes
 }
 
-function sortSRRules(rulelist: RuleList) {
-    return {
-        rd: rulelist.rd,
-        sr: rulelist.sr.toSorted((a, b) => b.pattern.length - a.pattern.length),
-    }
+function getSRRules(scope: Scope) {
+    return scope
+        .getRuleListStack()
+        .flatMap((s) => s.sr)
+        .toArray()
+        .toSorted((a, b) => b.pattern.length - a.pattern.length)
 }

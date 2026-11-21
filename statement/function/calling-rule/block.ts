@@ -5,8 +5,9 @@ import {
     NotProperIdentifierNameToDefineError,
     UnexpectedTokenError,
     YaksokError,
-    NodeFactoryAction,
     Evaluator,
+    TokenLine,
+    FactoryParsers,
 } from '@dalbit-yaksok/core'
 import { FunctionSignature, FunctionStaticPart } from '../type.ts'
 import { j } from '@dalbit-yaksok/pattern'
@@ -38,18 +39,18 @@ export function createBlockRule(
 
     return {
         name: '함수',
-        factory(line, action) {
+        factory(code, action) {
+            const [line, headerConsumed] = code.consume()
             const test = pattern.func(pattern.id, line.validTokens)
-            if (!test) {
+
+            if (!test || !headerConsumed.block) {
                 return null
             }
 
-            const blockParameterTokens = action
-                .getFollowingBlockTokens()
-                .consume()
+            const [bodyTokens, bodyConsumed] = headerConsumed.block.consume()
 
             const parameterExtraction = parseBlockParameterTokens(
-                blockParameterTokens,
+                bodyTokens,
                 action,
             )
 
@@ -68,24 +69,16 @@ export function createBlockRule(
 
             return {
                 instance: new Evaluator(nodeInstance, line.validTokens),
+                consumed: bodyConsumed,
             }
         },
     }
 }
 
-function parseBlockParameterTokens(tokens: Token[], action: NodeFactoryAction) {
-    const linebreaks = [-1]
-        .concat(
-            tokens.flatMap((t, index) =>
-                t.type === TOKEN_TYPE.NEW_LINE ? [index] : [],
-            ),
-        )
-        .concat(tokens.length)
-
-    const tokenLines = Array.from({ length: linebreaks.length - 1 }, (_, i) =>
-        tokens.slice(linebreaks[i] + 1, linebreaks[i + 1]),
-    ).filter((l) => 0 < l.length)
-
+function parseBlockParameterTokens(
+    tokenLines: TokenLine[],
+    parse: FactoryParsers,
+) {
     const parsedLines = tokenLines.map(parseTokenLine)
 
     const parsingErrors: YaksokError[] = parsedLines
@@ -97,7 +90,7 @@ function parseBlockParameterTokens(tokens: Token[], action: NodeFactoryAction) {
         parameters: new Map(
             parsedLines
                 .filter((l) => l.name)
-                .map((l) => [l.name!, action.parse(l.valueTokens!)]),
+                .map((l) => [l.name!, parse.value(l.valueTokens!)]),
         ),
     }
 }
@@ -113,8 +106,11 @@ const tokenLinePattern = j
     ])
     .compile()
 
-function parseTokenLine(tokens: Token[]) {
-    const test = tokenLinePattern.func(tokenLinePattern.id, tokens)
+function parseTokenLine(tokenLine: TokenLine) {
+    const test = tokenLinePattern.func(
+        tokenLinePattern.id,
+        tokenLine.validTokens,
+    )
 
     if (!test) {
         return {
@@ -122,7 +118,7 @@ function parseTokenLine(tokens: Token[]) {
                 resource: {
                     parts: '약속 부르기',
                 },
-                tokens,
+                tokens: tokenLine.validTokens,
             }),
         }
     }

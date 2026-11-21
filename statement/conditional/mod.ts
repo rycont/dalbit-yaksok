@@ -101,13 +101,17 @@ function tokensToCase(
 ): [Case | null, LineFetcher] {
     const [line, consumed] = code.consume()
 
+    if (!line) {
+        return [null, consumed]
+    }
+
     const test = isFirstLine
         ? ifPattern.func(ifPattern.id, line.validTokens)
         : elseIfPattern.func(elseIfPattern.id, line.validTokens) ||
           elsePattern.func(elsePattern.id, line.validTokens)
 
-    if (!test) {
-        return null
+    if (!test || !consumed.block) {
+        return [null, consumed]
     }
 
     const [bodyTokens, bodyConsumed] = consumed.block.consume()

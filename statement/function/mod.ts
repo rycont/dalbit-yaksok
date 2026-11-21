@@ -1,5 +1,5 @@
 import { TOKEN_TYPE, UnexpectedTokenError } from '@dalbit-yaksok/core'
-import type { Extension, Token, TokenLine, RDRule } from '@dalbit-yaksok/core'
+import type { Extension, Token, RDRule } from '@dalbit-yaksok/core'
 
 import { j } from '@dalbit-yaksok/pattern'
 import { extractSignature } from './extract-signature.ts'
@@ -85,7 +85,9 @@ const 이벤트Pattern = j
 const functionGrammer: RDRule = {
     name: '약속(함수) 만들기',
     description: '설명이 여기 들어감',
-    factory(line, actions) {
+    factory(code, parse, scope) {
+        const [line, headerConsumed] = code.consume()
+
         const testResult =
             번역Pattern.func(번역Pattern.id, line.validTokens) ||
             약속Pattern.func(약속Pattern.id, line.validTokens) ||
@@ -119,7 +121,12 @@ const functionGrammer: RDRule = {
         )
 
         if (testResult.type === '약속') {
-            const body = actions.parseFollowingBlock(callingRules).consume()
+            if (!headerConsumed.block) {
+                return null
+            }
+
+            const [bodyTokens, bodyConsumed] = headerConsumed.block.consume()
+            const body = parse.statement(bodyTokens)
 
             const instance =
                 body.statements.length === 0
@@ -134,13 +141,12 @@ const functionGrammer: RDRule = {
             return {
                 instance,
                 rule: callingRules,
+                consumed: bodyConsumed,
             }
         } else if (testResult.type === '번역') {
-            const nextLine: TokenLine | undefined = actions
-                .nextLines(1)
-                .consume()[0]
+            const [ffiBody, ffiConsumed] = headerConsumed.consume()
 
-            const bodyToken = nextLine?.validTokens[0]
+            const bodyToken = ffiBody?.validTokens[0]
 
             const bodyText = bodyToken
                 ? bodyToken.value.slice(
@@ -154,7 +160,7 @@ const functionGrammer: RDRule = {
                 header,
                 testResult.runtime,
                 bodyText,
-                line.validTokens.concat(nextLine?.validTokens ?? []),
+                line.validTokens.concat(ffiBody?.validTokens ?? []),
             )
 
             if (bodyToken?.type !== TOKEN_TYPE.FFI_BODY) {
@@ -168,12 +174,15 @@ const functionGrammer: RDRule = {
             return {
                 instance,
                 rule: callingRules,
+                consumed: ffiConsumed,
             }
         } else if (testResult.type === '이벤트') {
             const eventSubscriptionRule = createEventSubscriptionRules(
                 signatureResult.signature,
                 header,
             )
+
+            scope.addRuleList(eventSubscriptionRule)
 
             return {
                 instance: new DeclareEvent(
@@ -182,7 +191,7 @@ const functionGrammer: RDRule = {
                     testResult.id,
                     line.validTokens,
                 ),
-                rule: eventSubscriptionRule,
+                consumed: headerConsumed,
             }
         }
 
@@ -218,17 +227,20 @@ const altReturnPattern = j
 const returnGrammer: RDRule = {
     name: '반환하기',
     description: '설명?',
-    factory(line, actions) {
+    factory(code, parse) {
+        const [line, consumed] = code.consume()
+
         const testResult = returnPattern.func(
             returnPattern.id,
             line.validTokens,
         )
 
         if (testResult) {
-            const node = actions.parse(testResult.returnValueTokens)
+            const node = parse.value(testResult.returnValueTokens)
 
             return {
                 instance: new ReturnStatement(line.validTokens, node),
+                consumed,
             }
         }
 
@@ -240,6 +252,7 @@ const returnGrammer: RDRule = {
         if (altTestResult) {
             return {
                 instance: new ReturnStatement(line.validTokens),
+                consumed,
             }
         }
 

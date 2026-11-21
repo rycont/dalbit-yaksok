@@ -12,6 +12,7 @@ import {
     CodeFile,
     RuleList,
     concatRuleList,
+    createRuleList,
 } from '@dalbit-yaksok/core'
 import { RESERVED_WORDS } from '../constant/reserved-words.ts'
 import { j } from '@dalbit-yaksok/pattern'
@@ -27,8 +28,8 @@ export class Scope {
 
     public readonly session: YaksokSession
     public readonly codeFile?: CodeFile
-    private ruleList?: RuleList
 
+    private ruleList: RuleList
     private _finalized = false
 
     constructor(
@@ -50,10 +51,24 @@ export class Scope {
             this.parent = config.session.baseScope
             this.codeFile = config.codeFile
             this.session = config.session
+
+            const rdrules = config.session.extensions.flatMap(
+                (e) => e.capabilties.Grammer,
+            )
+
+            this.ruleList = {
+                rd: rdrules,
+                sr: [],
+            }
         } else {
             this.parent = config.parent
             this.session = config.parent.session
             this.codeFile = config.parent.codeFile
+
+            this.ruleList = {
+                rd: [],
+                sr: [],
+            }
         }
     }
 
@@ -190,6 +205,14 @@ export class Scope {
             yield this.ruleList
         }
 
-        yield* this.parent.getRuleListStack()
+        if (this.parent) {
+            yield* this.parent.getRuleListStack()
+        } else {
+            return
+        }
+    }
+
+    public addRuleList(ruleList: RuleList) {
+        this.ruleList = concatRuleList([this.ruleList, ruleList])
     }
 }

@@ -1,6 +1,7 @@
 import {
     Evaluable,
     Extension,
+    FactoryParsers,
     IndexFetch,
     NotProperIdentifierNameToDefineError,
     Token,
@@ -42,7 +43,9 @@ const extension: Extension = {
         Grammer: [
             {
                 name: '변수 정하기',
-                factory(line, actions) {
+                factory(code, parse) {
+                    const [line, consumed] = code.consume()
+
                     const testResult = pattern.func(
                         pattern.id,
                         line.validTokens,
@@ -52,17 +55,13 @@ const extension: Extension = {
                         return null
                     }
 
-                    const nameExtraction = extractName(
-                        testResult.name,
-                        actions.parse,
-                    )
-
-                    const resultNode = actions.parse(testResult.value)
+                    const nameExtraction = extractName(testResult.name, parse)
+                    const settingValue = parse.value(testResult.value)
 
                     if (nameExtraction.type === 'identifier') {
                         const node = new SetVariable(
                             nameExtraction.name,
-                            resultNode,
+                            settingValue,
                             line.validTokens,
                             testResult.operator,
                         )
@@ -75,20 +74,22 @@ const extension: Extension = {
 
                         return {
                             instance: node,
+                            consumed,
                         }
-                    } else {
-                        return {
-                            instance: new SetToIndex(
-                                new IndexFetch(
-                                    nameExtraction.target,
-                                    nameExtraction.index,
-                                    testResult.name,
-                                ),
-                                resultNode,
-                                testResult.operator,
-                                line.validTokens,
+                    }
+
+                    return {
+                        instance: new SetToIndex(
+                            new IndexFetch(
+                                nameExtraction.target,
+                                nameExtraction.index,
+                                testResult.name,
                             ),
-                        }
+                            settingValue,
+                            testResult.operator,
+                            line.validTokens,
+                        ),
+                        consumed,
                     }
                 },
             },
@@ -98,7 +99,7 @@ const extension: Extension = {
 
 function extractName(
     nameTokens: Token[],
-    parse: (tokens: Token[]) => Evaluable,
+    parse: FactoryParsers,
 ): (
     | {
           type: 'identifier'
@@ -128,8 +129,8 @@ function extractName(
     if (indexSetterPatternResult) {
         return {
             type: 'index-setter',
-            target: parse(indexSetterPatternResult.target),
-            index: parse(indexSetterPatternResult.index),
+            target: parse.value(indexSetterPatternResult.target),
+            index: parse.value(indexSetterPatternResult.index),
             parseErrors: [],
         }
     }

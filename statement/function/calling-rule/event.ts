@@ -1,14 +1,5 @@
-import { j } from '@dalbit-yaksok/pattern'
 import { FunctionSignature } from '../type'
-import {
-    Block,
-    EOL,
-    Node,
-    PatternUnitChain,
-    r,
-    RuleList,
-    StatementCaller,
-} from '@dalbit-yaksok/core'
+import { r, RuleList, StatementCaller } from '@dalbit-yaksok/core'
 import { createCallingPattern } from './pattern'
 import { SubscribeEvent } from '../node/event'
 import { FunctionDeclareHeader } from '../node/header'

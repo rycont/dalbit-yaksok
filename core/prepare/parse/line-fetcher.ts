@@ -8,15 +8,12 @@ export type LineFetcher<EnsuredFirstLine extends boolean = false> = {
               consume: () => [TokenLine[], LineFetcher]
           }
         | (EnsuredFirstLine extends true ? never : null)
-} & (EnsuredFirstLine extends true
-    ? {
-          look: TokenLine
-          consume: () => [TokenLine, LineFetcher]
-      }
-    : {
-          look: TokenLine | null
-          consume: () => [TokenLine | null, LineFetcher]
-      })
+} & {
+    look: TokenLine | (EnsuredFirstLine extends true ? never : null)
+    consume:
+        | (() => [TokenLine, LineFetcher])
+        | (EnsuredFirstLine extends true ? never : null)
+}
 
 export function createLineFetcher(
     lines: [TokenLine],
@@ -30,30 +27,42 @@ export function createLineFetcher(
     lines: TokenLine[] | [TokenLine],
     currentIndex: number = 0,
 ): LineFetcher<boolean> {
+    const lookingLine = lines[currentIndex]
+    const baseIndex = lines[currentIndex - 1]?.level ?? 0
+
+    const hasFollowingBlock = baseIndex + 1 === lines[currentIndex].level
+
     function getBlockLines() {
-        const entryIndentLevel = lines[0].level
-        const firstLineAfterBlockIndex = lines.findIndex(
-            (l) => l.level <= entryIndentLevel && 0 < l.validTokens.length,
-        )
+        const firstLineAfterBlockIndex = lines
+            .slice(currentIndex)
+            .findIndex((l) => l.level <= baseIndex && 0 < l.validTokens.length)
 
         const blockEndIndex =
             firstLineAfterBlockIndex === -1
                 ? lines.length - 1
                 : firstLineAfterBlockIndex - 1
 
-        const blockLines = lines.slice(0, blockEndIndex + 1)
+        const blockLines = lines.slice(
+            currentIndex,
+            currentIndex + blockEndIndex + 1,
+        )
         return blockLines
     }
 
-    const lookingLine = lines[currentIndex]
-    const hasFollowingBlock =
-        lines[currentIndex - 1].level + 1 === lines[currentIndex].level
-
     return {
-        currentIndex: 0,
+        currentIndex,
         look: lookingLine,
-        consume() {
-            return [lookingLine, createLineFetcher(lines, currentIndex + 1)]
+        get consume() {
+            if (currentIndex + 1 === lines.length) {
+                return null
+            }
+
+            return () => {
+                return [
+                    lookingLine,
+                    createLineFetcher(lines, currentIndex + 1),
+                ] as [TokenLine, LineFetcher]
+            }
         },
         get block() {
             if (!hasFollowingBlock) {
@@ -67,10 +76,12 @@ export function createLineFetcher(
                 consume() {
                     return [
                         blockLines,
-                        createLineFetcher(
-                            lines,
-                            currentIndex + blockLines.length,
-                        ),
+                        lines.length <= currentIndex + blockLines.length
+                            ? createLineFetcher(
+                                  lines,
+                                  currentIndex + blockLines.length,
+                              )
+                            : null,
                     ] as [TokenLine[], LineFetcher]
                 },
             }
@@ -118,5 +129,5 @@ export function getLineTokens(tokens: Token[]): TokenLine[] {
         }
     })
 
-    return lines
+    return lines.filter((l) => l.validTokens.length)
 }

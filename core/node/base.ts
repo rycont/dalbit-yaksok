@@ -237,7 +237,7 @@ export class Expression<
     }
 }
 
-export class StatementCaller extends Node {
+export class StatementCaller extends Evaluable {
     constructor(private statementFactory: (body: Block) => Statement) {
         super()
     }

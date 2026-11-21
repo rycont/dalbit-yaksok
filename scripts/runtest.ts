@@ -2,6 +2,15 @@ import { YaksokSession } from '@dalbit-yaksok/core'
 
 const session = new YaksokSession()
 
+session.eventCreation.sub('TEST_EVENT', async (_, callback, terminate) => {
+    console.log('1')
+    await callback()
+    console.log('2')
+    await callback()
+    console.log('3')
+    terminate()
+})
+
 await session
     .addModule(
         'main',

@@ -36,6 +36,7 @@ export class SetVariable implements Statement {
         if (operatorNode) {
             const oldValue = scope.getVariable(name, this.tokens)
             const tempOperator = new operatorNode(this.tokens)
+
             try {
                 newValue = await tempOperator.call(
                     () => Promise.resolve(oldValue),

@@ -17,3 +17,10 @@ export function concatRuleList(items: (RuleList | undefined)[]): RuleList {
         sr: (items?.[0]?.sr || []).concat(rest.sr || []),
     }
 }
+
+export function createRuleList(): RuleList {
+    return {
+        rd: [],
+        sr: [],
+    }
+}
