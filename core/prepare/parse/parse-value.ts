@@ -4,7 +4,7 @@ import { callSRParseRecursively } from './srParse'
 
 export function parseValue(tokens: Token[], scope: Scope) {
     const srRules = getSRRules(scope)
-    const nodes = convertTokensToNodes(tokens)
+    const nodes = convertTokensToNodes(scope, tokens)
 
     const priorityParsedNodes = parseBracket(nodes, srRules)
 

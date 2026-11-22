@@ -1,16 +1,21 @@
-import { SRRule, r } from '@dalbit-yaksok/core'
+import { SRRule, Scope, SlotKey, r } from '@dalbit-yaksok/core'
 
 import { createCallingPattern } from './pattern.ts'
-import { FunctionSignature } from '../type.ts'
+import { FunctionSignature, ParameterElement } from '../type.ts'
 import { FunctionInvoke } from '../node/invoke.ts'
-import { FunctionDeclareHeader } from '../node/header.ts'
+import { FunctionSlot } from '../slot.ts'
 
 export function createInterleavingRule(
+    scope: Scope,
+    slot: FunctionSlot,
     signature: FunctionSignature,
-    header: FunctionDeclareHeader,
+    parameterSlots: Map<ParameterElement, SlotKey>,
 ): SRRule {
-    const { pattern, invokingArgumentsFactory } =
-        createCallingPattern(signature)
+    const { pattern, invokingArgumentsFactory } = createCallingPattern(
+        scope,
+        signature,
+        parameterSlots,
+    )
 
     return r({
         pattern,
@@ -21,7 +26,7 @@ export function createInterleavingRule(
                 return null
             }
 
-            return new FunctionInvoke(header, invokingArguments, tokens)
+            return new FunctionInvoke(scope, slot, invokingArguments, tokens)
         },
     })
 }

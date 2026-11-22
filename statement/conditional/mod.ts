@@ -99,6 +99,10 @@ function tokensToCase(
     code: LineFetcher,
     parse: FactoryParsers,
 ): [Case | null, LineFetcher] {
+    if (!code.consume) {
+        return [null, code]
+    }
+
     const [line, consumed] = code.consume()
 
     if (!line) {

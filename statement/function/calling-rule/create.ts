@@ -1,14 +1,22 @@
-import { RuleList } from '@dalbit-yaksok/core'
-import { FunctionPartType, FunctionSignature } from '../type'
+import { RuleList, Scope, SlotKey } from '@dalbit-yaksok/core'
+import { FunctionPartType, FunctionSignature, ParameterElement } from '../type'
 import { createInterleavingRule } from './interleaving'
 import { createBlockRule } from './block'
-import { FunctionDeclareHeader } from '../node/header'
+import { FunctionSlot } from '../slot'
 
 export function createCallingRules(
     signature: FunctionSignature,
-    header: FunctionDeclareHeader,
+    // header: FunctionDeclareHeader,
+    scope: Scope,
+    slot: FunctionSlot,
+    parameterSlots: Map<ParameterElement, SlotKey>,
 ): RuleList {
-    const interleavingRule = createInterleavingRule(signature, header)
+    const interleavingRule = createInterleavingRule(
+        scope,
+        slot,
+        signature,
+        parameterSlots,
+    )
 
     const isTrailingParameters =
         signature.headerParts.findIndex(
@@ -23,7 +31,7 @@ export function createCallingRules(
         }
     }
 
-    const blockRule = createBlockRule(signature, header)
+    const blockRule = createBlockRule(signature)
 
     return {
         sr: [interleavingRule],

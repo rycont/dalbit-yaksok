@@ -17,7 +17,7 @@ import { InvokingArguments } from '../node/arguments.ts'
 
 export function createBlockRule(
     signature: FunctionSignature,
-    header: FunctionDeclareHeader,
+    // header: FunctionDeclareHeader,
 ): RDRule {
     const staticParts = signature.headerParts.slice(
         0,

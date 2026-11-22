@@ -1,8 +1,10 @@
-import { YaksokError, Scope, Statement } from '@dalbit-yaksok/core'
+import { YaksokError, Statement } from '@dalbit-yaksok/core'
 
 export class MissingFunctionBody extends YaksokError {
-    constructor(props: { statement: Statement; scope?: Scope }) {
+    constructor(props: { statement: Statement }) {
         super(props)
+
+        this.scope = props.statement.scope
         this.tokens = props.statement?.tokens
     }
 

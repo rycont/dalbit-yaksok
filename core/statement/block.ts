@@ -4,6 +4,7 @@ import {
     AbortedSessionSignal,
     type Statement,
     type Token,
+    ScopeChain,
 } from '@dalbit-yaksok/core'
 
 export class Block implements Statement {
@@ -12,28 +13,27 @@ export class Block implements Statement {
     public parsingErrors: YaksokError[] = []
 
     constructor(
+        public scope: Scope,
         public statements: Statement[],
         public tokens: Token[],
     ) {}
 
-    async execute(scope: Scope): Promise<void> {
+    async execute(scopeChain: ScopeChain): Promise<void> {
         for (const child of this.statements) {
             await onRunChild({
                 childTokens: child.tokens,
-                scope,
+                scope: this.scope,
             })
 
-            await child.execute(scope)
+            await child.execute(scopeChain)
         }
     }
 
-    validate(scope: Scope): YaksokError[] {
-        const childErrors = this.statements.flatMap((child) =>
-            child.validate(scope),
-        )
+    validate(): YaksokError[] {
+        const childErrors = this.statements.flatMap((child) => child.validate())
 
         for (const error of this.parsingErrors) {
-            error.scope = scope
+            error.scope = this.scope
         }
 
         return childErrors.concat(this.parsingErrors)

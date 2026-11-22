@@ -2,25 +2,20 @@ import { YaksokSession } from '@dalbit-yaksok/core'
 
 const session = new YaksokSession()
 
-session.eventCreation.sub('TEST_EVENT', async (_, callback, terminate) => {
-    console.log('1')
-    await callback()
-    console.log('2')
-    await callback()
-    console.log('3')
-    terminate()
-})
+await session
+    .addModule(
+        'var',
+        `이름 = "길동"
+이름 보여주기`,
+    )
+    .run()
 
 await session
     .addModule(
         'main',
-        `이벤트(TEST_EVENT), 테스트 이벤트
+        `약속, 이동하기(가로, 세로, 높이)
+    가로 + " x " + 세로 보여주기
 
-상태 = "정지 중"
-
-테스트 이벤트
-    상태 보여주기
-    상태 = "가는 중"
-    상태 보여주기`,
+이동하기(1, 2, 3)`,
     )
     .run()

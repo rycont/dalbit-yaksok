@@ -12,6 +12,7 @@ import {
     blue,
     dim,
     ValueType,
+    Statement,
 } from '@dalbit-yaksok/core'
 
 export class YaksokError<T = unknown> extends Error {
@@ -22,6 +23,7 @@ export class YaksokError<T = unknown> extends Error {
     child?: YaksokError
     scope?: Scope
     node?: Node
+    statement?: Statement
 
     constructor(props: {
         node?: Node
@@ -29,6 +31,7 @@ export class YaksokError<T = unknown> extends Error {
         position?: Position
         tokens?: Token[]
     })
+    constructor(props: { statement: Statement })
     constructor(props: {
         node?: Node
         scope?: Scope
@@ -42,6 +45,7 @@ export class YaksokError<T = unknown> extends Error {
         position?: Position
         resource?: T
         tokens?: Token[]
+        statement?: Statement
     }) {
         super()
 
@@ -49,8 +53,10 @@ export class YaksokError<T = unknown> extends Error {
         this.resource = (props.resource ?? null) as T
         this.scope = props.scope
         this.node = props.node
+        this.statement = props.statement
 
-        this.tokens = props.tokens || props.node?.tokens
+        this.tokens =
+            props.tokens || props.node?.tokens || props.statement?.tokens
     }
 }
 

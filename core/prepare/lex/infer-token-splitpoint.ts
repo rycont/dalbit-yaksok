@@ -63,11 +63,13 @@ function inferSplitpointByLine(
     errors: NotDefinedIdentifierError[],
     scope: Scope,
 ) {
-    const scopeNames = scope.getAccessibleNames().toArray()
-    const accessiblePatterns = concatRuleList([
-        scope.getExportedRules(),
-        scope.session.getMentionRules(),
-    ])
+    const scopeNames = scope
+        .getSlotNames()
+        .toArray()
+        .filter((n) => typeof n === 'string')
+    const accessiblePatterns = concatRuleList(
+        scope.getRuleListStack().toArray(),
+    )
 
     const patternsWithOptions = accessiblePatterns.sr
         .map((rule) => ({

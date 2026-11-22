@@ -1,9 +1,10 @@
 import {
     assignerToOperatorMap,
     Evaluable,
-    NotProperIdentifierNameToDefineError,
-    NumberValue,
+    Identifier,
     Scope,
+    ScopeChain,
+    SlotKey,
     Statement,
     Token,
     YaksokError,
@@ -15,26 +16,25 @@ export class SetVariable implements Statement {
     public parsingErrors: YaksokError[] = []
 
     constructor(
-        public name: string,
+        public scope: Scope,
+        public target: Identifier,
         private evaluator: Evaluable,
         public tokens: Token[],
         public operator: string,
     ) {}
 
-    async execute(scope: Scope) {
-        const { name, evaluator } = this
-
+    async execute(scopeChain: ScopeChain) {
         const operatorNode =
             assignerToOperatorMap[
                 this.operator as keyof typeof assignerToOperatorMap
             ]
 
-        const operand = await evaluator.execute(scope)
+        const operand = await this.evaluator.execute(scopeChain)
 
         let newValue = operand
 
         if (operatorNode) {
-            const oldValue = scope.getVariable(name, this.tokens)
+            const oldValue = this.target.execute(scopeChain)
             const tempOperator = new operatorNode(this.tokens)
 
             try {
@@ -53,41 +53,28 @@ export class SetVariable implements Statement {
             }
         }
 
-        scope.setVariable(name, newValue)
+        const assignTargetRunId = scopeChain.get(this.target.scope)
+
+        this.target.scope.run
+            .get(assignTargetRunId)
+            .set(this.target.slotKey, newValue)
     }
 
-    validate(scope: Scope): YaksokError[] {
+    validate(): YaksokError[] {
         if (this.parsingErrors.length) {
             for (const error of this.parsingErrors) {
                 if (!error.scope) {
-                    error.scope = scope
+                    error.scope = this.scope
                 }
 
                 if (!error.tokens) {
                     error.tokens = this.tokens
                 }
             }
-
-            return this.parsingErrors
         }
 
-        const errors = this.evaluator.validate(scope)
-
-        try {
-            scope.setVariable(this.name, new NumberValue(0))
-            return errors
-        } catch (e) {
-            if (e instanceof NotProperIdentifierNameToDefineError) {
-                e.scope = scope
-                e.tokens = this.tokens
-            }
-
-            if (e instanceof YaksokError) {
-                return errors.concat([e])
-            }
-
-            throw e
-        }
+        const errors = this.evaluator.validate(this.scope)
+        return this.parsingErrors.concat(errors)
     }
 
     public injectParsingError(parsingError: YaksokError) {

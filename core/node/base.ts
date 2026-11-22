@@ -1,14 +1,15 @@
 import {
-    NotDefinedIdentifierError,
     Scope,
     ValueType,
     YaksokError,
     NotExecutableNodeError,
-    assertValidReturnValue,
     type Token,
     EmptyValue,
     Statement,
     Block,
+    RunnableObject,
+    ScopeChain,
+    SlotKey,
 } from '@dalbit-yaksok/core'
 
 export enum NodeCapability {
@@ -53,7 +54,7 @@ export class Evaluable<
 > extends Node<LeavesType> {
     static override friendlyName = '값이 있는 노드'
 
-    execute(_scope: Scope): Promise<T> {
+    execute(_scopeChain: ScopeChain): Promise<T> {
         throw new Error(`${this.getNodeTypeName()} has no execute method`)
     }
 }
@@ -75,6 +76,8 @@ export class Identifier extends Evaluable {
     static override friendlyName = '식별자'
 
     constructor(
+        public scope: Scope,
+        public slotKey: SlotKey,
         public override value: string,
         public override tokens: Token[],
     ) {
@@ -85,67 +88,39 @@ export class Identifier extends Evaluable {
         return this.value
     }
 
-    override async execute(scope: Scope): Promise<ValueType> {
-        try {
-            return scope.getVariable(this.value, this.tokens)
-        } catch (e) {
-            if (e instanceof NotDefinedIdentifierError) {
-                try {
-                    const functionObject = scope.getFunctionObject(this.value)
-                    const functionResult =
-                        (await functionObject.run(new Map())) ||
-                        new EmptyValue()
+    override async execute(scopeChain: ScopeChain): Promise<ValueType> {
+        const value = this.scope.run
+            .get(scopeChain.get(this.scope))
+            .get(this.slotKey)
 
-                    assertValidReturnValue(
-                        functionResult,
-                        this.tokens,
-                        functionObject.name,
-                    )
+        if ('run' in value) {
+            const functionResult =
+                (await (value as RunnableObject).run(new Map(), scopeChain)) ||
+                new EmptyValue()
 
-                    return functionResult
-                } catch (e2) {
-                    if (e2 instanceof NotDefinedIdentifierError) {
-                        e2.tokens = this.tokens
-                    }
-
-                    throw e2
-                }
-            }
-
-            throw e
+            return functionResult
         }
+
+        return value
     }
 
-    override validate(scope: Scope): YaksokError[] {
-        try {
-            scope.getVariable(this.value)
-            return []
-        } catch (variableError) {
-            if (!(variableError instanceof YaksokError)) {
-                throw variableError
-            }
-
-            if (!(variableError instanceof NotDefinedIdentifierError)) {
-                variableError.tokens = this.tokens
-
-                return [variableError]
-            }
-
-            try {
-                scope.getFunctionObject(this.value)
-                return []
-            } catch (functionError) {
-                if (!(functionError instanceof YaksokError)) {
-                    throw functionError
-                }
-            }
-
-            variableError.tokens = this.tokens
-            variableError.scope = scope
-            variableError.node = this
-
-            return [variableError]
-        }
+    override validate(): YaksokError[] {
+        return []
+        //         const result = this.scope.getSlot(this.value)
+        //
+        //         if (result) {
+        //             return []
+        //         }
+        //
+        //         return [
+        //             new NotDefinedIdentifierError({
+        //                 resource: {
+        //                     name: this.value,
+        //                 },
+        //                 scope: this.scope,
+        //                 tokens: this.tokens,
+        //             }),
+        //         ]
     }
 }
 

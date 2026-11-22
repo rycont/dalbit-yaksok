@@ -9,6 +9,7 @@ import {
     StringStaticPart,
     Mention,
     type Token,
+    Scope,
 } from '@dalbit-yaksok/core'
 
 const escapeMap: Record<string, string> = {
@@ -24,14 +25,14 @@ function unescapeString(str: string): string {
     return str.replace(/\\(.)/g, (_, char) => escapeMap[char] ?? `\\${char}`)
 }
 
-export function convertTokensToNodes(rawTokens: Token[]): Node[] {
+export function convertTokensToNodes(scope: Scope, rawTokens: Token[]): Node[] {
     const tokens: (Token | null)[] = Array.from(rawTokens)
-    const nodes: (Node | null)[] = tokens.map(mapTokenToNode)
+    const nodes: (Node | null)[] = tokens.map((t) => mapTokenToNode(scope, t))
 
     return nodes.filter((n) => !!n)
 }
 
-function mapTokenToNode(token: Token | null) {
+function mapTokenToNode(scope: Scope, token: Token | null) {
     if (token === null) {
         return null
     }
@@ -47,7 +48,8 @@ function mapTokenToNode(token: Token | null) {
         case TOKEN_TYPE.OPERATOR:
             return new Operator(token.value, [token])
         case TOKEN_TYPE.IDENTIFIER:
-            return new Identifier(token.value, [token])
+            const [slotKey, definedScope] = scope.findSlot(token.value)
+            return new Identifier(definedScope, slotKey, token.value, [token])
         case TOKEN_TYPE.NEW_LINE:
             return new EOL([token])
         case TOKEN_TYPE.MENTION:

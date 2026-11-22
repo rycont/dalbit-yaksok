@@ -4,15 +4,25 @@ import {
     ListLiteral,
     Node,
     PatternUnitChain,
+    Scope,
+    SlotKey,
     TupleLiteral,
     YaksokError,
 } from '@dalbit-yaksok/core'
-import { FunctionPartType, FunctionSignature } from '../type.ts'
+import {
+    FunctionPartType,
+    FunctionSignature,
+    ParameterElement,
+} from '../type.ts'
 import { j } from '@dalbit-yaksok/pattern'
 import { TooManyArgumentsError } from '../error/too-many-arguments.ts'
 import { InvokingArguments } from '../node/arguments.ts'
 
-export function createCallingPattern(signature: FunctionSignature) {
+export function createCallingPattern(
+    scope: Scope,
+    signature: FunctionSignature,
+    parameterSlots: Map<ParameterElement, SlotKey>,
+) {
     const pattern = signature.headerParts.map((g): PatternUnitChain<Node> => {
         if (g.type === FunctionPartType.parameter) {
             return j.instance(Evaluable)
@@ -32,12 +42,17 @@ export function createCallingPattern(signature: FunctionSignature) {
     function invokingArgumentsFactory(nodes: Node[]) {
         const nodesWithPart = signature.headerParts.flatMap((part, index) =>
             part.type === FunctionPartType.parameter
-                ? [{ part, node: nodes[index] }]
+                ? [
+                      {
+                          part,
+                          node: nodes[index],
+                      },
+                  ]
                 : [],
         )
 
         const entries = nodesWithPart.flatMap(
-            ({ part, node }): ([string, Evaluable] | YaksokError)[] => {
+            ({ part, node }): ([SlotKey, Evaluable] | YaksokError)[] => {
                 const isDestructure =
                     part.params.length !== 1 &&
                     (node instanceof TupleLiteral ||
@@ -49,9 +64,9 @@ export function createCallingPattern(signature: FunctionSignature) {
 
                     const destructured = node.subnode
                         .slice(0, part.params.length)
-                        .map<[string, Evaluable] | YaksokError>(
+                        .map<[SlotKey, Evaluable] | YaksokError>(
                             (tupleItem, index) => [
-                                part.params[index].name,
+                                parameterSlots.get(part.params[index]),
                                 tupleItem,
                             ],
                         )
@@ -70,8 +85,8 @@ export function createCallingPattern(signature: FunctionSignature) {
 
                     return destructured.concat([overflowError])
                 } else {
-                    const entry: [string, Evaluable] = [
-                        part.params[0].name,
+                    const entry: [SlotKey, Evaluable] = [
+                        parameterSlots.get(part.params[0]),
                         node as Evaluable,
                     ]
 
@@ -84,12 +99,14 @@ export function createCallingPattern(signature: FunctionSignature) {
             entry instanceof YaksokError ? 'error' : 'value',
         ) as {
             error?: YaksokError[]
-            value?: [string, Evaluable][]
+            value?: [SlotKey, Evaluable][]
         }
 
         return new InvokingArguments(
-            new Map(group.value),
+            scope,
             signature.parameterScheme,
+            parameterSlots,
+            new Map(group.value),
             nodes.flatMap((n) => n.tokens),
             group.error || [],
         )

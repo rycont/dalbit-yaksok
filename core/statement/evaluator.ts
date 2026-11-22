@@ -2,6 +2,7 @@ import {
     Evaluable,
     Extension,
     Scope,
+    ScopeChain,
     Statement,
     StatementCaller,
     Token,
@@ -12,29 +13,33 @@ export class Evaluator implements Statement {
     public parsingErrors: YaksokError[] = []
 
     constructor(
+        public scope: Scope,
         public evaluable: Evaluable,
         public tokens: Token[],
     ) {}
 
-    async execute(scope: Scope) {
-        await this.evaluable.execute(scope)
+    async execute(scopeChain: ScopeChain) {
+        await this.evaluable.execute(scopeChain)
     }
 
-    validate(scope: Scope) {
-        return this.evaluable.validate(scope)
+    validate() {
+        return this.evaluable.validate(this.scope)
     }
 
     static SRFallback: Extension = {
         capabilties: {
             Grammer: [
                 {
-                    name: '',
-                    factory(code, parse) {
+                    name: 'SR Fallback',
+                    factory(code, parse, scope) {
                         const [line, lineConsumed] = code.consume()
 
                         const parsed = parse.value(line.validTokens)
 
-                        if (parsed instanceof StatementCaller) {
+                        if (
+                            parsed instanceof StatementCaller &&
+                            lineConsumed.block
+                        ) {
                             const [bodyTokens, bodyConsumed] =
                                 lineConsumed.block.consume()
 
@@ -49,7 +54,11 @@ export class Evaluator implements Statement {
                         }
 
                         return {
-                            instance: new Evaluator(parsed, parsed.tokens),
+                            instance: new Evaluator(
+                                scope,
+                                parsed,
+                                parsed.tokens,
+                            ),
                             consumed: lineConsumed,
                         }
                     },

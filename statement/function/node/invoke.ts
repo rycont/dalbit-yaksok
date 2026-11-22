@@ -7,44 +7,38 @@ import {
     ErrorInFFIExecution,
     ErrorOccurredWhileRunningFFIExecution,
     YaksokError,
-    NotDefinedIdentifierError,
     EmptyValue,
+    ScopeChain,
 } from '@dalbit-yaksok/core'
 import { InvokingArguments } from './arguments'
-import { FunctionDeclareHeader } from './header'
+import { FunctionSlot } from '../slot'
 
 export class FunctionInvoke extends Evaluable {
     static override friendlyName = '약속 사용하기'
 
     constructor(
-        private readonly declareHeader: FunctionDeclareHeader,
+        public scope: Scope,
+        private slot: FunctionSlot,
         public readonly invokingArguments: InvokingArguments,
         public override tokens: Token[],
     ) {
         super()
     }
 
-    override async execute(scope: Scope): Promise<ValueType> {
-        const evaluatedArgument = await this.invokingArguments.execute(scope)
-        const functionObject = this.declareHeader.runnable
-
-        if (!functionObject) {
-            throw new NotDefinedIdentifierError({
-                resource: {
-                    name: this.declareHeader.signature.functionName,
-                },
-            })
-        }
+    override async execute(scopeChain: ScopeChain): Promise<ValueType> {
+        const evaluatedArgument = await this.invokingArguments.execute(
+            this.scope,
+        )
 
         try {
             const returnValue =
-                (await functionObject.run(evaluatedArgument)) ||
+                (await this.slot.runnable.run(evaluatedArgument, scopeChain)) ||
                 new EmptyValue()
 
             assertValidReturnValue(
                 returnValue,
                 this.tokens,
-                this.declareHeader.signature.functionName,
+                this.slot.runnable.name,
             )
 
             return returnValue
@@ -54,7 +48,7 @@ export class FunctionInvoke extends Evaluable {
                     {
                         child: error,
                         tokens: this.tokens,
-                        ffiName: this.declareHeader.signature.functionName,
+                        ffiName: this.slot.name,
                     },
                 )
 
@@ -71,7 +65,7 @@ export class FunctionInvoke extends Evaluable {
         }
     }
 
-    override validate(invokingScope: Scope): YaksokError[] {
-        return this.invokingArguments.validate(invokingScope)
+    override validate(): YaksokError[] {
+        return this.invokingArguments.validate(this.scope)
     }
 }

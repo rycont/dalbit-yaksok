@@ -17,7 +17,7 @@ export interface TokenLine {
 }
 
 export interface FactoryParsers {
-    statement: (lines: TokenLine[]) => Block
+    statement: (lines: TokenLine[], scope?: Scope) => Block
     value: (tokens: Token[]) => Evaluable
 }
 

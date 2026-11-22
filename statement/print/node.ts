@@ -4,6 +4,7 @@ import {
     Scope,
     YaksokError,
     Statement,
+    ScopeChain,
 } from '@dalbit-yaksok/core'
 
 export class Print implements Statement {
@@ -11,18 +12,19 @@ export class Print implements Statement {
     public parsingErrors: YaksokError[] = []
 
     constructor(
+        public scope: Scope,
         private value: Evaluable,
         public tokens: Token[],
     ) {}
 
-    async execute(scope: Scope): Promise<void> {
-        const printFunction = scope.session?.stdout ?? console.log
-        const evaluated = await this.value.execute(scope)
+    async execute(scopeChain: ScopeChain): Promise<void> {
+        const printFunction = this.scope.session?.stdout ?? console.log
+        const evaluated = await this.value.execute(scopeChain)
 
         printFunction(evaluated.toPrint())
     }
 
-    validate(scope: Scope): YaksokError[] {
-        return this.value.validate(scope)
+    validate(): YaksokError[] {
+        return this.value.validate(this.scope)
     }
 }

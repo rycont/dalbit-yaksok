@@ -4,7 +4,6 @@ import {
     Scope,
     RESERVED_WORDS,
     NotProperIdentifierNameToDefineError,
-    RunnableObject,
     Statement,
 } from '@dalbit-yaksok/core'
 
@@ -16,22 +15,22 @@ import { MissingFunctionBody } from '../error/no-body.ts'
 
 export class FunctionDeclareHeader implements Statement {
     public parsingErrors: YaksokError[] = []
-    public runnable?: RunnableObject = undefined
 
     constructor(
         public signature: FunctionSignature,
         public tokens: Token[],
+        public scope: Scope,
     ) {}
 
     public injectError(error: YaksokError) {
         this.parsingErrors.push(error)
     }
 
-    execute(scope: Scope): Promise<void> {
-        throw this.validate(scope)[0]
+    execute(): Promise<void> {
+        throw this.validate()[0]
     }
 
-    validate(scope: Scope): YaksokError[] {
+    validate(): YaksokError[] {
         const firstOptionalParameter = this.signature.parameterScheme.findIndex(
             (s) => s.optional,
         )
@@ -49,7 +48,6 @@ export class FunctionDeclareHeader implements Statement {
                       tokens: this.signature.parameterScheme[
                           lastRequiredParameter
                       ].tokens,
-                      scope,
                   }),
               ]
             : []
@@ -61,7 +59,7 @@ export class FunctionDeclareHeader implements Statement {
                 (t) =>
                     new NotProperIdentifierNameToDefineError({
                         tokens: [t],
-                        scope,
+                        scope: this.scope,
                     }),
             )
 
@@ -70,7 +68,7 @@ export class FunctionDeclareHeader implements Statement {
                 ? [
                       new FunctionMustHaveSignature({
                           statement: this,
-                          scope,
+                          scope: this.scope,
                           tokens: this.tokens,
                       }),
                   ]
@@ -80,14 +78,14 @@ export class FunctionDeclareHeader implements Statement {
                   ? []
                   : [
                         new FunctionMustHaveOneOrMoreStringPartError({
-                            scope,
+                            scope: this.scope,
                             statement: this,
                             tokens: this.tokens,
                         }),
                     ]
 
         for (const e of this.parsingErrors) {
-            e.scope = scope
+            e.scope = this.scope
         }
 
         return this.parsingErrors
@@ -97,7 +95,7 @@ export class FunctionDeclareHeader implements Statement {
             .concat(
                 new MissingFunctionBody({
                     statement: this,
-                    scope,
+                    scope: this.scope,
                 }),
             )
     }

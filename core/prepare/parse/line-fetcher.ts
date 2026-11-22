@@ -28,14 +28,16 @@ export function createLineFetcher(
     currentIndex: number = 0,
 ): LineFetcher<boolean> {
     const lookingLine = lines[currentIndex]
-    const baseIndex = lines[currentIndex - 1]?.level ?? 0
+    const baseLevel = lines[currentIndex - 1]?.level ?? 0
 
-    const hasFollowingBlock = baseIndex + 1 === lines[currentIndex].level
+    const hasFollowingBlock = lookingLine
+        ? baseLevel + 1 === lookingLine.level
+        : false
 
     function getBlockLines() {
         const firstLineAfterBlockIndex = lines
             .slice(currentIndex)
-            .findIndex((l) => l.level <= baseIndex && 0 < l.validTokens.length)
+            .findIndex((l) => l.level <= baseLevel && 0 < l.validTokens.length)
 
         const blockEndIndex =
             firstLineAfterBlockIndex === -1
@@ -52,18 +54,14 @@ export function createLineFetcher(
     return {
         currentIndex,
         look: lookingLine,
-        get consume() {
-            if (currentIndex + 1 === lines.length) {
-                return null
-            }
-
-            return () => {
-                return [
-                    lookingLine,
-                    createLineFetcher(lines, currentIndex + 1),
-                ] as [TokenLine, LineFetcher]
-            }
-        },
+        consume: lookingLine
+            ? () => {
+                  return [
+                      lookingLine,
+                      createLineFetcher(lines, currentIndex + 1),
+                  ]
+              }
+            : null,
         get block() {
             if (!hasFollowingBlock) {
                 return null
@@ -76,12 +74,10 @@ export function createLineFetcher(
                 consume() {
                     return [
                         blockLines,
-                        lines.length <= currentIndex + blockLines.length
-                            ? createLineFetcher(
-                                  lines,
-                                  currentIndex + blockLines.length,
-                              )
-                            : null,
+                        createLineFetcher(
+                            lines,
+                            currentIndex + blockLines.length,
+                        ),
                     ] as [TokenLine[], LineFetcher]
                 },
             }

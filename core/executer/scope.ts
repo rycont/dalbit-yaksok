@@ -1,30 +1,23 @@
 import {
-    AlreadyDefinedFunctionError,
-    NotDefinedIdentifierError,
-    Token,
     ValueType,
     YaksokSession,
-    RunnableObject,
-    Identifier,
-    NotProperIdentifierNameToDefineError,
-    Node,
-    r,
     CodeFile,
     RuleList,
     concatRuleList,
-    createRuleList,
+    createMentioningRule,
+    Slot,
+    Brand,
 } from '@dalbit-yaksok/core'
-import { RESERVED_WORDS } from '../constant/reserved-words.ts'
-import { j } from '@dalbit-yaksok/pattern'
-import { DeclareEvent } from '@dalbit-yaksok/statement-function'
+
+export type SlotKey = Brand<symbol, 'SlotKey'>
 
 export class Scope {
-    variables: Record<string, ValueType>
     parent: Scope | null
 
+    public slots = new Map<SlotKey, Slot>()
+    public run = new Map<symbol, Map<symbol, ValueType>>()
+
     public readonly id: string = crypto.randomUUID()
-    public readonly functions: Map<string, RunnableObject> = new Map()
-    public readonly events: Map<string, DeclareEvent> = new Map()
 
     public readonly session: YaksokSession
     public readonly codeFile?: CodeFile
@@ -33,33 +26,38 @@ export class Scope {
     private _finalized = false
 
     constructor(
-        config: (
+        config:
             | {
                   codeFile?: CodeFile
                   session: YaksokSession
               }
             | {
                   parent: Scope
-              }
-        ) & {
-            initialVariable?: Record<string, ValueType> | null
-        },
+              },
     ) {
-        this.variables = config.initialVariable || Object.create(null)
-
         if ('session' in config) {
             this.parent = config.session.baseScope
             this.codeFile = config.codeFile
             this.session = config.session
 
-            const rdrules = config.session.extensions.flatMap(
-                (e) => e.capabilties.Grammer,
-            )
-
-            this.ruleList = {
-                rd: rdrules,
+            const extendedRules = {
+                rd: config.session.extensions.flatMap(
+                    (e) => e.capabilties.Grammer || [],
+                ),
                 sr: [],
             }
+
+            const mentionRule = Object.entries(config.session.files)
+                .filter(([_, codeFile]) => codeFile.ranScope)
+                .map(([fileName, codeFile]) =>
+                    createMentioningRule(
+                        fileName,
+                        codeFile.ranScope.ruleList,
+                        codeFile.ranScope,
+                    ),
+                )
+
+            this.ruleList = concatRuleList(mentionRule.concat(extendedRules))
         } else {
             this.parent = config.parent
             this.session = config.parent.session
@@ -80,124 +78,33 @@ export class Scope {
         this._finalized = true
     }
 
-    setVariable(name: string, value: ValueType) {
-        if (this.parent?.askSetVariable(name, value)) {
-            return
-        }
+    public addSlot(slot: Slot): SlotKey {
+        const key = Symbol(slot.name) as SlotKey
+        this.slots.set(key, slot)
 
-        if (RESERVED_WORDS.has(name)) {
-            throw new NotProperIdentifierNameToDefineError()
-        }
-
-        this.variables[name] = value
+        return key
     }
 
-    askSetVariable(name: string, value: ValueType): boolean {
-        if (this._finalized) {
-            return false
-        }
+    public *getSlotNames(): Generator<string | symbol> {
+        yield* this.slots.keys()
 
-        if (name in this.variables) {
-            this.variables[name] = value
-            return true
+        if (this.parent) {
+            yield* this.parent.getSlotNames()
+        }
+    }
+
+    findSlot(name: string): [SlotKey, Scope] {
+        const slot = this.slots.entries().find(([_, s]) => s.name === name)?.[0]
+
+        if (slot) {
+            return [slot, this]
         }
 
         if (this.parent) {
-            return this.parent.askSetVariable(name, value)
+            return this.parent.findSlot(name)
         }
 
-        return false
-    }
-
-    getVariable(name: string, tokens?: Token[]): ValueType {
-        if (name in this.variables) {
-            const value = this.variables[name]
-            return value
-        }
-
-        if (this.parent) {
-            return this.parent.getVariable(name, tokens)
-        }
-
-        const errorInstance = new NotDefinedIdentifierError({
-            resource: {
-                name,
-            },
-        })
-
-        throw errorInstance
-    }
-
-    public *getAccessibleNames(): Generator<string> {
-        for (const key in this.variables) {
-            yield key
-        }
-
-        if (this.parent) {
-            yield* this.parent.getAccessibleNames()
-        }
-    }
-
-    addFunctionObject(functionObject: RunnableObject) {
-        if (this.functions.has(functionObject.name)) {
-            const errorInstance = new AlreadyDefinedFunctionError({
-                resource: {
-                    name: functionObject.name,
-                },
-                scope: this,
-            })
-
-            throw errorInstance
-        }
-
-        this.functions.set(functionObject.name, functionObject)
-    }
-
-    getFunctionObject(name: string): RunnableObject {
-        const fromCurrentScope = this.functions.get(name)
-        if (fromCurrentScope) return fromCurrentScope
-
-        if (this.parent) {
-            return this.parent.getFunctionObject(name)
-        }
-
-        const errorInstance = new NotDefinedIdentifierError({
-            resource: {
-                name,
-            },
-        })
-
-        throw errorInstance
-    }
-
-    public getExportedRules(): RuleList {
-        const rulesFromParent = this.parent?.getExportedRules()
-
-        const variableRules = Object.keys(this.variables).map((v) =>
-            r<Node[]>({
-                pattern: [
-                    j.instance(Identifier).field({ value: j.literal(v) }),
-                ],
-                factory([node]) {
-                    return node
-                },
-            }),
-        )
-
-        const functionRules = this.functions
-            .values()
-            .map((v) => v.invokeRules)
-            .toArray()
-
-        return concatRuleList(
-            [
-                rulesFromParent,
-                {
-                    sr: variableRules,
-                    rd: [],
-                },
-            ].concat(functionRules),
-        )
+        return [null, this]
     }
 
     public *getRuleListStack(): Generator<RuleList> {
@@ -216,3 +123,40 @@ export class Scope {
         this.ruleList = concatRuleList([this.ruleList, ruleList])
     }
 }
+
+export type ScopeChain = Map<Scope, symbol>
+
+// export interface ScopeChain {
+//     setSlotValue(key: SlotKey, value: ValueType): void
+//     getSlotValue(key: SlotKey): ValueType
+//     createChild(scope: Scope): ScopeChain
+// }
+
+// export function createScopeChain(
+//     scope: Scope,
+//     parent?: ScopeChain,
+// ): ScopeChain {
+//     const runId = Symbol()
+//     const run = new Map()
+//
+//     scope.run.set(runId, new Map())
+//
+//     const instance: ScopeChain = {
+//         setSlotValue(key, value) {
+//             if (scope.slots.has(key)) {
+//                 run.set(key, value)
+//                 return
+//             }
+//
+//             parent?.setSlotValue?.(key, value)
+//         },
+//         getSlotValue(key) {
+//             return run.get(key)
+//         },
+//         createChild(childScope) {
+//             return createScopeChain(childScope, instance)
+//         },
+//     }
+//
+//     return instance
+// }

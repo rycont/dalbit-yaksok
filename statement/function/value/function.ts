@@ -4,8 +4,8 @@ import {
     ObjectValue,
     RunnableObject,
     Scope,
+    ScopeChain,
     ValueType,
-    RuleList,
 } from '@dalbit-yaksok/core'
 import { ReturnSignal } from '../signal.ts'
 
@@ -17,22 +17,23 @@ export class FunctionObject extends ObjectValue implements RunnableObject {
     constructor(
         public name: string,
         private body: Block,
-        public invokeRules: RuleList,
-        private declaredScope: Scope,
+        private runningScope: Scope,
     ) {
         super()
     }
 
     public async run(
-        args: Map<string | symbol, ValueType>,
+        args: Map<symbol, ValueType>,
+        scopeChain: ScopeChain,
     ): Promise<ValueType> {
-        const functionScope = new Scope({
-            parent: this.declaredScope,
-            initialVariable: Object.fromEntries(args.entries()),
-        })
-
         try {
-            await this.body.execute(functionScope)
+            const newChain = new Map(scopeChain)
+            const newRun = Symbol()
+
+            newChain.set(this.runningScope, newRun)
+            this.runningScope.run.set(newRun, new Map(args))
+
+            await this.body.execute(newChain)
         } catch (e) {
             if (e instanceof ReturnSignal) {
                 return e.value || DEFAULT_RETURN_VALUE

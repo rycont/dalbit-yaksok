@@ -1,17 +1,11 @@
 import {
     Block,
-    concatRuleList,
-    createMentioningRule,
     executer,
-    Identifier,
     inferTokenSplitpointsFromErrors,
-    Node,
     NotDefinedIdentifierError,
     parseStatement,
     postprocessErrors,
-    r,
     renderErrorString,
-    RuleList,
     RuntimeContext,
     Scope,
     Splitpoint,
@@ -21,7 +15,6 @@ import {
     getLineTokens,
     type Token,
 } from '@dalbit-yaksok/core'
-import { j } from '@dalbit-yaksok/pattern'
 
 export class CodeFile {
     readonly ast: Block
@@ -29,7 +22,6 @@ export class CodeFile {
     readonly text: string
     readonly prepareErrors: YaksokError[]
 
-    private _mentionRules: RuleList | null = null
     private _ranScope: Scope | null = null
 
     constructor(
@@ -64,12 +56,9 @@ export class CodeFile {
         return this._ranScope
     }
 
-    public get mentionRules(): RuleList | null {
-        return this._mentionRules
-    }
-
     public async run(runtimeContext?: Partial<RuntimeContext>): Promise<Scope> {
         if (this.prepareErrors.length !== 0) {
+            // console.log(this.ast.statements[0])
             throw new Error('오류가 존재하는 CodeFile은 실행할 수 없습니다.')
         }
 
@@ -84,7 +73,7 @@ export class CodeFile {
 
         try {
             await this.session.withRuntimeContext(
-                () => executer(this.ast, rootScope),
+                () => executer(this.ast),
                 runtimeContext?.entry
                     ? (runtimeContext as Partial<RuntimeContext> &
                           Pick<RuntimeContext, 'entry'>)
@@ -99,60 +88,6 @@ export class CodeFile {
             rootScope.finalize()
 
             this._ranScope = rootScope
-
-            const exportedFunctionRules = concatRuleList(
-                rootScope.functions
-                    .values()
-                    .map((v) =>
-                        createMentioningRule(
-                            this.fileName,
-                            v.invokeRules,
-                            rootScope,
-                        ),
-                    )
-                    .toArray(),
-            )
-
-            const exportedEventRules = concatRuleList(
-                rootScope.events
-                    .values()
-                    .map((n) =>
-                        createMentioningRule(
-                            this.fileName,
-                            n.header.runnable!.invokeRules,
-                            rootScope,
-                        ),
-                    )
-                    .toArray(),
-            )
-
-            const exportedVariableRules = createMentioningRule(
-                this.fileName,
-                {
-                    sr: [
-                        r<Node[]>({
-                            pattern: [
-                                j.instance(Identifier).field({
-                                    value: j.enum(
-                                        Object.keys(rootScope.variables),
-                                    ),
-                                }),
-                            ],
-                            factory([node]) {
-                                return node
-                            },
-                        }),
-                    ],
-                    rd: [],
-                },
-                rootScope,
-            )
-
-            this._mentionRules = concatRuleList([
-                exportedFunctionRules,
-                exportedVariableRules,
-                exportedEventRules,
-            ])
 
             return rootScope
         } catch (e) {
@@ -179,7 +114,6 @@ function parseWithSession(code: string, session: YaksokSession) {
     let ast: Block
     let inferredSplitpoints: Splitpoint[] = []
     let tokens: Token[] | null = null
-    let validatingScope: Scope
 
     while (true) {
         tokens = tokenize(code, inferredSplitpoints)
@@ -197,19 +131,9 @@ function parseWithSession(code: string, session: YaksokSession) {
 
         const parseResult = parseStatement(tokenLines, scope)
 
-        ast = new Block(parseResult.statements, tokens)
+        ast = new Block(scope, parseResult.statements, tokens)
 
-        validatingScope = new Scope(
-            session.baseScope
-                ? {
-                      parent: session.baseScope,
-                  }
-                : {
-                      session,
-                  },
-        )
-
-        validationErrors = ast.validate(validatingScope)
+        validationErrors = ast.validate()
 
         const missingIdentifierErrors = validationErrors.filter(
             (e) => e instanceof NotDefinedIdentifierError,

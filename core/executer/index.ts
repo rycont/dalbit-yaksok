@@ -1,14 +1,14 @@
-import { Statement } from '../mod.ts'
-
-import { Scope } from './scope.ts'
+import { Block } from '../mod.ts'
 import { Signal } from './signals.ts'
 
-export async function executer<NodeType extends Statement>(
-    node: NodeType,
-    scope: Scope,
-): Promise<void> {
+export async function executer(block: Block): Promise<void> {
     try {
-        await node.execute(scope)
+        const runId = Symbol('root')
+
+        const scopeChain = new Map([[block.scope, runId]])
+        block.scope.run.set(runId, new Map())
+
+        await block.execute(scopeChain)
     } catch (e) {
         if (e instanceof Signal) {
             throw e.getUnhandledError()

@@ -1,6 +1,7 @@
 export * from './executer/context.ts'
 export * from './executer/index.ts'
 export * from './executer/internal/isTruthy.ts'
+export * from './executer/slot.ts'
 export * from './executer/scope.ts'
 export * from './executer/signals.ts'
 

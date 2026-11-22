@@ -53,10 +53,10 @@ function createStatement(
     scope: Scope,
 ): FactoryResult | null {
     const parser: FactoryParsers = {
-        statement(blockTokenLines) {
-            const { statements } = parseStatement(blockTokenLines, scope)
+        statement(blockTokenLines, subScope = scope) {
+            const { statements } = parseStatement(blockTokenLines, subScope)
             const blockTokens = blockTokenLines.flatMap((l) => l.validTokens)
-            const node = new Block(statements, blockTokens)
+            const node = new Block(subScope, statements, blockTokens)
 
             return node
         },

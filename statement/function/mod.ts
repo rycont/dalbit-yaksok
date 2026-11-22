@@ -1,4 +1,4 @@
-import { TOKEN_TYPE, UnexpectedTokenError } from '@dalbit-yaksok/core'
+import { Scope, TOKEN_TYPE, UnexpectedTokenError } from '@dalbit-yaksok/core'
 import type { Extension, Token, RDRule } from '@dalbit-yaksok/core'
 
 import { j } from '@dalbit-yaksok/pattern'
@@ -9,6 +9,8 @@ import { DeclareEvent, DeclareFFI, DeclareFunction } from './node/declare.ts'
 import { createEventSubscriptionRules } from './calling-rule/event.ts'
 import { ReturnStatement } from './node/return.ts'
 import { MissingFunctionBody } from './error/no-body.ts'
+import { FunctionObject } from './value/function.ts'
+import { createFunctionSlot, createParameterSlot } from './slot.ts'
 
 export * from './error/no-static.ts'
 export * from './error/no-body.ts'
@@ -102,6 +104,7 @@ const functionGrammer: RDRule = {
         const header = new FunctionDeclareHeader(
             signatureResult.signature,
             line.validTokens,
+            scope,
         )
 
         if (signatureResult.notParsableTokens.length) {
@@ -115,10 +118,10 @@ const functionGrammer: RDRule = {
             )
         }
 
-        const callingRules = createCallingRules(
-            signatureResult.signature,
-            header,
-        )
+        // const callingRules = createCallingRules(
+        //     signatureResult.signature,
+        //     header,
+        // )
 
         if (testResult.type === '약속') {
             if (!headerConsumed.block) {
@@ -126,25 +129,62 @@ const functionGrammer: RDRule = {
             }
 
             const [bodyTokens, bodyConsumed] = headerConsumed.block.consume()
-            const body = parse.statement(bodyTokens)
+
+            const [setRunnable, runnableSlot] = createFunctionSlot(
+                header.signature.functionName,
+            )
+
+            scope.addSlot(runnableSlot)
+
+            const subscope = new Scope({
+                parent: scope,
+            })
+
+            const parameterSlots = new Map(
+                header.signature.parameterScheme.map((p) => [
+                    p,
+                    subscope.addSlot(createParameterSlot(p.name)),
+                ]),
+            )
+
+            const callingRules = createCallingRules(
+                signatureResult.signature,
+                scope,
+                runnableSlot,
+                parameterSlots,
+            )
+
+            scope.addRuleList(callingRules)
+
+            const body = parse.statement(bodyTokens, subscope)
+
+            setRunnable(
+                new FunctionObject(
+                    header.signature.functionName,
+                    body,
+                    subscope,
+                ),
+            )
 
             const instance =
                 body.statements.length === 0
                     ? header
                     : new DeclareFunction(
-                          body,
-                          header,
-                          callingRules,
+                          scope,
                           line.validTokens.concat(body.tokens),
                       )
 
+            instance.parsingErrors = body.validate().concat(header.validate())
+
             return {
                 instance,
-                rule: callingRules,
                 consumed: bodyConsumed,
             }
         } else if (testResult.type === '번역') {
-            const [ffiBody, ffiConsumed] = headerConsumed.consume()
+            const [ffiBody, ffiConsumed] = headerConsumed.consume?.() || [
+                undefined,
+                headerConsumed,
+            ]
 
             const bodyToken = ffiBody?.validTokens[0]
 
@@ -156,6 +196,7 @@ const functionGrammer: RDRule = {
                 : ''
 
             const instance = new DeclareFFI(
+                scope,
                 callingRules,
                 header,
                 testResult.runtime,
@@ -171,9 +212,10 @@ const functionGrammer: RDRule = {
                 )
             }
 
+            scope.addRuleList(callingRules)
+
             return {
                 instance,
-                rule: callingRules,
                 consumed: ffiConsumed,
             }
         } else if (testResult.type === '이벤트') {
@@ -186,6 +228,7 @@ const functionGrammer: RDRule = {
 
             return {
                 instance: new DeclareEvent(
+                    scope,
                     eventSubscriptionRule,
                     header,
                     testResult.id,

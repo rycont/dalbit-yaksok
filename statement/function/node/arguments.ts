@@ -6,23 +6,30 @@ import {
     Scope,
     UnexpectedArgumentError,
     Token,
+    SlotKey,
+    ScopeChain,
 } from '@dalbit-yaksok/core'
 
 import { MissingRequiredArgumentError } from '../error/missing-required'
 import { ParameterElement } from '../type'
 
 export class InvokingArguments {
-    private readonly optionalFiller: [string, ValueType][]
+    private readonly optionalFiller: [SlotKey, ValueType][]
 
     constructor(
-        public readonly argumentValues: Map<string, Evaluable>,
+        public readonly scope: Scope,
         public readonly parameterScheme: ParameterElement[],
+        public readonly parameterSlots: Map<ParameterElement, SlotKey>,
+        public readonly argumentValues: Map<SlotKey, Evaluable>,
         public readonly tokens: Token[],
         public readonly parsingErrors: YaksokError[],
     ) {
         const optionalKeys = new Set(
-            parameterScheme.filter((p) => p.optional).map((p) => p.name),
+            parameterScheme
+                .filter((p) => p.optional)
+                .map((p) => parameterSlots.get(p)),
         )
+
         const providedKeys = new Set(argumentValues.keys())
 
         const missingOptionals = Array.from(
@@ -35,15 +42,15 @@ export class InvokingArguments {
         ])
     }
 
-    async execute(scope: Scope): Promise<Map<string, ValueType>> {
+    async execute(scopeChain: ScopeChain): Promise<Map<symbol, ValueType>> {
         const args = new Map(
             this.optionalFiller.concat(
                 await Promise.all(
                     this.argumentValues
                         .entries()
-                        .map<Promise<[string, ValueType]>>(async ([k, v]) => [
+                        .map<Promise<[SlotKey, ValueType]>>(async ([k, v]) => [
                             k,
-                            await v.execute(scope),
+                            await v.execute(scopeChain),
                         ])
                         .toArray(),
                 ),
@@ -61,7 +68,9 @@ export class InvokingArguments {
         const providedArguments = new Set(this.argumentValues.keys())
 
         const requiredArguments = new Set(
-            this.parameterScheme.filter((p) => !p.optional).map((p) => p.name),
+            this.parameterScheme
+                .filter((p) => !p.optional)
+                .map((p) => this.parameterSlots.get(p)),
         )
 
         const missingKeys = new Set(requiredArguments).difference(
@@ -80,7 +89,7 @@ export class InvokingArguments {
               ]
             : []
 
-        const knownKeys = new Set(this.parameterScheme.map((p) => p.name))
+        const knownKeys = new Set(this.parameterSlots.values())
         const unknownKeys = Array.from(providedArguments.difference(knownKeys))
 
         const unknownKeysError = unknownKeys.length

@@ -2,6 +2,7 @@ import {
     Evaluable,
     Extension,
     FactoryParsers,
+    Identifier,
     IndexFetch,
     NotProperIdentifierNameToDefineError,
     Token,
@@ -11,6 +12,7 @@ import {
 import { j } from '@dalbit-yaksok/pattern'
 import { SetVariable } from './node'
 import { SetToIndex } from './set-index-node'
+import { createVariableSlot } from './slot'
 
 const pattern = j
     .type<Token[]>()
@@ -43,7 +45,7 @@ const extension: Extension = {
         Grammer: [
             {
                 name: '변수 정하기',
-                factory(code, parse) {
+                factory(code, parse, scope) {
                     const [line, consumed] = code.consume()
 
                     const testResult = pattern.func(
@@ -56,12 +58,34 @@ const extension: Extension = {
                     }
 
                     const nameExtraction = extractName(testResult.name, parse)
-                    const settingValue = parse.value(testResult.value)
+                    const evaluator = parse.value(testResult.value)
 
                     if (nameExtraction.type === 'identifier') {
-                        const node = new SetVariable(
+                        let [slotKey, foundScope] = scope.findSlot(
                             nameExtraction.name,
-                            settingValue,
+                        )
+
+                        if (!slotKey) {
+                            const newSlot = createVariableSlot(
+                                nameExtraction.name,
+                            )
+
+                            slotKey = scope.addSlot(newSlot)
+                        }
+
+                        const declaredScope = foundScope ?? scope
+
+                        const target = new Identifier(
+                            declaredScope,
+                            slotKey,
+                            nameExtraction.name,
+                            testResult.name,
+                        )
+
+                        const node = new SetVariable(
+                            scope,
+                            target,
+                            evaluator,
                             line.validTokens,
                             testResult.operator,
                         )
@@ -85,7 +109,7 @@ const extension: Extension = {
                                 nameExtraction.index,
                                 testResult.name,
                             ),
-                            settingValue,
+                            evaluator,
                             testResult.operator,
                             line.validTokens,
                         ),

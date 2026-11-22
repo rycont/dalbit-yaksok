@@ -18,7 +18,7 @@ const extension: Extension = {
         Grammer: [
             {
                 name: '보여주기',
-                factory(code, parse) {
+                factory(code, parse, scope) {
                     const [line, consumed] = code.consume()
                     const test = pattern.func(pattern.id, line.validTokens)
 
@@ -28,7 +28,7 @@ const extension: Extension = {
 
                     const content = parse.value(test.content)
                     return {
-                        instance: new Print(content, line.validTokens),
+                        instance: new Print(scope, content, line.validTokens),
                         consumed,
                     }
                 },

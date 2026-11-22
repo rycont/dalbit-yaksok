@@ -37,6 +37,7 @@ export class NotDefinedIdentifierError extends YaksokError<NotDefinedIdentifierE
         tokens?: Token[]
         resource: NotDefinedIdentifierErrorResource
         texts?: string[]
+        scope: Scope
     }) {
         super(props)
     }
