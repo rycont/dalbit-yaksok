@@ -130,11 +130,11 @@ const functionGrammer: RDRule = {
 
             const [bodyTokens, bodyConsumed] = headerConsumed.block.consume()
 
-            const [setRunnable, runnableSlot] = createFunctionSlot(
+            const runnableSlot = createFunctionSlot(
                 header.signature.functionName,
             )
 
-            scope.addSlot(runnableSlot)
+            const slotKey = scope.addSlot(runnableSlot)
 
             const subscope = new Scope({
                 parent: scope,
@@ -150,7 +150,7 @@ const functionGrammer: RDRule = {
             const callingRules = createCallingRules(
                 signatureResult.signature,
                 scope,
-                runnableSlot,
+                slotKey,
                 parameterSlots,
             )
 
@@ -158,19 +158,13 @@ const functionGrammer: RDRule = {
 
             const body = parse.statement(bodyTokens, subscope)
 
-            setRunnable(
-                new FunctionObject(
-                    header.signature.functionName,
-                    body,
-                    subscope,
-                ),
-            )
-
             const instance =
                 body.statements.length === 0
                     ? header
                     : new DeclareFunction(
                           scope,
+                          slotKey,
+                          body,
                           line.validTokens.concat(body.tokens),
                       )
 

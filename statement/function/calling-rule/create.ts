@@ -2,13 +2,11 @@ import { RuleList, Scope, SlotKey } from '@dalbit-yaksok/core'
 import { FunctionPartType, FunctionSignature, ParameterElement } from '../type'
 import { createInterleavingRule } from './interleaving'
 import { createBlockRule } from './block'
-import { FunctionSlot } from '../slot'
 
 export function createCallingRules(
     signature: FunctionSignature,
-    // header: FunctionDeclareHeader,
     scope: Scope,
-    slot: FunctionSlot,
+    slot: SlotKey,
     parameterSlots: Map<ParameterElement, SlotKey>,
 ): RuleList {
     const interleavingRule = createInterleavingRule(
@@ -31,7 +29,7 @@ export function createCallingRules(
         }
     }
 
-    const blockRule = createBlockRule(signature)
+    const blockRule = createBlockRule(scope, signature, parameterSlots, slot)
 
     return {
         sr: [interleavingRule],

@@ -3,9 +3,11 @@ import {
     Token,
     TOKEN_TYPE,
     RDRule,
+    Scope,
 } from '@dalbit-yaksok/core'
 import { j } from '@dalbit-yaksok/pattern'
 import { ListLoop } from './node'
+import { createItemIndicatorSlot } from './slot'
 
 const patternA = j
     .type<Token[]>()
@@ -49,7 +51,7 @@ const patternB = j
 
 const grammer: RDRule = {
     name: '리스트 순회',
-    factory(code, parse) {
+    factory(code, parse, scope) {
         const [line, lineConsumed] = code.consume()
 
         const test =
@@ -63,12 +65,20 @@ const grammer: RDRule = {
         const loopTarget = parse.value(test.loopTarget)
         const loopIndex = extractName(test.name)
 
+        const bodyScope = new Scope({
+            parent: scope,
+        })
+
+        const slot = createItemIndicatorSlot(loopIndex.name)
+        const slotKey = bodyScope.addSlot(slot)
+
         const [bodyTokens, bodyConsumed] = lineConsumed.block.consume()
-        const body = parse.statement(bodyTokens)
+        const body = parse.statement(bodyTokens, bodyScope)
 
         const instance = new ListLoop(
+            scope,
             loopTarget,
-            loopIndex.name,
+            slotKey,
             body,
             line.validTokens,
         )

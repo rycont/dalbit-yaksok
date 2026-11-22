@@ -1,6 +1,7 @@
 import {
     Evaluable,
     Extension,
+    RDRule,
     Scope,
     ScopeChain,
     Statement,
@@ -26,44 +27,30 @@ export class Evaluator implements Statement {
         return this.evaluable.validate(this.scope)
     }
 
-    static SRFallback: Extension = {
-        capabilties: {
-            Grammer: [
-                {
-                    name: 'SR Fallback',
-                    factory(code, parse, scope) {
-                        const [line, lineConsumed] = code.consume()
+    static SRFallback: RDRule = {
+        name: 'SR Fallback',
+        factory(code, parse, scope) {
+            const [line, lineConsumed] = code.consume()
 
-                        const parsed = parse.value(line.validTokens)
+            const parsed = parse.value(line.validTokens)
 
-                        if (
-                            parsed instanceof StatementCaller &&
-                            lineConsumed.block
-                        ) {
-                            const [bodyTokens, bodyConsumed] =
-                                lineConsumed.block.consume()
+            if (parsed instanceof StatementCaller && lineConsumed.block) {
+                const [bodyTokens, bodyConsumed] = lineConsumed.block.consume()
 
-                            const body = parse.statement(bodyTokens)
+                const body = parse.statement(bodyTokens)
 
-                            const statement = parsed.toStatement(body)
+                const statement = parsed.toStatement(body)
 
-                            return {
-                                instance: statement,
-                                consumed: bodyConsumed,
-                            }
-                        }
+                return {
+                    instance: statement,
+                    consumed: bodyConsumed,
+                }
+            }
 
-                        return {
-                            instance: new Evaluator(
-                                scope,
-                                parsed,
-                                parsed.tokens,
-                            ),
-                            consumed: lineConsumed,
-                        }
-                    },
-                },
-            ],
+            return {
+                instance: new Evaluator(scope, parsed, parsed.tokens),
+                consumed: lineConsumed,
+            }
         },
     }
 }

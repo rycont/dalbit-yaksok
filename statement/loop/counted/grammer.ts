@@ -34,7 +34,7 @@ const patternB = j
 
 const grammer: RDRule = {
     name: '조건 반복',
-    factory(code, parse) {
+    factory(code, parse, scope) {
         const [line, lineConsumed] = code.consume()
 
         const test =
@@ -51,7 +51,7 @@ const grammer: RDRule = {
         const body = parse.statement(bodyTokens)
 
         return {
-            instance: new CountLoop(count, body, line.validTokens),
+            instance: new CountLoop(scope, count, body, line.validTokens),
             consumed: bodyConsumed,
         }
     },

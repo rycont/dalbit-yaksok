@@ -2,9 +2,8 @@ import {
     assignerToOperatorMap,
     Evaluable,
     Identifier,
+    RunFrame,
     Scope,
-    ScopeChain,
-    SlotKey,
     Statement,
     Token,
     YaksokError,
@@ -23,18 +22,18 @@ export class SetVariable implements Statement {
         public operator: string,
     ) {}
 
-    async execute(scopeChain: ScopeChain) {
+    async execute(runFrame: RunFrame) {
         const operatorNode =
             assignerToOperatorMap[
                 this.operator as keyof typeof assignerToOperatorMap
             ]
 
-        const operand = await this.evaluator.execute(scopeChain)
+        const operand = await this.evaluator.execute(runFrame)
 
         let newValue = operand
 
         if (operatorNode) {
-            const oldValue = this.target.execute(scopeChain)
+            const oldValue = this.target.execute(runFrame)
             const tempOperator = new operatorNode(this.tokens)
 
             try {
@@ -53,11 +52,7 @@ export class SetVariable implements Statement {
             }
         }
 
-        const assignTargetRunId = scopeChain.get(this.target.scope)
-
-        this.target.scope.run
-            .get(assignTargetRunId)
-            .set(this.target.slotKey, newValue)
+        runFrame.set(this.target.slotKey, newValue)
     }
 
     validate(): YaksokError[] {

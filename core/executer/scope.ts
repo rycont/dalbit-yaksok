@@ -7,6 +7,7 @@ import {
     createMentioningRule,
     Slot,
     Brand,
+    EmptyValue,
 } from '@dalbit-yaksok/core'
 
 export type SlotKey = Brand<symbol, 'SlotKey'>
@@ -15,7 +16,6 @@ export class Scope {
     parent: Scope | null
 
     public slots = new Map<SlotKey, Slot>()
-    public run = new Map<symbol, Map<symbol, ValueType>>()
 
     public readonly id: string = crypto.randomUUID()
 
@@ -71,7 +71,7 @@ export class Scope {
     }
 
     public get finalized(): boolean {
-        return this.finalized
+        return this._finalized
     }
 
     public finalize(): void {
@@ -124,39 +124,37 @@ export class Scope {
     }
 }
 
-export type ScopeChain = Map<Scope, symbol>
+export interface RunFrame {
+    get(key: SlotKey): ValueType
+    set(key: SlotKey, value: ValueType): void
+    createChild(scope: Scope): RunFrame
+}
 
-// export interface ScopeChain {
-//     setSlotValue(key: SlotKey, value: ValueType): void
-//     getSlotValue(key: SlotKey): ValueType
-//     createChild(scope: Scope): ScopeChain
-// }
+export function createRunFrame(scope: Scope, parent?: RunFrame): RunFrame {
+    const values = new Map<SlotKey, ValueType>(
+        scope.slots.keys().map((key) => [key, new EmptyValue()]),
+    )
 
-// export function createScopeChain(
-//     scope: Scope,
-//     parent?: ScopeChain,
-// ): ScopeChain {
-//     const runId = Symbol()
-//     const run = new Map()
-//
-//     scope.run.set(runId, new Map())
-//
-//     const instance: ScopeChain = {
-//         setSlotValue(key, value) {
-//             if (scope.slots.has(key)) {
-//                 run.set(key, value)
-//                 return
-//             }
-//
-//             parent?.setSlotValue?.(key, value)
-//         },
-//         getSlotValue(key) {
-//             return run.get(key)
-//         },
-//         createChild(childScope) {
-//             return createScopeChain(childScope, instance)
-//         },
-//     }
-//
-//     return instance
-// }
+    const instance: RunFrame = {
+        get(key) {
+            if (!scope.slots.has(key)) {
+                return parent.get(key)
+            }
+
+            return values.get(key)
+        },
+        set(key, value) {
+            if (!scope.slots.has(key)) {
+                parent.set(key, value)
+                return
+            }
+
+            values.set(key, value)
+        },
+        createChild(childScope: Scope) {
+            return createRunFrame(childScope, instance)
+        },
+    }
+
+    return instance
+}

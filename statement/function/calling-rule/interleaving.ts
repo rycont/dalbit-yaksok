@@ -3,11 +3,10 @@ import { SRRule, Scope, SlotKey, r } from '@dalbit-yaksok/core'
 import { createCallingPattern } from './pattern.ts'
 import { FunctionSignature, ParameterElement } from '../type.ts'
 import { FunctionInvoke } from '../node/invoke.ts'
-import { FunctionSlot } from '../slot.ts'
 
 export function createInterleavingRule(
     scope: Scope,
-    slot: FunctionSlot,
+    slot: SlotKey,
     signature: FunctionSignature,
     parameterSlots: Map<ParameterElement, SlotKey>,
 ): SRRule {

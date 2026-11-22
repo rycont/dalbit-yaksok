@@ -1,10 +1,10 @@
-import { Scope, ScopeChain, Token, YaksokError } from '@dalbit-yaksok/core'
+import { RunFrame, Scope, Token, YaksokError } from '@dalbit-yaksok/core'
 
 export interface Statement {
     scope: Scope
 
     validate(): YaksokError[]
-    execute(scopeChain: ScopeChain): Promise<void>
+    execute(runFrame: RunFrame): Promise<void>
 
     tokens: Token[]
     parsingErrors: YaksokError[]

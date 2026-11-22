@@ -4,7 +4,7 @@ import {
     AbortedSessionSignal,
     type Statement,
     type Token,
-    ScopeChain,
+    RunFrame,
 } from '@dalbit-yaksok/core'
 
 export class Block implements Statement {
@@ -18,14 +18,14 @@ export class Block implements Statement {
         public tokens: Token[],
     ) {}
 
-    async execute(scopeChain: ScopeChain): Promise<void> {
+    async execute(runFrame: RunFrame): Promise<void> {
         for (const child of this.statements) {
             await onRunChild({
                 childTokens: child.tokens,
                 scope: this.scope,
             })
 
-            await child.execute(scopeChain)
+            await child.execute(runFrame)
         }
     }
 

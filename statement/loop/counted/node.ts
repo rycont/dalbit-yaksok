@@ -5,6 +5,7 @@ import {
     NodeCapability,
     NumberValue,
     onRunChild,
+    RunFrame,
     Scope,
     Statement,
     Token,
@@ -19,17 +20,14 @@ export class CountLoop implements Statement {
     public parsingErrors: YaksokError[] = []
 
     constructor(
+        public scope: Scope,
         private count: Evaluable,
         private body: Block,
         public tokens: Token[],
     ) {}
 
-    async execute(parent: Scope): Promise<void> {
-        const scope = new Scope({
-            parent: parent,
-        })
-
-        const countValue = await this.count.execute(scope)
+    async execute(runFrame: RunFrame): Promise<void> {
+        const countValue = await this.count.execute(runFrame)
 
         if (!(countValue instanceof NumberValue)) {
             throw new LoopCountIsNotNumberError({
@@ -43,12 +41,12 @@ export class CountLoop implements Statement {
         try {
             for (let i = 0; i < countNumber; i++) {
                 await onRunChild({
-                    scope,
+                    scope: this.scope,
                     childTokens: this.body.tokens,
                     skipReport: true,
                 })
                 try {
-                    await this.body.execute(scope)
+                    await this.body.execute(runFrame)
                 } catch (e) {
                     if (e instanceof ContinueSignal) continue
                     throw e
@@ -59,7 +57,7 @@ export class CountLoop implements Statement {
         }
     }
 
-    validate(scope: Scope): YaksokError[] {
-        return this.body.validate(scope)
+    validate(): YaksokError[] {
+        return this.body.validate()
     }
 }

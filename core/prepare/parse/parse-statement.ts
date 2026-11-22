@@ -10,6 +10,7 @@ import {
     createLineFetcher,
     Scope,
     FactoryParsers,
+    Evaluator,
 } from '@dalbit-yaksok/core'
 
 export function parseStatement(
@@ -26,15 +27,13 @@ export function parseStatement(
         }
     }
 
-    const parsed = scope
-        .getRuleListStack()
-        .flatMap((ruleList) => ruleList.rd)
-        .map((rdRule) => createStatement(rdRule, lines, scope))
-        .find((p) => p !== null)
-
-    if (!parsed) {
-        throw '예?'
-    }
+    const parsed =
+        scope
+            .getRuleListStack()
+            .flatMap((ruleList) => ruleList.rd)
+            .map((rdRule) => createStatement(rdRule, lines, scope))
+            .find((p) => p !== null) ||
+        createStatement(Evaluator.SRFallback, lines, scope)
 
     const newScope = parsed.scope || scope
     const leftLines = lines.slice(parsed.consumed.currentIndex)

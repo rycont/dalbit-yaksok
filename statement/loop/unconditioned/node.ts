@@ -3,6 +3,7 @@ import {
     LoopWithoutBodyError,
     NodeCapability,
     onRunChild,
+    RunFrame,
     Scope,
     Statement,
     Token,
@@ -18,11 +19,12 @@ export class UnconditionedLoop implements Statement {
     static friendlyName = '반복'
 
     constructor(
+        public scope: Scope,
         public body: Block,
         public tokens: Token[],
     ) {}
 
-    async execute(scope: Scope) {
+    async execute(runFrame: RunFrame) {
         if (this.body.tokens.length === 0) {
             return
         }
@@ -30,13 +32,13 @@ export class UnconditionedLoop implements Statement {
         try {
             while (true) {
                 await onRunChild({
-                    scope,
+                    scope: this.scope,
                     childTokens: this.body.tokens,
                     skipReport: true,
                 })
 
                 try {
-                    await this.body.execute(scope)
+                    await this.body.execute(runFrame)
                 } catch (e) {
                     if (e instanceof ContinueSignal) continue
                     throw e
@@ -49,8 +51,8 @@ export class UnconditionedLoop implements Statement {
         }
     }
 
-    validate(scope: Scope): YaksokError[] {
-        const childErrors = this.body.validate(scope)
+    validate(): YaksokError[] {
+        const childErrors = this.body.validate()
 
         const hasBodyError =
             this.body.statements.length === 0

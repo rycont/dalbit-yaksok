@@ -8,37 +8,45 @@ import {
     ErrorOccurredWhileRunningFFIExecution,
     YaksokError,
     EmptyValue,
-    ScopeChain,
+    SlotKey,
+    RunFrame,
+    Runnable,
+    isRunnable,
 } from '@dalbit-yaksok/core'
 import { InvokingArguments } from './arguments'
-import { FunctionSlot } from '../slot'
 
 export class FunctionInvoke extends Evaluable {
     static override friendlyName = '약속 사용하기'
 
     constructor(
         public scope: Scope,
-        private slot: FunctionSlot,
+        private slot: SlotKey,
         public readonly invokingArguments: InvokingArguments,
         public override tokens: Token[],
     ) {
         super()
     }
 
-    override async execute(scopeChain: ScopeChain): Promise<ValueType> {
+    override async execute(scopeChain: RunFrame): Promise<ValueType> {
         const evaluatedArgument = await this.invokingArguments.execute(
             this.scope,
         )
 
         try {
+            const runnable = scopeChain.get(this.slot)
+
+            if (!isRunnable(runnable)) {
+                throw '예?'
+            }
+
             const returnValue =
-                (await this.slot.runnable.run(evaluatedArgument, scopeChain)) ||
+                (await runnable[Runnable].run(evaluatedArgument)) ||
                 new EmptyValue()
 
             assertValidReturnValue(
                 returnValue,
                 this.tokens,
-                this.slot.runnable.name,
+                runnable[Runnable].name,
             )
 
             return returnValue
@@ -48,7 +56,7 @@ export class FunctionInvoke extends Evaluable {
                     {
                         child: error,
                         tokens: this.tokens,
-                        ffiName: this.slot.name,
+                        ffiName: this.scope.slots.get(this.slot).name,
                     },
                 )
 

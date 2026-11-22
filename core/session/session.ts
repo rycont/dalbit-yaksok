@@ -12,7 +12,6 @@ import {
     type RuntimeContext,
     RuleList,
     concatRuleList,
-    Evaluator,
 } from '@dalbit-yaksok/core'
 
 import functionStatement from '@dalbit-yaksok/statement-function'
@@ -27,7 +26,6 @@ const DEFAULT_EXTS: Extension[] = [
     conditionalStatement,
     loopStatement,
     printStatement,
-    Evaluator.SRFallback,
 ]
 
 const THREAD_YIELD_INTERVAL = 300

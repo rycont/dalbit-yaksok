@@ -2,9 +2,10 @@ import {
     Block,
     NumberValue,
     ObjectValue,
+    RunFrame,
+    Runnable,
     RunnableObject,
-    Scope,
-    ScopeChain,
+    SlotKey,
     ValueType,
 } from '@dalbit-yaksok/core'
 import { ReturnSignal } from '../signal.ts'
@@ -13,35 +14,31 @@ const DEFAULT_RETURN_VALUE = new NumberValue(0)
 
 export class FunctionObject extends ObjectValue implements RunnableObject {
     static override friendlyName = '약속'
+    public [Runnable]: RunnableObject[typeof Runnable]
 
-    constructor(
-        public name: string,
-        private body: Block,
-        private runningScope: Scope,
-    ) {
+    constructor(name: string, body: Block, declaredFrame: RunFrame) {
         super()
-    }
+        this[Runnable] = {
+            name,
+            async run(args: Map<SlotKey, ValueType>): Promise<ValueType> {
+                try {
+                    const childFrame = declaredFrame.createChild(body.scope)
 
-    public async run(
-        args: Map<symbol, ValueType>,
-        scopeChain: ScopeChain,
-    ): Promise<ValueType> {
-        try {
-            const newChain = new Map(scopeChain)
-            const newRun = Symbol()
+                    for (const [slotKey, value] of args) {
+                        childFrame.set(slotKey, value)
+                    }
 
-            newChain.set(this.runningScope, newRun)
-            this.runningScope.run.set(newRun, new Map(args))
+                    await body.execute(childFrame)
+                } catch (e) {
+                    if (e instanceof ReturnSignal) {
+                        return e.value || DEFAULT_RETURN_VALUE
+                    }
 
-            await this.body.execute(newChain)
-        } catch (e) {
-            if (e instanceof ReturnSignal) {
-                return e.value || DEFAULT_RETURN_VALUE
-            }
+                    throw e
+                }
 
-            throw e
+                return DEFAULT_RETURN_VALUE
+            },
         }
-
-        return DEFAULT_RETURN_VALUE
     }
 }

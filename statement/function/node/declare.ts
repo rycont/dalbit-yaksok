@@ -1,29 +1,39 @@
 import {
     Block,
-    NodeCapability,
     Token,
     Scope,
     YaksokError,
     RuleList,
     Statement,
+    RunFrame,
+    SlotKey,
 } from '@dalbit-yaksok/core'
 import { MissingFunctionBody } from '../error/no-body'
 import { FunctionDeclareHeader } from './header'
 import { FFIObject } from '../value/ffi'
+import { FunctionObject } from '../value/function'
 // import { EventSubscriptionObject } from '../value/event'
 
 export class DeclareFunction implements Statement {
     static friendlyName = '새 약속 만들기'
-    static accepts = [NodeCapability.RETURN]
 
     public parsingErrors: YaksokError[] = []
 
     constructor(
         public scope: Scope,
+        private slot: SlotKey,
+        private body: Block,
         public tokens: Token[],
     ) {}
 
-    execute() {
+    execute(runFrame: RunFrame) {
+        const runnable = new FunctionObject(
+            this.scope.slots.get(this.slot).name,
+            this.body,
+            runFrame,
+        )
+
+        runFrame.set(this.slot, runnable)
         return Promise.resolve()
     }
 

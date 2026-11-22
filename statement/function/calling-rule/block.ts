@@ -8,16 +8,26 @@ import {
     Evaluator,
     TokenLine,
     FactoryParsers,
+    SlotKey,
+    Scope,
+    ValueType,
+    Evaluable,
 } from '@dalbit-yaksok/core'
-import { FunctionSignature, FunctionStaticPart } from '../type.ts'
+import {
+    FunctionSignature,
+    FunctionStaticPart,
+    ParameterElement,
+} from '../type.ts'
 import { j } from '@dalbit-yaksok/pattern'
-import { FunctionDeclareHeader } from '../node/header.ts'
+
 import { FunctionInvoke } from '../mod.ts'
 import { InvokingArguments } from '../node/arguments.ts'
 
 export function createBlockRule(
+    scope: Scope,
     signature: FunctionSignature,
-    // header: FunctionDeclareHeader,
+    parameterSlots: Map<ParameterElement, SlotKey>,
+    slot: FunctionSlot,
 ): RDRule {
     const staticParts = signature.headerParts.slice(
         0,
@@ -29,17 +39,19 @@ export function createBlockRule(
             staticParts.map((p) =>
                 j.field({
                     type: j.literal(TOKEN_TYPE.IDENTIFIER),
-                    value: p.names.length
-                        ? j.enum(p.names.map((t) => t.value))
-                        : j.literal(p.names[0].value),
+                    value:
+                        p.names.length === 1
+                            ? j.literal(p.names[0].value)
+                            : j.enum(p.names.map((t) => t.value)),
                 }),
             ),
         )
         .compile()
 
     return {
-        name: '함수',
+        name: signature.functionName,
         factory(code, action) {
+            console.log('엄')
             const [line, headerConsumed] = code.consume()
             const test = pattern.func(pattern.id, line.validTokens)
 
@@ -52,23 +64,27 @@ export function createBlockRule(
             const parameterExtraction = parseBlockParameterTokens(
                 bodyTokens,
                 action,
+                parameterSlots,
             )
 
             const invokingArguments = new InvokingArguments(
+                scope,
+                signature.parameterScheme,
+                parameterSlots,
                 parameterExtraction.parameters,
-                header.signature.parameterScheme,
                 line.validTokens,
                 parameterExtraction.parsingErrors,
             )
 
             const nodeInstance = new FunctionInvoke(
-                header,
+                scope,
+                slot,
                 invokingArguments,
                 line.validTokens,
             )
 
             return {
-                instance: new Evaluator(nodeInstance, line.validTokens),
+                instance: new Evaluator(scope, nodeInstance, line.validTokens),
                 consumed: bodyConsumed,
             }
         },
@@ -78,19 +94,27 @@ export function createBlockRule(
 function parseBlockParameterTokens(
     tokenLines: TokenLine[],
     parse: FactoryParsers,
-) {
+    parameterSlots: Map<ParameterElement, SlotKey>,
+): { parsingErrors: YaksokError[]; parameters: Map<SlotKey, Evaluable> } {
     const parsedLines = tokenLines.map(parseTokenLine)
 
     const parsingErrors: YaksokError[] = parsedLines
         .map((l) => l.parseError)
         .filter((e) => !!e)
 
+    const nameToSlotKey = Object.fromEntries(
+        parameterSlots.entries().map(([k, v]) => [k.name, v]),
+    )
+
     return {
         parsingErrors,
         parameters: new Map(
             parsedLines
                 .filter((l) => l.name)
-                .map((l) => [l.name!, parse.value(l.valueTokens!)]),
+                .map((l) => [
+                    nameToSlotKey[l.name!],
+                    parse.value(l.valueTokens!),
+                ]),
         ),
     }
 }

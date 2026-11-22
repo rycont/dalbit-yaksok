@@ -1,4 +1,4 @@
 export interface Slot {
-    type: string
+    type: symbol
     name: string
 }

@@ -1,29 +1,17 @@
-import { RunnableObject, Slot } from '@dalbit-yaksok/core'
+import { Slot } from '@dalbit-yaksok/core'
 
-const FUNCTION_SLOT_TYPE = 'function'
+export const FUNCTION_SLOT_TYPE = 'function'
 
 export interface FunctionSlot extends Slot {
+    readonly type: typeof FUNCTION_SLOT_TYPE
     readonly name: string
-    readonly runnable: RunnableObject
 }
 
-export function createFunctionSlot(
-    name: string,
-): [(runnable: RunnableObject) => void, FunctionSlot] {
-    let storedRunnable: RunnableObject
-
-    return [
-        (runnable) => {
-            storedRunnable = runnable
-        },
-        {
-            type: FUNCTION_SLOT_TYPE,
-            name: name,
-            get runnable() {
-                return storedRunnable
-            },
-        },
-    ]
+export function createFunctionSlot(name: string): FunctionSlot {
+    return {
+        type: FUNCTION_SLOT_TYPE,
+        name: name,
+    }
 }
 
 export const PARAMETER_SLOT_TYPE = 'parameter'

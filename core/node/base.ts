@@ -7,9 +7,11 @@ import {
     EmptyValue,
     Statement,
     Block,
-    RunnableObject,
-    ScopeChain,
+    RunFrame,
     SlotKey,
+    isRunnable,
+    Runnable,
+    NotDefinedIdentifierError,
 } from '@dalbit-yaksok/core'
 
 export enum NodeCapability {
@@ -35,7 +37,7 @@ export class Node<SubnodeShape extends SubnodeScheme = SubnodeScheme> {
 
     constructor() {}
 
-    validate(_scope: Scope): YaksokError[] {
+    validate(): YaksokError[] {
         throw new Error(`${this.getNodeTypeName()} has no validate method`)
     }
 
@@ -54,7 +56,7 @@ export class Evaluable<
 > extends Node<LeavesType> {
     static override friendlyName = '값이 있는 노드'
 
-    execute(_scopeChain: ScopeChain): Promise<T> {
+    execute(_runFrame: RunFrame): Promise<T> {
         throw new Error(`${this.getNodeTypeName()} has no execute method`)
     }
 }
@@ -67,8 +69,8 @@ export class IncompleteEvaluable extends Evaluable<Node[]> {
         super()
     }
 
-    override validate(scope: Scope) {
-        return this.subnode.flatMap((s) => s.validate(scope))
+    override validate() {
+        return this.subnode.flatMap((s) => s.validate())
     }
 }
 
@@ -77,7 +79,7 @@ export class Identifier extends Evaluable {
 
     constructor(
         public scope: Scope,
-        public slotKey: SlotKey,
+        public slotKey: SlotKey | null,
         public override value: string,
         public override tokens: Token[],
     ) {
@@ -88,39 +90,33 @@ export class Identifier extends Evaluable {
         return this.value
     }
 
-    override async execute(scopeChain: ScopeChain): Promise<ValueType> {
-        const value = this.scope.run
-            .get(scopeChain.get(this.scope))
-            .get(this.slotKey)
+    override async execute(runFrame: RunFrame): Promise<ValueType> {
+        const value = runFrame.get(this.slotKey)
 
-        if ('run' in value) {
-            const functionResult =
-                (await (value as RunnableObject).run(new Map(), scopeChain)) ||
-                new EmptyValue()
-
-            return functionResult
+        if (!isRunnable(value)) {
+            return value
         }
 
-        return value
+        const functionResult =
+            (await value[Runnable].run(new Map())) || new EmptyValue()
+
+        return functionResult
     }
 
     override validate(): YaksokError[] {
-        return []
-        //         const result = this.scope.getSlot(this.value)
-        //
-        //         if (result) {
-        //             return []
-        //         }
-        //
-        //         return [
-        //             new NotDefinedIdentifierError({
-        //                 resource: {
-        //                     name: this.value,
-        //                 },
-        //                 scope: this.scope,
-        //                 tokens: this.tokens,
-        //             }),
-        //         ]
+        if (this.scope.slots.has(this.slotKey)) {
+            return []
+        }
+
+        return [
+            new NotDefinedIdentifierError({
+                resource: {
+                    name: this.value,
+                },
+                scope: this.scope,
+                tokens: this.tokens,
+            }),
+        ]
     }
 }
 
@@ -179,11 +175,11 @@ export class Expression<
         return this.value
     }
 
-    override validate(scope: Scope): YaksokError[] {
+    override validate(): YaksokError[] {
         if (0 < this.parsingErrors.length) {
             for (const error of this.parsingErrors) {
                 if (!error.scope) {
-                    error.scope = scope
+                    error.scope = this.scope
                 }
 
                 if (!error.node) {
@@ -200,7 +196,7 @@ export class Expression<
 
         const error = new NotExecutableNodeError({
             tokens: this.tokens,
-            scope,
+            scope: this.scope,
             node: this,
         })
 
