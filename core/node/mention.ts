@@ -32,5 +32,3 @@ export class Mention extends Evaluable {
         return this.instance.validate()
     }
 }
-
-export class MentionScope {}
