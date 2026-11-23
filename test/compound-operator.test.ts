@@ -75,9 +75,9 @@ for (const { a, b, operator, expected } of VALID_CASES_FOR_COMPOUND_OPERATORS) {
         const code = `result = ${a}
 result ${operator} ${b}`.trim()
         const session = new YaksokSession()
-        const scope = await session.addModule('main', code).run()
+        const frame = await session.addModule('main', code).run()
 
-        const resultValue = scope.getVariable('result')
+        const resultValue = frame.get(frame.scope.findSlot('result')[0])
 
         const expectedType =
             typeof a === 'string' || typeof b === 'string'

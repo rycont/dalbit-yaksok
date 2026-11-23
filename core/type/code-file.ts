@@ -115,21 +115,15 @@ function parseWithSession(code: string, session: YaksokSession) {
 
     while (true) {
         tokens = tokenize(code, inferredSplitpoints)
-
-        // const mentionRules = getRulesFromMentioningFile(tokens, session)
-        // const baseScopeRules = session.baseScope?.getExportedRules()
-
         const tokenLines = getLineTokens(tokens)
 
         const scope = new Scope({
             session,
         })
 
-        // concatRuleList([mentionRules, baseScopeRules])
-
         const parseResult = parseStatement(tokenLines, scope)
 
-        ast = new Block(scope, parseResult.statements, tokens)
+        ast = new Block(scope, parseResult, tokens)
 
         validationErrors = ast.validate()
 

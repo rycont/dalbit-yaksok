@@ -51,7 +51,6 @@ export function createBlockRule(
     return {
         name: signature.functionName,
         factory(code, action) {
-            console.log('엄')
             const [line, headerConsumed] = code.consume()
             const test = pattern.func(pattern.id, line.validTokens)
 

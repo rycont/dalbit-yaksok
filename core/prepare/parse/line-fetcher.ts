@@ -34,7 +34,7 @@ export function createLineFetcher(
         ? baseLevel + 1 === lookingLine.level
         : false
 
-    function getBlockLines() {
+    function getBlockEndIndex() {
         const firstLineAfterBlockIndex = lines
             .slice(currentIndex)
             .findIndex((l) => l.level <= baseLevel && 0 < l.validTokens.length)
@@ -42,13 +42,9 @@ export function createLineFetcher(
         const blockEndIndex =
             firstLineAfterBlockIndex === -1
                 ? lines.length - 1
-                : firstLineAfterBlockIndex - 1
+                : currentIndex + firstLineAfterBlockIndex - 1
 
-        const blockLines = lines.slice(
-            currentIndex,
-            currentIndex + blockEndIndex + 1,
-        )
-        return blockLines
+        return blockEndIndex
     }
 
     return {
@@ -67,17 +63,15 @@ export function createLineFetcher(
                 return null
             }
 
-            const blockLines = getBlockLines()
+            const blockEndIndex = getBlockEndIndex()
+            const blockLines = lines.slice(currentIndex, blockEndIndex + 1)
 
             return {
                 look: blockLines,
                 consume() {
                     return [
                         blockLines,
-                        createLineFetcher(
-                            lines,
-                            currentIndex + blockLines.length,
-                        ),
+                        createLineFetcher(lines, blockEndIndex),
                     ] as [TokenLine[], LineFetcher]
                 },
             }

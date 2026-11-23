@@ -5,6 +5,7 @@ import {
     BrokenBracketError,
     Node,
     SRRule,
+    Scope,
 } from '@dalbit-yaksok/core'
 import { callSRParseRecursively } from './srParse.ts'
 
@@ -41,7 +42,11 @@ const BRACKETS: Record<
     },
 }
 
-export function parseBracket(rawNodes: Node[], srRules: SRRule[]) {
+export function parseBracket(
+    scope: Scope,
+    rawNodes: Node[],
+    srRules: SRRule[],
+) {
     const brackets = createBracketMap(rawNodes)
 
     if (brackets.length === 0) {
@@ -55,7 +60,7 @@ export function parseBracket(rawNodes: Node[], srRules: SRRule[]) {
         const end = nodes.indexOf(range[1])
 
         const nodesInBracket = nodes.slice(start, end)
-        const parsed = callSRParseRecursively(nodesInBracket, srRules)
+        const parsed = callSRParseRecursively(scope, nodesInBracket, srRules)
 
         nodes.splice(start, end - start, ...parsed)
     }

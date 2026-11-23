@@ -9,8 +9,8 @@ import { expect, test } from 'vite-plus/test'
 
 test('List multiplied by integer repeats elements', async () => {
     const session = new YaksokSession()
-    const scope = await session.addModule('main', `결과 = [참] * 3`).run()
-    const stored = scope.getVariable('결과')
+    const frame = await session.addModule('main', `결과 = [참] * 3`).run()
+    const stored = frame.get(frame.scope.findSlot('결과')[0])
     expect.assert.instanceOf(stored, ListValue)
 
     const elements = Array.from(stored.enumerate())
@@ -24,8 +24,8 @@ test('List multiplied by integer repeats elements', async () => {
 
 test('Number multiplied by list repeats list elements', async () => {
     const session = new YaksokSession()
-    const scope = await session.addModule('main', `결과 = 3 * [1, 2]`).run()
-    const stored = scope.getVariable('결과')
+    const frame = await session.addModule('main', `결과 = 3 * [1, 2]`).run()
+    const stored = frame.get(frame.scope.findSlot('결과')[0])
     expect.assert.instanceOf(stored, ListValue)
 
     const elements = Array.from(stored.enumerate())

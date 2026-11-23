@@ -1,6 +1,6 @@
 import { Slot } from '@dalbit-yaksok/core'
 
-export const FUNCTION_SLOT_TYPE = 'function'
+export const FUNCTION_SLOT_TYPE = Symbol('function')
 
 export interface FunctionSlot extends Slot {
     readonly type: typeof FUNCTION_SLOT_TYPE
@@ -14,7 +14,7 @@ export function createFunctionSlot(name: string): FunctionSlot {
     }
 }
 
-export const PARAMETER_SLOT_TYPE = 'parameter'
+export const PARAMETER_SLOT_TYPE = Symbol('parameter')
 
 export interface ParameterSlot {
     readonly type: typeof PARAMETER_SLOT_TYPE

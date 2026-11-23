@@ -2,6 +2,7 @@ import {
     Block,
     Evaluable,
     isTruthy,
+    RunFrame,
     Scope,
     Statement,
     Token,
@@ -18,38 +19,39 @@ export class IfStatement implements Statement {
     static friendlyName = '조건문(만약)'
 
     constructor(
+        public scope: Scope,
         public cases: Case[],
         public tokens: Token[],
     ) {}
 
-    async execute(scope: Scope) {
+    async execute(runFrame: RunFrame) {
         for (const { condition, body } of this.cases) {
-            const shouldStop = await this.shouldRun(condition, scope)
+            const shouldStop = await this.shouldRun(condition, runFrame)
             if (!shouldStop) continue
 
-            await body.execute(scope)
+            await body.execute(runFrame)
             break
         }
     }
 
     async shouldRun(
         condition: Evaluable | null,
-        scope: Scope,
+        runFrame: RunFrame,
     ): Promise<boolean> {
         if (condition === null) {
             return true
         }
 
-        const evaluated = await condition.execute(scope)
+        const evaluated = await condition.execute(runFrame)
         return isTruthy(evaluated)
     }
 
-    validate(scope: Scope): YaksokError[] {
+    validate(): YaksokError[] {
         const errors = this.cases.flatMap((caseItem) => {
             const { condition, body } = caseItem
 
-            const conditionErrors = condition?.validate(scope) || []
-            const bodyErrors = body?.validate(scope) || []
+            const conditionErrors = condition?.validate() || []
+            const bodyErrors = body?.validate() || []
 
             return conditionErrors.concat(bodyErrors)
         })

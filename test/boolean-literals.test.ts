@@ -7,7 +7,7 @@ const FALSE_LITERALS = ['거짓', '아님']
 for (const literal of TRUE_LITERALS) {
     test(literal, async () => {
         const session = new YaksokSession()
-        const scope = await session
+        const frame = await session
             .addModule(
                 'main',
                 `
@@ -15,7 +15,7 @@ for (const literal of TRUE_LITERALS) {
 `,
             )
             .run()
-        const result = scope.getVariable('결과') as BooleanValue
+        const result = frame.get(frame.scope.findSlot('결과')[0]) as BooleanValue
         expect(result.value).toBe(true)
     })
 }
@@ -23,7 +23,7 @@ for (const literal of TRUE_LITERALS) {
 for (const literal of FALSE_LITERALS) {
     test(literal, async () => {
         const session = new YaksokSession()
-        const scope = await session
+        const frame = await session
             .addModule(
                 'main',
                 `
@@ -31,14 +31,14 @@ for (const literal of FALSE_LITERALS) {
 `,
             )
             .run()
-        const result = scope.getVariable('결과') as BooleanValue
+        const result = frame.get(frame.scope.findSlot('결과')[0]) as BooleanValue
         expect(result.value).toBe(false)
     })
 }
 
 test('Store boolean in variable', async () => {
     const session = new YaksokSession()
-    const scope = await session
+    const frame = await session
         .addModule(
             'main',
             `
@@ -47,13 +47,13 @@ test('Store boolean in variable', async () => {
 `,
         )
         .run()
-    const result = scope.getVariable('결과') as BooleanValue
+    const result = frame.get(frame.scope.findSlot('결과')[0]) as BooleanValue
     expect(result.value).toBe(true)
 })
 
 test('Compare booleans', async () => {
     const session = new YaksokSession()
-    const scope = await session
+    const frame = await session
         .addModule(
             'main',
             `
@@ -65,17 +65,17 @@ test('Compare booleans', async () => {
         )
         .run()
 
-    assert(scope)
+    assert(frame)
 
-    expect((scope.getVariable('결과1') as BooleanValue).value).toBe(true)
-    expect((scope.getVariable('결과2') as BooleanValue).value).toBe(true)
-    expect((scope.getVariable('결과3') as BooleanValue).value).toBe(false)
-    expect((scope.getVariable('결과4') as BooleanValue).value).toBe(true)
+    expect((frame.get(frame.scope.findSlot('결과1')[0]) as BooleanValue).value).toBe(true)
+    expect((frame.get(frame.scope.findSlot('결과2')[0]) as BooleanValue).value).toBe(true)
+    expect((frame.get(frame.scope.findSlot('결과3')[0]) as BooleanValue).value).toBe(false)
+    expect((frame.get(frame.scope.findSlot('결과4')[0]) as BooleanValue).value).toBe(true)
 })
 
 test('Negation operator', async () => {
     const session = new YaksokSession()
-    const scope = await session
+    const frame = await session
         .addModule(
             'main',
             `
@@ -88,10 +88,10 @@ test('Negation operator', async () => {
         )
         .run()
 
-    assert(scope)
+    assert(frame)
 
-    expect((scope.getVariable('결과1') as BooleanValue).value).toBe(false)
-    expect((scope.getVariable('결과2') as BooleanValue).value).toBe(true)
-    expect((scope.getVariable('결과3') as BooleanValue).value).toBe(false)
-    expect((scope.getVariable('결과4') as BooleanValue).value).toBe(false)
+    expect((frame.get(frame.scope.findSlot('결과1')[0]) as BooleanValue).value).toBe(false)
+    expect((frame.get(frame.scope.findSlot('결과2')[0]) as BooleanValue).value).toBe(true)
+    expect((frame.get(frame.scope.findSlot('결과3')[0]) as BooleanValue).value).toBe(false)
+    expect((frame.get(frame.scope.findSlot('결과4')[0]) as BooleanValue).value).toBe(false)
 })

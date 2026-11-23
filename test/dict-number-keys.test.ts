@@ -3,7 +3,7 @@ import { test, expect, assert } from 'vite-plus/test'
 
 test('Dictionary literal accepts numeric keys', async () => {
     const session = new YaksokSession()
-    const scope = await session
+    const frame = await session
         .addModule(
             'main',
             `소인수 = {
@@ -16,7 +16,7 @@ test('Dictionary literal accepts numeric keys', async () => {
 소인수 보여주기`,
         )
         .run()
-    const value = scope?.getVariable('소인수')
+    const value = frame.get(frame.scope.findSlot('소인수')[0])
     assert(value instanceof IndexedValue)
 
     for (const key of [2, 3, 5, 7]) {

@@ -61,7 +61,7 @@ const extension: Extension = {
             {
                 name: '조건문',
                 description: '조건이 맞을 때만 실행해요',
-                factory(code, parse) {
+                factory(code, parse, scope) {
                     const [cases, consumed] = buildCases(code, parse, true)
 
                     if (cases.length === 0) {
@@ -69,7 +69,11 @@ const extension: Extension = {
                     }
 
                     return {
-                        instance: new IfStatement(cases, code.look.validTokens),
+                        instance: new IfStatement(
+                            scope,
+                            cases,
+                            code.look.validTokens,
+                        ),
                         consumed,
                     }
                 },

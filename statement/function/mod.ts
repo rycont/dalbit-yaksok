@@ -9,7 +9,6 @@ import { DeclareEvent, DeclareFFI, DeclareFunction } from './node/declare.ts'
 import { createEventSubscriptionRules } from './calling-rule/event.ts'
 import { ReturnStatement } from './node/return.ts'
 import { MissingFunctionBody } from './error/no-body.ts'
-import { FunctionObject } from './value/function.ts'
 import { createFunctionSlot, createParameterSlot } from './slot.ts'
 
 export * from './error/no-static.ts'

@@ -44,15 +44,15 @@ test('setBaseContext: 새 변수 선언은 로컬 스코프에 생성됨', async
         },
     })
 
-    const baseContextScope = await session.addModule('base', '값 = 5').run()
-    session.useBaseScope(baseContextScope)
+    const baseContextFrame = await session.addModule('base', '값 = 5').run()
+    session.useBaseScope(baseContextFrame)
 
     const codeFile = session.addModule('main', '새값 = 100\n새값 보여주기')
     await codeFile.run()
 
     expect(output.trim()).toBe('100')
 
-    expect(baseContextScope?.variables['새값']).toBe(undefined)
+    expect(baseContextFrame?.variables['새값']).toBe(undefined)
 })
 
 // ===== 재대입 동작 검증 =====
@@ -97,14 +97,14 @@ test('재대입 후 parent scope에 반영됨', async () => {
         stdout() {},
     })
 
-    const baseScope = await session.addModule('base', '값 = 5').run()
-    session.useBaseScope(baseScope)
+    const baseFrame = await session.addModule('base', '값 = 5').run()
+    session.useBaseScope(baseFrame)
 
     const codeFile = session.addModule('main', '값 = 값 + 10')
-    const childScope = await codeFile.run()
+    const childFrame = await codeFile.run()
 
-    expect((baseScope.variables['값'] as NumberValue).value).toBe(5)
-    expect((childScope.variables['값'] as NumberValue).value).toBe(15)
+    expect((baseFrame.variables['값'] as NumberValue).value).toBe(5)
+    expect((childFrame.variables['값'] as NumberValue).value).toBe(15)
 })
 
 test('복합 대입 연산자로 재대입', async () => {

@@ -38,8 +38,8 @@ for (let i = 0; i < 10; i++) {
     `
 
         const session = new YaksokSession()
-        const scope = await session.addModule('main', code).run()
-        const 나이 = scope.getVariable('나이') as NumberValue
+        const frame = await session.addModule('main', code).run()
+        const 나이 = frame.get(frame.scope.findSlot('나이')[0]) as NumberValue
 
         expect.assert.instanceOf(나이, NumberValue)
         /* oxlint-disable-next-line no-eval */

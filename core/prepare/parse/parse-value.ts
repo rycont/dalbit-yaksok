@@ -18,7 +18,7 @@ export function parseValue(
     const mentionReplacers = getMentionReplacers(tokens, scope)
     const nodes = convertTokensToNodes(scope, tokens, mentionReplacers)
 
-    const bracketParsedNodes = parseBracket(nodes, srRules)
+    const bracketParsedNodes = parseBracket(scope, nodes, srRules)
 
     const childNodes = callSRParseRecursively(
         scope,
