@@ -38,7 +38,7 @@ test('QuickJS passed number', async () => {
     const session = new YaksokSession()
     await session.extend(await quickJS())
 
-    const scope = await session
+    const frame = await session
         .addModule(
             'main',
             `
@@ -51,7 +51,7 @@ test('QuickJS passed number', async () => {
         )
         .run()
 
-    const 숫자 = scope.getVariable('숫자')
+    const 숫자 = frame.get(frame.scope.findSlot('숫자')[0])
     expect.assert.instanceOf(숫자, NumberValue)
     expect(숫자.value).toBe(20)
     expect(숫자.toPrint()).toBe('20')
@@ -61,7 +61,7 @@ test('QuickJS passed Array<number>', async () => {
     const session = new YaksokSession()
     await session.extend(await quickJS())
 
-    const scope = await session
+    const frame = await session
         .addModule(
             'main',
             `
@@ -75,7 +75,7 @@ test('QuickJS passed Array<number>', async () => {
         )
         .run()
 
-    const 숫자 = scope.getVariable('숫자')
+    const 숫자 = frame.get(frame.scope.findSlot('숫자')[0])
     expect.assert.instanceOf(숫자, ListValue)
     expect(숫자.toPrint()).toBe('[20, 30]')
 })
@@ -94,7 +94,7 @@ test('JavaScript bridge function passed object', async () => {
         }),
     )
 
-    const ranScope = await session
+    const frame = await session
         .addModule(
             'main',
             `
@@ -134,13 +134,17 @@ test('JavaScript bridge function passed object', async () => {
         )
         .run()
 
-    assert(ranScope, 'ranScope should not be null')
+    assert(frame, 'ranScope should not be null')
 
-    const 학생 = ranScope.getVariable('학생') as StringValue
-    const 이름 = ranScope.getVariable('이름') as StringValue
-    const 나이 = ranScope.getVariable('나이') as NumberValue
-    const 더한_결과 = ranScope.getVariable('더한_결과') as NumberValue
-    const 모든_이름 = ranScope.getVariable('모든_이름') as ListValue
+    const 학생 = frame.get(frame.scope.findSlot('학생')[0]) as StringValue
+    const 이름 = frame.get(frame.scope.findSlot('이름')[0]) as StringValue
+    const 나이 = frame.get(frame.scope.findSlot('나이')[0]) as NumberValue
+    const 더한_결과 = frame.get(
+        frame.scope.findSlot('더한_결과')[0],
+    ) as NumberValue
+    const 모든_이름 = frame.get(
+        frame.scope.findSlot('모든_이름')[0],
+    ) as ListValue
 
     expect.assert.instanceOf(학생, StringValue)
     expect.assert.instanceOf(이름, StringValue)
@@ -165,7 +169,7 @@ test('Yaksok Passed List<string>', async () => {
     })
     await session.extend(await quickJS())
 
-    const scope = await session
+    const frame = await session
         .addModule(
             'main',
             `
@@ -190,7 +194,7 @@ test('Yaksok Passed List<string>', async () => {
         )
         .run()
 
-    const 내_점수 = scope.getVariable('내_점수')
+    const 내_점수 = frame.get(frame.scope.findSlot('내_점수')[0])
     expect.assert.instanceOf(내_점수, ListValue)
     expect(내_점수.toPrint()).toBe('[80, 90]')
 
@@ -378,7 +382,7 @@ test('QuickJS passed boolean', async () => {
     const session = new YaksokSession()
     await session.extend(await quickJS())
 
-    const scope = await session
+    const frame = await session
         .addModule(
             'main',
             `
@@ -393,7 +397,7 @@ test('QuickJS passed boolean', async () => {
         )
         .run()
 
-    const 결과 = scope.getVariable('결과')
+    const 결과 = frame.get(frame.scope.findSlot('결과')[0])
     expect.assert.instanceOf(결과, BooleanValue)
     expect(결과.value).toBe(true)
     expect(결과.toPrint()).toBe('참')

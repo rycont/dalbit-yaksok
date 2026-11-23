@@ -7,13 +7,27 @@ import {
     type SRRule,
     RESERVED_WORDS,
     getTokensFromNodes,
+    Scope,
 } from '@dalbit-yaksok/core'
 
 import { BASIC_RULES, ADVANCED_RULES } from './rule/index.ts'
 import { Ruleset } from './ruleset.ts'
 import { NotAcceptableSignal } from './signal.ts'
 
-export function SRParse(nodes: Node[], ruleset: Ruleset) {
+export enum HookAction {
+    EARLY_STOP,
+}
+
+export interface ParsingHooks {
+    onReduce?: (rule: SRRule, reduced: Node) => HookAction | void
+}
+
+export function SRParse(
+    scope: Scope,
+    nodes: Node[],
+    ruleset: Ruleset,
+    hooks: ParsingHooks = {},
+) {
     let cursor = 0
     const buffer: Node[] = []
 
@@ -62,6 +76,7 @@ export function SRParse(nodes: Node[], ruleset: Ruleset) {
                 if (collisionNodes) {
                     reduced.injectParsingError(
                         new AmbiguousFormulaBoundary({
+                            scope,
                             tokens: collisionNodes.flatMap((n) => n.tokens),
                         }),
                     )
@@ -71,6 +86,11 @@ export function SRParse(nodes: Node[], ruleset: Ruleset) {
             buffer.splice(-rule.pattern.length, rule.pattern.length, reduced)
 
             changed = true
+
+            if (hooks.onReduce?.(rule, reduced) === HookAction.EARLY_STOP) {
+                break nodeloop
+            }
+
             continue nodeloop
         }
 
@@ -106,8 +126,10 @@ export function reduce(nodes: Node[], rule: SRRule) {
 }
 
 export function callSRParseRecursively(
+    scope: Scope,
     nodes: Node[],
     externalPatterns: SRRule[],
+    hooks: ParsingHooks = {},
 ): Node[] {
     let parsedNodes = [...nodes]
 
@@ -116,7 +138,7 @@ export function callSRParseRecursively(
 
     loop1: while (true) {
         for (const ruleset of rulesets) {
-            const result = SRParse(parsedNodes, ruleset)
+            const result = SRParse(scope, parsedNodes, ruleset, hooks)
             parsedNodes = result.nodes
 
             if (result.changed) continue loop1

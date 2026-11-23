@@ -4,7 +4,6 @@ import {
     CodeFile,
     RuleList,
     concatRuleList,
-    createMentioningRule,
     Slot,
     Brand,
     EmptyValue,
@@ -22,8 +21,7 @@ export class Scope {
     public readonly session: YaksokSession
     public readonly codeFile?: CodeFile
 
-    private ruleList: RuleList
-    private _finalized = false
+    public ruleList: RuleList
 
     constructor(
         config:
@@ -47,17 +45,7 @@ export class Scope {
                 sr: [],
             }
 
-            const mentionRule = Object.entries(config.session.files)
-                .filter(([_, codeFile]) => codeFile.ranScope)
-                .map(([fileName, codeFile]) =>
-                    createMentioningRule(
-                        fileName,
-                        codeFile.ranScope.ruleList,
-                        codeFile.ranScope,
-                    ),
-                )
-
-            this.ruleList = concatRuleList(mentionRule.concat(extendedRules))
+            this.ruleList = extendedRules
         } else {
             this.parent = config.parent
             this.session = config.parent.session
@@ -68,14 +56,6 @@ export class Scope {
                 sr: [],
             }
         }
-    }
-
-    public get finalized(): boolean {
-        return this._finalized
-    }
-
-    public finalize(): void {
-        this._finalized = true
     }
 
     public addSlot(slot: Slot): SlotKey {
@@ -128,6 +108,7 @@ export interface RunFrame {
     get(key: SlotKey): ValueType
     set(key: SlotKey, value: ValueType): void
     createChild(scope: Scope): RunFrame
+    readonly scope: Scope
 }
 
 export function createRunFrame(scope: Scope, parent?: RunFrame): RunFrame {
@@ -136,6 +117,7 @@ export function createRunFrame(scope: Scope, parent?: RunFrame): RunFrame {
     )
 
     const instance: RunFrame = {
+        scope,
         get(key) {
             if (!scope.slots.has(key)) {
                 return parent.get(key)

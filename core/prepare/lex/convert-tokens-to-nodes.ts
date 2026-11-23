@@ -10,6 +10,7 @@ import {
     Mention,
     type Token,
     Scope,
+    DirectReplacer,
 } from '@dalbit-yaksok/core'
 
 const escapeMap: Record<string, string> = {
@@ -25,9 +26,22 @@ function unescapeString(str: string): string {
     return str.replace(/\\(.)/g, (_, char) => escapeMap[char] ?? `\\${char}`)
 }
 
-export function convertTokensToNodes(scope: Scope, rawTokens: Token[]): Node[] {
+export function convertTokensToNodes(
+    scope: Scope,
+    rawTokens: Token[],
+    replacers: DirectReplacer[],
+): Node[] {
     const tokens: (Token | null)[] = Array.from(rawTokens)
+
+    for (const replacer of replacers) {
+        tokens.fill(null, replacer.tokenRange[0], replacer.tokenRange[1] + 1)
+    }
+
     const nodes: (Node | null)[] = tokens.map((t) => mapTokenToNode(scope, t))
+
+    for (const replacer of replacers) {
+        nodes[replacer.tokenRange[0]] = replacer.instance
+    }
 
     return nodes.filter((n) => !!n)
 }
@@ -49,11 +63,16 @@ function mapTokenToNode(scope: Scope, token: Token | null) {
             return new Operator(token.value, [token])
         case TOKEN_TYPE.IDENTIFIER:
             const [slotKey, definedScope] = scope.findSlot(token.value)
-            return new Identifier(definedScope, slotKey, token.value, [token])
+
+            if (slotKey) {
+                return new Identifier(definedScope, slotKey, token.value, [
+                    token,
+                ])
+            } else {
+                return new Expression(token.value, [token])
+            }
         case TOKEN_TYPE.NEW_LINE:
             return new EOL([token])
-        case TOKEN_TYPE.MENTION:
-            return new Mention(token.value.slice(1), [token])
         default:
             return new Expression(token.value, [token])
     }

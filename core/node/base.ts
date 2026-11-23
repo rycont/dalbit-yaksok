@@ -54,6 +54,7 @@ export class Evaluable<
     LeavesType extends SubnodeScheme = SubnodeScheme,
     T extends ValueType = ValueType,
 > extends Node<LeavesType> {
+    public scope: Scope
     static override friendlyName = '값이 있는 노드'
 
     execute(_runFrame: RunFrame): Promise<T> {

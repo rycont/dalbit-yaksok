@@ -7,7 +7,7 @@ import {
     UnexpectedArgumentError,
     Token,
     SlotKey,
-    ScopeChain,
+    RunFrame,
 } from '@dalbit-yaksok/core'
 
 import { MissingRequiredArgumentError } from '../error/missing-required'
@@ -42,7 +42,7 @@ export class InvokingArguments {
         ])
     }
 
-    async execute(scopeChain: ScopeChain): Promise<Map<symbol, ValueType>> {
+    async execute(runFrame: RunFrame): Promise<Map<symbol, ValueType>> {
         const args = new Map(
             this.optionalFiller.concat(
                 await Promise.all(
@@ -50,7 +50,7 @@ export class InvokingArguments {
                         .entries()
                         .map<Promise<[SlotKey, ValueType]>>(async ([k, v]) => [
                             k,
-                            await v.execute(scopeChain),
+                            await v.execute(runFrame),
                         ])
                         .toArray(),
                 ),
@@ -60,10 +60,10 @@ export class InvokingArguments {
         return args
     }
 
-    validate(invokingScope: Scope): YaksokError[] {
+    validate(): YaksokError[] {
         const argumentErrors = this.argumentValues
             .values()
-            .flatMap((e) => e.validate(invokingScope))
+            .flatMap((e) => e.validate())
 
         const providedArguments = new Set(this.argumentValues.keys())
 
@@ -82,9 +82,11 @@ export class InvokingArguments {
                   new MissingRequiredArgumentError({
                       tokens: this.tokens,
                       resource: {
-                          names: Array.from(missingKeys),
+                          names: Array.from(missingKeys).map(
+                              (k) => k.description,
+                          ),
                       },
-                      scope: invokingScope,
+                      scope: this.scope,
                   }),
               ]
             : []
@@ -97,15 +99,15 @@ export class InvokingArguments {
                   new UnexpectedArgumentError({
                       tokens: this.argumentValues.get(unknownKeys[0])!.tokens,
                       resource: {
-                          names: unknownKeys,
+                          names: unknownKeys.map((k) => k.description),
                       },
-                      scope: invokingScope,
+                      scope: this.scope,
                   }),
               ]
             : []
 
         for (const e of this.parsingErrors) {
-            e.scope = invokingScope
+            e.scope = this.scope
         }
 
         return argumentErrors

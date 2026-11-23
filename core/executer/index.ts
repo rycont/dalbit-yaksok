@@ -1,9 +1,12 @@
-import { Block, createRunFrame } from '../mod.ts'
+import { Block, createRunFrame, RunFrame } from '../mod.ts'
 import { Signal } from './signals.ts'
 
-export async function executer(block: Block): Promise<void> {
+export async function executer(
+    block: Block,
+    runFrame: RunFrame,
+): Promise<void> {
     try {
-        await block.execute(createRunFrame(block.scope))
+        await block.execute(runFrame)
     } catch (e) {
         if (e instanceof Signal) {
             throw e.getUnhandledError()

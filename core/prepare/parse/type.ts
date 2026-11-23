@@ -35,7 +35,7 @@ export type PatternUnitChain<Shape extends Node> = Chain<
 
 export interface DirectReplacer {
     tokenRange: [number, number]
-    nodes: Node[]
+    instance: Node
 }
 
 export interface SRRule<NodeSequence extends Node[] = Node[]> {

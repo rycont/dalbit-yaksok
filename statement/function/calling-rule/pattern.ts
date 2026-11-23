@@ -1,6 +1,6 @@
 import {
     Evaluable,
-    Identifier,
+    Expression,
     ListLiteral,
     Node,
     PatternUnitChain,
@@ -29,7 +29,7 @@ export function createCallingPattern(
         }
 
         return j
-            .instance(Identifier)
+            .instance(Expression)
             .field({
                 value: j.enum(g.names.map((n) => n.value)),
             })

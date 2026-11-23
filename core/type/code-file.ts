@@ -14,6 +14,8 @@ import {
     YaksokSession,
     getLineTokens,
     type Token,
+    RunFrame,
+    createRunFrame,
 } from '@dalbit-yaksok/core'
 
 export class CodeFile {
@@ -22,7 +24,7 @@ export class CodeFile {
     readonly text: string
     readonly prepareErrors: YaksokError[]
 
-    private _ranScope: Scope | null = null
+    private _ranFrame: RunFrame | null = null
 
     constructor(
         text: string,
@@ -52,27 +54,26 @@ export class CodeFile {
         }
     }
 
-    public get ranScope(): Scope | null {
-        return this._ranScope
+    public get ranFrame(): RunFrame | null {
+        return this._ranFrame
     }
 
-    public async run(runtimeContext?: Partial<RuntimeContext>): Promise<Scope> {
+    public async run(
+        runtimeContext?: Partial<RuntimeContext>,
+    ): Promise<RunFrame> {
         if (this.prepareErrors.length !== 0) {
             throw new Error('오류가 존재하는 CodeFile은 실행할 수 없습니다.')
         }
 
-        if (this._ranScope) {
+        if (this._ranFrame) {
             throw new Error('CodeFile은 한번만 실행할 수 있습니다.')
         }
 
-        const rootScope = new Scope({
-            session: this.session,
-            codeFile: this,
-        })
+        const runFrame = createRunFrame(this.ast.scope)
 
         try {
             await this.session.withRuntimeContext(
-                () => executer(this.ast),
+                () => executer(this.ast, runFrame),
                 runtimeContext?.entry
                     ? (runtimeContext as Partial<RuntimeContext> &
                           Pick<RuntimeContext, 'entry'>)
@@ -84,11 +85,9 @@ export class CodeFile {
 
             await Promise.allSettled(this.session.aliveListeners)
 
-            rootScope.finalize()
+            this._ranFrame = runFrame
 
-            this._ranScope = rootScope
-
-            return rootScope
+            return runFrame
         } catch (e) {
             if (e instanceof YaksokError) {
                 if (!e.codeFile) {
@@ -97,7 +96,7 @@ export class CodeFile {
 
                 this.session.stderr(renderErrorString(e), e)
 
-                return rootScope
+                return runFrame
             }
 
             throw e

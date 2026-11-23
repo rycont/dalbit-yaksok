@@ -1,14 +1,31 @@
-import { convertTokensToNodes, type Token, Scope } from '@dalbit-yaksok/core'
+import {
+    convertTokensToNodes,
+    type Token,
+    Scope,
+    YaksokError,
+} from '@dalbit-yaksok/core'
 import { parseBracket } from './parse-bracket'
-import { callSRParseRecursively } from './srParse'
+import { callSRParseRecursively, ParsingHooks } from './srParse'
+import { getMentionReplacers } from './parse-mention'
 
-export function parseValue(tokens: Token[], scope: Scope) {
+export function parseValue(
+    tokens: Token[],
+    scope: Scope,
+    hooks: ParsingHooks = {},
+) {
     const srRules = getSRRules(scope)
-    const nodes = convertTokensToNodes(scope, tokens)
 
-    const priorityParsedNodes = parseBracket(nodes, srRules)
+    const mentionReplacers = getMentionReplacers(tokens, scope)
+    const nodes = convertTokensToNodes(scope, tokens, mentionReplacers)
 
-    const childNodes = callSRParseRecursively(priorityParsedNodes, srRules)
+    const bracketParsedNodes = parseBracket(nodes, srRules)
+
+    const childNodes = callSRParseRecursively(
+        scope,
+        bracketParsedNodes,
+        srRules,
+        hooks,
+    )
     return childNodes
 }
 
