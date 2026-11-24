@@ -37,7 +37,7 @@ export class ConditionalLoop implements Statement {
                 }
 
                 await onRunChild({
-                    scope: runFrame,
+                    scope: this.scope,
                     childTokens: this.body.tokens,
                     skipReport: true,
                 })

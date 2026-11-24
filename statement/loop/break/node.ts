@@ -5,9 +5,12 @@ export class Break implements Statement {
     static friendlyName = '그만'
     public parsingErrors: YaksokError[] = []
 
-    constructor(public tokens: Token[]) {}
+    constructor(
+        public scope: Scope,
+        public tokens: Token[],
+    ) {}
 
-    execute(_scope: Scope): Promise<never> {
+    execute(): Promise<never> {
         throw new BreakSignal(this.tokens)
     }
 

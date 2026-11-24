@@ -4,7 +4,7 @@ import {
     Scope,
     YaksokError,
     Statement,
-    ScopeChain,
+    RunFrame,
 } from '@dalbit-yaksok/core'
 
 export class Print implements Statement {
@@ -17,14 +17,14 @@ export class Print implements Statement {
         public tokens: Token[],
     ) {}
 
-    async execute(scopeChain: ScopeChain): Promise<void> {
+    async execute(runFrame: RunFrame): Promise<void> {
         const printFunction = this.scope.session?.stdout ?? console.log
-        const evaluated = await this.value.execute(scopeChain)
+        const evaluated = await this.value.execute(runFrame)
 
         printFunction(evaluated.toPrint())
     }
 
     validate(): YaksokError[] {
-        return this.value.validate(this.scope)
+        return this.value.validate()
     }
 }

@@ -48,7 +48,7 @@ export function SRParse(
             }
 
             const stackSlice = buffer.slice(-rule.pattern.length)
-            const reduced = reduce(stackSlice, rule)
+            const reduced = reduce(stackSlice, rule, scope)
 
             if (reduced === null) continue
 
@@ -106,11 +106,11 @@ export function SRParse(
     }
 }
 
-export function reduce(nodes: Node[], rule: SRRule) {
+export function reduce(nodes: Node[], rule: SRRule, scope: Scope) {
     const tokens = getTokensFromNodes(nodes)
 
     try {
-        const reduced = rule.factory(nodes, tokens, rule)
+        const reduced = rule.factory(nodes, tokens, scope)
         if (reduced === null) {
             return null
         }

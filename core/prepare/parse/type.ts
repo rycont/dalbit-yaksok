@@ -1,4 +1,4 @@
-import { Node, NodeCapability, Token } from '@dalbit-yaksok/core'
+import { Node, NodeCapability, Scope, Token } from '@dalbit-yaksok/core'
 import {
     ClassType,
     Chain,
@@ -47,7 +47,7 @@ export interface SRRule<NodeSequence extends Node[] = Node[]> {
             [K in keyof NodeSequence]: NodeSequence[K]
         },
         tokens: Token[],
-        rule: SRRule<NodeSequence>,
+        scope: Scope,
     ) => Node | null
     isStatement?: boolean
 }

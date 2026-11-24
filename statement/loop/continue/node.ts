@@ -5,9 +5,12 @@ export class Continue implements Statement {
     static friendlyName = '다음 반복'
     public parsingErrors: YaksokError[] = []
 
-    constructor(public tokens: Token[]) {}
+    constructor(
+        public scope: Scope,
+        public tokens: Token[],
+    ) {}
 
-    execute(_scope: Scope): Promise<never> {
+    execute(): Promise<never> {
         throw new ContinueSignal(this.tokens)
     }
 

@@ -93,7 +93,7 @@ export class Formula extends Evaluable<(Evaluable | Operator)[]> {
         this.subnode = terms
     }
 
-    override async execute(): Promise<ValueType> {
+    override async execute(runFrame: RunFrame): Promise<ValueType> {
         const rpn = this.toRPN()
         const stack: { thunk: () => Promise<ValueType>; tokens: Token[] }[] = []
 
@@ -128,7 +128,7 @@ export class Formula extends Evaluable<(Evaluable | Operator)[]> {
                             return result
                         } catch (e) {
                             if (e instanceof YaksokError && !e.scope) {
-                                e.scope = scope
+                                e.scope = this.scope
                             }
 
                             throw e
@@ -139,7 +139,7 @@ export class Formula extends Evaluable<(Evaluable | Operator)[]> {
             } else {
                 stack.push({
                     thunk: async () => {
-                        return item.execute(scope)
+                        return item.execute(runFrame)
                     },
                     tokens: item.tokens,
                 })
