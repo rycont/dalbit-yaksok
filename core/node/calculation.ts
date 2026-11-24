@@ -21,6 +21,7 @@ import {
     PlusOperator,
     PowerOperator,
     RangeOperator,
+    RunFrame,
     Scope,
     Token,
     ValueType,
@@ -39,12 +40,12 @@ export class ValueWithParenthesis extends Evaluable<Evaluable> {
         this.subnode = value
     }
 
-    override async execute(scope: Scope): Promise<ValueType> {
-        return await this.subnode.execute(scope)
+    override async execute(runFrame: RunFrame): Promise<ValueType> {
+        return await this.subnode.execute(runFrame)
     }
 
-    override validate(scope: Scope): YaksokError[] {
-        return this.subnode.validate(scope)
+    override validate(): YaksokError[] {
+        return this.subnode.validate()
     }
 }
 
@@ -60,8 +61,8 @@ export class NotExpression extends Evaluable<Evaluable> {
         this.subnode = value
     }
 
-    override async execute(scope: Scope): Promise<BooleanValue> {
-        const value = await this.subnode.execute(scope)
+    override async execute(runFrame: RunFrame): Promise<BooleanValue> {
+        const value = await this.subnode.execute(runFrame)
 
         if (!(value instanceof BooleanValue)) {
             throw new NotBooleanTypeError({
@@ -93,7 +94,7 @@ export class Formula extends Evaluable<(Evaluable | Operator)[]> {
         this.subnode = terms
     }
 
-    override async execute(scope: Scope): Promise<ValueType> {
+    override async execute(): Promise<ValueType> {
         const rpn = this.toRPN()
         const stack: { thunk: () => Promise<ValueType>; tokens: Token[] }[] = []
 

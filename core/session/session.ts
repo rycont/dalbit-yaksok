@@ -10,8 +10,7 @@ import {
     PubSub,
     type Extension,
     type RuntimeContext,
-    RuleList,
-    concatRuleList,
+    RunFrame,
 } from '@dalbit-yaksok/core'
 
 import functionStatement from '@dalbit-yaksok/statement-function'
@@ -37,7 +36,7 @@ export class YaksokSession {
     public stderr: (message: string, error: YaksokError) => void
 
     public extensions: Extension[] = [...DEFAULT_EXTS]
-    public baseScope: Scope | null = null
+    public baseScope: RunFrame | null = null
 
     public files: Record<string, CodeFile> = {}
     public runtimeContext: RuntimeContext | null = null
@@ -86,15 +85,15 @@ export class YaksokSession {
 
         for (const { fileName, code, baseScope } of extension.capabilties
             .File || []) {
-            const ranScope = await this.addModule(fileName, code).run()
+            const ranFrame = await this.addModule(fileName, code).run()
 
             if (baseScope) {
-                this.useBaseScope(ranScope)
+                this.useBaseScope(ranFrame)
             }
         }
     }
 
-    public useBaseScope(scope: Scope): void {
+    public useBaseScope(scope: RunFrame): void {
         this.baseScope = scope
     }
 
@@ -191,13 +190,5 @@ export class YaksokSession {
         if (this.tickCounter++ % THREAD_YIELD_INTERVAL === 0) {
             await new Promise((ok) => setTimeout(ok, 0))
         }
-    }
-
-    public getMentionRules(): RuleList {
-        return concatRuleList(
-            Object.values(this.files).map(
-                (codeFile) => codeFile.mentionRules || undefined,
-            ),
-        )
     }
 }

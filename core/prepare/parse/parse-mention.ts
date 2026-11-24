@@ -5,6 +5,7 @@ import {
     Formula,
     IncompleteEvaluable,
     Mention,
+    MentionRequiresRunFrame,
     parseValue,
     RDRule,
     Scope,
@@ -32,7 +33,7 @@ const createReplacer =
         startIndex: number,
         indexSequence: number,
         allIndexes: number[],
-    ): DirectReplacer | null => {
+    ): DirectReplacer => {
         const rangeTokens = allTokens.slice(
             startIndex + 1,
             indexSequence + 1 === allIndexes.length
@@ -81,14 +82,32 @@ const createReplacer =
         const lastToken = lastNodeTokens[lastNodeTokens.length - 1]
         const lastTokenIndex = allTokens.indexOf(lastToken)
 
-        const mentionedInstance = new Mention(
-            internalInstance,
-            file.ranFrame,
+        if (file.ranFrame) {
+            return {
+                tokenRange: [startIndex, lastTokenIndex],
+                instance: new Mention(
+                    internalInstance,
+                    file.ranFrame,
+                    rangeTokens,
+                ),
+            }
+        }
+
+        const instance = new IncompleteEvaluable(
+            [internalInstance],
             rangeTokens,
+        )
+
+        instance.parsingErrors.push(
+            new MentionRequiresRunFrame({
+                node: internalInstance,
+                tokens: rangeTokens,
+                scope: scope,
+            }),
         )
 
         return {
             tokenRange: [startIndex, lastTokenIndex],
-            instance: mentionedInstance,
+            instance,
         }
     }

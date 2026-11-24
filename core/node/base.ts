@@ -31,6 +31,7 @@ export class Node<SubnodeShape extends SubnodeScheme = SubnodeScheme> {
 
     public subnode!: SubnodeShape
     public value?: string
+    public scope: Scope
 
     static friendlyName = '노드'
     static accepts: NodeCapability[] = []
@@ -54,7 +55,6 @@ export class Evaluable<
     LeavesType extends SubnodeScheme = SubnodeScheme,
     T extends ValueType = ValueType,
 > extends Node<LeavesType> {
-    public scope: Scope
     static override friendlyName = '값이 있는 노드'
 
     execute(_runFrame: RunFrame): Promise<T> {
@@ -63,6 +63,8 @@ export class Evaluable<
 }
 
 export class IncompleteEvaluable extends Evaluable<Node[]> {
+    public parsingErrors: YaksokError[] = []
+
     constructor(
         public subnode: Node[],
         public tokens: Token[],
@@ -71,7 +73,9 @@ export class IncompleteEvaluable extends Evaluable<Node[]> {
     }
 
     override validate() {
-        return this.subnode.flatMap((s) => s.validate())
+        return this.subnode
+            .flatMap((s) => s.validate())
+            .concat(this.parsingErrors)
     }
 }
 
@@ -80,7 +84,7 @@ export class Identifier extends Evaluable {
 
     constructor(
         public scope: Scope,
-        public slotKey: SlotKey | null,
+        public slotKey: SlotKey,
         public override value: string,
         public override tokens: Token[],
     ) {

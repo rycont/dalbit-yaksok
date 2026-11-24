@@ -21,7 +21,7 @@ export function parseStatement(lines: TokenLine[], scope: Scope): Statement[] {
             .flatMap((ruleList) => ruleList.rd)
             .map((rdRule) => createStatement(rdRule, lines, scope))
             .find((p) => p !== null) ||
-        createStatement(Evaluator.SRFallback, lines, scope)
+        createStatement(Evaluator.SRFallback, lines, scope)!
 
     const newScope = parsed.scope || scope
 

@@ -7,7 +7,6 @@ import {
     EOL,
     TOKEN_TYPE,
     StringStaticPart,
-    Mention,
     type Token,
     Scope,
     DirectReplacer,
@@ -58,7 +57,9 @@ function mapTokenToNode(scope: Scope, token: Token | null) {
         case TOKEN_TYPE.NUMBER:
             return new NumberLiteral(parseFloat(token.value), [token])
         case TOKEN_TYPE.STATIC_STRING:
-            return new StringStaticPart(unescapeString(token.value), [token])
+            return new StringStaticPart(scope, unescapeString(token.value), [
+                token,
+            ])
         case TOKEN_TYPE.OPERATOR:
             return new Operator(token.value, [token])
         case TOKEN_TYPE.IDENTIFIER:

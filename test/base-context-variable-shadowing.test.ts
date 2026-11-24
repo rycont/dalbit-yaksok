@@ -52,7 +52,9 @@ test('setBaseContext: 새 변수 선언은 로컬 스코프에 생성됨', async
 
     expect(output.trim()).toBe('100')
 
-    expect(baseContextFrame?.variables['새값']).toBe(undefined)
+    expect(
+        baseContextFrame.get(baseContextFrame.scope.findSlot('새값')[0]),
+    ).toBe(undefined)
 })
 
 // ===== 재대입 동작 검증 =====
@@ -82,14 +84,25 @@ test('validation 단계가 baseContext.ranScope의 변수를 변경하지 않음
 
     session.useBaseScope(await session.addModule('base', '값 = 5').run())
 
-    const baseScopeBefore = session.baseScope
-    expect((baseScopeBefore?.variables['값'] as NumberValue)?.value).toBe(5)
+    const baseScopeBefore = session.baseScope!
+    expect(
+        (baseScopeBefore.get(
+            baseScopeBefore.scope.findSlot('값')[0],
+        ) as NumberValue)!.value,
+    ).toBe(5)
 
     // validate만 호출 (실행은 하지 않음)
     session.addModule('main', '값 = 값 + 10')
 
-    const baseScopeAfter = session.baseScope
-    expect((baseScopeAfter?.variables['값'] as NumberValue)?.value).toBe(5)
+    const baseScopeAfter = session.baseScope!
+
+    expect(
+        (
+            baseScopeAfter.get(
+                baseScopeAfter.scope.findSlot('값')[0],
+            ) as NumberValue
+        ).value,
+    ).toBe(5)
 })
 
 test('재대입 후 parent scope에 반영됨', async () => {
@@ -103,8 +116,13 @@ test('재대입 후 parent scope에 반영됨', async () => {
     const codeFile = session.addModule('main', '값 = 값 + 10')
     const childFrame = await codeFile.run()
 
-    expect((baseFrame.variables['값'] as NumberValue).value).toBe(5)
-    expect((childFrame.variables['값'] as NumberValue).value).toBe(15)
+    expect(
+        (baseFrame.get(baseFrame.scope.findSlot('값')[0]) as NumberValue).value,
+    ).toBe(5)
+    expect(
+        (baseFrame.get(childFrame.scope.findSlot('값')[0]) as NumberValue)
+            .value,
+    ).toBe(15)
 })
 
 test('복합 대입 연산자로 재대입', async () => {

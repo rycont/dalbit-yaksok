@@ -15,7 +15,9 @@ for (const literal of TRUE_LITERALS) {
 `,
             )
             .run()
-        const result = frame.get(frame.scope.findSlot('결과')[0]) as BooleanValue
+        const result = frame.get(
+            frame.scope.findSlot('결과')[0],
+        ) as BooleanValue
         expect(result.value).toBe(true)
     })
 }
@@ -31,7 +33,9 @@ for (const literal of FALSE_LITERALS) {
 `,
             )
             .run()
-        const result = frame.get(frame.scope.findSlot('결과')[0]) as BooleanValue
+        const result = frame.get(
+            frame.scope.findSlot('결과')[0],
+        ) as BooleanValue
         expect(result.value).toBe(false)
     })
 }
@@ -67,10 +71,18 @@ test('Compare booleans', async () => {
 
     assert(frame)
 
-    expect((frame.get(frame.scope.findSlot('결과1')[0]) as BooleanValue).value).toBe(true)
-    expect((frame.get(frame.scope.findSlot('결과2')[0]) as BooleanValue).value).toBe(true)
-    expect((frame.get(frame.scope.findSlot('결과3')[0]) as BooleanValue).value).toBe(false)
-    expect((frame.get(frame.scope.findSlot('결과4')[0]) as BooleanValue).value).toBe(true)
+    expect(
+        (frame.get(frame.scope.findSlot('결과1')[0]) as BooleanValue).value,
+    ).toBe(true)
+    expect(
+        (frame.get(frame.scope.findSlot('결과2')[0]) as BooleanValue).value,
+    ).toBe(true)
+    expect(
+        (frame.get(frame.scope.findSlot('결과3')[0]) as BooleanValue).value,
+    ).toBe(false)
+    expect(
+        (frame.get(frame.scope.findSlot('결과4')[0]) as BooleanValue).value,
+    ).toBe(true)
 })
 
 test('Negation operator', async () => {
@@ -90,8 +102,16 @@ test('Negation operator', async () => {
 
     assert(frame)
 
-    expect((frame.get(frame.scope.findSlot('결과1')[0]) as BooleanValue).value).toBe(false)
-    expect((frame.get(frame.scope.findSlot('결과2')[0]) as BooleanValue).value).toBe(true)
-    expect((frame.get(frame.scope.findSlot('결과3')[0]) as BooleanValue).value).toBe(false)
-    expect((frame.get(frame.scope.findSlot('결과4')[0]) as BooleanValue).value).toBe(false)
+    expect(
+        (frame.get(frame.scope.findSlot('결과1')[0]) as BooleanValue).value,
+    ).toBe(false)
+    expect(
+        (frame.get(frame.scope.findSlot('결과2')[0]) as BooleanValue).value,
+    ).toBe(true)
+    expect(
+        (frame.get(frame.scope.findSlot('결과3')[0]) as BooleanValue).value,
+    ).toBe(false)
+    expect(
+        (frame.get(frame.scope.findSlot('결과4')[0]) as BooleanValue).value,
+    ).toBe(false)
 })

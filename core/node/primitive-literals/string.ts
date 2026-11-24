@@ -3,6 +3,7 @@ import {
     Expression,
     NotAcceptableSignal,
     PlusOperator,
+    RunFrame,
     Scope,
     StringValue,
     Token,
@@ -14,17 +15,21 @@ import {
 export class StringStaticPart extends Expression {
     static override friendlyName = '문자'
 
-    constructor(content: string, tokens: Token[]) {
+    constructor(
+        public scope: Scope,
+        content: string,
+        tokens: Token[],
+    ) {
         super(content, tokens)
     }
 
-    override validate(scope: Scope): YaksokError[] {
+    override validate(): YaksokError[] {
         return this.tokens
             .filter((t) => t.value.includes('\n'))
             .map(
                 () =>
                     new UnexpectedCharError({
-                        scope,
+                        scope: this.scope,
                         node: this,
                         resource: {
                             parts: '문자열',
@@ -41,6 +46,7 @@ export class StringPartSequence extends Evaluable<
     static override friendlyName = '문자'
 
     constructor(
+        public scope: Scope,
         content: (StringStaticPart | Evaluable | Expression)[],
         public override tokens: Token[],
     ) {
@@ -52,14 +58,14 @@ export class StringPartSequence extends Evaluable<
         this.subnode = content
     }
 
-    override async execute(scope: Scope): Promise<ValueType> {
+    override async execute(runFrame: RunFrame): Promise<ValueType> {
         const parts = await Promise.all(
             this.subnode.slice(1, -1).map((n) => {
                 if (n instanceof StringStaticPart) {
                     return Promise.resolve(new StringValue(n.value))
                 }
 
-                return n.execute(scope)
+                return n.execute(runFrame)
             }),
         )
 
@@ -76,7 +82,7 @@ export class StringPartSequence extends Evaluable<
         return result
     }
 
-    public static isBroken(content: (StringStaticPart | Evaluable)[]): boolean {
+    public static isBroken(content: (Expression | Evaluable)[]): boolean {
         return content.some(
             (p, index) =>
                 p instanceof Expression &&
@@ -86,7 +92,7 @@ export class StringPartSequence extends Evaluable<
         )
     }
 
-    public override validate(scope: Scope): YaksokError[] {
-        return this.subnode.slice(1, -1).flatMap((n) => n.validate(scope))
+    public override validate(): YaksokError[] {
+        return this.subnode.slice(1, -1).flatMap((n) => n.validate())
     }
 }

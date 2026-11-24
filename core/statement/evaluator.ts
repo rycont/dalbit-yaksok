@@ -1,9 +1,8 @@
 import {
     Evaluable,
-    Extension,
     RDRule,
+    RunFrame,
     Scope,
-    ScopeChain,
     Statement,
     StatementCaller,
     Token,
@@ -19,12 +18,12 @@ export class Evaluator implements Statement {
         public tokens: Token[],
     ) {}
 
-    async execute(scopeChain: ScopeChain) {
-        await this.evaluable.execute(scopeChain)
+    async execute(runFrame: RunFrame) {
+        await this.evaluable.execute(runFrame)
     }
 
     validate() {
-        return this.evaluable.validate(this.scope)
+        return this.evaluable.validate()
     }
 
     static SRFallback: RDRule = {
