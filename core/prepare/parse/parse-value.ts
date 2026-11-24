@@ -1,9 +1,4 @@
-import {
-    convertTokensToNodes,
-    type Token,
-    Scope,
-    YaksokError,
-} from '@dalbit-yaksok/core'
+import { convertTokensToNodes, type Token, Scope } from '@dalbit-yaksok/core'
 import { parseBracket } from './parse-bracket'
 import { callSRParseRecursively, ParsingHooks } from './srParse'
 import { getMentionReplacers } from './parse-mention'

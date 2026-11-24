@@ -66,7 +66,7 @@ export function createCallingPattern(
                         .slice(0, part.params.length)
                         .map<[SlotKey, Evaluable] | YaksokError>(
                             (tupleItem, index) => [
-                                parameterSlots.get(part.params[index]),
+                                parameterSlots.get(part.params[index])!,
                                 tupleItem,
                             ],
                         )
@@ -86,7 +86,7 @@ export function createCallingPattern(
                     return destructured.concat([overflowError])
                 } else {
                     const entry: [SlotKey, Evaluable] = [
-                        parameterSlots.get(part.params[0]),
+                        parameterSlots.get(part.params[0])!,
                         node as Evaluable,
                     ]
 

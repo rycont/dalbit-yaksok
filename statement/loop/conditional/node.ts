@@ -9,6 +9,7 @@ import {
     Token,
     YaksokError,
     RunFrame,
+    Scope,
 } from '@dalbit-yaksok/core'
 import { ContinueSignal } from '../continue/signal'
 import { BreakSignal } from '../break/signal'
@@ -19,6 +20,7 @@ export class ConditionalLoop implements Statement {
     public parsingErrors: YaksokError[] = []
 
     constructor(
+        public scope: Scope,
         private condition: Evaluable,
         private body: Block,
         public tokens: Token[],

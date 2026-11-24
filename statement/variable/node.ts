@@ -68,7 +68,7 @@ export class SetVariable implements Statement {
             }
         }
 
-        const errors = this.evaluator.validate(this.scope)
+        const errors = this.evaluator.validate()
         return this.parsingErrors.concat(errors)
     }
 

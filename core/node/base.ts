@@ -31,7 +31,7 @@ export class Node<SubnodeShape extends SubnodeScheme = SubnodeScheme> {
 
     public subnode!: SubnodeShape
     public value?: string
-    public scope: Scope
+    public scope!: Scope
 
     static friendlyName = '노드'
     static accepts: NodeCapability[] = []

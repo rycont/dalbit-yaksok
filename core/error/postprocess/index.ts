@@ -1,13 +1,9 @@
 import { Token, YaksokError } from '@dalbit-yaksok/core'
 import { prettifyBrokenList } from './list.ts'
-import { mergeSequentialIdentifiers } from './identifier.ts'
 import { Processor } from './type.ts'
 import { prettifyIndentError } from './indent.ts'
 
-const LINE_PROCESSORS: Processor[] = [
-    prettifyBrokenList,
-    mergeSequentialIdentifiers,
-]
+const LINE_PROCESSORS: Processor[] = [prettifyBrokenList]
 
 const GLOBAL_PROCESSORS: Processor[] = [prettifyIndentError]
 

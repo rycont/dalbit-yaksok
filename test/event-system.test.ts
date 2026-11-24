@@ -1,4 +1,4 @@
-import { dalbitToJS, Scope, YaksokSession } from '@dalbit-yaksok/core'
+import { dalbitToJS, RunFrame, Scope, YaksokSession } from '@dalbit-yaksok/core'
 import { test, expect } from 'vite-plus/test'
 
 test('이벤트 구독 및 실행', async () => {
@@ -92,7 +92,7 @@ test('이벤트 구독 시 subscriber target 정보 전달', async () => {
 `,
     )
 
-    let receivedScope: Scope | null = null
+    let receivedScope: RunFrame | null = null
 
     session.eventCreation.sub(
         'TEST_EVENT',

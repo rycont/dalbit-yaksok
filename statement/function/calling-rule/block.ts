@@ -10,7 +10,6 @@ import {
     FactoryParsers,
     SlotKey,
     Scope,
-    ValueType,
     Evaluable,
 } from '@dalbit-yaksok/core'
 import {
@@ -27,7 +26,7 @@ export function createBlockRule(
     scope: Scope,
     signature: FunctionSignature,
     parameterSlots: Map<ParameterElement, SlotKey>,
-    slot: FunctionSlot,
+    slotKey: SlotKey,
 ): RDRule {
     const staticParts = signature.headerParts.slice(
         0,
@@ -77,7 +76,7 @@ export function createBlockRule(
 
             const nodeInstance = new FunctionInvoke(
                 scope,
-                slot,
+                slotKey,
                 invokingArguments,
                 line.validTokens,
             )

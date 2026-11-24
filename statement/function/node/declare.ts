@@ -3,16 +3,13 @@ import {
     Token,
     Scope,
     YaksokError,
-    RuleList,
     Statement,
     RunFrame,
     SlotKey,
 } from '@dalbit-yaksok/core'
-import { MissingFunctionBody } from '../error/no-body'
-import { FunctionDeclareHeader } from './header'
 import { FFIObject } from '../value/ffi'
 import { FunctionObject } from '../value/function'
-// import { EventSubscriptionObject } from '../value/event'
+import { EventSubscriptionObject } from '../value/event'
 
 export class DeclareFunction implements Statement {
     static friendlyName = '새 약속 만들기'
@@ -28,7 +25,7 @@ export class DeclareFunction implements Statement {
 
     execute(runFrame: RunFrame) {
         const runnable = new FunctionObject(
-            this.scope.slots.get(this.slot).name,
+            this.scope.slots.get(this.slot)!.name,
             this.body,
             runFrame,
         )
@@ -47,8 +44,8 @@ export class DeclareFFI implements Statement {
 
     constructor(
         public scope: Scope,
-        private callingRules: RuleList,
-        public readonly header: FunctionDeclareHeader,
+        private name: string,
+        private slotKey: SlotKey,
         public runtime: string,
         public body: string,
         public tokens: Token[],
@@ -56,17 +53,16 @@ export class DeclareFFI implements Statement {
 
     public parsingErrors: YaksokError[] = []
 
-    execute(): Promise<void> {
+    execute(runFrame: RunFrame): Promise<void> {
         try {
             const runnable = new FFIObject(
-                this.header.signature.functionName,
+                this.name,
                 this.body,
                 this.runtime,
-                this.callingRules,
-                this.scope,
+                runFrame,
             )
 
-            this.scope.addFunctionObject(runnable)
+            runFrame.set(this.slotKey, runnable)
             return Promise.resolve()
         } catch (e) {
             if (e instanceof YaksokError && !e.tokens) {
@@ -78,41 +74,7 @@ export class DeclareFFI implements Statement {
     }
 
     validate(): YaksokError[] {
-        let declareErrors: YaksokError[] = []
-
-        try {
-            const ffiObject = new FFIObject(
-                this.header.signature.functionName,
-                this.body,
-                this.runtime,
-                this.callingRules,
-                this.scope,
-            )
-
-            this.scope.addFunctionObject(ffiObject)
-        } catch (error) {
-            if (error instanceof YaksokError) {
-                error.tokens = this.tokens
-                declareErrors.push(error)
-            } else {
-                throw error
-            }
-        }
-
-        const headerErrors = this.header
-            .validate()
-            .filter((e) => !(e instanceof MissingFunctionBody))
-
-        return declareErrors.concat(headerErrors).concat(
-            this.parsingErrors.map((e) => {
-                e.scope = this.scope
-                return e
-            }),
-        )
-    }
-
-    public injectParsingError(parsingError: YaksokError) {
-        this.parsingErrors.push(parsingError)
+        return this.parsingErrors
     }
 }
 
@@ -122,27 +84,28 @@ export class DeclareEvent implements Statement {
 
     constructor(
         public scope: Scope,
-        private callingRules: RuleList,
-        public readonly header: FunctionDeclareHeader,
-        private readonly eventId: string,
+        private eventId: string,
+        private slotKey: SlotKey,
+        private callbackSlotKey: SlotKey,
         public tokens: Token[],
     ) {}
 
-    execute(): Promise<void> {
-        this.scope.events.set(this.eventId, this)
+    execute(runFrame: RunFrame): Promise<void> {
+        // this.scope.events.set(this.eventId, this)
 
-        // this.header.runnable = new EventSubscriptionObject(
-        //     this.eventId,
-        //     this.callingRules,
-        //     scope,
-        // )
+        runFrame.set(
+            this.slotKey,
+            new EventSubscriptionObject(
+                this.eventId,
+                this.callbackSlotKey,
+                runFrame,
+            ),
+        )
 
         return Promise.resolve()
     }
 
     validate(): YaksokError[] {
-        return this.header
-            .validate()
-            .filter((e) => !(e instanceof MissingFunctionBody))
+        return this.parsingErrors
     }
 }

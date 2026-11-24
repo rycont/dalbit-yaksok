@@ -32,3 +32,16 @@ export function createParameterSlot(
         name,
     }
 }
+
+export const CALLBACK_FUNCTION_SLOT_TYPE = Symbol('callbackFunction')
+
+export interface CallbackFunctionSlot extends Slot {
+    readonly type: typeof CALLBACK_FUNCTION_SLOT_TYPE
+}
+
+export function createCallbackFunctionSlot(): CallbackFunctionSlot {
+    return {
+        type: CALLBACK_FUNCTION_SLOT_TYPE,
+        name: null,
+    }
+}

@@ -4,7 +4,11 @@ import { bold, blue, dim } from '../util/terminal.ts'
 import { YaksokError } from './common.ts'
 
 export class FFIResultTypeIsNotForYaksokError extends YaksokError {
-    constructor(props: { value: any; ffiName: string; tokens: Token[] }) {
+    constructor(props: {
+        value: any
+        ffiName: string | null
+        tokens: Token[]
+    }) {
         super(props)
 
         let stringValue = ''
@@ -39,7 +43,7 @@ export class ErrorInFFIExecution extends YaksokError {
 
 export class ErrorOccurredWhileRunningFFIExecution extends YaksokError {
     constructor(props: {
-        ffiName: string
+        ffiName: string | null
         tokens: Token[]
         child: YaksokError
     }) {
@@ -47,7 +51,7 @@ export class ErrorOccurredWhileRunningFFIExecution extends YaksokError {
         this.child = props.child
 
         this.message = `${bold(
-            blue(props.ffiName),
+            blue(props.ffiName ?? '알 수 없는 동작'),
         )}을 실행하는 중에 문제가 발생했어요.`
     }
 }

@@ -34,13 +34,13 @@ export class FunctionInvoke extends Evaluable {
     override async execute(runFrame: RunFrame): Promise<ValueType> {
         const evaluatedArgument = await this.invokingArguments.execute(runFrame)
 
+        const runnable = runFrame.get(this[ReferenceSlot])
+
+        if (!isRunnable(runnable)) {
+            throw '예?'
+        }
+
         try {
-            const runnable = runFrame.get(this[ReferenceSlot])
-
-            if (!isRunnable(runnable)) {
-                throw '예?'
-            }
-
             const returnValue =
                 (await runnable[Runnable].run(evaluatedArgument)) ||
                 new EmptyValue()
@@ -58,7 +58,7 @@ export class FunctionInvoke extends Evaluable {
                     {
                         child: error,
                         tokens: this.tokens,
-                        ffiName: this.scope.slots.get(this[ReferenceSlot]).name,
+                        ffiName: runnable[Runnable].name,
                     },
                 )
 

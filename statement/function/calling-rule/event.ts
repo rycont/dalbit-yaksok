@@ -1,15 +1,26 @@
-import { FunctionSignature } from '../type'
-import { r, RuleList, StatementCaller } from '@dalbit-yaksok/core'
+import { FunctionSignature, ParameterElement } from '../type'
+import {
+    r,
+    RuleList,
+    Scope,
+    SlotKey,
+    StatementCaller,
+} from '@dalbit-yaksok/core'
 import { createCallingPattern } from './pattern'
 import { SubscribeEvent } from '../node/event'
-import { FunctionDeclareHeader } from '../node/header'
 
 export function createEventSubscriptionRules(
     signature: FunctionSignature,
-    declareHeader: FunctionDeclareHeader,
+    eventSlotKey: SlotKey,
+    scope: Scope,
+    parameterSlots: Map<ParameterElement, SlotKey>,
+    callbackSlotKey: SlotKey,
 ): RuleList {
-    const { pattern, invokingArgumentsFactory } =
-        createCallingPattern(signature)
+    const { pattern, invokingArgumentsFactory } = createCallingPattern(
+        scope,
+        signature,
+        parameterSlots,
+    )
 
     const srRule = r({
         pattern: pattern,
@@ -25,7 +36,9 @@ export function createEventSubscriptionRules(
             return new StatementCaller(
                 (body) =>
                     new SubscribeEvent(
-                        declareHeader,
+                        scope,
+                        eventSlotKey,
+                        callbackSlotKey,
                         body,
                         invokingArguments,
                         tokens,

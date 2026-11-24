@@ -1,58 +1,57 @@
 import {
     Block,
     Token,
-    ValueType,
     YaksokError,
     Scope,
     Statement,
+    RunFrame,
+    ReferenceSlot,
+    SlotKey,
+    isRunnable,
+    Runnable,
 } from '@dalbit-yaksok/core'
 import { InvokingArguments } from './arguments'
-import { FunctionDeclareHeader } from './header'
 import { FunctionObject } from '../value/function'
-import { EventSubscriptionObject } from '../value/event'
 
 export class SubscribeEvent implements Statement {
     static friendlyName = '이벤트 구독하기'
     public parsingErrors: YaksokError[] = []
 
+    public [ReferenceSlot]: SlotKey
+
     constructor(
-        private readonly declareHeader: FunctionDeclareHeader,
+        public scope: Scope,
+        referenceSlot: SlotKey,
+        private callbackSlotKey: SlotKey,
         private readonly body: Block,
         private invokingArguments: InvokingArguments,
         public readonly tokens: Token[],
-    ) {}
-
-    async execute(scope: Scope): Promise<void> {
-        const args = await this.invokingArguments.execute(scope)
-
-        const argsWithBodySymbol = new Map<string | symbol, ValueType>(args)
-
-        argsWithBodySymbol.set(
-            EventSubscriptionObject.CALLBACK_BODY_KEY,
-            new FunctionObject(
-                '익명함수',
-                this.body,
-                { rd: [], sr: [] },
-                scope,
-            ),
-        )
-
-        void this.declareHeader.runnable!.run(argsWithBodySymbol)
+    ) {
+        this[ReferenceSlot] = referenceSlot
     }
 
-    validate(invokingScope: Scope): YaksokError[] {
-        const subnodeErrors = this.invokingArguments.validate(invokingScope)
+    async execute(runFrame: RunFrame): Promise<void> {
+        const args = await this.invokingArguments.execute(runFrame)
 
-        const eventOccuredScope = new Scope({
-            parent: invokingScope,
-            initialVariable: Object.fromEntries(
-                this.invokingArguments.argumentValues
-                    .keys()
-                    .map((k) => [k, new ValueType()]),
-            ),
-        })
+        const event = runFrame.get(this[ReferenceSlot])
 
-        const bodyErrors = this.body.validate(eventOccuredScope)
+        if (!isRunnable(event)) {
+            throw ''
+        }
+
+        const argsWithBodySymbol = new Map(args)
+        argsWithBodySymbol.set(
+            this.callbackSlotKey,
+            new FunctionObject(null, this.body, runFrame),
+        )
+
+        void event[Runnable].run(argsWithBodySymbol)
+    }
+
+    validate(): YaksokError[] {
+        const subnodeErrors = this.invokingArguments.validate()
+
+        const bodyErrors = this.body.validate()
 
         return subnodeErrors.concat(bodyErrors)
     }

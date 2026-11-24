@@ -9,7 +9,11 @@ import { DeclareEvent, DeclareFFI, DeclareFunction } from './node/declare.ts'
 import { createEventSubscriptionRules } from './calling-rule/event.ts'
 import { ReturnStatement } from './node/return.ts'
 import { MissingFunctionBody } from './error/no-body.ts'
-import { createFunctionSlot, createParameterSlot } from './slot.ts'
+import {
+    createCallbackFunctionSlot,
+    createFunctionSlot,
+    createParameterSlot,
+} from './slot.ts'
 
 export * from './error/no-static.ts'
 export * from './error/no-body.ts'
@@ -122,36 +126,34 @@ const functionGrammer: RDRule = {
         //     header,
         // )
 
+        const subscope = new Scope({
+            parent: scope,
+        })
+
+        const parameterSlots = new Map(
+            header.signature.parameterScheme.map((p) => [
+                p,
+                subscope.addSlot(createParameterSlot(p.name)),
+            ]),
+        )
+
+        const runnableSlot = createFunctionSlot(header.signature.functionName)
+
+        const slotKey = scope.addSlot(runnableSlot)
+
+        const callingRules = createCallingRules(
+            signatureResult.signature,
+            scope,
+            slotKey,
+            parameterSlots,
+        )
+
         if (testResult.type === '약속') {
             if (!headerConsumed.block) {
                 return null
             }
 
             const [bodyTokens, bodyConsumed] = headerConsumed.block.consume()
-
-            const runnableSlot = createFunctionSlot(
-                header.signature.functionName,
-            )
-
-            const slotKey = scope.addSlot(runnableSlot)
-
-            const subscope = new Scope({
-                parent: scope,
-            })
-
-            const parameterSlots = new Map(
-                header.signature.parameterScheme.map((p) => [
-                    p,
-                    subscope.addSlot(createParameterSlot(p.name)),
-                ]),
-            )
-
-            const callingRules = createCallingRules(
-                signatureResult.signature,
-                scope,
-                slotKey,
-                parameterSlots,
-            )
 
             scope.addRuleList(callingRules)
 
@@ -190,15 +192,17 @@ const functionGrammer: RDRule = {
 
             const instance = new DeclareFFI(
                 scope,
-                callingRules,
-                header,
+                signatureResult.signature.functionName,
+                slotKey,
                 testResult.runtime,
                 bodyText,
                 line.validTokens.concat(ffiBody?.validTokens ?? []),
             )
 
+            instance.parsingErrors = header.validate()
+
             if (bodyToken?.type !== TOKEN_TYPE.FFI_BODY) {
-                instance.injectParsingError(
+                instance.parsingErrors = instance.parsingErrors.concat(
                     new MissingFunctionBody({
                         statement: instance,
                     }),
@@ -212,21 +216,31 @@ const functionGrammer: RDRule = {
                 consumed: ffiConsumed,
             }
         } else if (testResult.type === '이벤트') {
+            const callbackSlot = createCallbackFunctionSlot()
+            const callbackSlotKey = subscope.addSlot(callbackSlot)
+
             const eventSubscriptionRule = createEventSubscriptionRules(
                 signatureResult.signature,
-                header,
+                slotKey,
+                scope,
+                parameterSlots,
+                callbackSlotKey,
             )
 
             scope.addRuleList(eventSubscriptionRule)
 
+            const instance = new DeclareEvent(
+                scope,
+                testResult.id,
+                slotKey,
+                callbackSlotKey,
+                line.validTokens,
+            )
+
+            instance.parsingErrors = header.validate()
+
             return {
-                instance: new DeclareEvent(
-                    scope,
-                    eventSubscriptionRule,
-                    header,
-                    testResult.id,
-                    line.validTokens,
-                ),
+                instance,
                 consumed: headerConsumed,
             }
         }
@@ -263,7 +277,7 @@ const altReturnPattern = j
 const returnGrammer: RDRule = {
     name: '반환하기',
     description: '설명?',
-    factory(code, parse) {
+    factory(code, parse, scope) {
         const [line, consumed] = code.consume()
 
         const testResult = returnPattern.func(
@@ -275,7 +289,7 @@ const returnGrammer: RDRule = {
             const node = parse.value(testResult.returnValueTokens)
 
             return {
-                instance: new ReturnStatement(line.validTokens, node),
+                instance: new ReturnStatement(scope, line.validTokens, node),
                 consumed,
             }
         }
@@ -287,7 +301,7 @@ const returnGrammer: RDRule = {
 
         if (altTestResult) {
             return {
-                instance: new ReturnStatement(line.validTokens),
+                instance: new ReturnStatement(scope, line.validTokens),
                 consumed,
             }
         }

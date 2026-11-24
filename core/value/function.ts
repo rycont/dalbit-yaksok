@@ -1,16 +1,16 @@
-import type { Brand, ObjectValue, ValueType } from '@dalbit-yaksok/core'
+import type { Brand, SlotKey, ValueType } from '@dalbit-yaksok/core'
 
 export const Runnable = Symbol() as Brand<symbol, 'Runnable_Run'>
 
-export interface RunnableObject extends ObjectValue {
-    readonly [Runnable]: {
-        readonly run: (
-            args: Map<string | symbol, ValueType>,
-        ) => Promise<ValueType | void>
-        readonly name?: string
-    }
+export interface RunnableCapability {
+    readonly run: (args: Map<SlotKey, ValueType>) => Promise<ValueType | void>
+    readonly name: string | null
 }
 
-export function isRunnable(value: ValueType): value is RunnableObject {
-    return Runnable in value
+export interface RunnableObject {
+    readonly [Runnable]: RunnableCapability
+}
+
+export function isRunnable<T>(value: T): value is T & RunnableObject {
+    return typeof value === 'object' && value !== null && Runnable in value
 }

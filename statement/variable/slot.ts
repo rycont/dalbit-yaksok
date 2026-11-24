@@ -1,6 +1,6 @@
 import { Slot } from '@dalbit-yaksok/core'
 
-const VARIABLE_SLOT_TYPE = 'variable'
+const VARIABLE_SLOT_TYPE = Symbol('variable')
 
 export function createVariableSlot(name: string): Slot {
     return {

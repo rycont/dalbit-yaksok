@@ -95,7 +95,6 @@ export class FunctionDeclareHeader implements Statement {
             .concat(
                 new MissingFunctionBody({
                     statement: this,
-                    scope: this.scope,
                 }),
             )
     }

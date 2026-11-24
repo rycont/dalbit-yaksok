@@ -7,7 +7,7 @@ import {
 export function assertValidReturnValue(
     value: ValueType,
     tokens: Token[],
-    name: string,
+    name: string | null,
 ) {
     if (value instanceof ValueType) {
         return

@@ -1,69 +1,69 @@
 import {
     ObjectValue,
-    Scope,
     YaksokError,
     renderErrorString,
-    type ValueType,
-    type RunnableObject,
-    RuleList,
+    Runnable,
+    RunnableCapability,
+    isRunnable,
+    SlotKey,
+    RunFrame,
 } from '@dalbit-yaksok/core'
-import { FunctionObject } from './function'
 
-export class EventSubscriptionObject
-    extends ObjectValue
-    implements RunnableObject
-{
-    static CALLBACK_BODY_KEY = Symbol('EVENT_BODY_ARG_KEY')
-    static override friendlyName = '번역'
-
-    public paramNames: string[] = []
+export class EventSubscriptionObject extends ObjectValue {
+    public [Runnable]: RunnableCapability
 
     constructor(
-        public eventId: string,
-        public invokeRules: RuleList,
-        private declaredScope: Scope,
+        eventId: string,
+        callbackSlotKey: SlotKey,
+        declaredFrame: RunFrame,
     ) {
         super()
-    }
 
-    public get name() {
-        return this.eventId
-    }
+        this[Runnable] = {
+            name: eventId,
+            run(args): Promise<void> {
+                const session = declaredFrame.scope.session
 
-    run(args: Map<string | symbol, ValueType>): Promise<void> {
-        const session = this.declaredScope.session
-        const callback = args.get(EventSubscriptionObject.CALLBACK_BODY_KEY)
+                const callback = args.get(callbackSlotKey)
 
-        if (!(callback instanceof FunctionObject)) {
-            throw '왜그러세요..'
+                if (!isRunnable(callback)) {
+                    throw '왜그러세요..'
+                }
+
+                const argsWithReadableName = new Map(
+                    args
+                        .entries()
+                        .map(([k, v]) => [
+                            declaredFrame.scope.slots.get(k)?.name || k,
+                            v,
+                        ]),
+                )
+
+                session.aliveListeners.push(
+                    new Promise<void>((resolve) => {
+                        session.eventCreation.pub(eventId, [
+                            argsWithReadableName,
+                            async () => {
+                                try {
+                                    await callback[Runnable].run(new Map())
+                                } catch (e) {
+                                    if (e instanceof YaksokError) {
+                                        session.stderr(renderErrorString(e), e)
+                                    }
+
+                                    resolve()
+                                }
+                            },
+                            () => {
+                                resolve()
+                            },
+                            declaredFrame,
+                        ])
+                    }),
+                )
+
+                return Promise.resolve()
+            },
         }
-
-        const argsWithoutSymbol = new Map(args)
-        argsWithoutSymbol.delete(EventSubscriptionObject.CALLBACK_BODY_KEY)
-
-        session.aliveListeners.push(
-            new Promise((resolve) => {
-                session.eventCreation.pub(this.eventId, [
-                    argsWithoutSymbol as Map<string, ValueType>,
-                    async () => {
-                        try {
-                            await callback.run(new Map())
-                        } catch (e) {
-                            if (e instanceof YaksokError) {
-                                session.stderr(renderErrorString(e), e)
-                            }
-
-                            resolve()
-                        }
-                    },
-                    () => {
-                        resolve()
-                    },
-                    this.declaredScope,
-                ])
-            }),
-        )
-
-        return Promise.resolve()
     }
 }

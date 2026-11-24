@@ -4,6 +4,7 @@ import {
     ObjectValue,
     RunFrame,
     Runnable,
+    RunnableCapability,
     RunnableObject,
     SlotKey,
     ValueType,
@@ -14,9 +15,9 @@ const DEFAULT_RETURN_VALUE = new NumberValue(0)
 
 export class FunctionObject extends ObjectValue implements RunnableObject {
     static override friendlyName = '약속'
-    public [Runnable]: RunnableObject[typeof Runnable]
+    public [Runnable]: RunnableCapability
 
-    constructor(name: string, body: Block, declaredFrame: RunFrame) {
+    constructor(name: string | null, body: Block, declaredFrame: RunFrame) {
         super()
         this[Runnable] = {
             name,

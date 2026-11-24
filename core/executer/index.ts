@@ -1,4 +1,4 @@
-import { Block, createRunFrame, RunFrame } from '../mod.ts'
+import { Block, RunFrame } from '../mod.ts'
 import { Signal } from './signals.ts'
 
 export async function executer(

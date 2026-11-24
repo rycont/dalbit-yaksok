@@ -6,6 +6,7 @@ import {
     Token,
     YaksokError,
     RunFrame,
+    Scope,
 } from '@dalbit-yaksok/core'
 
 export class SetToIndex implements Statement {
@@ -13,6 +14,7 @@ export class SetToIndex implements Statement {
     public parsingErrors: YaksokError[] = []
 
     constructor(
+        public scope: Scope,
         public readonly target: IndexFetch,
         private readonly value: Evaluable,
         private readonly operator: string,

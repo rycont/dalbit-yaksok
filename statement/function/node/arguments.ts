@@ -27,7 +27,7 @@ export class InvokingArguments {
         const optionalKeys = new Set(
             parameterScheme
                 .filter((p) => p.optional)
-                .map((p) => parameterSlots.get(p)),
+                .map((p) => parameterSlots.get(p)!),
         )
 
         const providedKeys = new Set(argumentValues.keys())
@@ -42,7 +42,7 @@ export class InvokingArguments {
         ])
     }
 
-    async execute(runFrame: RunFrame): Promise<Map<symbol, ValueType>> {
+    async execute(runFrame: RunFrame): Promise<Map<SlotKey, ValueType>> {
         const args = new Map(
             this.optionalFiller.concat(
                 await Promise.all(
@@ -70,7 +70,7 @@ export class InvokingArguments {
         const requiredArguments = new Set(
             this.parameterScheme
                 .filter((p) => !p.optional)
-                .map((p) => this.parameterSlots.get(p)),
+                .map((p) => this.parameterSlots.get(p)!),
         )
 
         const missingKeys = new Set(requiredArguments).difference(
@@ -83,7 +83,7 @@ export class InvokingArguments {
                       tokens: this.tokens,
                       resource: {
                           names: Array.from(missingKeys).map(
-                              (k) => k.description,
+                              (k) => k.description!,
                           ),
                       },
                       scope: this.scope,
@@ -99,7 +99,7 @@ export class InvokingArguments {
                   new UnexpectedArgumentError({
                       tokens: this.argumentValues.get(unknownKeys[0])!.tokens,
                       resource: {
-                          names: unknownKeys.map((k) => k.description),
+                          names: unknownKeys.map((k) => k.description!),
                       },
                       scope: this.scope,
                   }),

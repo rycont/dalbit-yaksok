@@ -1,4 +1,4 @@
-import type { Scope, ValueType, RDRule } from '@dalbit-yaksok/core'
+import type { ValueType, RDRule, RunFrame } from '@dalbit-yaksok/core'
 
 enum CapabilityType {
     FFI = 'FFI',
@@ -19,7 +19,7 @@ export interface FFICapability {
     run: (
         code: string,
         args: Map<string | symbol, ValueType>,
-        callerScope: Scope,
+        callerFrame: RunFrame,
     ) => Promisable<ValueType>
 }
 

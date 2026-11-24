@@ -11,6 +11,7 @@ import {
     type Extension,
     type RuntimeContext,
     RunFrame,
+    SlotKey,
 } from '@dalbit-yaksok/core'
 
 import functionStatement from '@dalbit-yaksok/statement-function'
@@ -45,10 +46,10 @@ export class YaksokSession {
 
     public eventCreation: PubSub<{
         [key: string]: (
-            args: Map<string, ValueType>,
+            args: Map<string | symbol, ValueType>,
             callback: () => Promise<void>,
             terminate: () => void,
-            scope: Scope,
+            frame: RunFrame,
         ) => void
     }> = new PubSub()
 
@@ -144,7 +145,7 @@ export class YaksokSession {
         runtime: string,
         code: string,
         args: Map<string | symbol, ValueType>,
-        callerScope: Scope,
+        callerFrame: RunFrame,
     ): Promise<ValueType> {
         const foundCapabilities = this.extensions.flatMap(
             (ext) =>
@@ -167,7 +168,7 @@ export class YaksokSession {
         const capability = foundCapabilities[0]
 
         try {
-            const result = await capability.run(code, args, callerScope)
+            const result = await capability.run(code, args, callerFrame)
             return result
         } catch (error) {
             if (error instanceof ErrorInFFIExecution) {

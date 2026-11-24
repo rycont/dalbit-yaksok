@@ -104,6 +104,7 @@ const extension: Extension = {
 
                     return {
                         instance: new SetToIndex(
+                            scope,
                             new IndexFetch(
                                 nameExtraction.target,
                                 nameExtraction.index,

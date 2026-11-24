@@ -2,7 +2,7 @@ import { SlotKey } from './scope'
 
 export interface Slot {
     type: symbol
-    name: string
+    name: string | null
 }
 
 export const ReferenceSlot = Symbol('ReferenceSlot')

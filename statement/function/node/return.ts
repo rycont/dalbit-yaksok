@@ -4,6 +4,7 @@ import {
     Token,
     YaksokError,
     RunFrame,
+    Scope,
 } from '@dalbit-yaksok/core'
 
 import { ReturnSignal } from '../signal'
@@ -13,6 +14,7 @@ export class ReturnStatement implements Statement {
     public parsingErrors: YaksokError[] = []
 
     constructor(
+        public scope: Scope,
         public tokens: Token[],
         private value?: Evaluable,
     ) {}

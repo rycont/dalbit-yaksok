@@ -2,7 +2,6 @@ import {
     blue,
     bold,
     dim,
-    Mention,
     Scope,
     Token,
     YaksokError,

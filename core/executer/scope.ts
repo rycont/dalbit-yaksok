@@ -34,7 +34,7 @@ export class Scope {
               },
     ) {
         if ('session' in config) {
-            this.parent = config.session.baseScope
+            this.parent = config.session.baseScope?.scope || null
             this.codeFile = config.codeFile
             this.session = config.session
 
@@ -59,7 +59,7 @@ export class Scope {
     }
 
     public addSlot(slot: Slot): SlotKey {
-        const key = Symbol(slot.name) as SlotKey
+        const key = Symbol(slot.name || undefined) as SlotKey
         this.slots.set(key, slot)
 
         return key
@@ -73,7 +73,7 @@ export class Scope {
         }
     }
 
-    findSlot(name: string): [SlotKey, Scope] {
+    findSlot(name: string): [SlotKey | null, Scope] {
         const slot = this.slots.entries().find(([_, s]) => s.name === name)?.[0]
 
         if (slot) {
@@ -119,19 +119,28 @@ export function createRunFrame(scope: Scope, parent?: RunFrame): RunFrame {
     const instance: RunFrame = {
         scope,
         get(key) {
-            if (!scope.slots.has(key)) {
+            if (scope.slots.has(key)) {
+                return values.get(key)!
+            }
+
+            if (parent) {
                 return parent.get(key)
             }
 
-            return values.get(key)
+            throw '그럴리가 없음'
         },
         set(key, value) {
-            if (!scope.slots.has(key)) {
+            if (scope.slots.has(key)) {
+                values.set(key, value)
+                return
+            }
+
+            if (parent) {
                 parent.set(key, value)
                 return
             }
 
-            values.set(key, value)
+            throw '얘도 말이 안됨'
         },
         createChild(childScope: Scope) {
             return createRunFrame(childScope, instance)
