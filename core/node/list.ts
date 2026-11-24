@@ -9,7 +9,6 @@ import {
     NotExecutableNodeError,
     NotProperIndexKeyType,
     NumberValue,
-    Scope,
     StringIndexOutOfRangeError,
     StringValue,
     SubnodeScheme,
@@ -133,7 +132,7 @@ export class IndexFetch extends Evaluable {
         if (list instanceof StringValue) {
             if (!(index instanceof NumberValue)) {
                 throw new NotProperIndexKeyType({
-                    scope: runFrame,
+                    scope: this.scope,
                     tokens: this.index.tokens,
                     resource: {
                         index,
@@ -187,10 +186,10 @@ export class IndexFetch extends Evaluable {
                 return value
             } catch (e) {
                 if (e instanceof ListIndexMustBeGreaterOrEqualThan0Error) {
-                    e.scope = runFrame
+                    e.scope = this.scope
                     e.tokens = this.index.tokens
                 } else if (e instanceof NotProperIndexKeyType) {
-                    e.scope = runFrame
+                    e.scope = this.scope
                     e.resource = {
                         index,
                         targetNode: this.list,
@@ -198,7 +197,7 @@ export class IndexFetch extends Evaluable {
                     }
                     e.tokens = this.index.tokens
                 } else if (e instanceof YaksokError) {
-                    e.scope = runFrame
+                    e.scope = this.scope
                     e.tokens = this.index.tokens
                 }
 
@@ -207,7 +206,7 @@ export class IndexFetch extends Evaluable {
         }
 
         throw new NotProperIndexKeyType({
-            scope: runFrame,
+            scope: this.scope,
             tokens: this.index.tokens,
             resource: {
                 index,
@@ -217,9 +216,9 @@ export class IndexFetch extends Evaluable {
         })
     }
 
-    public async setValue(scope: Scope, value: ValueType) {
-        const list = await this.list.execute(scope)
-        const index = await this.index.execute(scope)
+    public async setValue(runFrame: RunFrame, value: ValueType) {
+        const list = await this.list.execute(runFrame)
+        const index = await this.index.execute(runFrame)
 
         if (list instanceof TupleValue) {
             throw new TupleNotMutableError({
@@ -242,7 +241,7 @@ export class IndexFetch extends Evaluable {
             !(index instanceof StringValue)
         ) {
             throw new NotProperIndexKeyType({
-                scope,
+                scope: this.scope,
                 tokens: this.index.tokens,
                 resource: {
                     index,
