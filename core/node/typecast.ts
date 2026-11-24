@@ -3,11 +3,11 @@ import {
     Evaluable,
     InvalidTypeCastError,
     NumberValue,
-    Scope,
     StringValue,
     Token,
     ValueType,
     YaksokError,
+    RunFrame,
 } from '@dalbit-yaksok/core'
 
 export type TypeCastTarget = '숫자' | '문자열' | '참거짓'
@@ -27,8 +27,8 @@ export class TypeCast extends Evaluable<Evaluable> {
         this.subnode = value
     }
 
-    override async execute(scope: Scope): Promise<ValueType> {
-        const evaluated = await this.subnode.execute(scope)
+    override async execute(runFrame: RunFrame): Promise<ValueType> {
+        const evaluated = await this.subnode.execute(runFrame)
 
         switch (this.targetType) {
             case '숫자':
@@ -89,7 +89,7 @@ export class TypeCast extends Evaluable<Evaluable> {
         return new BooleanValue(true)
     }
 
-    override validate(scope: Scope): YaksokError[] {
-        return this.subnode.validate(scope)
+    override validate(): YaksokError[] {
+        return this.subnode.validate()
     }
 }

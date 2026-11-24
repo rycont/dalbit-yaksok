@@ -19,6 +19,7 @@ import {
     TupleValue,
     ValueType,
     YaksokError,
+    RunFrame,
 } from '@dalbit-yaksok/core'
 import { blue } from '../util/terminal.ts'
 
@@ -32,12 +33,12 @@ export class Sequence extends Node {
         super()
     }
 
-    override validate(scope: Scope): YaksokError[] {
+    override validate(): YaksokError[] {
         return [
             new NotExecutableNodeError({
                 tokens: this.tokens,
                 node: this,
-                scope,
+                scope: this.scope,
             }),
         ]
     }
@@ -55,18 +56,18 @@ export class ListLiteral extends Evaluable<Evaluable[]> {
         this.subnode = items
     }
 
-    override async execute(scope: Scope): Promise<ListValue> {
+    override async execute(runFrame: RunFrame): Promise<ListValue> {
         const evaluatedItems = await Promise.all(
-            this.subnode.map((item) => item.execute(scope)),
+            this.subnode.map((item) => item.execute(runFrame)),
         )
 
         const value = new ListValue(evaluatedItems)
         return value
     }
 
-    override validate(scope: Scope): YaksokError[] {
+    override validate(): YaksokError[] {
         const errors = this.subnode
-            .flatMap((item) => item.validate(scope))
+            .flatMap((item) => item.validate())
             .filter((error): error is YaksokError => !!error)
 
         const bracketErrors = this.closingBracket
@@ -77,7 +78,7 @@ export class ListLiteral extends Evaluable<Evaluable[]> {
                           message: `목록에는 닫는 괄호가 필요해요. 쉼표로 값을 나열하고 나서, ${blue(']')}로 목록을 닫아주세요.`,
                       },
                       node: this,
-                      scope,
+                      scope: this.scope,
                   }),
               ]
 
@@ -96,18 +97,18 @@ export class TupleLiteral extends Evaluable<Evaluable[]> {
         this.subnode = subnode
     }
 
-    override async execute(scope: Scope): Promise<TupleValue> {
+    override async execute(runFrame: RunFrame): Promise<TupleValue> {
         const evaluatedItems = await Promise.all(
-            this.subnode.map((item) => item.execute(scope)),
+            this.subnode.map((item) => item.execute(runFrame)),
         )
 
         const value = new TupleValue(evaluatedItems)
         return value
     }
 
-    override validate(scope: Scope): YaksokError[] {
+    override validate(): YaksokError[] {
         const errors = this.subnode
-            .flatMap((item) => item.validate(scope))
+            .flatMap((item) => item.validate())
             .filter((error): error is YaksokError => !!error)
 
         return errors
@@ -125,14 +126,14 @@ export class IndexFetch extends Evaluable {
         super()
     }
 
-    override async execute(scope: Scope): Promise<ValueType> {
-        const list = await this.list.execute(scope)
-        const index = await this.index.execute(scope)
+    override async execute(runFrame: RunFrame): Promise<ValueType> {
+        const list = await this.list.execute(runFrame)
+        const index = await this.index.execute(runFrame)
 
         if (list instanceof StringValue) {
             if (!(index instanceof NumberValue)) {
                 throw new NotProperIndexKeyType({
-                    scope,
+                    scope: runFrame,
                     tokens: this.index.tokens,
                     resource: {
                         index,
@@ -186,10 +187,10 @@ export class IndexFetch extends Evaluable {
                 return value
             } catch (e) {
                 if (e instanceof ListIndexMustBeGreaterOrEqualThan0Error) {
-                    e.scope = scope
+                    e.scope = runFrame
                     e.tokens = this.index.tokens
                 } else if (e instanceof NotProperIndexKeyType) {
-                    e.scope = scope
+                    e.scope = runFrame
                     e.resource = {
                         index,
                         targetNode: this.list,
@@ -197,7 +198,7 @@ export class IndexFetch extends Evaluable {
                     }
                     e.tokens = this.index.tokens
                 } else if (e instanceof YaksokError) {
-                    e.scope = scope
+                    e.scope = runFrame
                     e.tokens = this.index.tokens
                 }
 
@@ -206,7 +207,7 @@ export class IndexFetch extends Evaluable {
         }
 
         throw new NotProperIndexKeyType({
-            scope,
+            scope: runFrame,
             tokens: this.index.tokens,
             resource: {
                 index,
@@ -254,10 +255,10 @@ export class IndexFetch extends Evaluable {
         list.setItem(index.value, value)
     }
 
-    override validate(scope: Scope): YaksokError[] {
+    override validate(): YaksokError[] {
         const errors = [
-            ...(this.list.validate(scope) || []),
-            ...(this.index.validate(scope) || []),
+            ...(this.list.validate() || []),
+            ...(this.index.validate() || []),
         ]
 
         return errors

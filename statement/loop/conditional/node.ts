@@ -5,10 +5,10 @@ import {
     LoopWithoutBodyError,
     NodeCapability,
     onRunChild,
-    Scope,
     Statement,
     Token,
     YaksokError,
+    RunFrame,
 } from '@dalbit-yaksok/core'
 import { ContinueSignal } from '../continue/signal'
 import { BreakSignal } from '../break/signal'
@@ -24,25 +24,25 @@ export class ConditionalLoop implements Statement {
         public tokens: Token[],
     ) {}
 
-    async execute(scope: Scope) {
+    async execute(runFrame: RunFrame) {
         if (this.body.tokens.length === 0) {
             return
         }
 
         try {
             while (true) {
-                const conditionValue = await this.condition.execute(scope)
+                const conditionValue = await this.condition.execute(runFrame)
                 if (!isTruthy(conditionValue)) {
                     break
                 }
 
                 await onRunChild({
-                    scope,
+                    scope: runFrame,
                     childTokens: this.body.tokens,
                     skipReport: true,
                 })
                 try {
-                    await this.body.execute(scope)
+                    await this.body.execute(runFrame)
                 } catch (e) {
                     if (e instanceof ContinueSignal) continue
                     throw e
@@ -55,9 +55,9 @@ export class ConditionalLoop implements Statement {
         }
     }
 
-    validate(scope: Scope): YaksokError[] {
-        const childErrors = this.body.validate(scope)
-        const conditionErrors = this.condition.validate(scope)
+    validate(): YaksokError[] {
+        const childErrors = this.body.validate()
+        const conditionErrors = this.condition.validate()
 
         const hasBodyError =
             this.body.statements.length === 0

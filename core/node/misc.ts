@@ -1,11 +1,11 @@
 import {
     Evaluable,
-    Scope,
     StringValue,
     Token,
     ValueType,
     YaksokError,
     Node,
+    RunFrame,
 } from '@dalbit-yaksok/core'
 
 export class EOL extends Node {
@@ -31,15 +31,15 @@ export class TypeOf extends Evaluable<Evaluable> {
         this.subnode = value
     }
 
-    override async execute(scope: Scope): Promise<StringValue> {
-        const evaluated = await this.subnode.execute(scope)
+    override async execute(runFrame: RunFrame): Promise<StringValue> {
+        const evaluated = await this.subnode.execute(runFrame)
 
         return new StringValue(
             (evaluated.constructor as typeof ValueType).friendlyName,
         )
     }
 
-    override validate(scope: Scope): YaksokError[] {
-        return this.subnode.validate(scope)
+    override validate(): YaksokError[] {
+        return this.subnode.validate()
     }
 }

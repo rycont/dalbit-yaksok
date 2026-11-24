@@ -2,10 +2,10 @@ import {
     assignerToOperatorMap,
     Evaluable,
     IndexFetch,
-    Scope,
     Statement,
     Token,
     YaksokError,
+    RunFrame,
 } from '@dalbit-yaksok/core'
 
 export class SetToIndex implements Statement {
@@ -19,17 +19,17 @@ export class SetToIndex implements Statement {
         public readonly tokens: Token[],
     ) {}
 
-    async execute(scope: Scope): Promise<void> {
+    async execute(runFrame: RunFrame): Promise<void> {
         const operatorNode =
             assignerToOperatorMap[
                 this.operator as keyof typeof assignerToOperatorMap
             ]
 
-        const operand = await this.value.execute(scope)
+        const operand = await this.value.execute(runFrame)
         let newValue = operand
 
         if (operatorNode) {
-            const oldValue = await this.target.execute(scope)
+            const oldValue = await this.target.execute(runFrame)
             const tempOperator = new operatorNode(this.tokens)
 
             try {
@@ -48,13 +48,13 @@ export class SetToIndex implements Statement {
             }
         }
 
-        await this.target.setValue(scope, newValue)
+        await this.target.setValue(runFrame, newValue)
     }
 
-    validate(scope: Scope): YaksokError[] {
+    validate(): YaksokError[] {
         const errors = [
-            ...(this.target.validate(scope) || []),
-            ...(this.value.validate(scope) || []),
+            ...(this.target.validate() || []),
+            ...(this.value.validate() || []),
         ]
 
         return errors

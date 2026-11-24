@@ -1,9 +1,9 @@
 import {
     Evaluable,
-    Scope,
     Statement,
     Token,
     YaksokError,
+    RunFrame,
 } from '@dalbit-yaksok/core'
 
 import { ReturnSignal } from '../signal'
@@ -17,18 +17,18 @@ export class ReturnStatement implements Statement {
         private value?: Evaluable,
     ) {}
 
-    async execute(scope: Scope) {
+    async execute(runFrame: RunFrame) {
         if (!this.value) {
             throw new ReturnSignal(this.tokens, null)
         }
 
-        const returnValue = await this.value?.execute(scope)
+        const returnValue = await this.value?.execute(runFrame)
         throw new ReturnSignal(this.tokens, returnValue)
     }
 
-    validate(scope: Scope): YaksokError[] {
+    validate(): YaksokError[] {
         if (this.value) {
-            return this.value?.validate(scope)
+            return this.value?.validate()
         }
 
         return []

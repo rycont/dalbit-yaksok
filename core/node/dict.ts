@@ -2,10 +2,10 @@ import {
     Evaluable,
     Expression,
     IndexedValue,
-    Scope,
     Token,
     ValueType,
     YaksokError,
+    RunFrame,
 } from '@dalbit-yaksok/core'
 
 export class KeyValuePair extends Expression<Evaluable> {
@@ -44,20 +44,21 @@ export class DictLiteral extends Evaluable<KeyValuePair[]> {
         this.subnode = pairs
     }
 
-    override validate(scope: Scope): YaksokError[] {
-        const errors = this.subnode.flatMap((pair) =>
-            pair.subnode.validate(scope),
-        )
+    override validate(): YaksokError[] {
+        const errors = this.subnode.flatMap((pair) => pair.subnode.validate())
 
         return errors
     }
 
-    override async execute(scope: Scope): Promise<ValueType> {
+    override async execute(runFrame: RunFrame): Promise<ValueType> {
         const evaluatedEntries = new Map(
             await Promise.all(
                 this.subnode.map(
                     async (pair) =>
-                        [pair.key, await pair.subnode.execute(scope)] as const,
+                        [
+                            pair.key,
+                            await pair.subnode.execute(runFrame),
+                        ] as const,
                 ),
             ),
         )

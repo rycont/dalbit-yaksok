@@ -2,10 +2,10 @@ import {
     BooleanValue,
     Evaluable,
     NumberValue,
-    Scope,
     Token,
     YaksokError,
     EmptyValue,
+    RunFrame,
 } from '@dalbit-yaksok/core'
 
 export class NumberLiteral extends Evaluable<null, NumberValue> {
@@ -18,7 +18,7 @@ export class NumberLiteral extends Evaluable<null, NumberValue> {
         super()
     }
 
-    override execute(_scope: Scope): Promise<NumberValue> {
+    override execute(runFrame: RunFrame): Promise<NumberValue> {
         return Promise.resolve(new NumberValue(this.content))
     }
 
@@ -44,7 +44,7 @@ export class BooleanLiteral extends Evaluable {
         super()
     }
 
-    override execute(_scope: Scope): Promise<BooleanValue> {
+    override execute(runFrame: RunFrame): Promise<BooleanValue> {
         return Promise.resolve(new BooleanValue(this.content))
     }
 
@@ -68,7 +68,7 @@ export class EmptyLiteral extends Evaluable {
         return EmptyLiteral.friendlyName
     }
 
-    override execute(_scope: Scope): Promise<EmptyValue> {
+    override execute(runFrame: RunFrame): Promise<EmptyValue> {
         return Promise.resolve(new EmptyValue())
     }
 

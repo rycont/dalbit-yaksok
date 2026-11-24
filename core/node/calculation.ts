@@ -22,7 +22,6 @@ import {
     PowerOperator,
     RangeOperator,
     RunFrame,
-    Scope,
     Token,
     ValueType,
     YaksokError,
@@ -76,8 +75,8 @@ export class NotExpression extends Evaluable<Evaluable> {
         return new BooleanValue(!value.value)
     }
 
-    override validate(scope: Scope): YaksokError[] {
-        return this.subnode.validate(scope)
+    override validate(): YaksokError[] {
+        return this.subnode.validate()
     }
 }
 
@@ -157,16 +156,16 @@ export class Formula extends Evaluable<(Evaluable | Operator)[]> {
         return stack[0].thunk()
     }
 
-    override validate(scope: Scope): YaksokError[] {
+    override validate(): YaksokError[] {
         for (const parsingError of this.parsingErrors) {
-            parsingError.scope ||= scope
+            parsingError.scope ||= this.scope
             parsingError.node ||= this
             parsingError.tokens ||= this.tokens
         }
 
         return this.subnode
             .filter((term) => term instanceof Evaluable)
-            .flatMap((term) => (term as Evaluable).validate(scope))
+            .flatMap((term) => (term as Evaluable).validate())
             .concat(this.parsingErrors)
     }
 
