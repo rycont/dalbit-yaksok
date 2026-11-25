@@ -34,7 +34,7 @@ export class SetVariable implements Statement {
 
         if (operatorNode) {
             const oldValue = this.target.execute(runFrame)
-            const tempOperator = new operatorNode(this.tokens)
+            const tempOperator = new operatorNode(this.scope, this.tokens)
 
             try {
                 newValue = await tempOperator.call(

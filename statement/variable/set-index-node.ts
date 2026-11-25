@@ -32,7 +32,7 @@ export class SetToIndex implements Statement {
 
         if (operatorNode) {
             const oldValue = await this.target.execute(runFrame)
-            const tempOperator = new operatorNode(this.tokens)
+            const tempOperator = new operatorNode(this.scope, this.tokens)
 
             try {
                 newValue = await tempOperator.call(

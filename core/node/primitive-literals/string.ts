@@ -71,7 +71,7 @@ export class StringPartSequence extends Evaluable<
 
         const result = parts.reduce<Promise<ValueType>>(
             async (acc, current) => {
-                return await new PlusOperator([]).call(
+                return await new PlusOperator(this.scope, []).call(
                     () => Promise.resolve(acc),
                     () => Promise.resolve(current.toStringValue()),
                 )
