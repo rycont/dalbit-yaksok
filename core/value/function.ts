@@ -1,6 +1,6 @@
-import type { Brand, SlotKey, ValueType } from '@dalbit-yaksok/core'
+import type { SlotKey, ValueType } from '@dalbit-yaksok/core'
 
-export const Runnable = Symbol() as Brand<symbol, 'Runnable_Run'>
+export const Runnable = Symbol('Runnable')
 
 export interface RunnableCapability {
     readonly run: (args: Map<SlotKey, ValueType>) => Promise<ValueType | void>

@@ -51,7 +51,7 @@ test('QuickJS passed number', async () => {
         )
         .run()
 
-    const 숫자 = frame.get(frame.scope.findSlot('숫자')[0])
+    const 숫자 = frame.get(frame.scope.findSlot('숫자')[0]!)
     expect.assert.instanceOf(숫자, NumberValue)
     expect(숫자.value).toBe(20)
     expect(숫자.toPrint()).toBe('20')
@@ -75,7 +75,7 @@ test('QuickJS passed Array<number>', async () => {
         )
         .run()
 
-    const 숫자 = frame.get(frame.scope.findSlot('숫자')[0])
+    const 숫자 = frame.get(frame.scope.findSlot('숫자')[0]!)
     expect.assert.instanceOf(숫자, ListValue)
     expect(숫자.toPrint()).toBe('[20, 30]')
 })
@@ -136,14 +136,14 @@ test('JavaScript bridge function passed object', async () => {
 
     assert(frame, 'ranScope should not be null')
 
-    const 학생 = frame.get(frame.scope.findSlot('학생')[0]) as StringValue
-    const 이름 = frame.get(frame.scope.findSlot('이름')[0]) as StringValue
-    const 나이 = frame.get(frame.scope.findSlot('나이')[0]) as NumberValue
+    const 학생 = frame.get(frame.scope.findSlot('학생')[0]!) as StringValue
+    const 이름 = frame.get(frame.scope.findSlot('이름')[0]!) as StringValue
+    const 나이 = frame.get(frame.scope.findSlot('나이')[0]!) as NumberValue
     const 더한_결과 = frame.get(
-        frame.scope.findSlot('더한_결과')[0],
+        frame.scope.findSlot('더한_결과')[0]!,
     ) as NumberValue
     const 모든_이름 = frame.get(
-        frame.scope.findSlot('모든_이름')[0],
+        frame.scope.findSlot('모든_이름')[0]!,
     ) as ListValue
 
     expect.assert.instanceOf(학생, StringValue)
@@ -194,7 +194,7 @@ test('Yaksok Passed List<string>', async () => {
         )
         .run()
 
-    const 내_점수 = frame.get(frame.scope.findSlot('내_점수')[0])
+    const 내_점수 = frame.get(frame.scope.findSlot('내_점수')[0]!)
     expect.assert.instanceOf(내_점수, ListValue)
     expect(내_점수.toPrint()).toBe('[80, 90]')
 
@@ -397,7 +397,7 @@ test('QuickJS passed boolean', async () => {
         )
         .run()
 
-    const 결과 = frame.get(frame.scope.findSlot('결과')[0])
+    const 결과 = frame.get(frame.scope.findSlot('결과')[0]!)
     expect.assert.instanceOf(결과, BooleanValue)
     expect(결과.value).toBe(true)
     expect(결과.toPrint()).toBe('참')

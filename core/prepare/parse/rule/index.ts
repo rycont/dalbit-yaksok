@@ -320,9 +320,9 @@ export const ADVANCED_RULES: SRRule[] = [
     r({
         pattern: [
             j.instance(Evaluable),
-            j.instance(Identifier).field({ value: j.literal('의') }),
-            j.instance(Identifier).field({ value: j.literal('값') }),
-            j.instance(Identifier).field({ value: j.literal('종류') }),
+            j.instance(Expression).field({ value: j.literal('의') }),
+            j.instance(Expression).field({ value: j.literal('값') }),
+            j.instance(Expression).field({ value: j.literal('종류') }),
         ],
         factory: (nodes, tokens) => {
             const value = nodes[0]

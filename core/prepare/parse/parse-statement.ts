@@ -33,7 +33,7 @@ export function parseStatement(lines: TokenLine[], scope: Scope): Statement[] {
 
     const baseLevel = lines[0].level
 
-    if (leftLines.length && lines[0].level !== leftLines[0].level) {
+    if (lines[0].level !== leftLines[0].level) {
         const baseLevelIndex = leftLines.findIndex((l) => l.level === baseLevel)
 
         const lastBrokenIndentIndex =

@@ -53,7 +53,7 @@ test('setBaseContext: 새 변수 선언은 로컬 스코프에 생성됨', async
     expect(output.trim()).toBe('100')
 
     expect(
-        baseContextFrame.get(baseContextFrame.scope.findSlot('새값')[0]),
+        baseContextFrame.get(baseContextFrame.scope.findSlot('새값')[0]!),
     ).toBe(undefined)
 })
 
@@ -87,7 +87,7 @@ test('validation 단계가 baseContext.ranScope의 변수를 변경하지 않음
     const baseScopeBefore = session.baseScope!
     expect(
         (baseScopeBefore.get(
-            baseScopeBefore.scope.findSlot('값')[0],
+            baseScopeBefore.scope.findSlot('값')[0]!,
         ) as NumberValue)!.value,
     ).toBe(5)
 
@@ -99,7 +99,7 @@ test('validation 단계가 baseContext.ranScope의 변수를 변경하지 않음
     expect(
         (
             baseScopeAfter.get(
-                baseScopeAfter.scope.findSlot('값')[0],
+                baseScopeAfter.scope.findSlot('값')[0]!,
             ) as NumberValue
         ).value,
     ).toBe(5)
@@ -117,10 +117,11 @@ test('재대입 후 parent scope에 반영됨', async () => {
     const childFrame = await codeFile.run()
 
     expect(
-        (baseFrame.get(baseFrame.scope.findSlot('값')[0]) as NumberValue).value,
+        (baseFrame.get(baseFrame.scope.findSlot('값')[0]!) as NumberValue)
+            .value,
     ).toBe(5)
     expect(
-        (baseFrame.get(childFrame.scope.findSlot('값')[0]) as NumberValue)
+        (baseFrame.get(childFrame.scope.findSlot('값')[0]!) as NumberValue)
             .value,
     ).toBe(15)
 })

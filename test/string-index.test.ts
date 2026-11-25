@@ -13,7 +13,7 @@ test('String allows indexing by number', async () => {
     const session = new YaksokSession()
     const frame = await session.addModule('main', `결과 = '달빛'[1]`).run()
 
-    const stored = frame.get(frame.scope.findSlot('결과')[0])
+    const stored = frame.get(frame.scope.findSlot('결과')[0]!)
 
     expect.assert.instanceOf(stored, StringValue)
     expect(stored.value).toBe('빛')
@@ -61,7 +61,7 @@ test('String variables can be indexed', async () => {
     const frame = await session
         .addModule('main', `대상 = '달빛'\n결과 = 대상[1]`)
         .run()
-    const stored = frame.get(frame.scope.findSlot('결과')[0])
+    const stored = frame.get(frame.scope.findSlot('결과')[0]!)
     expect.assert.instanceOf(stored, StringValue)
     expect(stored.value).toBe('빛')
 })
@@ -71,7 +71,7 @@ test('List indexing supports multiple indexes', async () => {
     const frame = await session
         .addModule('main', `결과 = ['가', '나', '다'][[0, 2]]`)
         .run()
-    const stored = frame.get(frame.scope.findSlot('결과')[0])
+    const stored = frame.get(frame.scope.findSlot('결과')[0]!)
     expect.assert.instanceOf(stored, ListValue)
 
     const values = [...stored.entries.values()].map((value) => {

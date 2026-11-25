@@ -121,11 +121,6 @@ const functionGrammer: RDRule = {
             )
         }
 
-        // const callingRules = createCallingRules(
-        //     signatureResult.signature,
-        //     header,
-        // )
-
         const subscope = new Scope({
             parent: scope,
         })
@@ -154,7 +149,6 @@ const functionGrammer: RDRule = {
             }
 
             const [bodyTokens, bodyConsumed] = headerConsumed.block.consume()
-
             scope.addRuleList(callingRules)
 
             const body = parse.statement(bodyTokens, subscope)

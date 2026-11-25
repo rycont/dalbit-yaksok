@@ -110,7 +110,7 @@ function tokensToCase(
     const [line, consumed] = code.consume()
 
     if (!line) {
-        return [null, consumed]
+        return [null, code]
     }
 
     const test = isFirstLine
@@ -119,7 +119,7 @@ function tokensToCase(
           elsePattern.func(elsePattern.id, line.validTokens)
 
     if (!test || !consumed.block) {
-        return [null, consumed]
+        return [null, code]
     }
 
     const [bodyTokens, bodyConsumed] = consumed.block.consume()

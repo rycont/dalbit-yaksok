@@ -11,7 +11,6 @@ import {
     type Extension,
     type RuntimeContext,
     RunFrame,
-    SlotKey,
 } from '@dalbit-yaksok/core'
 
 import functionStatement from '@dalbit-yaksok/statement-function'

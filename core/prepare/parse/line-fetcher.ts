@@ -71,7 +71,7 @@ export function createLineFetcher(
                 consume() {
                     return [
                         blockLines,
-                        createLineFetcher(lines, blockEndIndex),
+                        createLineFetcher(lines, blockEndIndex + 1),
                     ] as [TokenLine[], LineFetcher]
                 },
             }

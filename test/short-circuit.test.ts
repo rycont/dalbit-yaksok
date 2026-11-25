@@ -11,7 +11,7 @@ function getBool(
     frame: ReturnType<typeof run> extends Promise<infer T> ? T : never,
     name: string,
 ): boolean {
-    const val = frame.get(frame.scope.findSlot(name)[0])
+    const val = frame.get(frame.scope.findSlot(name)[0]!)
 
     expect.assert.instanceOf(val, BooleanValue)
 
@@ -140,7 +140,7 @@ test('기존 동작 회귀: 산술 연산', async () => {
     const frame = await run(`
 결과 = 2 + 3 * 4
 `)
-    const val = frame.get(frame.scope.findSlot('결과')[0])
+    const val = frame.get(frame.scope.findSlot('결과')[0]!)
     expect.assert.instanceOf(val, NumberValue)
     expect(val.value).toBe(14)
 })

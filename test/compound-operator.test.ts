@@ -77,7 +77,7 @@ result ${operator} ${b}`.trim()
         const session = new YaksokSession()
         const frame = await session.addModule('main', code).run()
 
-        const resultValue = frame.get(frame.scope.findSlot('result')[0])
+        const resultValue = frame.get(frame.scope.findSlot('result')[0]!)
 
         const expectedType =
             typeof a === 'string' || typeof b === 'string'
