@@ -11,7 +11,7 @@ test('Multiple base contexts should be chained', async () => {
     })
 
     // First base context
-    session.useBaseScope(
+    session.useBaseFrame(
         await session
             .addModule(
                 'base-1',
@@ -24,7 +24,7 @@ test('Multiple base contexts should be chained', async () => {
     )
 
     // Second base context (can use first base context)
-    session.useBaseScope(
+    session.useBaseFrame(
         await session
             .addModule(
                 'base-2',
@@ -57,8 +57,8 @@ test('Multiple base contexts should share variables', async () => {
         },
     })
 
-    session.useBaseScope(await session.addModule('base-1', '값1 = 10').run())
-    session.useBaseScope(await session.addModule('base-2', '값2 = 20').run())
+    session.useBaseFrame(await session.addModule('base-1', '값1 = 10').run())
+    session.useBaseFrame(await session.addModule('base-2', '값2 = 20').run())
 
     const codeFile = session.addModule('main', '(값1 + 값2) 보여주기')
 

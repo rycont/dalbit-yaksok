@@ -12,26 +12,12 @@ import {
 import { YaksokError } from './common.ts'
 
 export class CannotParseError extends YaksokError {
-    constructor(props: {
-        tokens: Token[]
-        scope: Scope
-        resource: {
-            part: Node
-        }
-    }) {
+    constructor(props: { tokens: Token[]; scope: Scope }) {
         super(props)
 
-        const nodeConstructor = props.resource.part.constructor as typeof Node
-
-        try {
-            this.message = `${bold('"' + props.resource.part.toPrint() + '"')}${dim(
-                `(${nodeConstructor.friendlyName})`,
-            )}는 실행할 수 있는 코드가 아니에요.`
-        } catch {
-            this.message = `${
-                '"' + bold(nodeConstructor.friendlyName) + '"'
-            }는 실행할 수 있는 코드가 아니에요.`
-        }
+        this.message = `${
+            '"' + bold(props.tokens.map((t) => t.value).join('')) + '"'
+        }는 실행할 수 있는 코드가 아니에요.`
     }
 }
 

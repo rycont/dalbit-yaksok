@@ -47,7 +47,7 @@ export function parseBracket(
     rawNodes: Node[],
     srRules: SRRule[],
 ) {
-    const brackets = createBracketMap(rawNodes)
+    const brackets = createBracketMap(scope, rawNodes)
 
     if (brackets.length === 0) {
         return rawNodes
@@ -68,7 +68,7 @@ export function parseBracket(
     return nodes
 }
 
-function createBracketMap(nodes: Node[]) {
+function createBracketMap(scope: Scope, nodes: Node[]) {
     const seekingStack: { char: string; node: Expression }[] = []
     const bracketRanges: [Node, Node][] = []
 
@@ -113,6 +113,8 @@ function createBracketMap(nodes: Node[]) {
     for (const item of seekingStack) {
         item.node.injectParsingError(
             new BrokenBracketError({
+                scope,
+                node: item.node,
                 resource: {
                     message: `닫는 괄호가 필요해요. 내용이 끝나면 ${bold(blue(BRACKETS[item.char].shape))}로 닫아주세요.`,
                 },

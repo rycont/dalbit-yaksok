@@ -68,7 +68,7 @@ export class CodeFile {
             throw new Error('CodeFile은 한번만 실행할 수 있습니다.')
         }
 
-        const runFrame = createRunFrame(this.ast.scope)
+        const runFrame = createRunFrame(this.ast.scope, this.session.baseFrame)
 
         try {
             await this.session.withRuntimeContext(

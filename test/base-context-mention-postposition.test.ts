@@ -11,7 +11,7 @@ test('base context variable used in mention with postposition splitting', async 
     })
 
     // Base context with a list variable
-    session.useBaseScope(
+    session.useBaseFrame(
         await session
             .addModule(
                 'base',
@@ -49,7 +49,7 @@ test('base context variable does not leak into mentioned module exported rules',
     })
 
     // Base context with a variable
-    session.useBaseScope(await session.addModule('base', `값 = 42`).run())
+    session.useBaseFrame(await session.addModule('base', `값 = 42`).run())
 
     // Module with a function using postposition
     await session

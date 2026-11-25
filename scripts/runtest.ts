@@ -2,13 +2,7 @@ import { YaksokSession } from '@dalbit-yaksok/core'
 
 const session = new YaksokSession()
 
-await session
-    .addModule(
-        '아두이노',
-        `약속, 이름
-    "아두이노" / 2 반환하기
-`,
-    )
-    .run()
+session.useBaseFrame(await session.addModule('base', '값 = 5').run())
 
-await session.addModule('main', '(@아두이노 이름) 보여주기').run()
+const codeFile = session.addModule('main', '결과 = 값 + 10\n결과 보여주기')
+await codeFile.run()

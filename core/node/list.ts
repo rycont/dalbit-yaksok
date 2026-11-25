@@ -6,7 +6,6 @@ import {
     ListIndexMustBeGreaterOrEqualThan0Error,
     ListValue,
     Node,
-    NotExecutableNodeError,
     NotProperIndexKeyType,
     NumberValue,
     StringIndexOutOfRangeError,
@@ -30,16 +29,6 @@ export class Sequence extends Node {
         public override tokens: Token[],
     ) {
         super()
-    }
-
-    override validate(): YaksokError[] {
-        return [
-            new NotExecutableNodeError({
-                tokens: this.tokens,
-                node: this,
-                scope: this.scope,
-            }),
-        ]
     }
 }
 

@@ -2,7 +2,6 @@ import {
     Scope,
     ValueType,
     YaksokError,
-    NotExecutableNodeError,
     type Token,
     EmptyValue,
     Statement,
@@ -12,6 +11,7 @@ import {
     isRunnable,
     Runnable,
     NotDefinedIdentifierError,
+    CannotParseError,
 } from '@dalbit-yaksok/core'
 
 export enum NodeCapability {
@@ -27,7 +27,8 @@ export type SubnodeScheme =
     | null
 
 export class Node<SubnodeShape extends SubnodeScheme = SubnodeScheme> {
-    tokens: Token[] = []
+    public tokens: Token[] = []
+    public parsingErrors: YaksokError[] = []
 
     public subnode!: SubnodeShape
     public value?: string
@@ -74,8 +75,13 @@ export class IncompleteEvaluable extends Evaluable<Node[]> {
 
     override validate() {
         return this.subnode
-            .flatMap((s) => s.validate())
-            .concat(this.parsingErrors)
+            .flatMap((s) => s.parsingErrors)
+            .concat([
+                new CannotParseError({
+                    scope: this.scope,
+                    tokens: this.tokens,
+                }),
+            ])
     }
 }
 
@@ -167,8 +173,6 @@ export class Expression<
 > extends Node<LeavesType> {
     static override friendlyName = '표현식'
 
-    public parsingErrors: YaksokError[] = []
-
     constructor(
         public override value: string,
         public override tokens: Token[],
@@ -181,31 +185,7 @@ export class Expression<
     }
 
     override validate(): YaksokError[] {
-        if (0 < this.parsingErrors.length) {
-            for (const error of this.parsingErrors) {
-                if (!error.scope) {
-                    error.scope = this.scope
-                }
-
-                if (!error.node) {
-                    error.node = this
-                }
-
-                if (!error.tokens) {
-                    error.tokens = this.tokens
-                }
-            }
-
-            return this.parsingErrors
-        }
-
-        const error = new NotExecutableNodeError({
-            tokens: this.tokens,
-            scope: this.scope,
-            node: this,
-        })
-
-        return [error]
+        return this.parsingErrors
     }
 
     public injectParsingError(parsingError: YaksokError) {

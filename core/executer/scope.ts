@@ -34,7 +34,7 @@ export class Scope {
               },
     ) {
         if ('session' in config) {
-            this.parent = config.session.baseScope?.scope || null
+            this.parent = config.session.baseFrame?.scope || null
             this.codeFile = config.codeFile
             this.session = config.session
 
@@ -113,7 +113,10 @@ export interface RunFrame {
     readonly scope: Scope
 }
 
-export function createRunFrame(scope: Scope, parent?: RunFrame): RunFrame {
+export function createRunFrame(
+    scope: Scope,
+    parent: RunFrame | null,
+): RunFrame {
     const values = new Map<SlotKey, ValueType>(
         scope.slots.keys().map((key) => [key, new EmptyValue()]),
     )

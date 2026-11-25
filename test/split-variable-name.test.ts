@@ -10,7 +10,7 @@ test('splits variable suffix for functions provided via base context', async () 
         },
     })
 
-    session.useBaseScope(
+    session.useBaseFrame(
         await session
             .addModule(
                 'base',
@@ -66,7 +66,7 @@ test('prevents splitting when lookahead markers do not match', async () => {
         },
     })
 
-    session.useBaseScope(
+    session.useBaseFrame(
         await session
             .addModule(
                 'base',
@@ -95,7 +95,7 @@ test('correctly splits even with lookahead when markers match', async () => {
         },
     })
 
-    session.useBaseScope(
+    session.useBaseFrame(
         await session
             .addModule(
                 'base',
@@ -123,7 +123,7 @@ test('splits variable name when followed by parameter in parentheses with spaces
         },
     })
 
-    session.useBaseScope(
+    session.useBaseFrame(
         await session
             .addModule(
                 'base',
@@ -151,7 +151,7 @@ test('splits variable name when followed by a list literal (Sequence)', async ()
         },
     })
 
-    session.useBaseScope(
+    session.useBaseFrame(
         await session
             .addModule(
                 'base',
@@ -180,7 +180,7 @@ test('splits variable name for complex evaluable nodes (indexed access)', async 
         },
     })
 
-    session.useBaseScope(
+    session.useBaseFrame(
         await session
             .addModule(
                 'base',
@@ -208,7 +208,7 @@ test('prevents splitting when followed by an assignment operator', async () => {
         },
     })
 
-    session.useBaseScope(
+    session.useBaseFrame(
         await session
             .addModule(
                 'base',

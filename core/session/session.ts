@@ -36,7 +36,7 @@ export class YaksokSession {
     public stderr: (message: string, error: YaksokError) => void
 
     public extensions: Extension[] = [...DEFAULT_EXTS]
-    public baseScope: RunFrame | null = null
+    public baseFrame: RunFrame | null = null
 
     public files: Record<string, CodeFile> = {}
     public runtimeContext: RuntimeContext | null = null
@@ -88,13 +88,13 @@ export class YaksokSession {
             const ranFrame = await this.addModule(fileName, code).run()
 
             if (baseScope) {
-                this.useBaseScope(ranFrame)
+                this.useBaseFrame(ranFrame)
             }
         }
     }
 
-    public useBaseScope(scope: RunFrame): void {
-        this.baseScope = scope
+    public useBaseFrame(frame: RunFrame): void {
+        this.baseFrame = frame
     }
 
     async runModules<const T extends string[]>(

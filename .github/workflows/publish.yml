@@ -23,4 +23,4 @@ jobs:
                   node-version: '26'
                   cache: true
             - run: vp check
-            - run: vp test
+            - run: vp test --bail=1
