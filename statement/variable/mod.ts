@@ -5,6 +5,8 @@ import {
     Identifier,
     IndexFetch,
     NotProperIdentifierNameToDefineError,
+    RESERVED_WORDS,
+    Statement,
     Token,
     TOKEN_TYPE,
     YaksokError,
@@ -61,6 +63,34 @@ const extension: Extension = {
                     const evaluator = parse.value(testResult.value)
 
                     if (nameExtraction.type === 'identifier') {
+                        if (RESERVED_WORDS.has(nameExtraction.name)) {
+                            const parsingErrors = [
+                                new NotProperIdentifierNameToDefineError({
+                                    tokens: testResult.name,
+                                    resource: {
+                                        context: '변수',
+                                    },
+                                }),
+                            ]
+
+                            const instance: Statement = {
+                                scope,
+                                parsingErrors,
+                                tokens: testResult.name,
+                                execute() {
+                                    throw parsingErrors[0]
+                                },
+                                validate() {
+                                    return parsingErrors
+                                },
+                            }
+
+                            return {
+                                instance,
+                                consumed,
+                            }
+                        }
+
                         let [slotKey, foundScope] = scope.findSlot(
                             nameExtraction.name,
                         )

@@ -35,7 +35,7 @@ export class DeclareFunction implements Statement {
     }
 
     validate() {
-        return []
+        return this.parsingErrors
     }
 }
 

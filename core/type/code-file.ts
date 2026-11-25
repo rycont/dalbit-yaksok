@@ -4,7 +4,6 @@ import {
     inferTokenSplitpointsFromErrors,
     NotDefinedIdentifierError,
     parseStatement,
-    postprocessErrors,
     renderErrorString,
     RuntimeContext,
     Scope,
@@ -160,7 +159,7 @@ function parseWithSession(code: string, session: YaksokSession) {
 
     return {
         ast,
-        validationErrors: postprocessErrors(validationErrors, tokens),
+        validationErrors: validationErrors,
         tokens,
     }
 }

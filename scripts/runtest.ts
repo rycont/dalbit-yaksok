@@ -4,15 +4,11 @@ const session = new YaksokSession()
 
 await session
     .addModule(
-        'var',
-        `만약 4 > 3 이면 # 주석
-    "4는 3보다 크지" 보여주기
-    사족 = "3은 4보다 작지"
-    사족 보여주기
-만약 1 > 2 이면 # 주석
-    "1은 2보다 크지" 보여주기
-    사족 = "2는 1보다 작지"
-    사족 보여주기
+        '아두이노',
+        `약속, 이름
+    "아두이노" / 2 반환하기
 `,
     )
     .run()
+
+await session.addModule('main', '(@아두이노 이름) 보여주기').run()

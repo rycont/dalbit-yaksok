@@ -72,7 +72,7 @@ export const BASIC_RULES: SRRule[][] = [
         }),
         r({
             pattern: [
-                j.instance(Identifier).field({ value: j.literal('비어있음') }),
+                j.instance(Expression).field({ value: j.literal('비어있음') }),
             ],
             factory: (_, tokens) => {
                 return new EmptyLiteral(tokens)
@@ -81,7 +81,7 @@ export const BASIC_RULES: SRRule[][] = [
         ...['참', '맞음'].map((keyword) =>
             r({
                 pattern: [
-                    j.instance(Identifier).field({ value: j.literal(keyword) }),
+                    j.instance(Expression).field({ value: j.literal(keyword) }),
                 ],
                 factory: (_nodes, tokens) => {
                     return new BooleanLiteral(true, tokens)
@@ -91,7 +91,7 @@ export const BASIC_RULES: SRRule[][] = [
         ...['거짓', '아님'].map((keyword) =>
             r({
                 pattern: [
-                    j.instance(Identifier).field({ value: j.literal(keyword) }),
+                    j.instance(Expression).field({ value: j.literal(keyword) }),
                 ],
                 factory: (_nodes, tokens) => {
                     return new BooleanLiteral(false, tokens)
@@ -184,81 +184,94 @@ export const BASIC_RULES: SRRule[][] = [
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('!=') })],
-            factory: (_nodes, tokens) => new NotEqualOperator(tokens),
+            factory: (_nodes, tokens, scope) =>
+                new NotEqualOperator(scope, tokens),
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('==') })],
-            factory: (_nodes, tokens) => new EqualOperator(tokens),
+            factory: (_nodes, tokens, scope) =>
+                new EqualOperator(scope, tokens),
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('>') })],
-            factory: (_nodes, tokens) => new GreaterThanOperator(tokens),
+            factory: (_nodes, tokens, scope) =>
+                new GreaterThanOperator(scope, tokens),
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('<') })],
-            factory: (_nodes, tokens) => new LessThanOperator(tokens),
+            factory: (_nodes, tokens, scope) =>
+                new LessThanOperator(scope, tokens),
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('>=') })],
-            factory: (_nodes, tokens) => new GreaterThanOrEqualOperator(tokens),
+            factory: (_nodes, tokens, scope) =>
+                new GreaterThanOrEqualOperator(scope, tokens),
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('<=') })],
-            factory: (_nodes, tokens) => new LessThanOrEqualOperator(tokens),
+            factory: (_nodes, tokens, scope) =>
+                new LessThanOrEqualOperator(scope, tokens),
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('//') })],
-            factory: (_nodes, tokens) => new IntegerDivideOperator(tokens),
+            factory: (_nodes, tokens, scope) =>
+                new IntegerDivideOperator(scope, tokens),
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('%') })],
-            factory: (_nodes, tokens) => new ModularOperator(tokens),
+            factory: (_nodes, tokens, scope) =>
+                new ModularOperator(scope, tokens),
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('**') })],
-            factory: (_nodes, tokens) => new PowerOperator(tokens),
+            factory: (_nodes, tokens, scope) =>
+                new PowerOperator(scope, tokens),
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('/') })],
-            factory: (_nodes, tokens) => new DivideOperator(tokens),
+            factory: (_nodes, tokens, scope) =>
+                new DivideOperator(scope, tokens),
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('*') })],
-            factory: (_nodes, tokens) => new MultiplyOperator(tokens),
+            factory: (_nodes, tokens, scope) =>
+                new MultiplyOperator(scope, tokens),
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('+') })],
-            factory: (nodes, tokens) => new PlusOperator(tokens),
+            factory: (_nodes, tokens, scope) => new PlusOperator(scope, tokens),
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('-') })],
-            factory: (nodes, tokens) => new MinusOperator(tokens),
+            factory: (_nodes, tokens, scope) =>
+                new MinusOperator(scope, tokens),
         }),
         r({
             pattern: [
-                j.instance(Identifier).field({ value: j.literal('이고') }),
+                j.instance(Expression).field({ value: j.literal('이고') }),
             ],
-            factory: (_nodes, tokens) => new AndOperator(tokens),
+            factory: (_nodes, tokens, scope) => new AndOperator(scope, tokens),
         }),
         r({
-            pattern: [j.instance(Identifier).field({ value: j.literal('고') })],
-            factory: (_nodes, tokens) => new AndOperator(tokens),
-        }),
-        r({
-            pattern: [
-                j.instance(Identifier).field({ value: j.literal('이거나') }),
-            ],
-            factory: (_nodes, tokens) => new OrOperator(tokens),
+            pattern: [j.instance(Expression).field({ value: j.literal('고') })],
+            factory: (_nodes, tokens, scope) => new AndOperator(scope, tokens),
         }),
         r({
             pattern: [
-                j.instance(Identifier).field({ value: j.literal('거나') }),
+                j.instance(Expression).field({ value: j.literal('이거나') }),
             ],
-            factory: (_nodes, tokens) => new OrOperator(tokens),
+            factory: (_nodes, tokens, scope) => new OrOperator(scope, tokens),
+        }),
+        r({
+            pattern: [
+                j.instance(Expression).field({ value: j.literal('거나') }),
+            ],
+            factory: (_nodes, tokens, scope) => new OrOperator(scope, tokens),
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('~') })],
-            factory: (_nodes, tokens) => new RangeOperator(tokens),
+            factory: (_nodes, tokens, scope) =>
+                new RangeOperator(scope, tokens),
         }),
         r({
             pattern: [
@@ -273,7 +286,7 @@ export const BASIC_RULES: SRRule[][] = [
         r({
             pattern: [
                 j.instance(Evaluable),
-                j.instance(Identifier).field({ value: j.literal('아니다') }),
+                j.instance(Expression).field({ value: j.literal('아니다') }),
             ],
             factory: (nodes, tokens) => {
                 const evaluable = nodes[0]

@@ -12,6 +12,7 @@ import {
     RangeStartMustBeIntegerError,
     RangeStartMustBeLessThanEndError,
     RangeStartMustBeNumberError,
+    Scope,
     StringValue,
     Token,
     ValueType,
@@ -23,7 +24,10 @@ export class PlusOperator extends Operator {
     static override friendlyName = '더하기(+)'
     static sign = '+'
 
-    constructor(public override tokens: Token[]) {
+    constructor(
+        public scope: Scope,
+        public override tokens: Token[],
+    ) {
         super(PlusOperator.sign, tokens)
     }
 
@@ -80,6 +84,7 @@ export class PlusOperator extends Operator {
         }
 
         throw new InvalidTypeForOperatorError({
+            scope: this.scope,
             position: this.tokens?.[0].position,
             resource: {
                 operator: this,
@@ -93,7 +98,10 @@ export class MinusOperator extends Operator {
     static override friendlyName = '빼기(-)'
     static sign = '-'
 
-    constructor(public override tokens: Token[]) {
+    constructor(
+        public scope: Scope,
+        public override tokens: Token[],
+    ) {
         super(MinusOperator.sign, tokens)
     }
 
@@ -118,6 +126,7 @@ export class MinusOperator extends Operator {
         }
 
         throw new InvalidTypeForOperatorError({
+            scope: this.scope,
             position: this.tokens?.[0].position,
             resource: {
                 operator: this,
@@ -131,7 +140,10 @@ export class MultiplyOperator extends Operator {
     static override friendlyName = '곱하기(*)'
     static sign = '*'
 
-    constructor(public override tokens: Token[]) {
+    constructor(
+        public scope: Scope,
+        public override tokens: Token[],
+    ) {
         super(MultiplyOperator.sign, tokens)
     }
 
@@ -149,6 +161,7 @@ export class MultiplyOperator extends Operator {
         const ensureValidListMultiplier = (value: number): number => {
             if (!Number.isSafeInteger(value) || value < 0) {
                 throw new InvalidTypeForOperatorError({
+                    scope: this.scope,
                     position: this.tokens?.[0].position,
                     resource: {
                         operator: this,
@@ -213,6 +226,7 @@ export class MultiplyOperator extends Operator {
         }
 
         throw new InvalidTypeForOperatorError({
+            scope: this.scope,
             position: this.tokens?.[0].position,
             resource: {
                 operator: this,
@@ -226,7 +240,10 @@ export class DivideOperator extends Operator {
     static override friendlyName = '나누기(/)'
     static sign = '/'
 
-    constructor(public override tokens: Token[]) {
+    constructor(
+        public scope: Scope,
+        public override tokens: Token[],
+    ) {
         super(DivideOperator.sign, tokens)
     }
 
@@ -256,6 +273,7 @@ export class DivideOperator extends Operator {
                 operator: this,
                 operands: [leftValue, rightValue],
             },
+            scope: this.scope,
         })
     }
 }
@@ -264,7 +282,10 @@ export class ModularOperator extends Operator {
     static override friendlyName = '나머지(%)'
     static sign = '%'
 
-    constructor(public override tokens: Token[]) {
+    constructor(
+        public scope: Scope,
+        public override tokens: Token[],
+    ) {
         super(ModularOperator.sign, tokens)
     }
 
@@ -289,6 +310,7 @@ export class ModularOperator extends Operator {
         }
 
         throw new InvalidTypeForOperatorError({
+            scope: this.scope,
             position: this.tokens?.[0].position,
             resource: {
                 operator: this,
@@ -302,7 +324,10 @@ export class PowerOperator extends Operator {
     static override friendlyName = '제곱(**)'
     static sign = '**'
 
-    constructor(public override tokens: Token[]) {
+    constructor(
+        public scope: Scope,
+        public override tokens: Token[],
+    ) {
         super(PowerOperator.sign, tokens)
     }
 
@@ -327,6 +352,7 @@ export class PowerOperator extends Operator {
         }
 
         throw new InvalidTypeForOperatorError({
+            scope: this.scope,
             position: this.tokens?.[0].position,
             resource: {
                 operator: this,
@@ -340,7 +366,10 @@ export class IntegerDivideOperator extends Operator {
     static override friendlyName = '정수 나누기(//)'
     static sign = '//'
 
-    constructor(public override tokens: Token[]) {
+    constructor(
+        public scope: Scope,
+        public override tokens: Token[],
+    ) {
         super(IntegerDivideOperator.sign, tokens)
     }
 
@@ -365,6 +394,7 @@ export class IntegerDivideOperator extends Operator {
         }
 
         throw new InvalidTypeForOperatorError({
+            scope: this.scope,
             position: this.tokens?.[0].position,
             resource: {
                 operator: this,
@@ -378,7 +408,10 @@ export class EqualOperator extends Operator {
     static override friendlyName = '같다(==)'
     static sign = '=='
 
-    constructor(public override tokens: Token[]) {
+    constructor(
+        public scope: Scope,
+        public override tokens: Token[],
+    ) {
         super(EqualOperator.sign, tokens)
     }
 
@@ -438,7 +471,10 @@ export class NotEqualOperator extends Operator {
     static override friendlyName = '같지 않다(!=)'
     static sign = '!='
 
-    constructor(public override tokens: Token[]) {
+    constructor(
+        public scope: Scope,
+        public override tokens: Token[],
+    ) {
         super(NotEqualOperator.sign, tokens)
     }
 
@@ -467,7 +503,10 @@ export class AndOperator extends Operator {
     static override friendlyName = '이고'
     static sign = '이고'
 
-    constructor(public override tokens: Token[]) {
+    constructor(
+        public scope: Scope,
+        public override tokens: Token[],
+    ) {
         super(AndOperator.sign, tokens)
     }
 
@@ -483,6 +522,7 @@ export class AndOperator extends Operator {
 
         if (!(leftValue instanceof BooleanValue)) {
             throw new InvalidTypeForOperatorError({
+                scope: this.scope,
                 position: this.tokens?.[0].position,
                 resource: {
                     operator: this,
@@ -498,6 +538,7 @@ export class AndOperator extends Operator {
         if (!(rightValue instanceof BooleanValue)) {
             throw new InvalidTypeForOperatorError({
                 position: this.tokens?.[0].position,
+                scope: this.scope,
                 resource: {
                     operator: this,
                     operands: [leftValue, rightValue],
@@ -513,7 +554,10 @@ export class OrOperator extends Operator {
     static override friendlyName = '이거나(거나)'
     static sign = '이거나(거나)'
 
-    constructor(public override tokens: Token[]) {
+    constructor(
+        public scope: Scope,
+        public override tokens: Token[],
+    ) {
         super(OrOperator.sign, tokens)
     }
 
@@ -530,6 +574,7 @@ export class OrOperator extends Operator {
         if (!(leftValue instanceof BooleanValue)) {
             throw new InvalidTypeForOperatorError({
                 position: this.tokens?.[0].position,
+                scope: this.scope,
                 resource: {
                     operator: this,
                     operands: [leftValue],
@@ -544,6 +589,7 @@ export class OrOperator extends Operator {
         if (!(rightValue instanceof BooleanValue)) {
             throw new InvalidTypeForOperatorError({
                 position: this.tokens?.[0].position,
+                scope: this.scope,
                 resource: {
                     operator: this,
                     operands: [leftValue, rightValue],
@@ -559,7 +605,10 @@ export class GreaterThanOperator extends Operator {
     static override friendlyName = '크다(>)'
     static sign = '>'
 
-    constructor(public override tokens: Token[]) {
+    constructor(
+        public scope: Scope,
+        public override tokens: Token[],
+    ) {
         super(GreaterThanOperator.sign, tokens)
     }
 
@@ -595,7 +644,10 @@ export class LessThanOperator extends Operator {
     static override friendlyName = '작다(<)'
     static sign = '<'
 
-    constructor(public override tokens: Token[]) {
+    constructor(
+        public scope: Scope,
+        public override tokens: Token[],
+    ) {
         super(LessThanOperator.sign, tokens)
     }
 
@@ -631,7 +683,10 @@ export class GreaterThanOrEqualOperator extends Operator {
     static override friendlyName = '크거나 같다(>=)'
     static sign = '>='
 
-    constructor(public override tokens: Token[]) {
+    constructor(
+        public scope: Scope,
+        public override tokens: Token[],
+    ) {
         super(GreaterThanOrEqualOperator.sign, tokens)
     }
 
@@ -667,7 +722,10 @@ export class LessThanOrEqualOperator extends Operator {
     static override friendlyName = '작거나 같다(<=)'
     static sign = '<='
 
-    constructor(public override tokens: Token[]) {
+    constructor(
+        public scope: Scope,
+        public override tokens: Token[],
+    ) {
         super(LessThanOrEqualOperator.sign, tokens)
     }
 
@@ -703,7 +761,10 @@ export class RangeOperator extends Operator {
     static override friendlyName = '범위에서 목록 만들기(~)'
     static sign = '~'
 
-    constructor(public override tokens: Token[]) {
+    constructor(
+        public scope: Scope,
+        public override tokens: Token[],
+    ) {
         super(RangeOperator.sign, tokens)
     }
 

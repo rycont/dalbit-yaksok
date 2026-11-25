@@ -11,7 +11,6 @@ import { FunctionPartType, FunctionSignature } from '../type.ts'
 import { RequiredParametersShouldPriorError } from '../error/required-parameter.ts'
 import { FunctionMustHaveSignature } from '../error/no-signature.ts'
 import { FunctionMustHaveOneOrMoreStringPartError } from '../error/no-static.ts'
-import { MissingFunctionBody } from '../error/no-body.ts'
 
 export class FunctionDeclareHeader implements Statement {
     public parsingErrors: YaksokError[] = []
@@ -92,10 +91,5 @@ export class FunctionDeclareHeader implements Statement {
             .concat(parameterOrderErrors)
             .concat(invalidNames)
             .concat(signatureError)
-            .concat(
-                new MissingFunctionBody({
-                    statement: this,
-                }),
-            )
     }
 }

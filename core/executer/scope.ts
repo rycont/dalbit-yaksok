@@ -74,7 +74,9 @@ export class Scope {
     }
 
     findSlot(name: string): [SlotKey | null, Scope] {
-        const slot = this.slots.entries().find(([_, s]) => s.name === name)?.[0]
+        const slot = this.slots
+            .entries()
+            .find((entry) => entry[1].name === name)?.[0]
 
         if (slot) {
             return [slot, this]

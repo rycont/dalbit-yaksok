@@ -37,7 +37,6 @@ export * from './error/typecast.ts'
 export * from './error/unknown-node.ts'
 export * from './error/variable.ts'
 export * from './error/render-error-string.ts'
-export * from './error/postprocess/index.ts'
 
 export * from './statement/index.ts'
 export * from './statement/block.ts'

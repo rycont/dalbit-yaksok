@@ -91,26 +91,18 @@ export const RULES: {
                 return null
             }
 
-            if (code[index] === '\t') {
-                let i = index
-                while (i < code.length && code[i] === '\t') {
-                    i++
-                }
-                return { value: code.substring(index, i), newIndex: i }
+            let i = index
+
+            while (i < code.length && (code[i] === '\t' || code[i] === ' ')) {
+                i++
             }
 
-            if (code[index] === ' ') {
-                let i = index
+            const indentSize = Array.from(code.substring(index, i)).reduce(
+                (sum, s) => sum + (s === '\t' ? 4 : 1),
+                0,
+            )
 
-                while (i < code.length && code[i] === ' ') {
-                    i++
-                }
-
-                const spaceString = code.slice(index, i)
-                return { value: spaceString, newIndex: i }
-            }
-
-            return null
+            return { value: ' '.repeat(indentSize), newIndex: i }
         },
     },
     {

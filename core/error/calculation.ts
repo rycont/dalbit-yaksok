@@ -7,6 +7,7 @@ import {
     valueTypeToText,
     YaksokError,
     Position,
+    Scope,
 } from '@dalbit-yaksok/core'
 
 export class UnknownOperatorError extends YaksokError {
@@ -50,6 +51,7 @@ export class InvalidTypeForOperatorError extends YaksokError {
             operator: Operator
             operands: ValueType[]
         }
+        scope: Scope
     }) {
         super(props)
 

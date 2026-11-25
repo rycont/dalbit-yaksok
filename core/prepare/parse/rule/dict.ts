@@ -3,7 +3,6 @@ import {
     EOL,
     Evaluable,
     Expression,
-    Identifier,
     KeyValuePair,
     KeyValuePairSequence,
     NumberLiteral,
@@ -15,7 +14,7 @@ import { j } from '@dalbit-yaksok/pattern'
 export const DICT_RULES: SRRule[] = [
     r({
         pattern: [
-            j.instance(Identifier),
+            j.instance(Expression),
             j.instance(Expression).field({ value: j.literal(':') }),
             j.instance(Evaluable),
         ],

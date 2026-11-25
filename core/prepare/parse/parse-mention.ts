@@ -52,26 +52,31 @@ const createReplacer =
             ),
         )
 
-        const parsed = parseValue(
-            rangeTokens,
-            scope.session.files[fileName].ast.scope,
-            {
-                onReduce(r, s) {
-                    if (rulesPool.has(r)) {
-                        return HookAction.EARLY_STOP
-                    }
+        const fakeScopeForParsing = new Scope({
+            parent: scope,
+        })
 
-                    if (
-                        s instanceof Formula &&
-                        s.parsingErrors.some(
-                            (e) => e instanceof AmbiguousFormulaBoundary,
-                        )
-                    ) {
-                        return HookAction.EARLY_STOP
-                    }
-                },
+        fakeScopeForParsing.ruleList = {
+            sr: scope.session.files[fileName].ast.scope.ruleList.sr,
+            rd: [],
+        }
+
+        const parsed = parseValue(rangeTokens, fakeScopeForParsing, {
+            onReduce(r, s) {
+                if (rulesPool.has(r)) {
+                    return HookAction.EARLY_STOP
+                }
+
+                if (
+                    s instanceof Formula &&
+                    s.parsingErrors.some(
+                        (e) => e instanceof AmbiguousFormulaBoundary,
+                    )
+                ) {
+                    return HookAction.EARLY_STOP
+                }
             },
-        )
+        })
 
         const internalInstance =
             parsed.length === 1 && parsed[0] instanceof Evaluable
@@ -86,6 +91,7 @@ const createReplacer =
             return {
                 tokenRange: [startIndex, lastTokenIndex],
                 instance: new Mention(
+                    fileName,
                     internalInstance,
                     file.ranFrame,
                     rangeTokens,
