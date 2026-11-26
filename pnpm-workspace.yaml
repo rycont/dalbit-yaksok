@@ -7,9 +7,8 @@ packages:
     - exts/quickjs
     - exts/math
     - exts/statistics
+    - exts/statement/*
     - sidekick/pattern/
-    - statement
-    - statement/*
 
 allowBuilds:
     esbuild: true
