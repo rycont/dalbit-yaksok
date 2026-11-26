@@ -2,14 +2,18 @@ import {
     AmbiguousFormulaBoundary,
     DirectReplacer,
     Evaluable,
+    FileForRunNotExistError,
     Formula,
+    hasReferenceSlot,
     IncompleteEvaluable,
     Mention,
     MentionRequiresRunFrame,
     parseValue,
     RDRule,
+    ReferenceSlot,
     Scope,
     SRRule,
+    StatementCaller,
     Token,
     TOKEN_TYPE,
 } from '@dalbit-yaksok/core'
@@ -44,6 +48,50 @@ const createReplacer =
         const fileName = allTokens[startIndex].value.slice(1)
 
         const file = scope.session.files[fileName]
+
+        if (!file) {
+            const instance = new IncompleteEvaluable(
+                [],
+                [allTokens[startIndex]],
+            )
+
+            instance.parsingErrors = [
+                new FileForRunNotExistError({
+                    resource: {
+                        fileName,
+                        files: Object.keys(scope.session.files),
+                    },
+                    scope,
+                    node: instance,
+                }),
+            ]
+
+            return {
+                tokenRange: [startIndex, startIndex],
+                instance,
+            }
+        }
+
+        if (!file.ranFrame) {
+            const instance = new IncompleteEvaluable(
+                [],
+                [allTokens[startIndex]],
+            )
+
+            instance.parsingErrors.push(
+                new MentionRequiresRunFrame({
+                    node: instance,
+                    tokens: rangeTokens,
+                    scope: scope,
+                }),
+            )
+
+            return {
+                tokenRange: [startIndex, startIndex],
+                instance,
+            }
+        }
+
         const fileScope = file.ast.scope
 
         const rulesPool = new Set(
@@ -78,42 +126,81 @@ const createReplacer =
             },
         })
 
-        const internalInstance =
-            parsed.length === 1 && parsed[0] instanceof Evaluable
-                ? parsed[0]
-                : new IncompleteEvaluable(parsed, rangeTokens)
-
         const lastNodeTokens = parsed[parsed.length - 1].tokens
         const lastToken = lastNodeTokens[lastNodeTokens.length - 1]
         const lastTokenIndex = allTokens.indexOf(lastToken)
 
-        if (file.ranFrame) {
+        const internalInstance = parsed[0]
+        const isInvalid =
+            parsed.length !== 1 || !(internalInstance instanceof Evaluable)
+
+        if (isInvalid) {
+            const instance = new IncompleteEvaluable(
+                [internalInstance],
+                rangeTokens,
+            )
+
             return {
                 tokenRange: [startIndex, lastTokenIndex],
-                instance: new Mention(
-                    fileName,
-                    internalInstance,
-                    file.ranFrame,
-                    rangeTokens,
-                ),
+                instance,
             }
         }
 
-        const instance = new IncompleteEvaluable(
-            [internalInstance],
-            rangeTokens,
-        )
+        if (internalInstance instanceof StatementCaller) {
+            return {
+                tokenRange: [startIndex, lastTokenIndex],
+                instance: new StatementCaller((code, parse, scope) => {
+                    const statementParseResult = internalInstance.toStatement(
+                        code,
+                        parse,
+                        scope,
+                    )
 
-        instance.parsingErrors.push(
-            new MentionRequiresRunFrame({
-                node: internalInstance,
-                tokens: rangeTokens,
-                scope: scope,
-            }),
-        )
+                    if (!statementParseResult) {
+                        return null
+                    }
+
+                    const parsedStatement = statementParseResult.instance
+
+                    if (!hasReferenceSlot(parsedStatement)) {
+                        return statementParseResult
+                    }
+
+                    return {
+                        consumed: statementParseResult.consumed,
+                        instance: {
+                            execute(runFrame) {
+                                const childFrame = runFrame.createChild(
+                                    parsedStatement.scope,
+                                )
+                                const reference = this.declaredFrame.get(
+                                    parsedStatement[ReferenceSlot],
+                                )
+
+                                childFrame.set(
+                                    parsedStatement[ReferenceSlot],
+                                    reference,
+                                )
+                                return parsedStatement.execute(childFrame)
+                            },
+                            parsingErrors: parsedStatement.parsingErrors,
+                            scope: parsedStatement.scope,
+                            tokens: parsedStatement.tokens,
+                            validate:
+                                parsedStatement.validate.bind(parsedStatement),
+                        },
+                    }
+                }),
+            }
+        }
 
         return {
             tokenRange: [startIndex, lastTokenIndex],
-            instance,
+            instance: new Mention(
+                fileName,
+                internalInstance,
+                file.ranFrame,
+                rangeTokens,
+            ),
         }
     }

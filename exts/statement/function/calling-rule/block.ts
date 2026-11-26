@@ -11,6 +11,12 @@ import {
     SlotKey,
     Scope,
     Evaluable,
+    RuleList,
+    Expression,
+    SRRule,
+    r,
+    StatementCaller,
+    RDFactory,
 } from '@dalbit-yaksok/core'
 import {
     FunctionSignature,
@@ -27,13 +33,13 @@ export function createBlockRule(
     signature: FunctionSignature,
     parameterSlots: Map<ParameterElement, SlotKey>,
     slotKey: SlotKey,
-): RDRule {
+): RuleList {
     const staticParts = signature.headerParts.slice(
         0,
         -1,
     ) as FunctionStaticPart[]
 
-    const pattern = j
+    const rdPattern = j
         .list(
             staticParts.map((p) =>
                 j.field({
@@ -47,45 +53,65 @@ export function createBlockRule(
         )
         .compile()
 
-    return {
+    const factory: RDFactory = (code, action) => {
+        const [line, headerConsumed] = code.consume()
+        const test = rdPattern.func(rdPattern.id, line.validTokens)
+
+        if (!test || !headerConsumed.block) {
+            return null
+        }
+
+        const [bodyTokens, bodyConsumed] = headerConsumed.block.consume()
+
+        const parameterExtraction = parseBlockParameterTokens(
+            bodyTokens,
+            action,
+            parameterSlots,
+        )
+
+        const invokingArguments = new InvokingArguments(
+            scope,
+            signature.parameterScheme,
+            parameterSlots,
+            parameterExtraction.parameters,
+            line.validTokens,
+            parameterExtraction.parsingErrors,
+        )
+
+        const nodeInstance = new FunctionInvoke(
+            scope,
+            slotKey,
+            invokingArguments,
+            line.validTokens,
+        )
+
+        return {
+            instance: new Evaluator(scope, nodeInstance, line.validTokens),
+            consumed: bodyConsumed,
+        }
+    }
+
+    const rdRule: RDRule = {
         name: signature.functionName,
-        factory(code, action) {
-            const [line, headerConsumed] = code.consume()
-            const test = pattern.func(pattern.id, line.validTokens)
+        factory,
+    }
 
-            if (!test || !headerConsumed.block) {
-                return null
-            }
+    const srPattern = staticParts.map((p) =>
+        j.instance(Expression).field({
+            value: j.enum(p.names.map((n) => n.value)),
+        }),
+    )
 
-            const [bodyTokens, bodyConsumed] = headerConsumed.block.consume()
-
-            const parameterExtraction = parseBlockParameterTokens(
-                bodyTokens,
-                action,
-                parameterSlots,
-            )
-
-            const invokingArguments = new InvokingArguments(
-                scope,
-                signature.parameterScheme,
-                parameterSlots,
-                parameterExtraction.parameters,
-                line.validTokens,
-                parameterExtraction.parsingErrors,
-            )
-
-            const nodeInstance = new FunctionInvoke(
-                scope,
-                slotKey,
-                invokingArguments,
-                line.validTokens,
-            )
-
-            return {
-                instance: new Evaluator(scope, nodeInstance, line.validTokens),
-                consumed: bodyConsumed,
-            }
+    const srRule: SRRule = r({
+        pattern: srPattern,
+        factory() {
+            return new StatementCaller(factory)
         },
+    })
+
+    return {
+        rd: [rdRule],
+        sr: [srRule],
     }
 }
 

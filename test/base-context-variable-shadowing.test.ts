@@ -51,10 +51,7 @@ test('setBaseContext: 새 변수 선언은 로컬 스코프에 생성됨', async
     await codeFile.run()
 
     expect(output.trim()).toBe('100')
-
-    expect(
-        baseContextFrame.get(baseContextFrame.scope.findSlot('새값')[0]!),
-    ).toBe(undefined)
+    expect(baseContextFrame.scope.findSlot('새값')[0]).toBe(null)
 })
 
 // ===== 재대입 동작 검증 =====

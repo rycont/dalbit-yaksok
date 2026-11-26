@@ -21,14 +21,16 @@ export interface FactoryParsers {
     value: (tokens: Token[]) => Evaluable
 }
 
+export type RDFactory = (
+    next: LineFetcher<true>,
+    parse: FactoryParsers,
+    scope: Scope,
+) => FactoryResult | null
+
 export interface RDRule {
     name: string
     description?: string
-    factory(
-        next: LineFetcher<true>,
-        parse: FactoryParsers,
-        scope: Scope,
-    ): FactoryResult | null
+    factory: RDFactory
 }
 
 export interface FactoryResult {

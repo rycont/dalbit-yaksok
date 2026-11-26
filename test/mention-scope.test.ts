@@ -6,12 +6,8 @@ test('MentionScope validate with invalid module', async () => {
     const session = new YaksokSession()
 
     // Should have error about module not found
-    try {
-        session.addModule('main', `@없는모듈 변수`)
-        expect.unreachable()
-    } catch (error) {
-        expect(error).toBeInstanceOf(FileForRunNotExistError)
-    }
+    const codeFile = session.addModule('main', `@없는모듈 변수`)
+    expect(codeFile.prepareErrors[1]).toBeInstanceOf(FileForRunNotExistError)
 })
 
 test('MentionScope validate with module that has validation errors', async () => {

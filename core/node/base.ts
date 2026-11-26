@@ -4,14 +4,13 @@ import {
     YaksokError,
     type Token,
     EmptyValue,
-    Statement,
-    Block,
     RunFrame,
     SlotKey,
     isRunnable,
     Runnable,
     NotDefinedIdentifierError,
     CannotParseError,
+    RDRule,
 } from '@dalbit-yaksok/core'
 
 export enum NodeCapability {
@@ -194,11 +193,7 @@ export class Expression<
 }
 
 export class StatementCaller extends Evaluable {
-    constructor(private statementFactory: (body: Block) => Statement) {
+    constructor(public toStatement: RDRule['factory']) {
         super()
-    }
-
-    public toStatement(body: Block) {
-        return this.statementFactory(body)
     }
 }

@@ -1,4 +1,4 @@
-import { RuleList, Scope, SlotKey } from '@dalbit-yaksok/core'
+import { concatRuleList, RuleList, Scope, SlotKey } from '@dalbit-yaksok/core'
 import { FunctionPartType, FunctionSignature, ParameterElement } from '../type'
 import { createInterleavingRule } from './interleaving'
 import { createBlockRule } from './block'
@@ -31,8 +31,11 @@ export function createCallingRules(
 
     const blockRule = createBlockRule(scope, signature, parameterSlots, slot)
 
-    return {
-        sr: [interleavingRule],
-        rd: [blockRule],
-    }
+    return concatRuleList([
+        blockRule,
+        {
+            sr: [interleavingRule],
+            rd: [],
+        },
+    ])
 }

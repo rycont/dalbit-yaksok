@@ -192,19 +192,19 @@ importers:
         version: link:../sidekick/pattern
       '@dalbit-yaksok/statement-conditional':
         specifier: workspace:*
-        version: link:../statement/conditional
+        version: link:../exts/statement/conditional
       '@dalbit-yaksok/statement-function':
         specifier: workspace:*
-        version: link:../statement/function
+        version: link:../exts/statement/function
       '@dalbit-yaksok/statement-loop':
         specifier: workspace:*
-        version: link:../statement/loop
+        version: link:../exts/statement/loop
       '@dalbit-yaksok/statement-print':
         specifier: workspace:*
-        version: link:../statement/print
+        version: link:../exts/statement/print
       '@dalbit-yaksok/statement-variable':
         specifier: workspace:*
-        version: link:../statement/variable
+        version: link:../exts/statement/variable
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -299,6 +299,51 @@ importers:
         specifier: 0.31.0
         version: 0.31.0
 
+  exts/statement/conditional:
+    dependencies:
+      '@dalbit-yaksok/core':
+        specifier: workspace:*
+        version: link:../../../core
+      '@dalbit-yaksok/pattern':
+        specifier: workspace:*
+        version: link:../../../sidekick/pattern
+
+  exts/statement/function:
+    dependencies:
+      '@dalbit-yaksok/core':
+        specifier: workspace:*
+        version: link:../../../core
+      '@dalbit-yaksok/pattern':
+        specifier: workspace:*
+        version: link:../../../sidekick/pattern
+
+  exts/statement/loop:
+    dependencies:
+      '@dalbit-yaksok/core':
+        specifier: workspace:*
+        version: link:../../../core
+      '@dalbit-yaksok/pattern':
+        specifier: workspace:*
+        version: link:../../../sidekick/pattern
+
+  exts/statement/print:
+    dependencies:
+      '@dalbit-yaksok/core':
+        specifier: workspace:*
+        version: link:../../../core
+      '@dalbit-yaksok/pattern':
+        specifier: workspace:*
+        version: link:../../../sidekick/pattern
+
+  exts/statement/variable:
+    dependencies:
+      '@dalbit-yaksok/core':
+        specifier: workspace:*
+        version: link:../../../core
+      '@dalbit-yaksok/pattern':
+        specifier: workspace:*
+        version: link:../../../sidekick/pattern
+
   exts/statistics:
     dependencies:
       '@dalbit-yaksok/core':
@@ -318,60 +363,12 @@ importers:
         version: link:../exts/quickjs
       '@dalbit-yaksok/statement-function':
         specifier: workspace:*
-        version: link:../statement/function
+        version: link:../exts/statement/function
       '@dalbit-yaksok/statistics':
         specifier: workspace:*
         version: link:../exts/statistics
 
   sidekick/pattern: {}
-
-  statement:
-    dependencies:
-      '@dalbit-yaksok/core':
-        specifier: workspace:*
-        version: link:../core
-
-  statement/conditional:
-    dependencies:
-      '@dalbit-yaksok/core':
-        specifier: workspace:*
-        version: link:../../core
-      '@dalbit-yaksok/pattern':
-        specifier: workspace:*
-        version: link:../../sidekick/pattern
-
-  statement/function:
-    dependencies:
-      '@dalbit-yaksok/core':
-        specifier: workspace:*
-        version: link:../../core
-      '@dalbit-yaksok/pattern':
-        specifier: workspace:*
-        version: link:../../sidekick/pattern
-
-  statement/loop:
-    dependencies:
-      '@dalbit-yaksok/core':
-        specifier: workspace:*
-        version: link:../../core
-      '@dalbit-yaksok/pattern':
-        specifier: workspace:*
-        version: link:../../sidekick/pattern
-
-  statement/print:
-    dependencies:
-      '@dalbit-yaksok/core':
-        specifier: workspace:*
-        version: link:../../core
-      '@dalbit-yaksok/pattern':
-        specifier: workspace:*
-        version: link:../../sidekick/pattern
-
-  statement/variable:
-    dependencies:
-      '@dalbit-yaksok/pattern':
-        specifier: workspace:*
-        version: link:../../sidekick/pattern
 
   test:
     dependencies:
@@ -383,7 +380,7 @@ importers:
         version: link:../exts/quickjs
       '@dalbit-yaksok/statement-function':
         specifier: workspace:*
-        version: link:../statement/function
+        version: link:../exts/statement/function
 
 packages:
 

@@ -39,7 +39,7 @@ export function createEventSubscriptionRules(
                         scope,
                         eventSlotKey,
                         callbackSlotKey,
-                        body,
+                        body.parsed,
                         invokingArguments,
                         tokens,
                     ),

@@ -1,6 +1,8 @@
 import {
     Evaluable,
+    hasReferenceSlot,
     RDRule,
+    ReferenceSlot,
     RunFrame,
     Scope,
     Statement,
@@ -16,7 +18,11 @@ export class Evaluator implements Statement {
         public scope: Scope,
         public evaluable: Evaluable,
         public tokens: Token[],
-    ) {}
+    ) {
+        if (hasReferenceSlot(evaluable)) {
+            this[ReferenceSlot] = evaluable[ReferenceSlot]
+        }
+    }
 
     async execute(runFrame: RunFrame) {
         await this.evaluable.execute(runFrame)
@@ -34,16 +40,8 @@ export class Evaluator implements Statement {
             const parsed = parse.value(line.validTokens)
 
             if (parsed instanceof StatementCaller && lineConsumed.block) {
-                const [bodyTokens, bodyConsumed] = lineConsumed.block.consume()
-
-                const body = parse.statement(bodyTokens)
-
-                const statement = parsed.toStatement(body)
-
-                return {
-                    instance: statement,
-                    consumed: bodyConsumed,
-                }
+                const blockResult = parsed.toStatement(code, parse, scope)
+                return blockResult
             }
 
             return {

@@ -35,5 +35,6 @@ export default defineConfig({
     test: {
         environment: 'node',
         execArgv: ['--localstorage-file=/tmp/.dbys-lstore.json'],
+        bail: 1,
     },
 })
