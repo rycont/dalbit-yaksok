@@ -12,6 +12,7 @@
     "packageManager": "pnpm@12.16.1",
     "type": "module",
     "scripts": {
+        "apply-version": "vp run @dalbit-yaksok/scripts#apply-version",
         "editor": "vp run @dalbit-yaksok/editor#dev",
         "doc": "vp run @dalbit-yaksok/docs#dev",
         "runtest": "vp run @dalbit-yaksok/scripts#dev",

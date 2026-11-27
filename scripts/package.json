@@ -11,6 +11,7 @@
         "@dalbit-yaksok/statistics": "workspace:*"
     },
     "scripts": {
+        "apply-version": "vpx apply-version.ts",
         "dev": "vpx --watch --clear-screen=true --localstorage-file=/tmp/.dbys-lstore.json runtest.ts"
     }
 }

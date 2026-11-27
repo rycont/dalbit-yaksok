@@ -1,31 +1,29 @@
-(달빛약속의 이전 이름은 yaksok.ts입니다. v0.2 이후부터 달빛약속으로 불립니다.)
+# 달빛약속: 코딩 학습 경험 실험실
 
-# 달빛약속 (Dalbit Yaksok)
+```
+약속, (음식)을 (사람)과 먹기
+    "맛있는 {음식}, {사람}의 입으로 모두 들어갑니다." 보여주기
 
-한국어 프로그래밍 언어 ["약속"](http://yaksok.org/)의 포크.
+먹을_음식 = "유부초밥"
+먹일_사람 = "현수"
 
-[온라인 데모](https://dalbit-yaksok.postica.app)에서 직접 사용할 수 있습니다.
-
-```typescript
-import { yaksok } from '@dalbit-yaksok/core'
-
-const code = `
-약속, (대상)이여/여 지금 내게 나타나거라
-    대상 + " 등장" 보여주기
-
-("숫가락")이여 지금 내게 나타나거라
-("포크")여 지금 내게 나타나거라
-`
-
-await yaksok(code)
+먹을_음식을 먹일_사람과 먹기
 ```
 
-## 구성 요소
+```
+약속, 예매하기(차종, 좌석?)
+    만약 좌석 == 비어있음 이면
+        차종 + " / 좌석 없음" 보여주기
+    아니면
+        차종 + " / " + 좌석 보여주기
 
-| 이름                | 상태 | 주소                                                                      | 문서                                                                                                       |
-| ------------------- | ---- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| 런타임              | ✔️   | [jsr:@dalbit-yaksok/core](https://jsr.io/@dalbit-yaksok/core)             | [library/1. getting-started](https://dalbit-yaksok.postica.app/library/1.%20getting-started)               |
-| 문서                | ✔️   | https://dalbit-yaksok.postica.app                                         |                                                                                                            |
-| QuickJS 번역 브릿지 | ✔️   | [jsr:@dalbit-yaksok/quickjs](https://jsr.io/@dalbit-yaksok/quickjs)       | [library/4.1. quickjs-translation](https://dalbit-yaksok.postica.app/library/4.1.%20quickjs-translation)   |
-| 수학 확장           | ✔️   | [jsr:@dalbit-yaksok/math](https://jsr.io/@dalbit-yaksok/math)             | [library/4.3. math-extension](https://dalbit-yaksok.postica.app/library/4.3.%20math-extension)             |
-| 통계 확장           | ✔️   | [jsr:@dalbit-yaksok/statistics](https://jsr.io/@dalbit-yaksok/statistics) | [library/4.4. statistics-extension](https://dalbit-yaksok.postica.app/library/4.4.%20statistics-extension) |
+예매하기("KTX")
+
+예매하기
+    좌석: "1A"
+    차종: "새마을"
+```
+
+한글 프로그래밍 언어를 넘어, 낯섦이 실패로 이어지지 않을 수 있는 코딩 학습 환경을 실험합니다.
+
+[온라인 데모](https://dalbit-yaksok.postica.app)에서 직접 사용할 수 있습니다.
