@@ -181,9 +181,14 @@ const createReplacer = (
                         consumed: statementParseResult.consumed,
                         instance: {
                             execute(runFrame) {
+                                if (!hasReferenceSlot(parsedStatement)) {
+                                    return parsedStatement.execute(runFrame)
+                                }
+
                                 const childFrame = runFrame.createChild(
                                     parsedStatement.scope,
                                 )
+
                                 const reference = file.ranFrame!.get(
                                     parsedStatement[ReferenceSlot],
                                 )

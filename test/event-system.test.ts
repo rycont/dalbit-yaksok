@@ -1,5 +1,5 @@
-import { dalbitToJS, RunFrame, Scope, YaksokSession } from '@dalbit-yaksok/core'
-import { test, expect, assert } from 'vite-plus/test'
+import { dalbitToJS, RunFrame, YaksokSession } from '@dalbit-yaksok/core'
+import { test, expect } from 'vite-plus/test'
 
 test('이벤트 구독 및 실행', async () => {
     let output = ''

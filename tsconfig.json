@@ -8,7 +8,8 @@
         "target": "esnext",
         "lib": ["ESNext", "DOM"],
         "allowSyntheticDefaultImports": true,
-        "strictNullChecks": true
+        "strictNullChecks": true,
+        "noImplicitAny": true
     },
     "include": ["./**/*.ts"]
 }

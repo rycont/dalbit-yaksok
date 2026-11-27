@@ -88,7 +88,7 @@ export class IncompleteEvaluable extends Evaluable<Node[]> {
 
 export class Identifier extends Evaluable {
     static override friendlyName = '식별자'
-    public [ReferenceSlot]: SlotKey | null
+    public [ReferenceSlot]!: SlotKey | null
 
     constructor(
         public scope: Scope,
@@ -105,6 +105,10 @@ export class Identifier extends Evaluable {
     }
 
     override async execute(runFrame: RunFrame): Promise<ValueType> {
+        if (!this[ReferenceSlot]) {
+            throw this.validate()[0]
+        }
+
         const value = runFrame.get(this[ReferenceSlot])
 
         if (!isRunnable(value)) {
@@ -118,7 +122,7 @@ export class Identifier extends Evaluable {
     }
 
     override validate(): YaksokError[] {
-        if (this.scope.slots.has(this[ReferenceSlot])) {
+        if (this[ReferenceSlot] && this.scope.slots.has(this[ReferenceSlot])) {
             return []
         }
 

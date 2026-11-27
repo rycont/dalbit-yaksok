@@ -24,6 +24,12 @@ export class SetVariable implements Statement {
     ) {}
 
     async execute(runFrame: RunFrame) {
+        const targetSlot = this.target[ReferenceSlot]
+
+        if (!targetSlot) {
+            throw this.target.validate()[0]
+        }
+
         const operatorNode =
             assignerToOperatorMap[
                 this.operator as keyof typeof assignerToOperatorMap
@@ -53,7 +59,7 @@ export class SetVariable implements Statement {
             }
         }
 
-        runFrame.set(this.target[ReferenceSlot], newValue)
+        runFrame.set(targetSlot, newValue)
     }
 
     validate(): YaksokError[] {

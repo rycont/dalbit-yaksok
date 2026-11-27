@@ -1,4 +1,4 @@
-import { assert, expect, test } from 'vite-plus/test'
+import { expect, test } from 'vite-plus/test'
 import { FileForRunNotExistError } from '../../core/error/prepare.ts'
 import { YaksokSession } from '../../core/mod.ts'
 
