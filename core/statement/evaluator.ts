@@ -5,6 +5,7 @@ import {
     ReferenceSlot,
     RunFrame,
     Scope,
+    SlotKey,
     Statement,
     StatementCaller,
     Token,
@@ -13,6 +14,7 @@ import {
 
 export class Evaluator implements Statement {
     public parsingErrors: YaksokError[] = []
+    public [ReferenceSlot]?: SlotKey
 
     constructor(
         public scope: Scope,

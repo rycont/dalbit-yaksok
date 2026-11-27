@@ -17,6 +17,7 @@ import {
     r,
     StatementCaller,
     RDFactory,
+    UnexpectedArgumentError,
 } from '@dalbit-yaksok/core'
 import {
     FunctionSignature,
@@ -104,8 +105,10 @@ export function createBlockRule(
 
     const srRule: SRRule = r({
         pattern: srPattern,
-        factory() {
-            return new StatementCaller(factory)
+        isStatement: true,
+        factory(_, tokens, scope) {
+            console.log(_)
+            return new StatementCaller(scope, factory, tokens)
         },
     })
 
@@ -122,7 +125,7 @@ function parseBlockParameterTokens(
 ): { parsingErrors: YaksokError[]; parameters: Map<SlotKey, Evaluable> } {
     const parsedLines = tokenLines.map(parseTokenLine)
 
-    const parsingErrors: YaksokError[] = parsedLines
+    const parameterErrors: YaksokError[] = parsedLines
         .map((l) => l.parseError)
         .filter((e) => !!e)
 
@@ -130,15 +133,32 @@ function parseBlockParameterTokens(
         parameterSlots.entries().map(([k, v]) => [k.name, v]),
     )
 
+    const keyGroup = Object.groupBy(parsedLines, (l) => {
+        if (l.name && l.name in nameToSlotKey) {
+            return 'known'
+        }
+
+        return 'unknown'
+    })
+
+    const unknownKeysError = keyGroup.unknown
+        ? [
+              new UnexpectedArgumentError({
+                  tokens: keyGroup.unknown[0].nameTokens,
+                  resource: {
+                      names: keyGroup.unknown.map((k) => k.name!),
+                  },
+              }),
+          ]
+        : []
+
     return {
-        parsingErrors,
+        parsingErrors: parameterErrors.concat(unknownKeysError),
         parameters: new Map(
-            parsedLines
-                .filter((l) => l.name)
-                .map((l) => [
-                    nameToSlotKey[l.name!],
-                    parse.value(l.valueTokens!),
-                ]),
+            keyGroup.known?.map((l) => [
+                nameToSlotKey[l.name!],
+                parse.value(l.valueTokens!),
+            ]),
         ),
     }
 }
@@ -175,6 +195,7 @@ function parseTokenLine(tokenLine: TokenLine) {
 
     return {
         name: nameExtraction.name,
+        nameTokens: test.name,
         valueTokens: test.value,
         parseError: nameExtraction.parseError,
     }

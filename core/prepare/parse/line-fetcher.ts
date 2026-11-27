@@ -1,6 +1,7 @@
 import { TokenLine, TOKEN_TYPE, Token } from '@dalbit-yaksok/core'
 
 export type LineFetcher<EnsuredFirstLine extends boolean = false> = {
+    lines: TokenLine[]
     currentIndex: number
     block:
         | {
@@ -48,6 +49,7 @@ export function createLineFetcher(
     }
 
     return {
+        lines,
         currentIndex,
         look: lookingLine,
         consume: lookingLine

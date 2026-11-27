@@ -24,7 +24,7 @@ export function createEventSubscriptionRules(
 
     const srRule = r({
         pattern: pattern,
-        factory(nodes, tokens) {
+        factory(nodes, tokens, scope) {
             const invokingArguments = invokingArgumentsFactory(
                 nodes.slice(0, -2),
             )
@@ -34,15 +34,32 @@ export function createEventSubscriptionRules(
             }
 
             return new StatementCaller(
-                (body) =>
-                    new SubscribeEvent(
+                scope,
+                (next, parse, scope) => {
+                    const [_, lineConsumed] = next.consume()
+
+                    if (!lineConsumed.block) {
+                        throw '그건 말이 안됨'
+                    }
+
+                    const [bodyTokens, bodyConsumed] =
+                        lineConsumed.block.consume()
+
+                    const instance = new SubscribeEvent(
                         scope,
                         eventSlotKey,
                         callbackSlotKey,
-                        body.parsed,
+                        parse.statement(bodyTokens),
                         invokingArguments,
                         tokens,
-                    ),
+                    )
+
+                    return {
+                        instance,
+                        consumed: bodyConsumed,
+                    }
+                },
+                tokens,
             )
         },
     })

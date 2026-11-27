@@ -167,19 +167,20 @@ export const BASIC_RULES: SRRule[][] = [
                 j.instance(Operator),
                 j.instance(Evaluable),
             ],
-            factory: (nodes, tokens) => {
+            factory: (nodes, tokens, scope) => {
                 const left = nodes[0]
                 const operator = nodes[1]
                 const right = nodes[2]
 
                 if (left instanceof Formula) {
                     return new Formula(
+                        scope,
                         [...left.subnode, operator, right],
                         tokens,
                     )
                 }
 
-                return new Formula([left, operator, right], tokens)
+                return new Formula(scope, [left, operator, right], tokens)
             },
         }),
         r({
@@ -209,8 +210,12 @@ export const BASIC_RULES: SRRule[][] = [
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('<=') })],
-            factory: (_nodes, tokens, scope) =>
-                new LessThanOrEqualOperator(scope, tokens),
+            factory: (nodes, tokens, scope) => {
+                const instance = new LessThanOrEqualOperator(scope, tokens)
+                instance.ambiguousTokens = nodes[0].ambiguousTokens
+
+                return instance
+            },
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('//') })],
@@ -397,13 +402,13 @@ function createTypeCastRules(): SRRule[] {
                         pattern: [
                             j.instance(Evaluable),
                             j
-                                .instance(Identifier)
+                                .instance(Expression)
                                 .field({ value: j.literal(particle) }),
                             j
-                                .instance(Identifier)
+                                .instance(Expression)
                                 .field({ value: j.literal(keyword) }),
                             j
-                                .instance(Identifier)
+                                .instance(Expression)
                                 .field({ value: j.literal('바꾸기') }),
                         ],
                         factory: (nodes, tokens) => {
@@ -421,16 +426,16 @@ function createTypeCastRules(): SRRule[] {
                             pattern: [
                                 j.instance(Evaluable),
                                 j
-                                    .instance(Identifier)
+                                    .instance(Expression)
                                     .field({ value: j.literal(particle) }),
                                 j
-                                    .instance(Identifier)
+                                    .instance(Expression)
                                     .field({ value: j.literal(head) }),
                                 j
-                                    .instance(Identifier)
+                                    .instance(Expression)
                                     .field({ value: j.literal(tail) }),
                                 j
-                                    .instance(Identifier)
+                                    .instance(Expression)
                                     .field({ value: j.literal('바꾸기') }),
                             ],
                             factory: (nodes, tokens) => {

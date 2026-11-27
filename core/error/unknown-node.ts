@@ -1,12 +1,4 @@
-import {
-    blue,
-    bold,
-    dim,
-    Scope,
-    Token,
-    YaksokError,
-    type Node,
-} from '@dalbit-yaksok/core'
+import { Scope, Token, YaksokError, type Node } from '@dalbit-yaksok/core'
 
 export class MentionRequiresRunFrame extends YaksokError {
     constructor(props: { tokens: Token[]; node: Node; scope: Scope }) {

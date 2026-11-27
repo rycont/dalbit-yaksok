@@ -33,7 +33,7 @@ export class UnexpectedArgumentError extends YaksokError<{
     constructor(props: {
         tokens?: Token[]
         resource: { names: string[] }
-        scope: Scope
+        scope?: Scope
     }) {
         super(props)
         const { names } = props.resource

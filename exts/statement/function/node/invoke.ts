@@ -76,6 +76,6 @@ export class FunctionInvoke extends Evaluable {
     }
 
     override validate(): YaksokError[] {
-        return this.invokingArguments.validate()
+        return this.invokingArguments.validate().concat(this.parsingErrors)
     }
 }

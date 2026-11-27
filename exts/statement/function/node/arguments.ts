@@ -4,7 +4,6 @@ import {
     YaksokError,
     EmptyValue,
     Scope,
-    UnexpectedArgumentError,
     Token,
     SlotKey,
     RunFrame,
@@ -91,21 +90,6 @@ export class InvokingArguments {
               ]
             : []
 
-        const knownKeys = new Set(this.parameterSlots.values())
-        const unknownKeys = Array.from(providedArguments.difference(knownKeys))
-
-        const unknownKeysError = unknownKeys.length
-            ? [
-                  new UnexpectedArgumentError({
-                      tokens: this.argumentValues.get(unknownKeys[0])!.tokens,
-                      resource: {
-                          names: unknownKeys.map((k) => k.description!),
-                      },
-                      scope: this.scope,
-                  }),
-              ]
-            : []
-
         for (const e of this.parsingErrors) {
             e.scope = this.scope
         }
@@ -113,7 +97,6 @@ export class InvokingArguments {
         return argumentErrors
             .toArray()
             .concat(missingKeysError)
-            .concat(unknownKeysError)
             .concat(this.parsingErrors)
     }
 }

@@ -1,18 +1,15 @@
 import {
-    AmbiguousFormulaBoundary,
-    EOL,
-    Formula,
-    Identifier,
     Node,
     type SRRule,
-    RESERVED_WORDS,
     getTokensFromNodes,
     Scope,
+    Operator,
 } from '@dalbit-yaksok/core'
 
 import { BASIC_RULES, ADVANCED_RULES } from './rule/index.ts'
 import { Ruleset } from './ruleset.ts'
 import { NotAcceptableSignal } from './signal.ts'
+import { FunctionInvoke } from '@dalbit-yaksok/statement-function'
 
 export enum HookAction {
     EARLY_STOP,
@@ -37,17 +34,12 @@ export function SRParse(
         const matchedRules = ruleset.findRule(buffer)
 
         for (const rule of matchedRules) {
-            const isStatement = !!rule.isStatement
+            const stackSlice = buffer.slice(-rule.pattern.length)
 
-            if (isStatement) {
-                const nextNode = nodes[cursor]
-                if (nextNode && !(nextNode instanceof EOL)) continue
-
-                const lastNode = buffer[buffer.length - rule.pattern.length - 1]
-                if (lastNode && !(lastNode instanceof EOL)) continue
+            if (rule.isStatement && cursor !== nodes.length) {
+                continue
             }
 
-            const stackSlice = buffer.slice(-rule.pattern.length)
             const reduced = reduce(stackSlice, rule, scope)
 
             if (reduced === null) continue
@@ -57,30 +49,6 @@ export function SRParse(
                 reduced.constructor === stackSlice[0].constructor
             ) {
                 continue
-            }
-
-            if (reduced instanceof Formula) {
-                const prev2Nodes = buffer.slice(
-                    -rule.pattern.length - 2,
-                    -rule.pattern.length,
-                )
-
-                const next2Nodes = nodes.slice(cursor, cursor + 2)
-
-                const collisionNodes = hasFunctionInvokeCollision(
-                    reduced,
-                    prev2Nodes,
-                    next2Nodes,
-                )
-
-                if (collisionNodes) {
-                    reduced.injectParsingError(
-                        new AmbiguousFormulaBoundary({
-                            scope,
-                            tokens: collisionNodes.flatMap((n) => n.tokens),
-                        }),
-                    )
-                }
             }
 
             buffer.splice(-rule.pattern.length, rule.pattern.length, reduced)
@@ -95,7 +63,22 @@ export function SRParse(
         }
 
         if (cursor === nodes.length) break
-        buffer.push(nodes[cursor]!)
+
+        const lastNode = buffer[buffer.length - 1]
+        const pushingNode = nodes[cursor]!
+
+        buffer.push(pushingNode)
+
+        if (
+            pushingNode instanceof Operator &&
+            lastNode instanceof FunctionInvoke
+        ) {
+            console.log(pushingNode)
+            pushingNode.ambiguousTokens = lastNode.tokens.concat(
+                pushingNode.tokens,
+            )
+            // console.log(lastNode.tokens.concat(pushingNode.tokens))
+        }
 
         cursor++
     }
@@ -133,7 +116,7 @@ export function callSRParseRecursively(
 ): Node[] {
     let parsedNodes = [...nodes]
 
-    const rulesByLevel = [...BASIC_RULES, externalPatterns, ADVANCED_RULES]
+    const rulesByLevel = [externalPatterns, ...BASIC_RULES, ADVANCED_RULES]
     const rulesets = rulesByLevel.map((rules) => Ruleset.createFromRules(rules))
 
     loop1: while (true) {
@@ -150,54 +133,54 @@ export function callSRParseRecursively(
     return parsedNodes
 }
 
-function hasFunctionInvokeCollision(
-    formula: Formula,
-    prev2Nodes: Node[],
-    next2Nodes: Node[],
-) {
-    if (isSequentialIdentifier(prev2Nodes)) {
-        return prev2Nodes
-    }
-
-    const lastPrev = prev2Nodes[prev2Nodes.length - 1]
-
-    if (isSequentialIdentifier(next2Nodes)) {
-        // 반복 [목록] 의 [반복자] << 이 경우에서 `이 [반복자]` 패턴에서 (Identifier Identifier)로 인식되는 문제 방지
-
-        if (
-            lastPrev &&
-            lastPrev instanceof Identifier &&
-            lastPrev.value === '반복'
-        ) {
-            return false
-        }
-
-        return next2Nodes
-    }
-
-    const leftAndPrev = [lastPrev, formula.subnode[0]]
-
-    if (isSequentialIdentifier(leftAndPrev)) {
-        return leftAndPrev
-    }
-
-    const rightAndNext = [
-        formula.subnode[formula.subnode.length - 1],
-        next2Nodes[0],
-    ]
-
-    if (isSequentialIdentifier(rightAndNext)) {
-        return rightAndNext
-    }
-
-    return false
-}
-
-function isSequentialIdentifier(nodes: Node[]) {
-    return (
-        1 < nodes.length &&
-        nodes.every(
-            (n) => n instanceof Identifier && !RESERVED_WORDS.has(n.value),
-        )
-    )
-}
+// function hasFunctionInvokeCollision(
+//     formula: Formula,
+//     prev2Nodes: Node[],
+//     next2Nodes: Node[],
+// ) {
+//     if (isSequentialIdentifier(prev2Nodes)) {
+//         return prev2Nodes
+//     }
+//
+//     const lastPrev = prev2Nodes[prev2Nodes.length - 1]
+//
+//     if (isSequentialIdentifier(next2Nodes)) {
+//         // 반복 [목록] 의 [반복자] << 이 경우에서 `이 [반복자]` 패턴에서 (Identifier Identifier)로 인식되는 문제 방지
+//
+//         if (
+//             lastPrev &&
+//             lastPrev instanceof Identifier &&
+//             lastPrev.value === '반복'
+//         ) {
+//             return false
+//         }
+//
+//         return next2Nodes
+//     }
+//
+//     const leftAndPrev = [lastPrev, formula.subnode[0]]
+//
+//     if (isSequentialIdentifier(leftAndPrev)) {
+//         return leftAndPrev
+//     }
+//
+//     const rightAndNext = [
+//         formula.subnode[formula.subnode.length - 1],
+//         next2Nodes[0],
+//     ]
+//
+//     if (isSequentialIdentifier(rightAndNext)) {
+//         return rightAndNext
+//     }
+//
+//     return false
+// }
+//
+// function isSequentialIdentifier(nodes: Node[]) {
+//     return (
+//         1 < nodes.length &&
+//         nodes.every(
+//             (n) => n instanceof Identifier && !RESERVED_WORDS.has(n.value),
+//         )
+//     )
+// }

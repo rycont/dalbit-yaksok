@@ -11,6 +11,8 @@ import {
     NotDefinedIdentifierError,
     CannotParseError,
     RDRule,
+    AmbiguousFormulaBoundary,
+    ReferenceSlot,
 } from '@dalbit-yaksok/core'
 
 export enum NodeCapability {
@@ -86,14 +88,16 @@ export class IncompleteEvaluable extends Evaluable<Node[]> {
 
 export class Identifier extends Evaluable {
     static override friendlyName = '식별자'
+    public [ReferenceSlot]: SlotKey
 
     constructor(
         public scope: Scope,
-        public slotKey: SlotKey,
+        slotKey: SlotKey,
         public override value: string,
         public override tokens: Token[],
     ) {
         super()
+        this[ReferenceSlot] = slotKey
     }
 
     override toPrint(): string {
@@ -101,7 +105,7 @@ export class Identifier extends Evaluable {
     }
 
     override async execute(runFrame: RunFrame): Promise<ValueType> {
-        const value = runFrame.get(this.slotKey)
+        const value = runFrame.get(this[ReferenceSlot])
 
         if (!isRunnable(value)) {
             return value
@@ -114,7 +118,7 @@ export class Identifier extends Evaluable {
     }
 
     override validate(): YaksokError[] {
-        if (this.scope.slots.has(this.slotKey)) {
+        if (this.scope.slots.has(this[ReferenceSlot])) {
             return []
         }
 
@@ -152,8 +156,17 @@ export class Operator extends Node implements OperatorNode {
     }
 
     override validate(): YaksokError[] {
-        return []
+        return this.ambiguousTokens?.length
+            ? [
+                  new AmbiguousFormulaBoundary({
+                      scope: this.scope,
+                      tokens: this.ambiguousTokens,
+                  }),
+              ]
+            : []
     }
+
+    public ambiguousTokens: Token[]
 }
 
 export interface OperatorNode {
@@ -193,7 +206,11 @@ export class Expression<
 }
 
 export class StatementCaller extends Evaluable {
-    constructor(public toStatement: RDRule['factory']) {
+    constructor(
+        public scope: Scope,
+        public toStatement: RDRule['factory'],
+        public tokens: Token[],
+    ) {
         super()
     }
 }

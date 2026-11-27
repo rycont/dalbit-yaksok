@@ -145,7 +145,16 @@ const functionGrammer: RDRule = {
 
         if (testResult.type === '약속') {
             if (!headerConsumed.block) {
-                return null
+                header.parsingErrors = header.parsingErrors.concat(
+                    new MissingFunctionBody({
+                        statement: header,
+                    }),
+                )
+
+                return {
+                    instance: header,
+                    consumed: headerConsumed,
+                }
             }
 
             const [bodyTokens, bodyConsumed] = headerConsumed.block.consume()

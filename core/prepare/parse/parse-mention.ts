@@ -1,5 +1,6 @@
 import {
     AmbiguousFormulaBoundary,
+    createLineFetcher,
     DirectReplacer,
     Evaluable,
     FileForRunNotExistError,
@@ -9,13 +10,12 @@ import {
     Mention,
     MentionRequiresRunFrame,
     parseValue,
-    RDRule,
     ReferenceSlot,
     Scope,
-    SRRule,
     StatementCaller,
     Token,
     TOKEN_TYPE,
+    TokenLine,
 } from '@dalbit-yaksok/core'
 import { HookAction } from './srParse'
 
@@ -28,6 +28,7 @@ export function getMentionReplacers(
     )
 
     const replacers = mentionIndexes.map(createReplacer(scope, tokens))
+
     return replacers
 }
 
@@ -94,24 +95,23 @@ const createReplacer =
 
         const fileScope = file.ast.scope
 
-        const rulesPool = new Set(
-            (fileScope.ruleList.rd as (RDRule | SRRule)[]).concat(
-                fileScope.ruleList.sr,
-            ),
-        )
-
         const fakeScopeForParsing = new Scope({
             parent: scope,
         })
 
         fakeScopeForParsing.ruleList = {
-            sr: scope.session.files[fileName].ast.scope.ruleList.sr,
+            sr: fileScope.ruleList.sr,
             rd: [],
         }
 
+        fakeScopeForParsing.slots = new Map(fileScope.slots)
+
         const parsed = parseValue(rangeTokens, fakeScopeForParsing, {
-            onReduce(r, s) {
-                if (rulesPool.has(r)) {
+            onReduce(_, s) {
+                if (
+                    hasReferenceSlot(s) &&
+                    fileScope.slots.has(s[ReferenceSlot])
+                ) {
                     return HookAction.EARLY_STOP
                 }
 
@@ -149,48 +149,67 @@ const createReplacer =
         if (internalInstance instanceof StatementCaller) {
             return {
                 tokenRange: [startIndex, lastTokenIndex],
-                instance: new StatementCaller((code, parse, scope) => {
-                    const statementParseResult = internalInstance.toStatement(
-                        code,
-                        parse,
-                        scope,
-                    )
+                instance: new StatementCaller(
+                    scope,
+                    (rawCode, parse, scope) => {
+                        const firstLine = rawCode.look
+                        const mentionSlicedLine: TokenLine = {
+                            level: firstLine.level,
+                            rawRange: firstLine.rawRange,
+                            validTokens: firstLine.validTokens.slice(1),
+                        }
 
-                    if (!statementParseResult) {
-                        return null
-                    }
+                        const lineFetcher = createLineFetcher<true>(
+                            [mentionSlicedLine].concat(rawCode.lines.slice(1)),
+                        )
 
-                    const parsedStatement = statementParseResult.instance
+                        const statementParseResult =
+                            internalInstance.toStatement(
+                                lineFetcher,
+                                parse,
+                                scope,
+                            )
 
-                    if (!hasReferenceSlot(parsedStatement)) {
-                        return statementParseResult
-                    }
+                        if (!statementParseResult) {
+                            throw '말이안됨'
+                        }
 
-                    return {
-                        consumed: statementParseResult.consumed,
-                        instance: {
-                            execute(runFrame) {
-                                const childFrame = runFrame.createChild(
-                                    parsedStatement.scope,
-                                )
-                                const reference = this.declaredFrame.get(
-                                    parsedStatement[ReferenceSlot],
-                                )
+                        const parsedStatement = statementParseResult.instance
 
-                                childFrame.set(
-                                    parsedStatement[ReferenceSlot],
-                                    reference,
-                                )
-                                return parsedStatement.execute(childFrame)
+                        if (!hasReferenceSlot(parsedStatement)) {
+                            return statementParseResult
+                        }
+
+                        return {
+                            consumed: statementParseResult.consumed,
+                            instance: {
+                                execute(runFrame) {
+                                    const childFrame = runFrame.createChild(
+                                        parsedStatement.scope,
+                                    )
+                                    const reference = file.ranFrame!.get(
+                                        parsedStatement[ReferenceSlot],
+                                    )
+
+                                    childFrame.set(
+                                        parsedStatement[ReferenceSlot],
+                                        reference,
+                                    )
+
+                                    return parsedStatement.execute(childFrame)
+                                },
+                                parsingErrors: parsedStatement.parsingErrors,
+                                scope: parsedStatement.scope,
+                                tokens: parsedStatement.tokens,
+                                validate:
+                                    parsedStatement.validate.bind(
+                                        parsedStatement,
+                                    ),
                             },
-                            parsingErrors: parsedStatement.parsingErrors,
-                            scope: parsedStatement.scope,
-                            tokens: parsedStatement.tokens,
-                            validate:
-                                parsedStatement.validate.bind(parsedStatement),
-                        },
-                    }
-                }),
+                        }
+                    },
+                    allTokens.slice(startIndex, lastTokenIndex),
+                ),
             }
         }
 

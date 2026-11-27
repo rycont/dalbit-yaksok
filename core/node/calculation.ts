@@ -1,4 +1,5 @@
 import {
+    AmbiguousFormulaBoundary,
     AndOperator,
     BooleanValue,
     DivideOperator,
@@ -22,10 +23,12 @@ import {
     PowerOperator,
     RangeOperator,
     RunFrame,
+    Scope,
     Token,
     ValueType,
     YaksokError,
 } from '@dalbit-yaksok/core'
+import { FunctionInvoke } from '@dalbit-yaksok/statement-function'
 
 export class ValueWithParenthesis extends Evaluable<Evaluable> {
     static override friendlyName = '괄호로 묶인 값'
@@ -86,10 +89,24 @@ export class Formula extends Evaluable<(Evaluable | Operator)[]> {
     public parsingErrors: YaksokError[] = []
 
     constructor(
+        scope: Scope,
         terms: (Evaluable | Operator)[],
         public override tokens: Token[],
     ) {
         super()
+
+        if (terms[terms.length - 1] instanceof FunctionInvoke) {
+            this.parsingErrors = this.parsingErrors.concat([
+                new AmbiguousFormulaBoundary({
+                    tokens: terms[terms.length - 2].tokens.concat(
+                        terms[terms.length - 1].tokens,
+                    ),
+                    node: this,
+                    scope: scope,
+                }),
+            ])
+        }
+
         this.subnode = terms
     }
 
@@ -164,8 +181,7 @@ export class Formula extends Evaluable<(Evaluable | Operator)[]> {
         }
 
         return this.subnode
-            .filter((term) => term instanceof Evaluable)
-            .flatMap((term) => (term as Evaluable).validate())
+            .flatMap((term) => term.validate())
             .concat(this.parsingErrors)
     }
 

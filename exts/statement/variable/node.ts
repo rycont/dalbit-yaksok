@@ -2,6 +2,7 @@ import {
     assignerToOperatorMap,
     Evaluable,
     Identifier,
+    ReferenceSlot,
     RunFrame,
     Scope,
     Statement,
@@ -52,7 +53,7 @@ export class SetVariable implements Statement {
             }
         }
 
-        runFrame.set(this.target.slotKey, newValue)
+        runFrame.set(this.target[ReferenceSlot], newValue)
     }
 
     validate(): YaksokError[] {

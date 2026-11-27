@@ -7,7 +7,7 @@ test('MentionScope validate with invalid module', async () => {
 
     // Should have error about module not found
     const codeFile = session.addModule('main', `@없는모듈 변수`)
-    expect(codeFile.prepareErrors[1]).toBeInstanceOf(FileForRunNotExistError)
+    expect(codeFile.prepareErrors[0]).toBeInstanceOf(FileForRunNotExistError)
 })
 
 test('MentionScope validate with module that has validation errors', async () => {
