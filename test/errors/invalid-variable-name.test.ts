@@ -1,5 +1,5 @@
 import {
-    NotDefinedIdentifierError,
+    CannotParseError,
     NotProperIdentifierNameToDefineError,
     YaksokSession,
 } from '@dalbit-yaksok/core'
@@ -17,6 +17,6 @@ test('Variable name is not a valid identifier', async () => {
 
     expect(errorTypes).toStrictEqual([
         NotProperIdentifierNameToDefineError,
-        NotDefinedIdentifierError,
+        CannotParseError,
     ])
 })

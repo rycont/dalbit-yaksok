@@ -159,7 +159,11 @@ export const BASIC_RULES: SRRule[][] = [
             ],
             factory: (nodes, tokens) => {
                 const sequence = nodes[1]
-                return new TupleLiteral(sequence.items, tokens)
+
+                const instance = new TupleLiteral(sequence.items, tokens)
+                instance.parsingErrors = sequence.parsingErrors
+
+                return instance
             },
         }),
         r({

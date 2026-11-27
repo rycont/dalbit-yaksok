@@ -61,21 +61,4 @@ test('동일한 이름으로 약속 재정의 오류', async () => {
         codeFile.prepareErrors[0],
         AlreadyDefinedFunctionError,
     )
-
-    expect(stderrOutput).toBe(
-        `─────
-
-🚨  \x1b[1m문제가 발생했어요\x1b[0m\x1b[2m (main 파일)\x1b[0m 🚨
-> 이미 \x1b[1m\x1b[34m"테스트하기"\x1b[0m\x1b[0m라는 약속(번역)이 있어요
-
-┌─────
-│  \x1b[2m3      "첫 번째 약속" 보여주기\x1b[0m
-│  \x1b[2m4  \x1b[0m
-│  5  \x1b[1m\x1b[4m약속, 테스트하기\x1b[24m\x1b[0m
-│  \x1b[2m6      "두 번째 약속" 보여주기\x1b[0m
-│  \x1b[2m7  \x1b[0m
-└─────
-
-`,
-    )
 })

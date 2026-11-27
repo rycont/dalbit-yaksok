@@ -30,6 +30,10 @@ export class Sequence extends Node {
     ) {
         super()
     }
+
+    validate(): YaksokError[] {
+        return this.parsingErrors
+    }
 }
 
 export class ListLiteral extends Evaluable<Evaluable[]> {
@@ -97,7 +101,7 @@ export class TupleLiteral extends Evaluable<Evaluable[]> {
     override validate(): YaksokError[] {
         const errors = this.subnode
             .flatMap((item) => item.validate())
-            .filter((error): error is YaksokError => !!error)
+            .concat(this.parsingErrors)
 
         return errors
     }

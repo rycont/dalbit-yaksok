@@ -126,6 +126,7 @@ export class UnexpectedTokenError extends YaksokError {
     constructor(props: {
         resource: {
             parts: string
+            message?: string
         }
         tokens: Token[]
         position?: Position
@@ -135,7 +136,7 @@ export class UnexpectedTokenError extends YaksokError {
 
         this.message = `${blue(bold(props.tokens.map((t) => t.value).join('')))}은 ${bold(
             props.resource.parts,
-        )}에 사용할 수 없어요.`
+        )}에 사용할 수 없어요.${props.resource.message ? ' ' + props.resource.message : ''}`
     }
 }
 

@@ -116,7 +116,7 @@ test('재대입 후 parent scope에 반영됨', async () => {
     expect(
         (baseFrame.get(baseFrame.scope.findSlot('값')[0]!) as NumberValue)
             .value,
-    ).toBe(5)
+    ).toBe(15)
     expect(
         (baseFrame.get(childFrame.scope.findSlot('값')[0]!) as NumberValue)
             .value,

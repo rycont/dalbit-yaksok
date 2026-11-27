@@ -1,4 +1,9 @@
-import { Scope, TOKEN_TYPE, UnexpectedTokenError } from '@dalbit-yaksok/core'
+import {
+    AlreadyDefinedFunctionError,
+    Scope,
+    TOKEN_TYPE,
+    UnexpectedTokenError,
+} from '@dalbit-yaksok/core'
 import type { Extension, Token, RDRule } from '@dalbit-yaksok/core'
 
 import { j } from '@dalbit-yaksok/pattern'
@@ -133,6 +138,21 @@ const functionGrammer: RDRule = {
         )
 
         const runnableSlot = createFunctionSlot(header.signature.functionName)
+        const hasDuplicatedHeader = scope.slots
+            .values()
+            .some((s) => s.name === header.signature.functionName)
+
+        if (hasDuplicatedHeader) {
+            header.parsingErrors = header.parsingErrors.concat(
+                new AlreadyDefinedFunctionError({
+                    resource: {
+                        name: header.signature.functionName,
+                    },
+                    scope,
+                    tokens: header.tokens,
+                }),
+            )
+        }
 
         const slotKey = scope.addSlot(runnableSlot)
 

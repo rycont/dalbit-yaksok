@@ -4,7 +4,11 @@ import { bold, blue, dim } from '../util/terminal.ts'
 import { YaksokError } from './common.ts'
 
 export class AlreadyDefinedFunctionError extends YaksokError {
-    constructor(props: { resource: { name: string }; scope: Scope }) {
+    constructor(props: {
+        resource: { name: string }
+        scope: Scope
+        tokens: Token[]
+    }) {
         super(props)
         this.message = `이미 ${bold(
             blue(`"${props.resource.name}"`),

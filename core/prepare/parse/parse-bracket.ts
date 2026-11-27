@@ -195,20 +195,41 @@ function nodesToSequence(nodes: Node[]): Node[] {
         ),
     )
 
-    const evaluables = elements.map((e) => {
+    const evaluables = elements.flatMap((e) => {
         if (e.length === 1 && e[0] instanceof Evaluable) {
-            return e[0]
+            return [e[0]]
         }
 
-        return new IncompleteEvaluable(e)
+        if (e.length === 0) {
+            return []
+        }
+
+        return [new IncompleteEvaluable(e)]
     })
 
-    return [
-        new Sequence(
-            evaluables,
-            nodes.flatMap((n) => n.tokens),
+    const instance = new Sequence(
+        evaluables,
+        nodes.flatMap((n) => n.tokens),
+    )
+
+    instance.parsingErrors = instance.parsingErrors.concat(
+        elements.flatMap((e, i) =>
+            e.length === 0 && i + 1 !== elements.length
+                ? [
+                      new UnexpectedTokenError({
+                          resource: {
+                              parts: '목록의 값',
+                              message:
+                                  '목록에는 쉼표와 값이 번갈아서 나와야 해요.',
+                          },
+                          tokens: nodes[commaIndexes[i]].tokens,
+                      }),
+                  ]
+                : [],
         ),
-    ]
+    )
+
+    return [instance]
 }
 
 function createBracketMap(scope: Scope, nodes: Node[]) {
