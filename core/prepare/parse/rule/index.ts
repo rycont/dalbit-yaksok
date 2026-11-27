@@ -337,26 +337,6 @@ export const BASIC_RULES: SRRule[][] = [
                 return instance
             },
         }),
-        r({
-            pattern: [
-                j.instance(Expression).field({ value: j.literal('!') }),
-                j.instance(Evaluable),
-            ],
-            factory: (nodes, tokens) => {
-                const evaluable = nodes[1]
-                return new NotExpression(evaluable, tokens)
-            },
-        }),
-        r({
-            pattern: [
-                j.instance(Evaluable),
-                j.instance(Identifier).field({ value: j.literal('아니다') }),
-            ],
-            factory: (nodes, tokens) => {
-                const evaluable = nodes[0]
-                return new NotExpression(evaluable, tokens)
-            },
-        }),
     ],
 ]
 
@@ -413,6 +393,26 @@ export const ADVANCED_RULES: SRRule[] = [
             }
 
             return new Formula(scope, [left, operator, right], tokens)
+        },
+    }),
+    r({
+        pattern: [
+            j.instance(Expression).field({ value: j.literal('!') }),
+            j.instance(Evaluable),
+        ],
+        factory: (nodes, tokens) => {
+            const evaluable = nodes[1]
+            return new NotExpression(evaluable, tokens)
+        },
+    }),
+    r({
+        pattern: [
+            j.instance(Evaluable),
+            j.instance(Identifier).field({ value: j.literal('아니다') }),
+        ],
+        factory: (nodes, tokens) => {
+            const evaluable = nodes[0]
+            return new NotExpression(evaluable, tokens)
         },
     }),
 ]
