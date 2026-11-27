@@ -33,7 +33,8 @@ export class Block implements Statement {
         const childErrors = this.statements.flatMap((child) => child.validate())
 
         for (const error of this.parsingErrors) {
-            error.scope = this.scope
+            error.scope ??= this.scope
+            error.tokens ??= this.tokens
         }
 
         return childErrors.concat(this.parsingErrors)

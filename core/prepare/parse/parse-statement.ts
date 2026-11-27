@@ -12,6 +12,8 @@ import {
     FactoryParsers,
     Evaluator,
     IndentLevelMismatchError,
+    MissingStatementBody,
+    EmptyEvaluable,
 } from '@dalbit-yaksok/core'
 
 export function parseStatement(lines: TokenLine[], scope: Scope): Statement[] {
@@ -72,6 +74,14 @@ function createStatement(
 ): FactoryResult | null {
     const parser: FactoryParsers = {
         statement(blockTokenLines, subScope = scope) {
+            if (blockTokenLines.length === 0) {
+                const node = new Block(subScope, [], [])
+
+                node.parsingErrors = [new MissingStatementBody(rdrule.name)]
+
+                return node
+            }
+
             const statements = parseStatement(blockTokenLines, subScope)
             const blockTokens = blockTokenLines.flatMap((l) => l.validTokens)
             const node = new Block(subScope, statements, blockTokens)
@@ -79,13 +89,15 @@ function createStatement(
             return node
         },
         value(valueTokens) {
+            if (valueTokens.length === 0) {
+                return new EmptyEvaluable(scope)
+            }
+
             const parsed = parseValue(valueTokens, scope)
 
             if (parsed.length === 1 && parsed[0] instanceof Evaluable) {
                 return parsed[0]
             }
-
-            // console.log(parsed)
 
             return new IncompleteEvaluable(parsed, valueTokens)
         },

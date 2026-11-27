@@ -13,6 +13,7 @@ import {
     RDRule,
     AmbiguousFormulaBoundary,
     ReferenceSlot,
+    MissingEvaluable,
 } from '@dalbit-yaksok/core'
 
 export enum NodeCapability {
@@ -83,6 +84,19 @@ export class IncompleteEvaluable extends Evaluable<Node[]> {
                     tokens: this.tokens,
                 }),
             ])
+    }
+}
+
+export class EmptyEvaluable extends Evaluable {
+    public part!: string
+    public assist!: string
+
+    constructor(public scope: Scope) {
+        super()
+    }
+
+    override validate(): YaksokError[] {
+        return [new MissingEvaluable(this.part, this.assist, this.tokens)]
     }
 }
 

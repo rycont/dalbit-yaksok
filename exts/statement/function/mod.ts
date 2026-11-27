@@ -1,5 +1,6 @@
 import {
     AlreadyDefinedFunctionError,
+    MissingStatementBody,
     Scope,
     TOKEN_TYPE,
     UnexpectedTokenError,
@@ -13,7 +14,6 @@ import { createCallingRules } from './calling-rule/create.ts'
 import { DeclareEvent, DeclareFFI, DeclareFunction } from './node/declare.ts'
 import { createEventSubscriptionRules } from './calling-rule/event.ts'
 import { ReturnStatement } from './node/return.ts'
-import { MissingFunctionBody } from './error/no-body.ts'
 import {
     createCallbackFunctionSlot,
     createFunctionSlot,
@@ -21,7 +21,6 @@ import {
 } from './slot.ts'
 
 export * from './error/no-static.ts'
-export * from './error/no-body.ts'
 export * from './error/missing-required.ts'
 export * from './error/return-out-of-function.ts'
 export * from './error/no-signature.ts'
@@ -164,23 +163,14 @@ const functionGrammer: RDRule = {
         )
 
         if (testResult.type === '약속') {
-            if (!headerConsumed.block) {
-                header.parsingErrors = header.parsingErrors.concat(
-                    new MissingFunctionBody({
-                        statement: header,
-                    }),
-                )
-
-                return {
-                    instance: header,
-                    consumed: headerConsumed,
-                }
-            }
-
             const [bodyTokens, bodyConsumed] = headerConsumed.block.consume()
             scope.addRuleList(callingRules)
 
             const body = parse.statement(bodyTokens, subscope)
+
+            if (body.statements.length === 0) {
+                body.tokens = line.validTokens
+            }
 
             const instance =
                 body.statements.length === 0
@@ -225,11 +215,9 @@ const functionGrammer: RDRule = {
             instance.parsingErrors = header.validate()
 
             if (bodyToken?.type !== TOKEN_TYPE.FFI_BODY) {
-                instance.parsingErrors = instance.parsingErrors.concat(
-                    new MissingFunctionBody({
-                        statement: instance,
-                    }),
-                )
+                const error = new MissingStatementBody('번역')
+                error.tokens = line.validTokens
+                instance.parsingErrors = instance.parsingErrors.concat(error)
             }
 
             scope.addRuleList(callingRules)

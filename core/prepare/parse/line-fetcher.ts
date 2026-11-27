@@ -3,12 +3,10 @@ import { TokenLine, TOKEN_TYPE, Token } from '@dalbit-yaksok/core'
 export type LineFetcher<EnsuredFirstLine extends boolean = false> = {
     lines: TokenLine[]
     currentIndex: number
-    block:
-        | {
-              look: TokenLine[]
-              consume: () => [TokenLine[], LineFetcher]
-          }
-        | (EnsuredFirstLine extends true ? never : null)
+    block: {
+        look: TokenLine[]
+        consume: () => [TokenLine[], LineFetcher]
+    }
 } & {
     look: TokenLine | (EnsuredFirstLine extends true ? never : null)
     consume:
@@ -30,10 +28,6 @@ export function createLineFetcher(
 ): LineFetcher<boolean> {
     const lookingLine = lines[currentIndex]
     const baseLevel = lines[currentIndex - 1]?.level ?? 0
-
-    const hasFollowingBlock = lookingLine
-        ? baseLevel + 1 === lookingLine.level
-        : false
 
     function getBlockEndIndex() {
         const firstLineAfterBlockIndex = lines
@@ -61,10 +55,6 @@ export function createLineFetcher(
               }
             : null,
         get block() {
-            if (!hasFollowingBlock) {
-                return null
-            }
-
             const blockEndIndex = getBlockEndIndex()
             const blockLines = lines.slice(currentIndex, blockEndIndex + 1)
 

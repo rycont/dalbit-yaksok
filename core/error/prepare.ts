@@ -122,7 +122,9 @@ export class UnparsableStatementError extends YaksokError {
     }
 }
 
-export class UnexpectedTokenError extends YaksokError {
+export class UnexpectedTokenError extends YaksokError<{
+    parts: string
+}> {
     constructor(props: {
         resource: {
             parts: string
@@ -204,5 +206,27 @@ export class AlreadyRegisteredModuleError extends YaksokError<{
         this.message = `모듈 ${blue(
             `"${props.resource.moduleName}"`,
         )}은(는) 이미 등록되어 있어요.`
+    }
+}
+
+export class MissingStatementBody extends YaksokError {
+    constructor(part: string) {
+        super({})
+
+        this.message = `${part}에는 내용이 필요해요. 다음 줄에 띄어쓰기 네개로 들여쓰고 내용을 작성해주세요.`
+    }
+}
+
+export class MissingEvaluable extends YaksokError {
+    constructor(
+        public part: string,
+        public assist: string,
+        public override tokens: Token[],
+    ) {
+        super({})
+    }
+
+    override get message() {
+        return `${this.part} 비어있어요.${this.assist}`
     }
 }

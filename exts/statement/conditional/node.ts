@@ -56,6 +56,6 @@ export class IfStatement implements Statement {
             return conditionErrors.concat(bodyErrors)
         })
 
-        return errors
+        return errors.concat(this.parsingErrors)
     }
 }
