@@ -107,7 +107,6 @@ export function createBlockRule(
         pattern: srPattern,
         isStatement: true,
         factory(_, tokens, scope) {
-            console.log(_)
             return new StatementCaller(scope, factory, tokens)
         },
     })

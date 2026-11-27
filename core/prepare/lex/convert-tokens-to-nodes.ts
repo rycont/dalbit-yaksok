@@ -66,6 +66,7 @@ function mapTokenToNode(scope: Scope, token: Token | null) {
             const [slotKey, definedScope] = scope.findSlot(token.value)
             return new Identifier(definedScope, slotKey, token.value, [token])
         case TOKEN_TYPE.NEW_LINE:
+        case TOKEN_TYPE.NEW_LINE_IN_SEQUENCE:
             return new EOL([token])
         default:
             return new Expression(token.value, [token])

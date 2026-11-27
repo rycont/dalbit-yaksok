@@ -103,7 +103,15 @@ const createReplacer = (
     fakeScopeForParsing.slots = new Map(fileScope.slots)
 
     const parsed = parseValue(rangeTokens, fakeScopeForParsing, {
-        onReduce(_, s) {
+        onShifted(node) {
+            if (
+                hasReferenceSlot(node) &&
+                fileScope.slots.has(node[ReferenceSlot])
+            ) {
+                return HookAction.EARLY_STOP
+            }
+        },
+        onReduced(_, s) {
             if (hasReferenceSlot(s) && fileScope.slots.has(s[ReferenceSlot])) {
                 return HookAction.EARLY_STOP
             }
@@ -124,6 +132,7 @@ const createReplacer = (
     const lastTokenIndex = allTokens.indexOf(lastToken)
 
     const internalInstance = parsed[0]
+    // console.log(internalInstance)
     const isInvalid =
         parsed.length !== 1 || !(internalInstance instanceof Evaluable)
 
@@ -167,10 +176,6 @@ const createReplacer = (
                     }
 
                     const parsedStatement = statementParseResult.instance
-
-                    if (!hasReferenceSlot(parsedStatement)) {
-                        return statementParseResult
-                    }
 
                     return {
                         consumed: statementParseResult.consumed,

@@ -13,10 +13,12 @@ import { FunctionInvoke } from '@dalbit-yaksok/statement-function'
 
 export enum HookAction {
     EARLY_STOP,
+    DO_NOT_APPLY,
 }
 
 export interface ParsingHooks {
-    onReduce?: (rule: SRRule, reduced: Node) => HookAction | void
+    onReduced?: (rule: SRRule, reduced: Node) => HookAction | void
+    onShifted?: (shifted: Node) => HookAction | void
 }
 
 export function SRParse(
@@ -51,11 +53,16 @@ export function SRParse(
                 continue
             }
 
+            const hookResult = hooks.onReduced?.(rule, reduced)
+            if (hookResult === HookAction.DO_NOT_APPLY) {
+                continue
+            }
+
             buffer.splice(-rule.pattern.length, rule.pattern.length, reduced)
 
             changed = true
 
-            if (hooks.onReduce?.(rule, reduced) === HookAction.EARLY_STOP) {
+            if (hookResult === HookAction.EARLY_STOP) {
                 break nodeloop
             }
 
@@ -69,9 +76,14 @@ export function SRParse(
 
         buffer.push(pushingNode)
 
+        if (hooks.onShifted?.(pushingNode) === HookAction.EARLY_STOP) {
+            break
+        }
+
+        // [ FunctionInvoke Operator ] 패턴
         if (
-            pushingNode instanceof Operator &&
             lastNode instanceof FunctionInvoke &&
+            pushingNode instanceof Operator &&
             lastNode.tokens.length !== 1
         ) {
             pushingNode.ambiguousTokens = lastNode.tokens.concat(

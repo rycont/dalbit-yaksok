@@ -69,7 +69,7 @@ export class IncompleteEvaluable extends Evaluable<Node[]> {
 
     constructor(
         public subnode: Node[],
-        public tokens: Token[],
+        public tokens: Token[] = subnode.flatMap((n) => n.tokens),
     ) {
         super()
     }

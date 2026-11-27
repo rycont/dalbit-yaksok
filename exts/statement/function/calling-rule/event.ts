@@ -12,30 +12,28 @@ import { SubscribeEvent } from '../node/event'
 export function createEventSubscriptionRules(
     signature: FunctionSignature,
     eventSlotKey: SlotKey,
-    scope: Scope,
+    declaredScope: Scope,
     parameterSlots: Map<ParameterElement, SlotKey>,
     callbackSlotKey: SlotKey,
 ): RuleList {
     const { pattern, invokingArgumentsFactory } = createCallingPattern(
-        scope,
+        declaredScope,
         signature,
         parameterSlots,
     )
 
     const srRule = r({
         pattern: pattern,
-        factory(nodes, tokens, scope) {
-            const invokingArguments = invokingArgumentsFactory(
-                nodes.slice(0, -2),
-            )
+        factory(nodes, tokens) {
+            const invokingArguments = invokingArgumentsFactory(nodes)
 
             if (invokingArguments === null) {
                 return null
             }
 
             return new StatementCaller(
-                scope,
-                (next, parse, scope) => {
+                declaredScope,
+                (next, parse, bodyParsingScope) => {
                     const [_, lineConsumed] = next.consume()
 
                     if (!lineConsumed.block) {
@@ -45,11 +43,15 @@ export function createEventSubscriptionRules(
                     const [bodyTokens, bodyConsumed] =
                         lineConsumed.block.consume()
 
+                    const childScope = new Scope({
+                        parent: bodyParsingScope,
+                    })
+
                     const instance = new SubscribeEvent(
-                        scope,
+                        declaredScope,
                         eventSlotKey,
                         callbackSlotKey,
-                        parse.statement(bodyTokens),
+                        parse.statement(bodyTokens, childScope),
                         invokingArguments,
                         tokens,
                     )

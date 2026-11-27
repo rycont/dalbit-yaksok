@@ -42,64 +42,56 @@ class Tokenizer {
                     const { value, newIndex } = result
                     const consumed = this.code.substring(this.index, newIndex)
 
-                    if (
-                        (rule.type === TOKEN_TYPE.NEW_LINE ||
-                            rule.type === TOKEN_TYPE.INDENT) &&
-                        this.bracketDepth > 0
-                    ) {
-                        // Matched a NEW_LINE rule, and we are inside brackets.
-                        // Consume the newline from the main input stream but do not add it to tokens.
-                        this.updatePosition(consumed)
-                        this.index = newIndex
-                        accepted = true
-                        break
+                    if (rule.type === TOKEN_TYPE.RAW_STRING) {
+                        const stringToken: Token = {
+                            type: rule.type,
+                            value: value,
+                            position: {
+                                line: initialLineForToken,
+                                column: initialColumnForToken,
+                            },
+                        }
+
+                        this.tokens.push(...tokenizeTemplateString(stringToken))
                     } else {
-                        if (rule.type === TOKEN_TYPE.RAW_STRING) {
-                            const stringToken: Token = {
-                                type: rule.type,
-                                value: value,
-                                position: {
-                                    line: initialLineForToken,
-                                    column: initialColumnForToken,
-                                },
-                            }
+                        const type =
+                            0 < this.bracketDepth &&
+                            rule.type === TOKEN_TYPE.NEW_LINE
+                                ? TOKEN_TYPE.NEW_LINE_IN_SEQUENCE
+                                : rule.type
 
-                            this.tokens.push(
-                                ...tokenizeTemplateString(stringToken),
-                            )
-                        } else {
-                            this.tokens.push({
-                                type: rule.type,
-                                value: value,
-                                position: {
-                                    line: initialLineForToken,
-                                    column: initialColumnForToken,
-                                },
-                            })
-                        }
-
-                        // Update bracketDepth AFTER adding the token, so it reflects state *after* this token.
-                        if (
-                            rule.type === TOKEN_TYPE.OPENING_BRACKET ||
-                            rule.type === TOKEN_TYPE.OPENING_BRACE
-                        ) {
-                            this.bracketDepth++
-                        } else if (
-                            rule.type === TOKEN_TYPE.CLOSING_BRACKET ||
-                            rule.type === TOKEN_TYPE.CLOSING_BRACE
-                        ) {
-                            this.bracketDepth--
-                            if (this.bracketDepth < 0) {
-                                this.bracketDepth = 0
-                            }
-                        }
-
-                        // Commit consumption of characters by the successful rule to the main state.
-                        this.updatePosition(consumed)
-                        this.index = newIndex
-                        accepted = true
-                        break // Exit RULES loop
+                        this.tokens.push({
+                            type,
+                            value: value,
+                            position: {
+                                line: initialLineForToken,
+                                column: initialColumnForToken,
+                            },
+                        })
                     }
+
+                    // Update bracketDepth AFTER adding the token, so it reflects state *after* this token.
+                    if (
+                        rule.type === TOKEN_TYPE.OPENING_BRACKET ||
+                        rule.type === TOKEN_TYPE.OPENING_BRACE
+                    ) {
+                        this.bracketDepth++
+                    } else if (
+                        rule.type === TOKEN_TYPE.CLOSING_BRACKET ||
+                        rule.type === TOKEN_TYPE.CLOSING_BRACE
+                    ) {
+                        this.bracketDepth--
+                        if (this.bracketDepth < 0) {
+                            this.bracketDepth = 0
+                        }
+                    }
+
+                    // Commit consumption of characters by the successful rule to the main state.
+
+                    this.updatePosition(consumed)
+                    this.index = newIndex
+                    accepted = true
+                    break // Exit RULES loop
                 } catch (e) {
                     // For other errors, if they don't have token info, add current position.
                     if (e instanceof YaksokError && !e.tokens && !e.position) {

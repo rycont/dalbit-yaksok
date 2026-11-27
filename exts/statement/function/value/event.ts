@@ -33,10 +33,9 @@ export class EventSubscriptionObject extends ObjectValue {
                 const argsWithReadableName = new Map(
                     args
                         .entries()
-                        .map(([k, v]) => [
-                            declaredFrame.scope.slots.get(k)?.name || k,
-                            v,
-                        ]),
+                        .flatMap(([k, v]) =>
+                            k.description ? [[k.description, v]] : [],
+                        ),
                 )
 
                 session.aliveListeners.push(

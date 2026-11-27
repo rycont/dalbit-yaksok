@@ -85,6 +85,8 @@ function createStatement(
                 return parsed[0]
             }
 
+            // console.log(parsed)
+
             return new IncompleteEvaluable(parsed, valueTokens)
         },
     }

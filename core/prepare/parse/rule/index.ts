@@ -118,6 +118,30 @@ export const BASIC_RULES: SRRule[][] = [
                 return comma
             },
         }),
+        r({
+            pattern: [
+                j.instance(EOL),
+                j.instance(Expression).field({ value: j.literal(']') }),
+            ],
+            factory: (nodes, tokens) => {
+                const comma = nodes[1]
+
+                comma.tokens = tokens
+                return comma
+            },
+        }),
+        r({
+            pattern: [
+                j.instance(Expression).field({ value: j.literal('[') }),
+                j.instance(EOL),
+            ],
+            factory: (nodes, tokens) => {
+                const comma = nodes[0]
+
+                comma.tokens = tokens
+                return comma
+            },
+        }),
     ],
     [
         r({
@@ -159,28 +183,6 @@ export const BASIC_RULES: SRRule[][] = [
             factory: (nodes, tokens) => {
                 const item = nodes[1]
                 return new ValueWithParenthesis(item, tokens)
-            },
-        }),
-        r({
-            pattern: [
-                j.instance(Evaluable),
-                j.instance(Operator),
-                j.instance(Evaluable),
-            ],
-            factory: (nodes, tokens, scope) => {
-                const left = nodes[0]
-                const operator = nodes[1]
-                const right = nodes[2]
-
-                if (left instanceof Formula) {
-                    return new Formula(
-                        scope,
-                        [...left.subnode, operator, right],
-                        tokens,
-                    )
-                }
-
-                return new Formula(scope, [left, operator, right], tokens)
             },
         }),
         r({
@@ -357,32 +359,6 @@ export const BASIC_RULES: SRRule[][] = [
 export const ADVANCED_RULES: SRRule[] = [
     r({
         pattern: [
-            j.instance(Evaluable),
-            j.instance(Expression).field({ value: j.literal(',') }),
-            j.instance(Evaluable),
-        ],
-        factory: (nodes, tokens) => {
-            const a = nodes[0]
-            const b = nodes[2]
-
-            return new Sequence([a, b], tokens)
-        },
-    }),
-    r({
-        pattern: [
-            j.instance(Sequence),
-            j.instance(Expression).field({ value: j.literal(',') }),
-            j.instance(Evaluable),
-        ],
-        factory: (nodes, tokens) => {
-            const a = nodes[0]
-            const b = nodes[2]
-
-            return new Sequence([...a.items, b], tokens)
-        },
-    }),
-    r({
-        pattern: [
             j.instance(Expression).field({ value: j.literal('[') }),
             j.instance(Expression).field({ value: j.literal(']') }),
         ],
@@ -413,6 +389,28 @@ export const ADVANCED_RULES: SRRule[] = [
         },
     }),
     ...DICT_RULES,
+    r({
+        pattern: [
+            j.instance(Evaluable),
+            j.instance(Operator),
+            j.instance(Evaluable),
+        ],
+        factory: (nodes, tokens, scope) => {
+            const left = nodes[0]
+            const operator = nodes[1]
+            const right = nodes[2]
+
+            if (left instanceof Formula) {
+                return new Formula(
+                    scope,
+                    [...left.subnode, operator, right],
+                    tokens,
+                )
+            }
+
+            return new Formula(scope, [left, operator, right], tokens)
+        },
+    }),
 ]
 
 function createTypeCastRules(): SRRule[] {

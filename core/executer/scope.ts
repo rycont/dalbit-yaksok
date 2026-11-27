@@ -8,6 +8,7 @@ import {
     Brand,
     EmptyValue,
 } from '@dalbit-yaksok/core'
+import util from 'node:util'
 
 export type SlotKey = Brand<symbol, 'SlotKey'>
 
@@ -122,6 +123,17 @@ export function createRunFrame(
     )
 
     const instance: RunFrame = {
+        ...({
+            [util.inspect.custom]() {
+                console.log('\nRunFrame on Scope', scope.id)
+                console.table(
+                    Object.fromEntries(
+                        values.entries().map(([k, v]) => [k.description, v]),
+                    ),
+                )
+                return ''
+            },
+        } as {}),
         scope,
         get(key) {
             if (scope.slots.has(key)) {
@@ -145,7 +157,7 @@ export function createRunFrame(
                 return
             }
 
-            throw '얘도 말이 안됨'
+            throw new Error('얘도 말이 안됨')
         },
         createChild(childScope: Scope) {
             return createRunFrame(childScope, instance)

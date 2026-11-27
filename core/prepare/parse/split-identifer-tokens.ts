@@ -32,15 +32,23 @@ export function getIdentifierSplittedTokens(
     )
 
     const recoveries = unknownIdentifiers
-        .map((v) => {
-            return {
-                tokenIndex: tokens.indexOf(v),
-                suffixes: suffixable.filter(
-                    (s) =>
-                        v.value.endsWith(s) &&
-                        scope.findSlot(v.value.slice(0, -s.length))[0],
-                ),
+        .flatMap((v) => {
+            const appliableSuffixes = suffixable.filter(
+                (s) =>
+                    v.value.endsWith(s) &&
+                    scope.findSlot(v.value.slice(0, -s.length))[0],
+            )
+
+            if (appliableSuffixes.length) {
+                return [
+                    {
+                        tokenIndex: tokens.indexOf(v),
+                        suffixes: appliableSuffixes,
+                    },
+                ]
             }
+
+            return []
         })
         .toSorted((a, b) => a.tokenIndex - b.tokenIndex)
 

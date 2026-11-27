@@ -1,5 +1,5 @@
 import { dalbitToJS, RunFrame, Scope, YaksokSession } from '@dalbit-yaksok/core'
-import { test, expect } from 'vite-plus/test'
+import { test, expect, assert } from 'vite-plus/test'
 
 test('이벤트 구독 및 실행', async () => {
     let output = ''
@@ -92,12 +92,13 @@ test('이벤트 구독 시 subscriber target 정보 전달', async () => {
 `,
     )
 
-    let receivedScope: RunFrame | null = null
+    let receivedFrame: RunFrame | null = null as unknown as RunFrame | null
 
     session.eventCreation.sub(
         'TEST_EVENT',
-        (_args, callback, terminate, scope) => {
-            receivedScope = scope
+        (_args, callback, terminate, frame) => {
+            receivedFrame = frame
+
             void callback()
             terminate()
         },
@@ -105,10 +106,11 @@ test('이벤트 구독 시 subscriber target 정보 전달', async () => {
 
     await codeFile.run()
 
-    const scope = receivedScope!
-    expect.assert.instanceOf(scope, Scope)
-    // expect(scope.codeFile?.fileName).toBe( 'main')
-    // expect(scope.codeFile).toBe( session.getCodeFile('main'))
+    expect.assert.isNotNull(receivedFrame)
+    expect(receivedFrame.scope.slots.size).toBe(1)
+    expect(
+        receivedFrame.get(receivedFrame.scope.slots.keys().toArray()[0]),
+    ).toBeDefined()
 })
 
 test('이벤트 밖에서 선언된 변수를 이벤트 안에서 읽기', async () => {
