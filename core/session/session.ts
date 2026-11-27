@@ -11,6 +11,7 @@ import {
     type Extension,
     type RuntimeContext,
     RunFrame,
+    SlotKey,
 } from '@dalbit-yaksok/core'
 
 import functionStatement from '@dalbit-yaksok/statement-function'
@@ -143,7 +144,7 @@ export class YaksokSession {
     public async runFFI(
         runtime: string,
         code: string,
-        args: Map<string | symbol, ValueType>,
+        args: Map<SlotKey, ValueType>,
         callerFrame: RunFrame,
     ): Promise<ValueType> {
         const foundCapabilities = this.extensions.flatMap(
@@ -167,7 +168,14 @@ export class YaksokSession {
         const capability = foundCapabilities[0]
 
         try {
-            const result = await capability.run(code, args, callerFrame)
+            const readableArgs = new Map(
+                args
+                    .entries()
+                    .filter(([k]) => k.description)
+                    .map(([k, v]) => [k.description!, v]),
+            )
+
+            const result = await capability.run(code, readableArgs, callerFrame)
             return result
         } catch (error) {
             if (error instanceof ErrorInFFIExecution) {

@@ -12,12 +12,12 @@ import {
     Scope,
     Evaluable,
     RuleList,
-    Expression,
     SRRule,
     r,
     StatementCaller,
     RDFactory,
     UnexpectedArgumentError,
+    Identifier,
 } from '@dalbit-yaksok/core'
 import {
     FunctionSignature,
@@ -98,7 +98,7 @@ export function createBlockRule(
     }
 
     const srPattern = staticParts.map((p) =>
-        j.instance(Expression).field({
+        j.instance(Identifier).field({
             value: j.enum(p.names.map((n) => n.value)),
         }),
     )

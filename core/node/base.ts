@@ -88,11 +88,11 @@ export class IncompleteEvaluable extends Evaluable<Node[]> {
 
 export class Identifier extends Evaluable {
     static override friendlyName = '식별자'
-    public [ReferenceSlot]: SlotKey
+    public [ReferenceSlot]: SlotKey | null
 
     constructor(
         public scope: Scope,
-        slotKey: SlotKey,
+        slotKey: SlotKey | null,
         public override value: string,
         public override tokens: Token[],
     ) {
@@ -166,7 +166,7 @@ export class Operator extends Node implements OperatorNode {
             : []
     }
 
-    public ambiguousTokens: Token[]
+    public ambiguousTokens?: Token[] | undefined
 }
 
 export interface OperatorNode {

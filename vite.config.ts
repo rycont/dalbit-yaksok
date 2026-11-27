@@ -36,5 +36,10 @@ export default defineConfig({
         environment: 'node',
         execArgv: ['--localstorage-file=/tmp/.dbys-lstore.json'],
         bail: 1,
+        fileParallelism: false,
+        sequence: {
+            concurrent: false,
+            shuffle: false,
+        },
     },
 })

@@ -355,6 +355,9 @@ importers:
       '@dalbit-yaksok/core':
         specifier: workspace:*
         version: link:../core
+      '@dalbit-yaksok/math':
+        specifier: workspace:*
+        version: link:../exts/math
       '@dalbit-yaksok/pattern':
         specifier: workspace:*
         version: link:../sidekick/pattern

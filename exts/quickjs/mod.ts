@@ -112,7 +112,7 @@ function createContext(
 
 function createWrapperCodeFromFFICall(
     bodyCode: string,
-    args: Map<string | symbol, ValueType>,
+    args: Map<string, ValueType>,
 ) {
     const parameters = args.keys().toArray()
     const parameterValues = args

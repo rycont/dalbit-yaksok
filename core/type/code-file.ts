@@ -1,13 +1,10 @@
 import {
     Block,
     executer,
-    inferTokenSplitpointsFromErrors,
-    NotDefinedIdentifierError,
     parseStatement,
     renderErrorString,
     RuntimeContext,
     Scope,
-    Splitpoint,
     tokenize,
     YaksokError,
     YaksokSession,
@@ -104,58 +101,22 @@ export class CodeFile {
 }
 
 function parseWithSession(code: string, session: YaksokSession) {
-    const seenErrorFingerprint = new Set<string>()
-    const seenSplitpointFingerprint = new Set<string>()
-
     let validationErrors: YaksokError[]
     let ast: Block
-    let inferredSplitpoints: Splitpoint[] = []
     let tokens: Token[] | null = null
 
-    while (true) {
-        tokens = tokenize(code, inferredSplitpoints)
-        const tokenLines = getLineTokens(tokens)
+    tokens = tokenize(code)
+    const tokenLines = getLineTokens(tokens)
 
-        const scope = new Scope({
-            session,
-        })
+    const scope = new Scope({
+        session,
+    })
 
-        const parseResult = parseStatement(tokenLines, scope)
+    const parseResult = parseStatement(tokenLines, scope)
 
-        ast = new Block(scope, parseResult, tokens)
+    ast = new Block(scope, parseResult, tokens)
 
-        validationErrors = ast.validate()
-
-        const missingIdentifierErrors = validationErrors.filter(
-            (e) => e instanceof NotDefinedIdentifierError,
-        )
-
-        if (missingIdentifierErrors.length === 0) {
-            break
-        }
-
-        const missingIdentifierFingerprint = missingIdentifierErrors
-            .map((e) => e.resource.name)
-            .join('|')
-
-        if (seenErrorFingerprint.has(missingIdentifierFingerprint)) {
-            break
-        }
-
-        seenErrorFingerprint.add(missingIdentifierFingerprint)
-
-        inferredSplitpoints = inferredSplitpoints.concat(
-            inferTokenSplitpointsFromErrors(code, missingIdentifierErrors),
-        )
-
-        const splitpointFingerprint = inferredSplitpoints.join('|')
-
-        if (seenSplitpointFingerprint.has(splitpointFingerprint)) {
-            break
-        }
-
-        seenSplitpointFingerprint.add(splitpointFingerprint)
-    }
+    validationErrors = ast.validate()
 
     return {
         ast,

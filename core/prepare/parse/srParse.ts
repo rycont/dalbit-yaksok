@@ -71,13 +71,12 @@ export function SRParse(
 
         if (
             pushingNode instanceof Operator &&
-            lastNode instanceof FunctionInvoke
+            lastNode instanceof FunctionInvoke &&
+            lastNode.tokens.length !== 1
         ) {
-            console.log(pushingNode)
             pushingNode.ambiguousTokens = lastNode.tokens.concat(
                 pushingNode.tokens,
             )
-            // console.log(lastNode.tokens.concat(pushingNode.tokens))
         }
 
         cursor++
@@ -116,7 +115,7 @@ export function callSRParseRecursively(
 ): Node[] {
     let parsedNodes = [...nodes]
 
-    const rulesByLevel = [externalPatterns, ...BASIC_RULES, ADVANCED_RULES]
+    const rulesByLevel = [...BASIC_RULES, externalPatterns, ADVANCED_RULES]
     const rulesets = rulesByLevel.map((rules) => Ruleset.createFromRules(rules))
 
     loop1: while (true) {
@@ -132,55 +131,3 @@ export function callSRParseRecursively(
 
     return parsedNodes
 }
-
-// function hasFunctionInvokeCollision(
-//     formula: Formula,
-//     prev2Nodes: Node[],
-//     next2Nodes: Node[],
-// ) {
-//     if (isSequentialIdentifier(prev2Nodes)) {
-//         return prev2Nodes
-//     }
-//
-//     const lastPrev = prev2Nodes[prev2Nodes.length - 1]
-//
-//     if (isSequentialIdentifier(next2Nodes)) {
-//         // 반복 [목록] 의 [반복자] << 이 경우에서 `이 [반복자]` 패턴에서 (Identifier Identifier)로 인식되는 문제 방지
-//
-//         if (
-//             lastPrev &&
-//             lastPrev instanceof Identifier &&
-//             lastPrev.value === '반복'
-//         ) {
-//             return false
-//         }
-//
-//         return next2Nodes
-//     }
-//
-//     const leftAndPrev = [lastPrev, formula.subnode[0]]
-//
-//     if (isSequentialIdentifier(leftAndPrev)) {
-//         return leftAndPrev
-//     }
-//
-//     const rightAndNext = [
-//         formula.subnode[formula.subnode.length - 1],
-//         next2Nodes[0],
-//     ]
-//
-//     if (isSequentialIdentifier(rightAndNext)) {
-//         return rightAndNext
-//     }
-//
-//     return false
-// }
-//
-// function isSequentialIdentifier(nodes: Node[]) {
-//     return (
-//         1 < nodes.length &&
-//         nodes.every(
-//             (n) => n instanceof Identifier && !RESERVED_WORDS.has(n.value),
-//         )
-//     )
-// }

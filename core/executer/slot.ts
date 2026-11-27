@@ -12,5 +12,5 @@ export type ReferenceSlot = {
 }
 
 export function hasReferenceSlot<T>(thing: T): thing is T & ReferenceSlot {
-    return (thing as any)[ReferenceSlot] !== undefined
+    return !!(thing as any)[ReferenceSlot]
 }

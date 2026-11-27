@@ -2,15 +2,18 @@ import { convertTokensToNodes, type Token, Scope } from '@dalbit-yaksok/core'
 import { parseBracket } from './parse-bracket'
 import { callSRParseRecursively, ParsingHooks } from './srParse'
 import { getMentionReplacers } from './parse-mention'
+import { getIdentifierSplittedTokens } from './split-identifer-tokens'
 
 export function parseValue(
-    tokens: Token[],
+    rawTokens: readonly Token[],
     scope: Scope,
     hooks: ParsingHooks = {},
 ) {
     const srRules = getSRRules(scope)
 
+    const tokens = getIdentifierSplittedTokens(rawTokens, scope)
     const mentionReplacers = getMentionReplacers(tokens, scope)
+
     const nodes = convertTokensToNodes(scope, tokens, mentionReplacers)
 
     const bracketParsedNodes = parseBracket(scope, nodes, srRules)
@@ -21,6 +24,7 @@ export function parseValue(
         srRules,
         hooks,
     )
+
     return childNodes
 }
 

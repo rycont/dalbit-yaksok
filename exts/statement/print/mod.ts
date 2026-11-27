@@ -27,6 +27,7 @@ const extension: Extension = {
                     }
 
                     const content = parse.value(test.content)
+
                     return {
                         instance: new Print(scope, content, line.validTokens),
                         consumed,

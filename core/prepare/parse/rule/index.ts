@@ -72,7 +72,7 @@ export const BASIC_RULES: SRRule[][] = [
         }),
         r({
             pattern: [
-                j.instance(Expression).field({ value: j.literal('비어있음') }),
+                j.instance(Identifier).field({ value: j.literal('비어있음') }),
             ],
             factory: (_, tokens) => {
                 return new EmptyLiteral(tokens)
@@ -81,7 +81,7 @@ export const BASIC_RULES: SRRule[][] = [
         ...['참', '맞음'].map((keyword) =>
             r({
                 pattern: [
-                    j.instance(Expression).field({ value: j.literal(keyword) }),
+                    j.instance(Identifier).field({ value: j.literal(keyword) }),
                 ],
                 factory: (_nodes, tokens) => {
                     return new BooleanLiteral(true, tokens)
@@ -91,7 +91,7 @@ export const BASIC_RULES: SRRule[][] = [
         ...['거짓', '아님'].map((keyword) =>
             r({
                 pattern: [
-                    j.instance(Expression).field({ value: j.literal(keyword) }),
+                    j.instance(Identifier).field({ value: j.literal(keyword) }),
                 ],
                 factory: (_nodes, tokens) => {
                     return new BooleanLiteral(false, tokens)
@@ -185,28 +185,48 @@ export const BASIC_RULES: SRRule[][] = [
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('!=') })],
-            factory: (_nodes, tokens, scope) =>
-                new NotEqualOperator(scope, tokens),
+            factory: (nodes, tokens, scope) => {
+                const instance = new NotEqualOperator(scope, tokens)
+                instance.ambiguousTokens = nodes[0].ambiguousTokens
+
+                return instance
+            },
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('==') })],
-            factory: (_nodes, tokens, scope) =>
-                new EqualOperator(scope, tokens),
+            factory: (nodes, tokens, scope) => {
+                const instance = new EqualOperator(scope, tokens)
+                instance.ambiguousTokens = nodes[0].ambiguousTokens
+
+                return instance
+            },
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('>') })],
-            factory: (_nodes, tokens, scope) =>
-                new GreaterThanOperator(scope, tokens),
+            factory: (nodes, tokens, scope) => {
+                const instance = new GreaterThanOperator(scope, tokens)
+                instance.ambiguousTokens = nodes[0].ambiguousTokens
+
+                return instance
+            },
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('<') })],
-            factory: (_nodes, tokens, scope) =>
-                new LessThanOperator(scope, tokens),
+            factory: (nodes, tokens, scope) => {
+                const instance = new LessThanOperator(scope, tokens)
+                instance.ambiguousTokens = nodes[0].ambiguousTokens
+
+                return instance
+            },
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('>=') })],
-            factory: (_nodes, tokens, scope) =>
-                new GreaterThanOrEqualOperator(scope, tokens),
+            factory: (nodes, tokens, scope) => {
+                const instance = new GreaterThanOrEqualOperator(scope, tokens)
+                instance.ambiguousTokens = nodes[0].ambiguousTokens
+
+                return instance
+            },
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('<=') })],
@@ -219,64 +239,97 @@ export const BASIC_RULES: SRRule[][] = [
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('//') })],
-            factory: (_nodes, tokens, scope) =>
-                new IntegerDivideOperator(scope, tokens),
+            factory: (nodes, tokens, scope) => {
+                const instance = new IntegerDivideOperator(scope, tokens)
+                instance.ambiguousTokens = nodes[0].ambiguousTokens
+
+                return instance
+            },
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('%') })],
-            factory: (_nodes, tokens, scope) =>
-                new ModularOperator(scope, tokens),
+            factory: (nodes, tokens, scope) => {
+                const instance = new ModularOperator(scope, tokens)
+                instance.ambiguousTokens = nodes[0].ambiguousTokens
+
+                return instance
+            },
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('**') })],
-            factory: (_nodes, tokens, scope) =>
-                new PowerOperator(scope, tokens),
+            factory: (nodes, tokens, scope) => {
+                const instance = new PowerOperator(scope, tokens)
+                instance.ambiguousTokens = nodes[0].ambiguousTokens
+
+                return instance
+            },
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('/') })],
-            factory: (_nodes, tokens, scope) =>
-                new DivideOperator(scope, tokens),
+            factory: (nodes, tokens, scope) => {
+                const instance = new DivideOperator(scope, tokens)
+                instance.ambiguousTokens = nodes[0].ambiguousTokens
+
+                return instance
+            },
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('*') })],
-            factory: (_nodes, tokens, scope) =>
-                new MultiplyOperator(scope, tokens),
+            factory: (nodes, tokens, scope) => {
+                const instance = new MultiplyOperator(scope, tokens)
+                instance.ambiguousTokens = nodes[0].ambiguousTokens
+
+                return instance
+            },
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('+') })],
-            factory: (_nodes, tokens, scope) => new PlusOperator(scope, tokens),
+            factory: (nodes, tokens, scope) => {
+                const instance = new PlusOperator(scope, tokens)
+                instance.ambiguousTokens = nodes[0].ambiguousTokens
+
+                return instance
+            },
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('-') })],
-            factory: (_nodes, tokens, scope) =>
-                new MinusOperator(scope, tokens),
+            factory: (nodes, tokens, scope) => {
+                const instance = new MinusOperator(scope, tokens)
+                instance.ambiguousTokens = nodes[0].ambiguousTokens
+
+                return instance
+            },
         }),
         r({
             pattern: [
-                j.instance(Expression).field({ value: j.literal('이고') }),
+                j.instance(Identifier).field({ value: j.literal('이고') }),
             ],
             factory: (_nodes, tokens, scope) => new AndOperator(scope, tokens),
         }),
         r({
-            pattern: [j.instance(Expression).field({ value: j.literal('고') })],
+            pattern: [j.instance(Identifier).field({ value: j.literal('고') })],
             factory: (_nodes, tokens, scope) => new AndOperator(scope, tokens),
         }),
         r({
             pattern: [
-                j.instance(Expression).field({ value: j.literal('이거나') }),
+                j.instance(Identifier).field({ value: j.literal('이거나') }),
             ],
             factory: (_nodes, tokens, scope) => new OrOperator(scope, tokens),
         }),
         r({
             pattern: [
-                j.instance(Expression).field({ value: j.literal('거나') }),
+                j.instance(Identifier).field({ value: j.literal('거나') }),
             ],
             factory: (_nodes, tokens, scope) => new OrOperator(scope, tokens),
         }),
         r({
             pattern: [j.instance(Operator).field({ value: j.literal('~') })],
-            factory: (_nodes, tokens, scope) =>
-                new RangeOperator(scope, tokens),
+            factory: (nodes, tokens, scope) => {
+                const instance = new RangeOperator(scope, tokens)
+                instance.ambiguousTokens = nodes[0].ambiguousTokens
+
+                return instance
+            },
         }),
         r({
             pattern: [
@@ -291,7 +344,7 @@ export const BASIC_RULES: SRRule[][] = [
         r({
             pattern: [
                 j.instance(Evaluable),
-                j.instance(Expression).field({ value: j.literal('아니다') }),
+                j.instance(Identifier).field({ value: j.literal('아니다') }),
             ],
             factory: (nodes, tokens) => {
                 const evaluable = nodes[0]
@@ -338,9 +391,9 @@ export const ADVANCED_RULES: SRRule[] = [
     r({
         pattern: [
             j.instance(Evaluable),
-            j.instance(Expression).field({ value: j.literal('의') }),
-            j.instance(Expression).field({ value: j.literal('값') }),
-            j.instance(Expression).field({ value: j.literal('종류') }),
+            j.instance(Identifier).field({ value: j.literal('의') }),
+            j.instance(Identifier).field({ value: j.literal('값') }),
+            j.instance(Identifier).field({ value: j.literal('종류') }),
         ],
         factory: (nodes, tokens) => {
             const value = nodes[0]
@@ -402,13 +455,13 @@ function createTypeCastRules(): SRRule[] {
                         pattern: [
                             j.instance(Evaluable),
                             j
-                                .instance(Expression)
+                                .instance(Identifier)
                                 .field({ value: j.literal(particle) }),
                             j
-                                .instance(Expression)
+                                .instance(Identifier)
                                 .field({ value: j.literal(keyword) }),
                             j
-                                .instance(Expression)
+                                .instance(Identifier)
                                 .field({ value: j.literal('바꾸기') }),
                         ],
                         factory: (nodes, tokens) => {
@@ -426,16 +479,16 @@ function createTypeCastRules(): SRRule[] {
                             pattern: [
                                 j.instance(Evaluable),
                                 j
-                                    .instance(Expression)
+                                    .instance(Identifier)
                                     .field({ value: j.literal(particle) }),
                                 j
-                                    .instance(Expression)
+                                    .instance(Identifier)
                                     .field({ value: j.literal(head) }),
                                 j
-                                    .instance(Expression)
+                                    .instance(Identifier)
                                     .field({ value: j.literal(tail) }),
                                 j
-                                    .instance(Expression)
+                                    .instance(Identifier)
                                     .field({ value: j.literal('바꾸기') }),
                             ],
                             factory: (nodes, tokens) => {

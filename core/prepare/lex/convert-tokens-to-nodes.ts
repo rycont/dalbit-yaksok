@@ -27,8 +27,8 @@ function unescapeString(str: string): string {
 
 export function convertTokensToNodes(
     scope: Scope,
-    rawTokens: Token[],
-    replacers: DirectReplacer[],
+    rawTokens: readonly Token[],
+    replacers: readonly DirectReplacer[],
 ): Node[] {
     const tokens: (Token | null)[] = Array.from(rawTokens)
 
@@ -64,14 +64,7 @@ function mapTokenToNode(scope: Scope, token: Token | null) {
             return new Operator(token.value, [token])
         case TOKEN_TYPE.IDENTIFIER:
             const [slotKey, definedScope] = scope.findSlot(token.value)
-
-            if (slotKey) {
-                return new Identifier(definedScope, slotKey, token.value, [
-                    token,
-                ])
-            } else {
-                return new Expression(token.value, [token])
-            }
+            return new Identifier(definedScope, slotKey, token.value, [token])
         case TOKEN_TYPE.NEW_LINE:
             return new EOL([token])
         default:

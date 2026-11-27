@@ -1,11 +1,12 @@
 import {
     Evaluable,
-    Expression,
+    Identifier,
     ListLiteral,
     Node,
     PatternUnitChain,
     Scope,
     SlotKey,
+    TOKEN_TYPE,
     TupleLiteral,
     YaksokError,
 } from '@dalbit-yaksok/core'
@@ -29,13 +30,15 @@ export function createCallingPattern(
         }
 
         return j
-            .instance(Expression)
+            .instance(Identifier)
             .field({
                 value: j.enum(g.names.map((n) => n.value)),
             })
             .meta({
                 isSuffix: g.isSuffix,
-                nameOptions: g.names.map((n) => n.value),
+                nameOptions: g.names
+                    .filter((t) => t.type === TOKEN_TYPE.IDENTIFIER)
+                    .map((t) => t.value),
             })
     })
 

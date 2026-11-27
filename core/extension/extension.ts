@@ -18,7 +18,7 @@ export interface FFICapability {
     runtimeId: string
     run: (
         code: string,
-        args: Map<string | symbol, ValueType>,
+        args: Map<string, ValueType>,
         callerFrame: RunFrame,
     ) => Promisable<ValueType>
 }

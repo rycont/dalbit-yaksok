@@ -1,11 +1,6 @@
 import { RULES } from './rules.ts'
 
-import {
-    YaksokError,
-    Splitpoint,
-    type Token,
-    TOKEN_TYPE,
-} from '@dalbit-yaksok/core'
+import { YaksokError, type Token, TOKEN_TYPE } from '@dalbit-yaksok/core'
 
 import { tokenizeTemplateString } from './template-string.ts'
 
@@ -17,14 +12,7 @@ class Tokenizer {
     private line = 1
     private bracketDepth = 0 // Added for multi-line array support
 
-    private splitpointQueue
-
-    constructor(
-        private code: string,
-        splitpoints: Splitpoint[],
-    ) {
-        this.splitpointQueue = Array.from(splitpoints)
-    }
+    constructor(private code: string) {}
 
     tokenize() {
         while (this.index < this.code.length) {
@@ -66,34 +54,7 @@ class Tokenizer {
                         accepted = true
                         break
                     } else {
-                        let matchedSplitpoint: Splitpoint | false
-                        if (
-                            (matchedSplitpoint = this.isInSplitpoint(newIndex))
-                        ) {
-                            const prefixLength = matchedSplitpoint - this.index
-
-                            const head: Token = {
-                                type: rule.type,
-                                value: consumed.slice(0, prefixLength),
-                                position: {
-                                    line: initialLineForToken,
-                                    column: initialColumnForToken,
-                                },
-                            }
-
-                            const tail: Token = {
-                                type: rule.type,
-                                value: consumed.slice(prefixLength),
-                                position: {
-                                    line: initialLineForToken,
-                                    column:
-                                        initialColumnForToken + prefixLength,
-                                },
-                            }
-
-                            this.tokens.push(head)
-                            this.tokens.push(tail)
-                        } else if (rule.type === TOKEN_TYPE.RAW_STRING) {
+                        if (rule.type === TOKEN_TYPE.RAW_STRING) {
                             const stringToken: Token = {
                                 type: rule.type,
                                 value: value,
@@ -172,23 +133,6 @@ class Tokenizer {
         return this.tokens
     }
 
-    private isInSplitpoint(newIndex: number): Splitpoint | false {
-        if (this.splitpointQueue.length === 0) {
-            return false
-        }
-
-        if (this.splitpointQueue[0] < this.index) {
-            this.splitpointQueue.shift()
-            return false
-        }
-
-        if (newIndex < this.splitpointQueue[0]) {
-            return false
-        }
-
-        return this.splitpointQueue.shift()!
-    }
-
     private updatePosition(consumed: string) {
         for (const char of consumed) {
             if (char === '\n') {
@@ -209,10 +153,7 @@ class Tokenizer {
     }
 }
 
-export function tokenize(
-    text: string,
-    splitpoints: Splitpoint[] = [],
-): Token[] {
-    const tokens = new Tokenizer(text, splitpoints).tokenize()
+export function tokenize(text: string): Token[] {
+    const tokens = new Tokenizer(text).tokenize()
     return tokens
 }
